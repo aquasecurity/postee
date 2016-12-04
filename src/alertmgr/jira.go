@@ -27,7 +27,7 @@ type Vulnerability struct {
 	Type           string  `json:"type"`
 	Description    string  `json:"description"`
 	Score          float32 `json:"score"`
-	Severity       string  `json:"severity"`
+	VendorSeverity string  `json:"vendor_severity"`
 	PublishDate    string  `json:"publishdate"`
 	InstallVersion string  `json:"have_version"`
 	FixVersion     string  `json:"fix_version"`
@@ -190,11 +190,11 @@ func (ctx *JiraAPI) buildDescription(data string) string {
 	sort.Sort(sort.Reverse(res.CVES))
 
 	for _, cve := range res.CVES {
-
-		severity := cve.Severity
+		severity := cve.VendorSeverity
 		installVersion := cve.InstallVersion
 		fixVersion := cve.FixVersion
 		vectors := cve.Vectors
+		score := cve.Score
 
 		if len(severity) == 0 {
 			severity = " "
@@ -204,6 +204,10 @@ func (ctx *JiraAPI) buildDescription(data string) string {
 		}
 		if len(fixVersion) == 0 {
 			fixVersion = " "
+		}
+		if severity == "negligible" || severity == "unknown" {
+			score = 0
+			vectors = ""
 		}
 		if len(vectors) == 0 {
 			vectors = " "
@@ -216,9 +220,9 @@ func (ctx *JiraAPI) buildDescription(data string) string {
 
 		if strings.HasPrefix(cve.Name, "RHSA") {
 			cvename := strings.Replace(cve.Name, ":", "-", -1)
-			line = fmt.Sprintf("|[%s|https://rhn.redhat.com/errata/%s.html]|%s|%s|%.2f|%s|%s|%s|\n", cvename, cvename, cve.File, severity, cve.Score, installVersion, fixVersion, vectors)
+			line = fmt.Sprintf("|[%s|https://rhn.redhat.com/errata/%s.html]|%s|%s|%.2f|%s|%s|%s|\n", cvename, cvename, cve.File, severity, score, installVersion, fixVersion, vectors)
 		} else if strings.HasPrefix(cve.Name, "CVE") {
-			line = fmt.Sprintf("|[%s|https://web.nvd.nist.gov/view/vuln/detail?vulnId=%s]|%s|%s|%.2f|%s|%s|%s|\n", cve.Name, cve.Name, cve.File, severity, cve.Score, installVersion, fixVersion, vectors)
+			line = fmt.Sprintf("|[%s|https://web.nvd.nist.gov/view/vuln/detail?vulnId=%s]|%s|%s|%.2f|%s|%s|%s|\n", cve.Name, cve.Name, cve.File, severity, score, installVersion, fixVersion, vectors)
 		} else {
 			line = fmt.Sprintf("|%s|%s|%s|%.2f|%s|%s|%s|\n", cve.Name, cve.File, severity, cve.Score, installVersion, fixVersion, vectors)
 		}
