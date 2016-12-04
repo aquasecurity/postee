@@ -1,5 +1,6 @@
 GOPATH=$(CURDIR)
-GO=$(shell which go)
+GO=/usr/local/go/bin/go
+GO_FMT=/usr/local/go/bin/gofmt
 GO_GET=$(GO) get
 GO_BUILD=$(GO) build
 GO_INSTALL=$(GO) install
@@ -38,4 +39,9 @@ clean :
 docker :
 	@echo "Building image...."
 	docker build -t aquasec/webhook-server:latest -f Dockerfile.webhook-server .
+
+fmt :
+	@echo "fmt...."
+	$(GO_FMT) -w ./src
+
 
