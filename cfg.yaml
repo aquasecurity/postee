@@ -1,10 +1,10 @@
   - name: jira
     enable: true
-    url: https://aquasec.atlassian.net
-    user: azy
+    url: https://xxx.atlassian.net
+    user: alice
     password: xxxxxxxxxxx
     board: CVE
-    assignee: azy
+    assignee: bob
     ticket: Bug
     description:
     summary:
