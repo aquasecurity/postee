@@ -16,7 +16,6 @@ import (
 	"os"
 	"strings"
 
-	"bitbucket.org/scalock/server/sedockweb/rpc/scanmgr"
 	"github.com/andygrunwald/go-jira"
 )
 
@@ -333,109 +332,111 @@ func (ctx *JiraAPI) buildSummary(data string) string {
 
 func (ctx *JiraAPI) buildDescription(data string) string {
 
-	const (
-		JIRA_MARKDOWN_NL = "\\\\\n"
-	)
+	//const (
+	//	JIRA_MARKDOWN_NL = "\\\\\n"
+	//)
+	//
+	//res := scanmgr.ImageScanResult{}
+	//err := json.Unmarshal([]byte(data), &res)
+	//if err != nil {
+	//	log.Printf("Failed to render scan results, %s\n", err)
+	//	return ""
+	//}
+	//
+	//description := ""
+	//
+	//description += fmt.Sprintf("h1. Vulnerability Report: %s\n\n", res.Image)
+	//description += JIRA_MARKDOWN_NL
+	//description += "||HIGH||MEDIUM||LOW||\n"
+	//description += fmt.Sprintf("|{color:red}%d{color}|{color:orange}%d{color}|{color:green}%d{color}|\n\n", res.VulnerabilitySummary.High, res.VulnerabilitySummary.Medium, res.VulnerabilitySummary.Low)
+	//description += JIRA_MARKDOWN_NL
+	//
+	//if res.ImageAssuranceResults.GetDisallowed() {
+	//	description += fmt.Sprintf("h2. {color:red}Image %s is disallowed by Aqua Security{color}\n\n", res.Image)
+	//} else {
+	//	description += fmt.Sprintf("h2. {color:green}Image %s is allowed by Aqua Security{color}\n\n", res.Image)
+	//}
+	//
+	//description += JIRA_MARKDOWN_NL
+	//description += "The following vulnerabilities were found:\n"
+	//description += JIRA_MARKDOWN_NL
+	//
+	//description += "||NAME||RESOURCE||SEVERITY||SCORE||INSTALLED VERSION||FIX VERSION||VECTORS||\n"
+	//
+	//for _, resource := range res.Resources {
+	//	for _, cve := range resource.Vulnerabilities {
+	//
+	//		nvdSeverity := cve.NvdSeverity
+	//		vendorSeverity := cve.VendorSeverity
+	//		installVersion := resource.Resource.Version
+	//		fixVersion := cve.FixVersion
+	//		nvdVectors := cve.NvdVectors
+	//		vendorVectors := cve.VendorVectors
+	//		nvdScore := cve.NvdScore
+	//		vendorScore := cve.VendorScore
+	//
+	//		if len(nvdSeverity) == 0 {
+	//			nvdSeverity = " "
+	//		}
+	//		if len(vendorSeverity) == 0 {
+	//			vendorSeverity = " "
+	//		}
+	//		if len(installVersion) == 0 {
+	//			installVersion = " "
+	//		}
+	//		if len(fixVersion) == 0 {
+	//			fixVersion = " "
+	//		}
+	//
+	//		if nvdSeverity == "negligible" || nvdSeverity == "unknown" {
+	//			nvdScore = 0
+	//			nvdVectors = ""
+	//		}
+	//
+	//		if vendorSeverity == "negligible" || vendorSeverity == "unknown" {
+	//			vendorScore = 0
+	//			vendorVectors = ""
+	//		}
+	//
+	//		if len(nvdVectors) == 0 {
+	//			nvdVectors = " "
+	//		}
+	//
+	//		if len(vendorVectors) == 0 {
+	//			vendorVectors = " "
+	//		}
+	//
+	//		nvdVectors = strings.Replace(nvdVectors, ":P", "\\:P", -1)
+	//		nvdVectors = strings.Replace(nvdVectors, ":D", "\\:D", -1)
+	//
+	//		vendorVectors = strings.Replace(vendorVectors, ":P", "\\:P", -1)
+	//		vendorVectors = strings.Replace(vendorVectors, ":D", "\\:D", -1)
+	//
+	//		severityStr := buildString(nvdSeverity, vendorSeverity)
+	//
+	//		vectorsStr := buildString(nvdVectors, vendorVectors)
+	//
+	//		nameStr := ""
+	//		if strings.TrimSpace(cve.NvdUrl) != "" {
+	//			nameStr += fmt.Sprintf("Nvd: [%s|%s]", cve.Name, cve.NvdUrl)
+	//		}
+	//		if strings.TrimSpace(cve.VendorUrl) != "" {
+	//			nameStr += fmt.Sprintf("\\\\Vendor: [%s|%s]", cve.Name, cve.VendorUrl)
+	//		}
+	//
+	//		scoreStr := fmt.Sprintf("*NVD:* %.2f\n*Vendor:* %.2f&nbsp;  &nbsp;  &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;", nvdScore, vendorScore)
+	//		severityStr += "&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;"
+	//		vectorsStr += "&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;"
+	//
+	//		line := fmt.Sprintf("|"+nameStr+"|%s|"+severityStr+"|"+scoreStr+"|%s|%s|"+vectorsStr+"|\n", resource.Resource.Name, installVersion, fixVersion)
+	//
+	//		description += line
+	//	}
+	//}
 
-	res := scanmgr.ImageScanResult{}
-	err := json.Unmarshal([]byte(data), &res)
-	if err != nil {
-		log.Printf("Failed to render scan results, %s\n", err)
-		return ""
-	}
+	// return description
 
-	description := ""
-
-	description += fmt.Sprintf("h1. Vulnerability Report: %s\n\n", res.Image)
-	description += JIRA_MARKDOWN_NL
-	description += "||HIGH||MEDIUM||LOW||\n"
-	description += fmt.Sprintf("|{color:red}%d{color}|{color:orange}%d{color}|{color:green}%d{color}|\n\n", res.VulnerabilitySummary.High, res.VulnerabilitySummary.Medium, res.VulnerabilitySummary.Low)
-	description += JIRA_MARKDOWN_NL
-
-	if res.ImageAssuranceResults.GetDisallowed() {
-		description += fmt.Sprintf("h2. {color:red}Image %s is disallowed by Aqua Security{color}\n\n", res.Image)
-	} else {
-		description += fmt.Sprintf("h2. {color:green}Image %s is allowed by Aqua Security{color}\n\n", res.Image)
-	}
-
-	description += JIRA_MARKDOWN_NL
-	description += "The following vulnerabilities were found:\n"
-	description += JIRA_MARKDOWN_NL
-
-	description += "||NAME||RESOURCE||SEVERITY||SCORE||INSTALLED VERSION||FIX VERSION||VECTORS||\n"
-
-	for _, resource := range res.Resources {
-		for _, cve := range resource.Vulnerabilities {
-
-			nvdSeverity := cve.NvdSeverity
-			vendorSeverity := cve.VendorSeverity
-			installVersion := resource.Resource.Version
-			fixVersion := cve.FixVersion
-			nvdVectors := cve.NvdVectors
-			vendorVectors := cve.VendorVectors
-			nvdScore := cve.NvdScore
-			vendorScore := cve.VendorScore
-
-			if len(nvdSeverity) == 0 {
-				nvdSeverity = " "
-			}
-			if len(vendorSeverity) == 0 {
-				vendorSeverity = " "
-			}
-			if len(installVersion) == 0 {
-				installVersion = " "
-			}
-			if len(fixVersion) == 0 {
-				fixVersion = " "
-			}
-
-			if nvdSeverity == "negligible" || nvdSeverity == "unknown" {
-				nvdScore = 0
-				nvdVectors = ""
-			}
-
-			if vendorSeverity == "negligible" || vendorSeverity == "unknown" {
-				vendorScore = 0
-				vendorVectors = ""
-			}
-
-			if len(nvdVectors) == 0 {
-				nvdVectors = " "
-			}
-
-			if len(vendorVectors) == 0 {
-				vendorVectors = " "
-			}
-
-			nvdVectors = strings.Replace(nvdVectors, ":P", "\\:P", -1)
-			nvdVectors = strings.Replace(nvdVectors, ":D", "\\:D", -1)
-
-			vendorVectors = strings.Replace(vendorVectors, ":P", "\\:P", -1)
-			vendorVectors = strings.Replace(vendorVectors, ":D", "\\:D", -1)
-
-			severityStr := buildString(nvdSeverity, vendorSeverity)
-
-			vectorsStr := buildString(nvdVectors, vendorVectors)
-
-			nameStr := ""
-			if strings.TrimSpace(cve.NvdUrl) != "" {
-				nameStr += fmt.Sprintf("Nvd: [%s|%s]", cve.Name, cve.NvdUrl)
-			}
-			if strings.TrimSpace(cve.VendorUrl) != "" {
-				nameStr += fmt.Sprintf("\\\\Vendor: [%s|%s]", cve.Name, cve.VendorUrl)
-			}
-
-			scoreStr := fmt.Sprintf("*NVD:* %.2f\n*Vendor:* %.2f&nbsp;  &nbsp;  &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;", nvdScore, vendorScore)
-			severityStr += "&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;"
-			vectorsStr += "&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;"
-
-			line := fmt.Sprintf("|"+nameStr+"|%s|"+severityStr+"|"+scoreStr+"|%s|%s|"+vectorsStr+"|\n", resource.Resource.Name, installVersion, fixVersion)
-
-			description += line
-		}
-	}
-
-	return description
+	return "TODO"
 }
 
 func buildString(nvd string, vendor string) string {

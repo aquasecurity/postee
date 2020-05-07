@@ -1,14 +1,16 @@
 package main
 
 import (
-	"bitbucket.org/scalock/server/webhooksrv/alertmgr"
-	"bitbucket.org/scalock/server/webhooksrv/utils"
-	"bitbucket.org/scalock/server/webhooksrv/webserver"
-	"bitbucket.org/scalock/utils/daemon"
 	"fmt"
+	"github.com/aquasecurity/webhook-server/src/alertmgr"
+	"github.com/aquasecurity/webhook-server/src/utils"
+	"github.com/aquasecurity/webhook-server/src/webserver"
 	"github.com/spf13/cobra"
+	"log"
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 )
 
 const (
@@ -62,7 +64,21 @@ func main() {
 		go webserver.Instance().Start(url, tls)
 		defer webserver.Instance().Terminate()
 
-		daemon.Daemonize()
+		Daemonize()
 	}
 	rootCmd.Execute()
+}
+
+func Daemonize() {
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigs
+		log.Println(sig)
+		done <- true
+	}()
+
+	<-done
 }
