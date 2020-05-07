@@ -1,13 +1,14 @@
 package main
 
 import (
-	"alertmgr"
+	"bitbucket.org/scalock/server/webhooksrv/alertmgr"
+	"bitbucket.org/scalock/server/webhooksrv/utils"
+	"bitbucket.org/scalock/server/webhooksrv/webserver"
+	"bitbucket.org/scalock/utils/daemon"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 	"runtime"
-	"utils"
-	"webserver"
 )
 
 const (
@@ -61,7 +62,7 @@ func main() {
 		go webserver.Instance().Start(url, tls)
 		defer webserver.Instance().Terminate()
 
-		utils.Daemonize()
+		daemon.Daemonize()
 	}
 	rootCmd.Execute()
 }
