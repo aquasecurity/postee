@@ -9,9 +9,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"bitbucket.org/scalock/server/webhooksrv/alertmgr"
-	"bitbucket.org/scalock/server/webhooksrv/utils"
-	"bitbucket.org/scalock/utils/paths"
+	"github.com/aquasecurity/webhook-server/src/alertmgr"
+	"github.com/aquasecurity/webhook-server/src/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -36,11 +35,11 @@ func Instance() *WebServer {
 func (ctx *WebServer) Start(host, tlshost string) {
 	log.Printf("Starting WebServer....")
 
-	rootDir, _ := paths.GetRootDir()
+	rootDir, _ := utils.GetRootDir()
 	certPem := filepath.Join(rootDir, "cert.pem")
 	keyPem := filepath.Join(rootDir, "key.pem")
 
-	if ok := paths.PathExists(keyPem); ok != true {
+	if ok := utils.PathExists(keyPem); ok != true {
 		utils.GenerateCertificate(keyPem, certPem)
 	}
 

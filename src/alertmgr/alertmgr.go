@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"bitbucket.org/scalock/server/webhooksrv/utils"
+	"github.com/aquasecurity/webhook-server/src/utils"
 	"github.com/ghodss/yaml"
 )
 
