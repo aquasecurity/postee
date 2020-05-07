@@ -1,16 +1,18 @@
 package webserver
 
 import (
-	"alertmgr"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
-	"utils"
+
+	"bitbucket.org/scalock/server/webhooksrv/alertmgr"
+	"bitbucket.org/scalock/server/webhooksrv/utils"
+	"bitbucket.org/scalock/utils/paths"
+	"github.com/gorilla/mux"
 )
 
 type WebServer struct {
@@ -34,10 +36,11 @@ func Instance() *WebServer {
 func (ctx *WebServer) Start(host, tlshost string) {
 	log.Printf("Starting WebServer....")
 
-	certPem := filepath.Join(utils.GetRootDir(), "cert.pem")
-	keyPem := filepath.Join(utils.GetRootDir(), "key.pem")
+	rootDir, _ := paths.GetRootDir()
+	certPem := filepath.Join(rootDir, "cert.pem")
+	keyPem := filepath.Join(rootDir, "key.pem")
 
-	if ok := utils.PathExists(keyPem); ok != true {
+	if ok := paths.PathExists(keyPem); ok != true {
 		utils.GenerateCertificate(keyPem, certPem)
 	}
 

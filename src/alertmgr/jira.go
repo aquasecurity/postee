@@ -1,14 +1,23 @@
 package alertmgr
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/andygrunwald/go-jira"
+
+	"github.com/trivago/tgo/tcontainer"
+
 	"io/ioutil"
 	"log"
-	"sort"
+	"strconv"
+
+	"net/http"
+	"os"
 	"strings"
+
+	"bitbucket.org/scalock/server/sedockweb/rpc/scanmgr"
+	"github.com/andygrunwald/go-jira"
 )
 
 type Totals struct {
@@ -35,7 +44,7 @@ type Vulnerability struct {
 }
 
 type Cves struct {
-	ImageName  string `json:"image_name"`
+	ImageName  string `json:"image"`
 	Registry   string `json:"registry"`
 	Totals     Totals `json:"cves_counts"`
 	Disallowed bool   `json:"disallowed"`
@@ -43,27 +52,117 @@ type Cves struct {
 }
 
 type JiraAPI struct {
-	url         string
-	user        string
-	password    string
-	board       string
+	url       string
+	user      string
+	password  string
+	tlsVerify bool
+
+	issuetype   string
+	projectKey  string
+	projectName string
+	projectId   string
+
+	priority    string
 	assignee    string
-	ticket      string
 	description string
 	summary     string
+	sprintName  string
+	sprintId    int
+
+	isDescriptionProvided bool
+	isSummaryProvided     bool
+
+	fixVersions     []string
+	affectsVersions []string
+	labels          []string
+
+	unknowns map[string]string
+	BoardId  int
+}
+
+func (ctx *JiraAPI) fetchBoardId() {
+	client, err := ctx.createClient()
+	if err != nil {
+		log.Printf("unable to create Jira client: %s, please check your credentials.", err)
+		return
+	}
+
+	boardlist, _, err := client.Board.GetAllBoards(&jira.BoardListOptions{ProjectKeyOrID: ctx.projectId})
+	if err != nil {
+		log.Printf("failed to get boards from Jira API GetAllBoards with ProjectID %s. %s", ctx.projectId, err)
+		return
+	}
+	var matches int
+	for _, board := range boardlist.Values {
+		if board.Name == fmt.Sprintf("%s board", ctx.projectKey) { // "<board_name> board"
+			ctx.BoardId = board.ID
+			matches++
+		}
+	}
+
+	if matches > 1 {
+		log.Printf("found more than one boards with name %s, working with board id %d", ctx.projectKey, ctx.BoardId)
+	} else if matches == 0 {
+		log.Printf("no boards found with name %s when getting all boards for user", ctx.projectKey)
+		return
+	} else {
+		log.Printf("using board ID %d with Name %s", ctx.BoardId, ctx.projectKey)
+	}
+
+}
+
+func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
+	sprints, _, err := client.Board.GetAllSprintsWithOptions(ctx.BoardId, &jira.GetAllSprintsOptions{State: "active"})
+	if err != nil {
+		log.Printf("failed to get active sprint for board ID %d from Jira API. %s", ctx.BoardId, err)
+		return
+	}
+	if len(sprints.Values) > 1 {
+		ctx.sprintId = len(sprints.Values) - 1
+		log.Printf("Found more than one active sprint, using sprint id %d as the active sprint", ctx.sprintId)
+	} else if len(sprints.Values) == 1 {
+		if sprints.Values[0].ID != ctx.sprintId {
+			ctx.sprintId = sprints.Values[0].ID
+			log.Printf("using sprint id %d as the active sprint", ctx.sprintId)
+		}
+	} else {
+		log.Printf("no active sprints exist in board ID %d Name %s", ctx.BoardId, ctx.projectKey)
+	}
 }
 
 func NewJiraAPI(settings PluginSettings) *JiraAPI {
-	return &JiraAPI{
-		url:         settings.Url,
-		user:        settings.User,
-		password:    settings.Password,
-		board:       settings.Board,
-		assignee:    settings.Assignee,
-		ticket:      settings.Ticket,
-		description: settings.Description,
-		summary:     settings.Summary,
+	jiraApi := &JiraAPI{
+		url:             settings.Url,
+		user:            settings.User,
+		password:        settings.Password,
+		tlsVerify:       settings.TlsVerify,
+		issuetype:       settings.IssueType,
+		projectKey:      settings.ProjectKey,
+		projectName:     settings.ProjectName,
+		projectId:       settings.ProjectId,
+		priority:        settings.Priority,
+		assignee:        settings.Assignee,
+		description:     settings.Description,
+		summary:         settings.Summary,
+		fixVersions:     settings.FixVersions,
+		affectsVersions: settings.AffectsVersions,
+		labels:          settings.Labels,
+		unknowns:        settings.Unknowns,
+		sprintName:      settings.Sprint,
+		sprintId:        -1,
 	}
+	if settings.Description != "" {
+		jiraApi.isDescriptionProvided = true
+	}
+
+	if settings.Summary != "" {
+		jiraApi.isSummaryProvided = true
+	}
+
+	// validate ProjectID, ProjectName, Board(projectKey)
+
+	jiraApi.fetchBoardId()
+	return jiraApi
 }
 
 func (ctx *JiraAPI) Terminate() error {
@@ -73,39 +172,129 @@ func (ctx *JiraAPI) Terminate() error {
 
 func (ctx *JiraAPI) Init() error {
 	log.Printf("Starting Jira plugin....")
+	if len(ctx.password) == 0 {
+		ctx.password = os.Getenv("JIRA_PASSWORD")
+	}
 	return nil
 }
 
+func (ctx *JiraAPI) createClient() (*jira.Client, error) {
+	tp := jira.BasicAuthTransport{
+		Username: ctx.user,
+		Password: ctx.password,
+	}
+
+	if !ctx.tlsVerify {
+		tp.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+	client, err := jira.NewClient(tp.Client(), ctx.url)
+	if err != nil {
+		return client, fmt.Errorf("unable to create new JIRA client. %v", err)
+	}
+	return client, nil
+}
+
 func (ctx *JiraAPI) Send(data string) error {
-	client, err := jira.NewClient(nil, ctx.url)
+	client, err := ctx.createClient()
 	if err != nil {
-		log.Printf("Failed to connect to %s: %s\n", ctx.url, err)
-		return err
-	}
-	err = ctx.login(client)
-	if err != nil {
-		log.Printf("Failed login to jira: %s\n", err)
+		log.Printf("unable to create Jira client: %s", err)
 		return err
 	}
 
-	summary := ctx.buildSummary(data)
-	description := ctx.buildDescription(data)
+	ctx.fetchSprintId(*client)
 
-	issue := &jira.Issue{
-		Fields: &jira.IssueFields{
-			Type: jira.IssueType{
-				Name: ctx.ticket,
-			},
-			Project: jira.Project{
-				Key: ctx.board,
-			},
-			Assignee: &jira.User{
-				Name: ctx.assignee,
-			},
-			Description: description,
-			Summary:     summary,
-		},
+	metaProject, err := createMetaProject(client, ctx.projectKey)
+	if err != nil {
+		fmt.Printf("Failed to create meta project: %s\n", err)
 	}
+
+	// For some reason, the customer wants to provide
+	// the project id and not to rely on the id which is in the project
+	// meta information.
+	if len(ctx.projectId) > 0 {
+		if ctx.projectId != metaProject.Id {
+			log.Printf("Config supplied a different project ID than the board's project ID: using %s instead of %s", ctx.projectId, metaProject.Id)
+		}
+		metaProject.Id = ctx.projectId
+	}
+
+	// For some reason, the customer wants to provide
+	// the project name and not to rely on the name which is in the project
+	// meta information.
+	if len(ctx.projectName) > 0 {
+		if ctx.projectName != metaProject.Name {
+			log.Printf("Config supplied a different project Name than the board's project Name: using %s instead of %s", ctx.projectName, metaProject.Name)
+		}
+		metaProject.Name = ctx.projectName
+	}
+
+	metaIssueType, err := createMetaIssueType(metaProject, ctx.issuetype)
+	if err != nil {
+		fmt.Printf("Failed to create meta issue type: %s", err)
+	}
+
+	if !ctx.isSummaryProvided {
+		ctx.summary = ctx.buildSummary(data)
+	}
+	if !ctx.isDescriptionProvided {
+		ctx.description = ctx.buildDescription(data)
+	}
+
+	fieldsConfig := map[string]string{
+		"Issue Type":  ctx.issuetype,
+		"Project":     ctx.projectKey, // TODO: What is project here?
+		"Priority":    ctx.priority,
+		"Assignee":    ctx.assignee,
+		"Description": ctx.description,
+		"Summary":     ctx.summary,
+		"Sprint":      strconv.Itoa(ctx.sprintId),
+	}
+
+	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom user defined in jira.
+	for k, v := range ctx.unknowns {
+		fieldsConfig[k] = v
+	}
+	if len(ctx.unknowns) > 0 {
+		log.Printf("added %d custom fields to issue.", len(ctx.unknowns))
+	}
+
+	type Version struct {
+		Name string `json:"name"`
+	}
+
+	issue, err := InitIssue(metaProject, metaIssueType, fieldsConfig)
+	if err != nil {
+		log.Printf("Failed to init issue: %s\n", err)
+		return err
+	}
+
+	if len(ctx.labels) > 0 {
+		for _, l := range ctx.labels {
+			issue.Fields.Labels = append(issue.Fields.Labels, l)
+		}
+	}
+
+	if len(ctx.fixVersions) > 0 {
+		for _, v := range ctx.fixVersions {
+			issue.Fields.FixVersions = append(issue.Fields.FixVersions, &jira.FixVersion{
+				Name: v,
+			})
+		}
+	}
+
+	if len(ctx.affectsVersions) > 0 {
+		affectsVersions := []*Version{}
+		for _, v := range ctx.affectsVersions {
+			affectsVersions = append(affectsVersions, &Version{
+				Name: v,
+			})
+		}
+		issue.Fields.Unknowns["versions"] = affectsVersions
+		log.Printf("added %d affected versions into Versions field", len(ctx.affectsVersions))
+	}
+
 	i, err := ctx.openIssue(client, issue)
 	if err != nil {
 		log.Printf("Failed to open jira issue, %s\n", err)
@@ -122,6 +311,7 @@ func (ctx *JiraAPI) login(client *jira.Client) error {
 
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {
 	i, res, err := client.Issue.Create(issue)
+
 	defer res.Body.Close()
 	resp, _ := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -131,9 +321,7 @@ func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Iss
 }
 
 func (ctx *JiraAPI) buildSummary(data string) string {
-	if len(ctx.summary) > 0 {
-		return ctx.summary
-	}
+
 	res := Cves{}
 	err := json.Unmarshal([]byte(data), &res)
 	if err != nil {
@@ -145,7 +333,152 @@ func (ctx *JiraAPI) buildSummary(data string) string {
 
 func (ctx *JiraAPI) buildDescription(data string) string {
 
-	// TODO: use text/template package
+	const (
+		JIRA_MARKDOWN_NL = "\\\\\n"
+	)
+
+	res := scanmgr.ImageScanResult{}
+	err := json.Unmarshal([]byte(data), &res)
+	if err != nil {
+		log.Printf("Failed to render scan results, %s\n", err)
+		return ""
+	}
+
+	description := ""
+
+	description += fmt.Sprintf("h1. Vulnerability Report: %s\n\n", res.Image)
+	description += JIRA_MARKDOWN_NL
+	description += "||HIGH||MEDIUM||LOW||\n"
+	description += fmt.Sprintf("|{color:red}%d{color}|{color:orange}%d{color}|{color:green}%d{color}|\n\n", res.VulnerabilitySummary.High, res.VulnerabilitySummary.Medium, res.VulnerabilitySummary.Low)
+	description += JIRA_MARKDOWN_NL
+
+	if res.ImageAssuranceResults.GetDisallowed() {
+		description += fmt.Sprintf("h2. {color:red}Image %s is disallowed by Aqua Security{color}\n\n", res.Image)
+	} else {
+		description += fmt.Sprintf("h2. {color:green}Image %s is allowed by Aqua Security{color}\n\n", res.Image)
+	}
+
+	description += JIRA_MARKDOWN_NL
+	description += "The following vulnerabilities were found:\n"
+	description += JIRA_MARKDOWN_NL
+
+	description += "||NAME||RESOURCE||SEVERITY||SCORE||INSTALLED VERSION||FIX VERSION||VECTORS||\n"
+
+	for _, resource := range res.Resources {
+		for _, cve := range resource.Vulnerabilities {
+
+			nvdSeverity := cve.NvdSeverity
+			vendorSeverity := cve.VendorSeverity
+			installVersion := resource.Resource.Version
+			fixVersion := cve.FixVersion
+			nvdVectors := cve.NvdVectors
+			vendorVectors := cve.VendorVectors
+			nvdScore := cve.NvdScore
+			vendorScore := cve.VendorScore
+
+			if len(nvdSeverity) == 0 {
+				nvdSeverity = " "
+			}
+			if len(vendorSeverity) == 0 {
+				vendorSeverity = " "
+			}
+			if len(installVersion) == 0 {
+				installVersion = " "
+			}
+			if len(fixVersion) == 0 {
+				fixVersion = " "
+			}
+
+			if nvdSeverity == "negligible" || nvdSeverity == "unknown" {
+				nvdScore = 0
+				nvdVectors = ""
+			}
+
+			if vendorSeverity == "negligible" || vendorSeverity == "unknown" {
+				vendorScore = 0
+				vendorVectors = ""
+			}
+
+			if len(nvdVectors) == 0 {
+				nvdVectors = " "
+			}
+
+			if len(vendorVectors) == 0 {
+				vendorVectors = " "
+			}
+
+			nvdVectors = strings.Replace(nvdVectors, ":P", "\\:P", -1)
+			nvdVectors = strings.Replace(nvdVectors, ":D", "\\:D", -1)
+
+			vendorVectors = strings.Replace(vendorVectors, ":P", "\\:P", -1)
+			vendorVectors = strings.Replace(vendorVectors, ":D", "\\:D", -1)
+
+			severityStr := buildString(nvdSeverity, vendorSeverity)
+
+			vectorsStr := buildString(nvdVectors, vendorVectors)
+
+			nameStr := ""
+			if strings.TrimSpace(cve.NvdUrl) != "" {
+				nameStr += fmt.Sprintf("Nvd: [%s|%s]", cve.Name, cve.NvdUrl)
+			}
+			if strings.TrimSpace(cve.VendorUrl) != "" {
+				nameStr += fmt.Sprintf("\\\\Vendor: [%s|%s]", cve.Name, cve.VendorUrl)
+			}
+
+			scoreStr := fmt.Sprintf("*NVD:* %.2f\n*Vendor:* %.2f&nbsp;  &nbsp;  &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;", nvdScore, vendorScore)
+			severityStr += "&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;"
+			vectorsStr += "&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;"
+
+			line := fmt.Sprintf("|"+nameStr+"|%s|"+severityStr+"|"+scoreStr+"|%s|%s|"+vectorsStr+"|\n", resource.Resource.Name, installVersion, fixVersion)
+
+			description += line
+		}
+	}
+
+	return description
+}
+
+func buildString(nvd string, vendor string) string {
+	severityStr := ""
+	high := "#e0443d"
+	medium := "#f79421"
+	low := "#e1c930"
+	negligible := "green"
+
+	if strings.TrimSpace(nvd) != "" {
+		color := ""
+		if nvd == "high" {
+			color = high
+		} else if nvd == "medium" {
+			color = medium
+		} else if nvd == "low" {
+			color = low
+		} else if nvd == "negligible" {
+			color = negligible
+		}
+		severityStr += fmt.Sprintf("*NVD:* {color:%s}%s{color}\n", color, nvd)
+	}
+
+	if strings.TrimSpace(vendor) != "" {
+		color := ""
+		if vendor == "high" {
+			color = high
+		} else if vendor == "medium" {
+			color = medium
+		} else if vendor == "low" {
+			color = low
+		} else if vendor == "negligible" {
+			color = negligible
+		}
+		severityStr += fmt.Sprintf("*Vendor:* {color:%s}%s{color}", color, vendor)
+	}
+	return severityStr
+}
+
+/* As discussed with Amir, we don't need backwards compatibility since no one uses this hook
+   Leaving this code in the meantime for reference, need to remove it later.
+*/
+/*func (ctx *JiraAPI) buildDescription(data string) string {
 
 	const (
 		JIRA_MARKDOWN_NL = "\\\\\n"
@@ -205,10 +538,12 @@ func (ctx *JiraAPI) buildDescription(data string) string {
 		if len(fixVersion) == 0 {
 			fixVersion = " "
 		}
+
 		if severity == "negligible" || severity == "unknown" {
 			score = 0
 			vectors = ""
 		}
+
 		if len(vectors) == 0 {
 			vectors = " "
 		}
@@ -231,7 +566,7 @@ func (ctx *JiraAPI) buildDescription(data string) string {
 	}
 
 	return description
-}
+}*/
 
 func (slice CVES) Len() int {
 	return len(slice)
@@ -243,4 +578,135 @@ func (slice CVES) Less(i, j int) bool {
 
 func (slice CVES) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
+}
+
+func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error) {
+	meta, _, err := c.Issue.GetCreateMeta(project)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get create meta : %s", err)
+	}
+
+	// get right project
+	metaProject := meta.GetProjectWithKey(project)
+	if metaProject == nil {
+		return nil, fmt.Errorf("could not find project with key %s", project)
+	}
+
+	return metaProject, nil
+}
+
+func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira.MetaIssueType, error) {
+	metaIssuetype := metaProject.GetIssueTypeWithName(issueType)
+	if metaIssuetype == nil {
+		return nil, fmt.Errorf("could not find issuetype %s", issueType)
+	}
+
+	return metaIssuetype, nil
+}
+
+func InitIssue(metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
+	issue := new(jira.Issue)
+	issueFields := new(jira.IssueFields)
+	issueFields.Unknowns = tcontainer.NewMarshalMap()
+
+	// map the field names the User presented to jira's internal key
+	allFields, _ := metaIssuetype.GetAllFields()
+	for key, value := range fieldsConfig {
+
+		jiraKey, found := allFields[key]
+		if !found {
+			return nil, fmt.Errorf("key %s is not found in the list of fields", key)
+		}
+
+		valueType, err := metaIssuetype.Fields.String(jiraKey + "/schema/type")
+		if err != nil {
+			return nil, err
+		}
+
+		switch valueType {
+		case "array":
+			// split value (string) into slice by delimiter
+			elements := strings.Split(value, ",")
+
+			elemType, err := metaIssuetype.Fields.String(jiraKey + "/schema/items")
+			if err != nil {
+				return nil, err
+			}
+			switch elemType {
+			case "component":
+				issueFields.Unknowns[jiraKey] = []jira.Component{{Name: value}}
+			case "option":
+				optionsMap := make([]map[string]string, 0)
+
+				for _, element := range elements {
+					optionsMap = append(optionsMap, map[string]string{"value": element})
+				}
+				issueFields.Unknowns[jiraKey] = optionsMap
+			default:
+				if key == "Sprint" {
+					num, err := strconv.Atoi(value)
+					if err != nil {
+						return nil, err
+					}
+					issueFields.Unknowns[jiraKey] = num // Due to Jira REST API behavior, needed to specify not a slice but a number.
+				} else {
+					issueFields.Unknowns[jiraKey] = []string{value}
+				}
+			}
+		case "number":
+			val, err := strconv.Atoi(value)
+			if err != nil {
+				fmt.Printf("Failed convert value(string) to int: %s\n", err)
+			}
+			issueFields.Unknowns[jiraKey] = val
+
+		// TODO: Handle Cascading Select List
+		//case "option-with-child":
+		//	type CustomField struct {
+		//		Value string `json:"value"`
+		//	}
+		//	type CustomFieldCascading struct {
+		//		Value string `json:"value"`
+		//		Child CustomField `json:"child"`
+		//	}
+		//
+		//	a := CustomFieldCascading{ Value: "1", Child: CustomField{Value: "a"}}
+
+		case "string":
+			issueFields.Unknowns[jiraKey] = value
+		case "date":
+			issueFields.Unknowns[jiraKey] = value
+		case "datetime":
+			issueFields.Unknowns[jiraKey] = value
+		case "any":
+			// Treat any as string
+			issueFields.Unknowns[jiraKey] = value
+		case "project":
+			issueFields.Unknowns[jiraKey] = jira.Project{
+				Name: metaProject.Name,
+				ID:   metaProject.Id,
+			}
+		case "priority":
+			issueFields.Unknowns[jiraKey] = jira.Priority{Name: value}
+		case "user":
+			issueFields.Unknowns[jiraKey] = jira.User{
+				Name: value,
+			}
+		case "issuetype":
+			issueFields.Unknowns[jiraKey] = jira.IssueType{
+				Name: value,
+			}
+		case "option":
+			issueFields.Unknowns[jiraKey] = jira.Option{
+				Value: value,
+			}
+
+		default:
+			return nil, fmt.Errorf("Unknown issue type encountered: %s for %s", valueType, key)
+		}
+	}
+
+	issue.Fields = issueFields
+
+	return issue, nil
 }

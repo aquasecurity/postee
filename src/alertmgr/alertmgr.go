@@ -1,11 +1,12 @@
 package alertmgr
 
 import (
-	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"log"
 	"sync"
-	"utils"
+
+	"bitbucket.org/scalock/server/webhooksrv/utils"
+	"github.com/ghodss/yaml"
 )
 
 type Plugin interface {
@@ -15,16 +16,29 @@ type Plugin interface {
 }
 
 type PluginSettings struct {
-	Name        string `json:"name"`
-	Enable      bool   `json:"enable"`
-	Url         string `json:"url"`
-	User        string `json:"user"`
-	Password    string `json:"password"`
-	Board       string `json:"board"`
-	Assignee    string `json:"assignee"`
-	Ticket      string `json:"ticket"`
-	Description string `json:"description"`
-	Summary     string `json:"summary"`
+	Name      string `json:"name"`
+	Enable    bool   `json:"enable"`
+	Url       string `json:"url"`
+	User      string `json:"user"`
+	Password  string `json:"password"`
+	TlsVerify bool   `json:"tls_verify"`
+	IssueType string `json:"issuetype" structs:"issuetype"`
+	// The project key is unmarshalled by the "board" string in the yaml configuration
+	// for jira integration. Left for backwards-compatibility.
+	ProjectKey string `json:"board,omitempty" structs:"board,omitempty"`
+
+	ProjectName     string   `json:"project_name,omitempty"`
+	ProjectId       string   `json:"project_id,omitempty"`
+	Priority        string   `json:"priority,omitempty"`
+	Assignee        string   `json:"assignee,omitempty"`
+	Description     string   `json:"description,omitempty"`
+	Summary         string   `json:"summary,omitempty"`
+	FixVersions     []string `json:"fixVersions,omitempty"`
+	AffectsVersions []string `json:"affectsVersions,omitempty"`
+	Labels          []string `json:"labels,omitempty"`
+	Sprint          string   `json:"sprint,omitempty"`
+
+	Unknowns map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
 }
 
 type AlertMgr struct {
