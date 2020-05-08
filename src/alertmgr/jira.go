@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/trivago/tgo/tcontainer"
-
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -610,7 +608,7 @@ func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira
 func InitIssue(metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
 	issue := new(jira.Issue)
 	issueFields := new(jira.IssueFields)
-	issueFields.Unknowns = tcontainer.NewMarshalMap()
+	issueFields.Unknowns =  make(map[string]interface{})
 
 	// map the field names the User presented to jira's internal key
 	allFields, _ := metaIssuetype.GetAllFields()
