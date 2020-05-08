@@ -25,9 +25,9 @@ build :
 get :
 	@echo "download 3rd party packages...."
 	@$(GO_GET) github.com/gorilla/mux
-	@$(GO_GET) github.com/spf13/cobra
 	@$(GO_GET) github.com/ghodss/yaml
 	@$(GO_GET) github.com/andygrunwald/go-jira
+	@$(GO_GET) github.com/trivago/tgo/tcontainer
 
 all : makedir get build
 

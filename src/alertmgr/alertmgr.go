@@ -5,7 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/aquasecurity/webhook-server/src/utils"
+	"utils"
 	"github.com/ghodss/yaml"
 )
 

@@ -206,7 +206,7 @@ func (ctx *JiraAPI) Send(data string) error {
 
 	metaProject, err := createMetaProject(client, ctx.projectKey)
 	if err != nil {
-		fmt.Printf("Failed to create meta project: %s\n", err)
+		return fmt.Errorf("Failed to create meta project: %s\n", err)
 	}
 
 	// For some reason, the customer wants to provide
@@ -231,7 +231,7 @@ func (ctx *JiraAPI) Send(data string) error {
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.issuetype)
 	if err != nil {
-		fmt.Printf("Failed to create meta issue type: %s", err)
+		return fmt.Errorf("Failed to create meta issue type: %s", err)
 	}
 
 	if !ctx.isSummaryProvided {
@@ -248,7 +248,9 @@ func (ctx *JiraAPI) Send(data string) error {
 		"Assignee":    ctx.assignee,
 		"Description": ctx.description,
 		"Summary":     ctx.summary,
-		"Sprint":      strconv.Itoa(ctx.sprintId),
+	}
+	if ctx.sprintId >=0 {
+		fieldsConfig["Sprint"] = strconv.Itoa(ctx.sprintId)
 	}
 
 	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom user defined in jira.
