@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/aquasecurity/webhook-server/src/alertmgr"
-	"github.com/aquasecurity/webhook-server/src/utils"
+	"alertmgr"
+	"utils"
 	"github.com/gorilla/mux"
 )
 

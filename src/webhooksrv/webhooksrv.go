@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/aquasecurity/webhook-server/src/alertmgr"
-	"github.com/aquasecurity/webhook-server/src/utils"
-	"github.com/aquasecurity/webhook-server/src/webserver"
+	"alertmgr"
+	"utils"
+	"webserver"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
