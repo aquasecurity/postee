@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/trivago/tgo/tcontainer"
-
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -478,9 +476,6 @@ func buildString(nvd string, vendor string) string {
 	return severityStr
 }
 
-/* As discussed with Amir, we don't need backwards compatibility since no one uses this hook
-   Leaving this code in the meantime for reference, need to remove it later.
-*/
 /*func (ctx *JiraAPI) buildDescription(data string) string {
 
 	const (
@@ -610,7 +605,7 @@ func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira
 func InitIssue(metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
 	issue := new(jira.Issue)
 	issueFields := new(jira.IssueFields)
-	issueFields.Unknowns = tcontainer.NewMarshalMap()
+	issueFields.Unknowns =  make(map[string]interface{})
 
 	// map the field names the User presented to jira's internal key
 	allFields, _ := metaIssuetype.GetAllFields()
