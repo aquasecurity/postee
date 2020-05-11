@@ -476,9 +476,6 @@ func buildString(nvd string, vendor string) string {
 	return severityStr
 }
 
-/* As discussed with Amir, we don't need backwards compatibility since no one uses this hook
-   Leaving this code in the meantime for reference, need to remove it later.
-*/
 /*func (ctx *JiraAPI) buildDescription(data string) string {
 
 	const (
