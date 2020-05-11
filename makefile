@@ -43,4 +43,6 @@ fmt :
 	@echo "fmt...."
 	$(GO_FMT) -w ./src
 
-
+test :
+	go test ./src/alertmgr -coverprofile=alertmgr.out
+	go tool cover -html=alertmgr.out
