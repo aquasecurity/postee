@@ -2,10 +2,11 @@ package alertmgr
 
 import (
 	"bytes"
+	"data"
 	"encoding/json"
 )
 
-func GenTicketDescription(scanInfo *ScanImageInfo) string {
+func GenTicketDescription(scanInfo, prevScan *data.ScanImageInfo) string {
 	var builder bytes.Buffer
 	builder.WriteString("Image name: " + scanInfo.Image + "\n")
 	builder.WriteString("Registry: " + scanInfo.Registry )
@@ -44,19 +45,26 @@ func GenTicketDescription(scanInfo *ScanImageInfo) string {
 		builder.WriteString( v )
 	}
 
+	// Discovered vulnerabilities from last scan:
+	if prevScan != nil && len(prevScan.Resources) > 0 {
+		builder.WriteString("\nh2. Discovered vulnerabilities from last scan\n")
+		for _, prev := range prevScan.Resources {
+			builder.WriteString(RenderVulnerabilities(prev.Name, prev.Vulnerabilities))
+		}
+	}
 	builder.WriteString("" + "\n")
 	return builder.String()
 }
 
-func GenTicketDescriptionSimpleAdd(scanInfo *ScanImageInfo) string {
+func GenTicketDescriptionSimpleAdd(scanInfo *data.ScanImageInfo) string {
 	builder := "Image name: " + scanInfo.Image + "\n"
 	builder += "Registry: " + "\n"
 	builder += "" + "\n"
 	return builder
 }
 
-func ParseImageInfo(source []byte) (*ScanImageInfo, error) {
-	scanInfo := new(ScanImageInfo)
+func ParseImageInfo(source []byte) (*data.ScanImageInfo, error) {
+	scanInfo := new(data.ScanImageInfo)
 	err := json.Unmarshal(source, scanInfo)
 	if err != nil {
 		return nil, err

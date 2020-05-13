@@ -2,6 +2,7 @@ package alertmgr
 
 import (
 	"crypto/tls"
+	"data"
 	"dbservice"
 	"errors"
 	"fmt"
@@ -24,7 +25,7 @@ type Totals struct {
 	ScoreAverage float64 `json:"score_average"`
 }
 
-type CVES []Vulnerability
+type CVES []data.Vulnerability
 
 type Cves struct {
 	ImageName  string `json:"image"`
@@ -179,24 +180,27 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	return client, nil
 }
 
-/*
-digest1: sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1
-digest2: sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1
-digest3: sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1
- */
-
 func (ctx *JiraAPI) Send(jsonSource string) error {
 	scanInfo,err := ParseImageInfo([]byte(jsonSource))
 	if err != nil {
 		return err
 	}
-
-	digest, err := dbservice.GetDigest(scanInfo.Digest)
+	prevScanSource, isNew, err := dbservice.HandleCurrentInfo(scanInfo)
 	if err != nil {
 		return err
 	}
-	if len(digest) > 0 {
-		return errors.New( fmt.Sprintf("This digest is old: %v", scanInfo) )
+	if !isNew {
+		fmt.Printf("This digest is old: %s\n", scanInfo.GetUniqueId())
+		return nil
+	}
+
+	var prevScan *data.ScanImageInfo
+
+	if len(prevScanSource) > 0 {
+		prevScan, err = ParseImageInfo(prevScanSource)
+		if err != nil {
+			return err
+		}
 	}
 
 	client, err := ctx.createClient()
@@ -241,7 +245,7 @@ func (ctx *JiraAPI) Send(jsonSource string) error {
 		ctx.summary = fmt.Sprintf("%s vulnerability scan report", scanInfo.Image)
 	}
 	if !ctx.isDescriptionProvided {
-		ctx.description = GenTicketDescription(scanInfo)
+		ctx.description = GenTicketDescription(scanInfo, prevScan)
 	}
 
 	fieldsConfig := map[string]string{
