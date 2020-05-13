@@ -1,13 +1,14 @@
 package alertmgr
 
 import (
+	"data"
 	"fmt"
 	"jiraformatting"
 	"strconv"
 	"strings"
 )
 
-func RenderAssurances(assuranceResults ImageAssuranceResults) (result string) {
+func RenderAssurances(assuranceResults data.ImageAssuranceResults) (result string) {
 	var assurances []string
 	for i, ass := range assuranceResults.ChecksPerformed {
 		var status string

@@ -1,4 +1,4 @@
-package alertmgr
+package data
 
 import "fmt"
 
@@ -6,6 +6,7 @@ type ScanImageInfo struct {
 	Image                 string `json:"image"`
 	Registry              string `json:"registry"`
 	Digest                string `json:"digest"`
+	PreviousDigest        string `json:"previous_digest"`
 	ImageAssuranceResults `json:"image_assurance_results"`
 	VulnerabilitySummary  `json:"vulnerability_summary"`
 	ScanOptions           `json:"scan_options"`
@@ -53,6 +54,10 @@ type Vulnerability struct {
 	FixVersion string `json:"fix_version"`
 }
 
+func BuildUniqueId(digest, image, registry string) string {
+	return fmt.Sprintf("%s-%s-%s", digest, image, registry)
+}
+
 func (si *ScanImageInfo) GetUniqueId() string {
-	return fmt.Sprintf("%s-%s-%s", si.Digest, si.Image, si.Registry)
+	return BuildUniqueId(si.Digest, si.Image, si.Registry)
 }

@@ -2,6 +2,7 @@ package alertmgr
 
 import (
 	"bytes"
+	"data"
 	"fmt"
 	"jiraformatting"
 	"strconv"
@@ -21,7 +22,7 @@ func RenderVulnerabilitiesCounts( critical, high, medium, low, negligible int) s
 	return fmt.Sprintf("%s%s\n", title, row)
 }
 
-func RenderVulnerabilities(title string, vulns []Vulnerability) string {
+func RenderVulnerabilities(title string, vulns []data.Vulnerability) string {
 	const empty = "none"
 	var builder bytes.Buffer
 	if title == "" {title = empty}
