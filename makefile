@@ -27,6 +27,7 @@ get :
 	@$(GO_GET) github.com/gorilla/mux
 	@$(GO_GET) github.com/ghodss/yaml
 	@$(GO_GET) github.com/andygrunwald/go-jira
+	@$(GO_GET) go.etcd.io/bbolt
 
 all : makedir get build
 
@@ -44,5 +45,5 @@ fmt :
 	$(GO_FMT) -w ./src
 
 test :
-	go test ./src/alertmgr -coverprofile=alertmgr.out
+	go test ./src/alertmgr -v -coverprofile=alertmgr.out
 	go tool cover -html=alertmgr.out
