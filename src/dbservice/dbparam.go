@@ -1,7 +1,6 @@
 package dbservice
 
-const (
+var (
 	DbPath = "webhooks.db"
 	BucketName = "WebhookBucket"
-
 )
