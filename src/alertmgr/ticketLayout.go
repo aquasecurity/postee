@@ -17,7 +17,7 @@ func GenTicketDescription(scanInfo, prevScan *data.ScanImageInfo) string {
 	}
 	builder.WriteString(
 		RenderVulnerabilitiesCounts(
-			scanInfo.Critical, scanInfo.Negligible, scanInfo.Medium, scanInfo.Low, scanInfo.Negligible ))
+			scanInfo.Critical, scanInfo.High, scanInfo.Medium, scanInfo.Low, scanInfo.Negligible ))
 
 	if scanInfo.ScanMalware {
 		if scanInfo.Malware > 0 {
@@ -54,13 +54,6 @@ func GenTicketDescription(scanInfo, prevScan *data.ScanImageInfo) string {
 	}
 	builder.WriteString("" + "\n")
 	return builder.String()
-}
-
-func GenTicketDescriptionSimpleAdd(scanInfo *data.ScanImageInfo) string {
-	builder := "Image name: " + scanInfo.Image + "\n"
-	builder += "Registry: " + "\n"
-	builder += "" + "\n"
-	return builder
 }
 
 func ParseImageInfo(source []byte) (*data.ScanImageInfo, error) {
