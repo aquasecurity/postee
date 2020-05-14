@@ -47,4 +47,7 @@ fmt :
 
 test :
 	go test ./src/alertmgr -v -coverprofile=alertmgr.out
+	go test ./src/dbservice -v -coverprofile=dbservice.out
+
 	go tool cover -html=alertmgr.out
+	go tool cover -html=dbservice.out
