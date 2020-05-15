@@ -1,12 +1,12 @@
 ---
 - name: jira
   enable: true
-  url: http://localhost:2990/jira # "<Mandatory: johndoe.atlassian.net>" e.g. http://localhost:2990/jira
-  user: admin # "<Mandatory: johndoe@gmail.com>"
-  password: admin #"<Mandatory: Jira API Key>"
+  url: "<Mandatory: johndoe.atlassian.net>"
+  user: "<Mandatory: johndoe@gmail.com>"
+  password: "<Mandatory: Jira API Key>"
   tls_verify: false
-  project_key: CVE #"<Mandatory: Desired Jira Project Key>"
-  board: # Desired Jira Board name. Default: First board of the project
+  project_key: "<Mandatory: Desired Jira Project Key>"
+  board: # Desired Jira Board name. Default: default project board
   labels: 
   issuetype: #default Task
   priority: # default: High
