@@ -23,15 +23,14 @@ type PluginSettings struct {
 	Password  string `json:"password"`
 	TlsVerify bool   `json:"tls_verify"`
 	IssueType string `json:"issuetype" structs:"issuetype"`
+	BoardName string `json:"board,omitempty" structs:"board,omitempty"`
 	// The project key is unmarshalled by the "board" string in the yaml configuration
 	// for jira integration. Left for backwards-compatibility.
-	ProjectKey string `json:"board,omitempty" structs:"board,omitempty"`
+	ProjectKey string `json:"project_key,omitempty" structs:"project_key,omitempty"`
 
-	ProjectName     string   `json:"project_name,omitempty"`
-	ProjectId       string   `json:"project_id,omitempty"`
 	Priority        string   `json:"priority,omitempty"`
 	Assignee        string   `json:"assignee,omitempty"`
-	Description     string   `json:"description,omitempty"`
+	Description     string
 	Summary         string   `json:"summary,omitempty"`
 	FixVersions     []string `json:"fixVersions,omitempty"`
 	AffectsVersions []string `json:"affectsVersions,omitempty"`
