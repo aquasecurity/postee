@@ -18,7 +18,7 @@ const (
 	TLS       = "0.0.0.0:8445"
 	URL_USAGE = "The socket to bind to, specified using host:port."
 	TLS_USAGE = "The TLS socket to bind to, specified using host:port."
-	CFG_FILE  = "/opt/scalock/alert.yaml"
+	CFG_FILE  = "/config/cfg.yaml"
 	CFG_USAGE = "The alert configuration file."
 )
 
