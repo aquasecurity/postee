@@ -6,7 +6,7 @@
   password: admin #"<Mandatory: Jira API Key>"
   tls_verify: false
   project_key: CVE #"<Mandatory: Desired Jira Project Key>"
-  board: CVEDCC # Desired Jira Board name. Default: First board of the project
+  board: # Desired Jira Board name. Default: First board of the project
   labels: 
   issuetype: #default Task
   priority: # default: High

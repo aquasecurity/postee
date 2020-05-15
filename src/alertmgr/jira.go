@@ -2,10 +2,10 @@ package alertmgr
 
 import (
 	"crypto/tls"
-	"encoding/json"
+	"data"
+	"dbservice"
 	"errors"
 	"fmt"
-
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -30,20 +30,7 @@ type Totals struct {
 	ScoreAverage float64 `json:"score_average"`
 }
 
-type CVES []Vulnerability
-
-type Vulnerability struct {
-	File           string  `json:"file"`
-	Name           string  `json:"name"`
-	Type           string  `json:"type"`
-	Description    string  `json:"description"`
-	Score          float32 `json:"score"`
-	VendorSeverity string  `json:"vendor_severity"`
-	PublishDate    string  `json:"publishdate"`
-	InstallVersion string  `json:"have_version"`
-	FixVersion     string  `json:"fix_version"`
-	Vectors        string  `json:"vectors"`
-}
+type CVES []data.Vulnerability
 
 type Cves struct {
 	ImageName  string `json:"image"`
@@ -100,7 +87,7 @@ func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	if matches > 1 {
 		log.Printf("found more than one boards with name %q, working with board id %d", boardName, ctx.BoardId)
 	} else if matches == 0 {
-		log.Printf("no boards found with name %s when getting all boards for user", ctx.projectKey)
+		log.Printf("no boards found with name %s when getting all boards for user", boardName)
 		return
 	} else {
 		log.Printf("using board ID %d with Name %s", ctx.BoardId, boardName)
@@ -196,7 +183,29 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	return client, nil
 }
 
-func (ctx *JiraAPI) Send(data string) error {
+func (ctx *JiraAPI) Send(jsonSource string) error {
+	scanInfo,err := ParseImageInfo([]byte(jsonSource))
+	if err != nil {
+		return err
+	}
+	prevScanSource, isNew, err := dbservice.HandleCurrentInfo(scanInfo)
+	if err != nil {
+		return err
+	}
+	if !isNew {
+		fmt.Printf("This digest is old: %s\n", scanInfo.GetUniqueId())
+		return nil
+	}
+
+	var prevScan *data.ScanImageInfo
+
+	if len(prevScanSource) > 0 {
+		prevScan, err = ParseImageInfo(prevScanSource)
+		if err != nil {
+			return err
+		}
+	}
+
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Printf("unable to create Jira client: %s", err)
@@ -215,8 +224,8 @@ func (ctx *JiraAPI) Send(data string) error {
 		return fmt.Errorf("Failed to create meta issue type: %s", err)
 	}
 
-	ctx.summary = ctx.buildSummary(data)
-	ctx.description = ctx.buildDescription(data)
+	ctx.summary = fmt.Sprintf("%s vulnerability scan report", scanInfo.Image)
+	ctx.description = GenTicketDescription(scanInfo, prevScan)
 
 	fieldsConfig := map[string]string{
 		"Issue Type":  ctx.issuetype,
@@ -298,21 +307,6 @@ func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Iss
 	return i, nil
 }
 
-func (ctx *JiraAPI) buildSummary(data string) string {
-
-	res := Cves{}
-	err := json.Unmarshal([]byte(data), &res)
-	if err != nil {
-		log.Printf("Failed to render scan results, %s\n", err)
-		return ""
-	}
-	return fmt.Sprintf("%s vulnerability scan report", res.ImageName)
-}
-
-func (ctx *JiraAPI) buildDescription(data string) string {
-	return "TODO"
-}
-
 func buildString(nvd string, vendor string) string {
 	severityStr := ""
 	high := "#e0443d"
@@ -354,10 +348,11 @@ func (slice CVES) Len() int {
 	return len(slice)
 }
 
+/*
 func (slice CVES) Less(i, j int) bool {
 	return slice[i].Score < slice[j].Score
 }
-
+*/
 func (slice CVES) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
