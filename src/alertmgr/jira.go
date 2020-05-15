@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"jiraformatting"
+	"layout"
 	"log"
 	"strconv"
 
@@ -181,7 +183,7 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 }
 
 func (ctx *JiraAPI) Send(jsonSource string) error {
-	scanInfo,err := ParseImageInfo([]byte(jsonSource))
+	scanInfo,err := data.ParseImageInfo([]byte(jsonSource))
 	if err != nil {
 		return err
 	}
@@ -197,7 +199,7 @@ func (ctx *JiraAPI) Send(jsonSource string) error {
 	var prevScan *data.ScanImageInfo
 
 	if len(prevScanSource) > 0 {
-		prevScan, err = ParseImageInfo(prevScanSource)
+		prevScan, err = data.ParseImageInfo(prevScanSource)
 		if err != nil {
 			return err
 		}
@@ -245,7 +247,8 @@ func (ctx *JiraAPI) Send(jsonSource string) error {
 		ctx.summary = fmt.Sprintf("%s vulnerability scan report", scanInfo.Image)
 	}
 	if !ctx.isDescriptionProvided {
-		ctx.description = GenTicketDescription(scanInfo, prevScan)
+		jiraProvider := new(jiraformatting.JiraLayoutProvider)
+		ctx.description = layout.GenTicketDescription(jiraProvider, scanInfo, prevScan)
 	}
 
 	fieldsConfig := map[string]string{
