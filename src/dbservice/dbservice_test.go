@@ -54,6 +54,8 @@ func TestHandleCurrentInfo(t *testing.T) {
 	BucketName = "test_" + BucketName
 
 	for _, test := range tests {
+
+		// Handling of first scan
 		_, isNew, err := HandleCurrentInfo( test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
@@ -62,6 +64,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 			t.Errorf("A new scan was found!\n")
 		}
 
+		// Handling of second scan with the same data
 		_, isNew, err = HandleCurrentInfo( test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
@@ -70,6 +73,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 			t.Errorf("A old scan wasn't found!\n")
 		}
 
+		// Change number of High vulnerabilities and handling it
 		test.input.High++
 		_, isNew, err = HandleCurrentInfo( test.input)
 		if err != nil {
@@ -78,7 +82,6 @@ func TestHandleCurrentInfo(t *testing.T) {
 		if !isNew {
 			t.Errorf("Updating scan was ignored!\n")
 		}
-
 	}
 	os.Remove(DbPath)
 }
