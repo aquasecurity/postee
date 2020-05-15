@@ -24,11 +24,9 @@ build :
 
 get :
 	@echo "download 3rd party packages...."
-	@$(GO_GET) github.com/spf13/cobra
 	@$(GO_GET) github.com/gorilla/mux
 	@$(GO_GET) github.com/ghodss/yaml
 	@$(GO_GET) github.com/andygrunwald/go-jira
-	@$(GO_GET) go.etcd.io/bbolt
 
 all : makedir get build
 
@@ -45,9 +43,4 @@ fmt :
 	@echo "fmt...."
 	$(GO_FMT) -w ./src
 
-test :
-	go test ./src/alertmgr -v -coverprofile=alertmgr.out
-	go test ./src/dbservice -v -coverprofile=dbservice.out
 
-	go tool cover -html=alertmgr.out
-	go tool cover -html=dbservice.out
