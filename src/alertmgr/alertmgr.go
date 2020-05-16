@@ -38,6 +38,10 @@ type PluginSettings struct {
 	Labels          []string `json:"labels,omitempty"`
 	Sprint          string   `json:"sprint,omitempty"`
 
+	Host string `json:"host"`
+	Port string `json:"port"`
+	Recipients []string `json:"recipients"`
+
 	Unknowns map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
 }
 
@@ -117,6 +121,10 @@ func (ctx *AlertMgr) load() error {
 				plugin := NewJiraAPI(settings)
 				plugin.Init()
 				ctx.plugins["jira"] = plugin
+			case "email":
+				plugin := NewEmailPlugin(settings)
+				plugin.Init()
+				ctx.plugins["email"] = plugin
 			}
 		}
 	}
