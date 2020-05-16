@@ -8,7 +8,7 @@
   project_id: "<Mandatory: Desired Jira Project ID>"
   project_name: "<Mandatory: Jira Project name>"
   board: "<Mandatory: Desired Jira Board name>"
-  description: "<issue description>"
+  description: "<Optional: issue description>"
   summary:
   issuetype:
   priority: 
