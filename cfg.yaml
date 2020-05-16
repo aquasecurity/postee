@@ -7,7 +7,7 @@
   tls_verify: false
   project_key: "<Mandatory: Desired Jira Project Key>"
   board: # Optional: desired Jira Board name. Default: default project board
-  labels: 
+  labels: ["label1", "label2"]
   issuetype: # default: Task
   priority:  # default: High
   assignee:  # default: Same user as the 'user' parameter
