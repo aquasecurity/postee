@@ -6,8 +6,8 @@
   password: "<Mandatory: Jira API Key>"
   tls_verify: false
   project_key: "<Mandatory: Desired Jira Project Key>"
-  board: # Desired Jira Board name. Default: default project board
+  board: # Optional: desired Jira Board name. Default: default project board
   labels: 
-  issuetype: #default Task
-  priority: # default: High
-  assignee: # default: user
+  issuetype: # default: Task
+  priority:  # default: High
+  assignee:  # default: Same user as the 'user' parameter
