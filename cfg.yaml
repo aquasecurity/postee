@@ -13,3 +13,10 @@
   issuetype:
   priority: 
   assignee: "<Jira assignee uid>"
+- name: email
+  enable: true
+  user: "<Mandatory: johndoe@gmail.com>"
+  password: "<Mandatory: Jira API Key>"
+  host: smtp.gmail.com
+  port: 587
+  recipients: ["", ""]
