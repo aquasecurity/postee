@@ -38,7 +38,7 @@ Specify the following:
   issuetype: <Optional issue type> e.g., Bug
   labels: [<Optional comma seperated list of labels that will be assigned to ticket>] e.g., ["label1", "label2"]
   sprint: <Optional Sprint name> e.g., "3.5 Sprint 8"
-  custom: <optional custom fields>
+  unknowns: <optional custom fields>
      custom-field: <value> e.g., hello world
      custom-field-numeric-field: 1337
      custom-field-multiple-value: <value1>, <value2> e.g., 1,2,3 (must be separated by commas)
