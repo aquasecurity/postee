@@ -10,13 +10,11 @@ When this integration is enabled, a ticket is opened vulnerabilities are found i
 Follow these steps to set up the integration:
 
 1. Set up the JIRA configuration file (cfg.yaml).
-2. Run the Aqua Webhook Server container with the JIRA configuration file.
+2. Run the Aqua ALM Integration container with the JIRA configuration file.
 3. Configure the Aqua Server to send a Webhook notification when a new vulnerability is found.
 4. Validate that a JIRA ticket has been opened.
 
 The following sections describe these steps in more detail.
-
-
 
 # Set up the JIRA Configuration File
 
@@ -30,22 +28,17 @@ Specify the following:
 ---
 - name: jira
   enable: true
-  url: <JIRA url> e.g., https://scalock.atlassian.net
+  url: <JIRA url> e.g., https://myname.atlassian.net
   user: <user name to connect to JIRA>
-  password: <user password> OR <API Token>
-  board: <JIRA board key> e.g., SLK
-  priority: <default priority> e.g., Highest
-  assignee: <default assignee> e.g., Kuku
-  issuetype: <default issuetype> e.g., Bug
-  description: <default description> e.g., This is the description
-  summary: <default summary> e.g., This is a summary
-  project_id: <project id> e.g., 1234
-  project_name: <project name> e.g., Scalock Scrum
-  fixVersions: [<fix versions>] e.g., Aqua CS 3.5
-  affectsVersions: [<affects versions>] e.g., Aqua CS 3.5
-  labels: [<labels>] e.g., some-label
-  sprint: <sprint_name> e.g., 3.5 Sprint 8
-  unknowns: 
+  password: <User API Token>
+  project_key: <The JIRA projcet Key> e.g., VUL
+  board: <Optional JIRA board key> e.g., SLK
+  priority: <Optional ticket priority> e.g., High
+  assignee: <Optional assignee> e.g., John
+  issuetype: <Optional issue type> e.g., Bug
+  labels: [<Optional comma seperated list of labels that will be assigned to ticket>] e.g., ["label1", "label2"]
+  sprint: <Optional Sprint name> e.g., "3.5 Sprint 8"
+  custom: <optional custom fields>
      custom-field: <value> e.g., hello world
      custom-field-numeric-field: 1337
      custom-field-multiple-value: <value1>, <value2> e.g., 1,2,3 (must be separated by commas)
@@ -54,23 +47,24 @@ Specify the following:
      custom-field-url: <url> e.g., https://tour.golang.org/moretypes/7
 ```
 
-*Note that all "<text>" placeholders should be replaced with values specific to your JIRA implementation. You can leave `summary` and `description` undefined to use a default value which will include the image name.*
+*Note that all "<text>" placeholders should be replaced with values specific to your JIRA implementation.*
 
 ###### *To prevent providing clear text passwords in text file you can use the environment variable "JIRA_PASSWORD" to pass the password to your JIRA account.*
 
 **If using the sprint setting, please make sure to restart the plugin and change the sprint value to the new appropriate sprint name.**
 
-# Run the Aqua Webhook Server Container
+# Run the Aqua ALM Integration Container
 
-Run the Aqua Webhook Server container on the same host where the JIRA configuration file is located, as follows:
+Build and run the Aqua Webhook Server container on the same host where the JIRA configuration file is located, as follows:
 
 ```bash
-docker run -d --name=aqua-webhook -v /<path to JIRA configuration file>/jira.yaml:/config/jira.yaml -e AQUAALERT_CFG=/config/jira.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 aquasec/webhook-server:3.2
+docker build -t alm-integration-image:latest .
+
+docker run -d --name=aqua-webhook -v /<path to JIRA configuration file>/jira.yaml:/config/jira.yaml -e AQUAALERT_CFG=/config/jira.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration-image:latest
 
 ```
 
 ###### *There is a volume mount that mounts the JIRA configuration file from the host to the container. There is also an environment variable, AQUAALERT_CFG, that specifies the location of the JIRA configuration file inside the container.*
-
 
 
 # Configure the Aqua Server with Webhook Integration
@@ -85,14 +79,10 @@ The URL is in the following formats:
 or
 **HTTP**: http://<Webhook IP or DNS>:8084/scan
 
-
-
-
 # Validate the Integration
 
 To validate that the integration is working, you can scan a new image for security vulnerabilities from the Aqua Server UI (Images > Add Image > Specify Image Name > Add).
 
 When vulnerabilities are found in an image, you will see that a JIRA ticket is opened on the board specified in the JIRA configuration file.
 
-
-###### *To troubleshoot the integration, you can look at both the Aqua Webhook Server container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
+###### *To troubleshoot the integration, you can look at both the Aqua ALM Integration container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
