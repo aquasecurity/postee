@@ -19,6 +19,11 @@ import (
 	"github.com/andygrunwald/go-jira"
 )
 
+const (
+	IssueTypeDefault = "Task"
+	PriorityDefault = "High"
+)
+
 type Totals struct {
 	Total        int64   `json:"total"`
 	High         int64   `json:"high"`
@@ -45,8 +50,6 @@ type JiraAPI struct {
 
 	issuetype   string
 	projectKey  string
-	projectName string
-	projectId   string
 
 	priority    string
 	assignee    string
@@ -54,9 +57,6 @@ type JiraAPI struct {
 	summary     string
 	sprintName  string
 	sprintId    int
-
-	isDescriptionProvided bool
-	isSummaryProvided     bool
 
 	fixVersions     []string
 	affectsVersions []string
@@ -66,35 +66,34 @@ type JiraAPI struct {
 	BoardId  int
 }
 
-func (ctx *JiraAPI) fetchBoardId() {
+func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Printf("unable to create Jira client: %s, please check your credentials.", err)
 		return
 	}
 
-	boardlist, _, err := client.Board.GetAllBoards(&jira.BoardListOptions{ProjectKeyOrID: ctx.projectId})
+	boardlist, _, err := client.Board.GetAllBoards(&jira.BoardListOptions{ProjectKeyOrID: ctx.projectKey})
 	if err != nil {
-		log.Printf("failed to get boards from Jira API GetAllBoards with ProjectID %s. %s", ctx.projectId, err)
+		log.Printf("failed to get boards from Jira API GetAllBoards with ProjectID %s. %s", ctx.projectKey, err)
 		return
 	}
 	var matches int
 	for _, board := range boardlist.Values {
-		if board.Name == fmt.Sprintf("%s board", ctx.projectKey) { // "<board_name> board"
+		if board.Name == boardName {
 			ctx.BoardId = board.ID
 			matches++
 		}
 	}
 
 	if matches > 1 {
-		log.Printf("found more than one boards with name %s, working with board id %d", ctx.projectKey, ctx.BoardId)
+		log.Printf("found more than one boards with name %q, working with board id %d", boardName, ctx.BoardId)
 	} else if matches == 0 {
-		log.Printf("no boards found with name %s when getting all boards for user", ctx.projectKey)
+		log.Printf("no boards found with name %s when getting all boards for user", boardName)
 		return
 	} else {
-		log.Printf("using board ID %d with Name %s", ctx.BoardId, ctx.projectKey)
+		log.Printf("using board ID %d with Name %s", ctx.BoardId, boardName)
 	}
-
 }
 
 func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
@@ -124,12 +123,8 @@ func NewJiraAPI(settings PluginSettings) *JiraAPI {
 		tlsVerify:       settings.TlsVerify,
 		issuetype:       settings.IssueType,
 		projectKey:      settings.ProjectKey,
-		projectName:     settings.ProjectName,
-		projectId:       settings.ProjectId,
 		priority:        settings.Priority,
 		assignee:        settings.Assignee,
-		description:     settings.Description,
-		summary:         settings.Summary,
 		fixVersions:     settings.FixVersions,
 		affectsVersions: settings.AffectsVersions,
 		labels:          settings.Labels,
@@ -137,17 +132,25 @@ func NewJiraAPI(settings PluginSettings) *JiraAPI {
 		sprintName:      settings.Sprint,
 		sprintId:        -1,
 	}
-	if settings.Description != "" {
-		jiraApi.isDescriptionProvided = true
+
+	if jiraApi.issuetype == "" {
+		jiraApi.issuetype = IssueTypeDefault
 	}
 
-	if settings.Summary != "" {
-		jiraApi.isSummaryProvided = true
+	if jiraApi.priority == "" {
+		jiraApi.priority = PriorityDefault
 	}
 
-	// validate ProjectID, ProjectName, Board(projectKey)
-
-	jiraApi.fetchBoardId()
+	if jiraApi.assignee == "" {
+		jiraApi.assignee = jiraApi.user
+	}
+	var boardName string
+	if settings.BoardName == "" {
+		boardName = fmt.Sprintf("%s board", settings.ProjectKey)
+	} else {
+		boardName = settings.BoardName
+	}
+	jiraApi.fetchBoardId(boardName)
 	return jiraApi
 }
 
@@ -218,48 +221,24 @@ func (ctx *JiraAPI) Send(jsonSource string) error {
 		return fmt.Errorf("Failed to create meta project: %s\n", err)
 	}
 
-	// For some reason, the customer wants to provide
-	// the project id and not to rely on the id which is in the project
-	// meta information.
-	if len(ctx.projectId) > 0 {
-		if ctx.projectId != metaProject.Id {
-			log.Printf("Config supplied a different project ID than the board's project ID: using %s instead of %s", ctx.projectId, metaProject.Id)
-		}
-		metaProject.Id = ctx.projectId
-	}
-
-	// For some reason, the customer wants to provide
-	// the project name and not to rely on the name which is in the project
-	// meta information.
-	if len(ctx.projectName) > 0 {
-		if ctx.projectName != metaProject.Name {
-			log.Printf("Config supplied a different project Name than the board's project Name: using %s instead of %s", ctx.projectName, metaProject.Name)
-		}
-		metaProject.Name = ctx.projectName
-	}
-
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.issuetype)
 	if err != nil {
 		return fmt.Errorf("Failed to create meta issue type: %s", err)
 	}
 
-	if !ctx.isSummaryProvided {
-		ctx.summary = fmt.Sprintf("%s vulnerability scan report", scanInfo.Image)
-	}
-	if !ctx.isDescriptionProvided {
-		jiraProvider := new(jiraformatting.JiraLayoutProvider)
-		ctx.description = layout.GenTicketDescription(jiraProvider, scanInfo, prevScan)
-	}
+	ctx.summary = fmt.Sprintf("%s vulnerability scan report", scanInfo.Image)
+	jiraProvider := new(jiraformatting.JiraLayoutProvider)
+	ctx.description = layout.GenTicketDescription(jiraProvider, scanInfo, prevScan)
 
 	fieldsConfig := map[string]string{
 		"Issue Type":  ctx.issuetype,
-		"Project":     ctx.projectKey, // TODO: What is project here?
+		"Project":     ctx.projectKey,
 		"Priority":    ctx.priority,
 		"Assignee":    ctx.assignee,
 		"Description": ctx.description,
 		"Summary":     ctx.summary,
 	}
-	if ctx.sprintId >=0 {
+	if ctx.sprintId > 0 {
 		fieldsConfig["Sprint"] = strconv.Itoa(ctx.sprintId)
 	}
 
@@ -367,96 +346,6 @@ func buildString(nvd string, vendor string) string {
 	}
 	return severityStr
 }
-
-/*func (ctx *JiraAPI) buildDescription(data string) string {
-
-	const (
-		JIRA_MARKDOWN_NL = "\\\\\n"
-		JIRA_REDHAT_FMT  = "|[%s|https://rhn.redhat.com/errata/%s.html]|%s|%s|%.2f|%s|%s|%s|\n"
-		JIRA_NVD_FMT     = "|[%s|https://web.nvd.nist.gov/view/vuln/detail?vulnId=%s]|%s|%s|%.2f|%s|%s|%s|\n"
-	)
-
-	res := Cves{}
-	err := json.Unmarshal([]byte(data), &res)
-	if err != nil {
-		log.Printf("Failed to render scan results, %s\n", err)
-		return ""
-	}
-
-	description := ""
-
-	// Add user defined description
-	if len(ctx.description) > 0 {
-		description = fmt.Sprintf("{panel:title=%s}{panel}\n", ctx.description)
-		description += JIRA_MARKDOWN_NL
-		description += JIRA_MARKDOWN_NL
-	}
-
-	description += fmt.Sprintf("Vulnerability Report: %s\n\n", res.ImageName)
-	description += JIRA_MARKDOWN_NL
-	description += "||HIGH||MEDIUM||LOW||SCORE AVG.||\n"
-	description += fmt.Sprintf("|%d|%d|%d|%.2f|\n\n", res.Totals.High, res.Totals.Medium, res.Totals.Low, res.Totals.ScoreAverage)
-	description += JIRA_MARKDOWN_NL
-
-	if res.Disallowed {
-		description += fmt.Sprintf("{color:red}Image %s is disallowed by Aqua Security{color}\n\n", res.ImageName)
-	} else {
-		description += fmt.Sprintf("Image %s is allowed by Aqua Security\n\n", res.ImageName)
-	}
-
-	description += JIRA_MARKDOWN_NL
-	description += "The following vulnerabilities were found:\n"
-	description += JIRA_MARKDOWN_NL
-
-	description += "||NAME||RESOURCE||SEVERITY||SCORE||INSTALLED VERSION||FIX VERSION||VECTORS||\n"
-
-	sort.Sort(sort.Reverse(res.CVES))
-
-	for _, cve := range res.CVES {
-		severity := cve.VendorSeverity
-		installVersion := cve.InstallVersion
-		fixVersion := cve.FixVersion
-		vectors := cve.Vectors
-		score := cve.Score
-
-		if len(severity) == 0 {
-			severity = " "
-		}
-		if len(installVersion) == 0 {
-			installVersion = " "
-		}
-		if len(fixVersion) == 0 {
-			fixVersion = " "
-		}
-
-		if severity == "negligible" || severity == "unknown" {
-			score = 0
-			vectors = ""
-		}
-
-		if len(vectors) == 0 {
-			vectors = " "
-		}
-
-		vectors = strings.Replace(vectors, ":P", "\\:P", -1)
-		vectors = strings.Replace(vectors, ":D", "\\:D", -1)
-
-		line := ""
-
-		if strings.HasPrefix(cve.Name, "RHSA") {
-			cvename := strings.Replace(cve.Name, ":", "-", -1)
-			line = fmt.Sprintf("|[%s|https://rhn.redhat.com/errata/%s.html]|%s|%s|%.2f|%s|%s|%s|\n", cvename, cvename, cve.File, severity, score, installVersion, fixVersion, vectors)
-		} else if strings.HasPrefix(cve.Name, "CVE") {
-			line = fmt.Sprintf("|[%s|https://web.nvd.nist.gov/view/vuln/detail?vulnId=%s]|%s|%s|%.2f|%s|%s|%s|\n", cve.Name, cve.Name, cve.File, severity, score, installVersion, fixVersion, vectors)
-		} else {
-			line = fmt.Sprintf("|%s|%s|%s|%.2f|%s|%s|%s|\n", cve.Name, cve.File, severity, cve.Score, installVersion, fixVersion, vectors)
-		}
-
-		description += line
-	}
-
-	return description
-}*/
 
 func (slice CVES) Len() int {
 	return len(slice)
