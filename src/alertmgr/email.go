@@ -45,14 +45,17 @@ func (email *EmailPlugin) Send(service *scanservice.ScanService) error {
 	subject := service.GetHead()
 
 	msg := fmt.Sprintf(
-		"To: %s\r\nSubject: %s\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-		email.recipients[0], subject, content)
+		"To: %s\r\n"+
+			"From: %s\r\n" +
+			"Subject: %s\r\n"+
+			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
+		email.recipients[0], email.user, subject, content)
 	auth := smtp.PlainAuth("", email.user, email.password, email.host)
 	err := smtp.SendMail(email.host+":"+email.port, auth, email.sender, email.recipients, []byte(msg))
 	if err != nil {
 		log.Println("Error", err)
 		return err
 	}
-	fmt.Println("Email was sent successfully!")
+	log.Println("Email was sent successfully!")
 	return nil
 }
