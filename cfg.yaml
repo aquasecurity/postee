@@ -1,15 +1,13 @@
 ---
 - name: jira
   enable: true
-  url: "<Mandatory: johndoe.atlassian.net>"
-  user: "<Mandatory: johndoe@gmail.com>"
-  password: "<Mandatory: Jira API Key>"
+  url: #Mandatory. E.g "https://johndoe.atlassian.net"
+  user: #Mandatory. E.g :johndoe@gmail.com"
+  password: #Mandatory. Specify Jira user API key
+  project_key: #Mandatory. Specify the JIRA product key
   tls_verify: false
-  project_id: "<Mandatory: Desired Jira Project ID>"
-  project_name: "<Mandatory: Jira Project name>"
-  board: "<Mandatory: Desired Jira Board name>"
-  description: "<issue description>"
-  summary:
-  issuetype:
-  priority: 
-  assignee: "<Jira assignee uid>"
+  board: #Optional. Specify the Jira board name to open tickets on
+  labels: ["label1", "label2"]
+  issuetype: #Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
+  priority:  #Optional. Specify the issues severity. Default is "High"
+  assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket

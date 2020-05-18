@@ -1,7 +1,8 @@
-package alertmgr
+package layout
 
 import (
 	"data"
+	"jiraformatting"
 	"strconv"
 	"strings"
 	"testing"
@@ -138,7 +139,7 @@ func TestParseImageInfo( t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := ParseImageInfo(test.input)
+		got, err := data.ParseImageInfo(test.input)
 		if err != nil {
 			t.Errorf("Can't parse next sequence: %s\nError: %s", string(test.input), err.Error())
 		}
@@ -166,8 +167,9 @@ func TestScanImageInfo_GetUniqueId(t *testing.T) {
 }
 
 func BenchmarkGenTicketDescription(b *testing.B) {
+	provider := new (jiraformatting.JiraLayoutProvider)
 	for i:=0; i < b.N; i++ {
-		GenTicketDescription(&AlpineImageResult, nil)
+		GenTicketDescription(provider, &AlpineImageResult, nil)
 	}
 }
 
@@ -180,8 +182,10 @@ func TestGenTicketDescription(t *testing.T) {
 		{ &AshexPokemongoResult, nil },
 	}
 
+	provider := new (jiraformatting.JiraLayoutProvider)
+
 	for _, test := range tests {
-		got := GenTicketDescription( test.currentScan, test.previousScan)
+		got := GenTicketDescription( provider, test.currentScan, test.previousScan)
 		important := getImportantData(test.currentScan)
 		for k, v := range important {
 			if !strings.Contains(got, k) {

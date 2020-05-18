@@ -2,6 +2,7 @@ package dbservice
 
 import (
 	"data"
+	"encoding/json"
 	"os"
 	"testing"
 )
@@ -44,24 +45,23 @@ func TestHandleCurrentInfo(t *testing.T) {
 	}
 
 	dbPathReal := DbPath
-	dbBucketReal := BucketName
 	defer func() {
 		DbPath = dbPathReal
-		BucketName = dbBucketReal
 	}()
-
 	DbPath = "test_" + dbPathReal
-	BucketName = "test_" + BucketName
 
 	for _, test := range tests {
+
+		// Handling of first scan
 		_, isNew, err := HandleCurrentInfo( test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
 		if !isNew {
-			t.Errorf("A new scan was found!\n")
+			t.Errorf("A first scan was found!\n")
 		}
 
+		// Handling of second scan with the same data
 		_, isNew, err = HandleCurrentInfo( test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
@@ -70,6 +70,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 			t.Errorf("A old scan wasn't found!\n")
 		}
 
+		// Change number of High vulnerabilities and handling it
 		test.input.High++
 		_, isNew, err = HandleCurrentInfo( test.input)
 		if err != nil {
@@ -79,6 +80,38 @@ func TestHandleCurrentInfo(t *testing.T) {
 			t.Errorf("Updating scan was ignored!\n")
 		}
 
+		// image scan with same name and registry, but different digest than previous scan.
+		// get bytes of Base Scan
+		testScanBytes,err := json.Marshal(test.input)
+		if err != nil {
+			t.Errorf("Error: %s\n", err)
+		}
+		t.Log("Base scan:", string(testScanBytes))
+		// Set current scan as previous for a next scan, and change digest inside a new scan
+		test.input.PreviousDigest , test.input.Digest = test.input.Digest, "sha256:manual_digest"
+
+		prevScanBytesFromDb, isNew, err := HandleCurrentInfo(test.input)
+		if err != nil {
+			t.Errorf("Error: %s\n", err)
+		}
+		t.Log("Prev scan:", string(prevScanBytesFromDb))
+
+		if !isNew {
+			t.Errorf("Scan with updated digest was ignored!\n")
+		}
+
+		// PrevScan must be equals BaseScan
+		if len(testScanBytes) != len(prevScanBytesFromDb) {
+			t.Errorf("Prev scan is wrong!\nResult:%s\nWaiting:%s\n", prevScanBytesFromDb, testScanBytes)
+		} else {
+			for i := range prevScanBytesFromDb {
+				if testScanBytes[i] != prevScanBytesFromDb[i] {
+					t.Errorf("Prev scan is wrong!\nResult:%s\nWaiting:%s\n",
+						string(prevScanBytesFromDb), string(testScanBytes))
+					break
+				}
+			}
+		}
 	}
 	os.Remove(DbPath)
 }
