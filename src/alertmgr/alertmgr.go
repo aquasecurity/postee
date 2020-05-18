@@ -133,18 +133,19 @@ func (ctx *AlertMgr) listen() {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			for _, plugin := range ctx.plugins {
-				if plugin != nil {
-					scanService := new(scanservice.ScanService)
-					if err := scanService.Init(data); err != nil {
-						log.Println("Can't init service with data:", data, "\nError:", err)
-					}
-					if scanService.IsNew() {
+			scanService := new(scanservice.ScanService)
+			if err := scanService.Init(data); err != nil {
+				log.Println("Can't init service with data:", data, "\nError:", err)
+				break
+			}
+			if scanService.IsNew() {
+				for _, plugin := range ctx.plugins {
+					if plugin != nil {
 						go plugin.Send(scanService)
-					} else {
-						log.Println("This scan result is old:", scanService.GetId())
 					}
 				}
+			} else {
+				log.Println("This scan result is old:", scanService.GetId())
 			}
 		}
 	}
