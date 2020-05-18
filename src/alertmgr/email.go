@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/smtp"
 	"scanservice"
+	"strings"
 )
 
 type EmailPlugin struct{
@@ -49,7 +50,7 @@ func (email *EmailPlugin) Send(service *scanservice.ScanService) error {
 			"From: %s\r\n" +
 			"Subject: %s\r\n"+
 			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-		email.recipients[0], email.user, subject, content)
+		strings.Join(email.recipients,","), email.user, subject, content)
 	auth := smtp.PlainAuth("", email.user, email.password, email.host)
 	err := smtp.SendMail(email.host+":"+email.port, auth, email.sender, email.recipients, []byte(msg))
 	if err != nil {
