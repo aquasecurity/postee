@@ -3,6 +3,7 @@ package layout
 import (
 	"data"
 	"jiraformatting"
+	"scanservice"
 	"strconv"
 	"strings"
 	"testing"
@@ -139,7 +140,7 @@ func TestParseImageInfo( t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := data.ParseImageInfo(test.input)
+		got, err := scanservice.ParseImageInfo(test.input)
 		if err != nil {
 			t.Errorf("Can't parse next sequence: %s\nError: %s", string(test.input), err.Error())
 		}

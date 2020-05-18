@@ -3,6 +3,7 @@ package alertmgr
 import (
 	"io/ioutil"
 	"log"
+	"scanservice"
 	"sync"
 
 	"github.com/ghodss/yaml"
@@ -11,7 +12,7 @@ import (
 
 type Plugin interface {
 	Init() error
-	Send(data string) error
+	Send(service *scanservice.ScanService) error
 	Terminate() error
 }
 
@@ -134,7 +135,15 @@ func (ctx *AlertMgr) listen() {
 		case data := <-ctx.queue:
 			for _, plugin := range ctx.plugins {
 				if plugin != nil {
-					go plugin.Send(data)
+					scanService := new(scanservice.ScanService)
+					if err := scanService.Init(data); err != nil {
+						log.Println("Can't init service with data:", data, "\nError:", err)
+					}
+					if scanService.IsNew() {
+						go plugin.Send(scanService)
+					} else {
+						log.Println("This scan result is old:", scanService.GetId())
+					}
 				}
 			}
 		}

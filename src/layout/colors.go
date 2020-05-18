@@ -1,4 +1,4 @@
-package data
+package layout
 
 func CriticalColor() string {	return "#c00000" }
 func HighColor() string {	return "#e0443d" }

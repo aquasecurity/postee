@@ -3,13 +3,12 @@ package alertmgr
 import (
 	"crypto/tls"
 	"data"
-	"dbservice"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"jiraformatting"
-	"layout"
 	"log"
+	"scanservice"
 	"strconv"
 
 	"net/http"
@@ -185,29 +184,7 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	return client, nil
 }
 
-func (ctx *JiraAPI) Send(jsonSource string) error {
-	scanInfo,err := data.ParseImageInfo([]byte(jsonSource))
-	if err != nil {
-		return err
-	}
-	prevScanSource, isNew, err := dbservice.HandleCurrentInfo(scanInfo)
-	if err != nil {
-		return err
-	}
-	if !isNew {
-		fmt.Printf("This digest is old: %s\n", scanInfo.GetUniqueId())
-		return nil
-	}
-
-	var prevScan *data.ScanImageInfo
-
-	if len(prevScanSource) > 0 {
-		prevScan, err = data.ParseImageInfo(prevScanSource)
-		if err != nil {
-			return err
-		}
-	}
-
+func (ctx *JiraAPI) Send(service *scanservice.ScanService ) error {
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Printf("unable to create Jira client: %s", err)
@@ -226,9 +203,8 @@ func (ctx *JiraAPI) Send(jsonSource string) error {
 		return fmt.Errorf("Failed to create meta issue type: %s", err)
 	}
 
-	ctx.summary = fmt.Sprintf("%s vulnerability scan report", scanInfo.Image)
-	jiraProvider := new(jiraformatting.JiraLayoutProvider)
-	ctx.description = layout.GenTicketDescription(jiraProvider, scanInfo, prevScan)
+	ctx.summary = service.GetHead()
+	ctx.description = service.GetBody(new(jiraformatting.JiraLayoutProvider))
 
 	fieldsConfig := map[string]string{
 		"Issue Type":  ctx.issuetype,
