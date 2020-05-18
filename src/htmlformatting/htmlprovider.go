@@ -26,7 +26,7 @@ func (html *HtmlProvider) ColourText(text, color string) string {
 
 func (html *HtmlProvider) Table(rows [][]string) string {
 	table := make([]string, 0)
-	table = append(table, "<TABLE border='1'>")
+	table = append(table, "<TABLE border='1' style='width: 100%; border-collapse: collapse;'>")
 	for i, r := range rows {
 		var tag string
 		if i == 0 {
@@ -37,7 +37,7 @@ func (html *HtmlProvider) Table(rows [][]string) string {
 		table = append(table, "<TR>")
 		var rowBuilder bytes.Buffer
 		for _, field := range r {
-			rowBuilder.WriteString( fmt.Sprintf("<%s>%s</%s>", tag,field, tag) )
+			rowBuilder.WriteString( fmt.Sprintf("<%s style='padding: 5px;'>%s</%s>", tag,field, tag) )
 		}
 		table = append(table, rowBuilder.String())
 		table = append(table, "</TR>")
