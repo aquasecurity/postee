@@ -8,6 +8,10 @@ import (
 
 type HtmlProvider struct{}
 
+func (html *HtmlProvider) P(p string) string {
+	return fmt.Sprintf("<p>%s</p>\n", p)
+}
+
 func (html *HtmlProvider) TitleH2(title string) string {
 	return fmt.Sprintf("<h2>%s</h2>\n", title)
 }
@@ -22,7 +26,7 @@ func (html *HtmlProvider) ColourText(text, color string) string {
 
 func (html *HtmlProvider) Table(rows [][]string) string {
 	table := make([]string, 0)
-	table = append(table, "<TABLE>")
+	table = append(table, "<TABLE border='1'>")
 	for i, r := range rows {
 		var tag string
 		if i == 0 {
