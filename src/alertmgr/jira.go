@@ -64,6 +64,11 @@ type JiraAPI struct {
 
 	unknowns map[string]string
 	BoardId  int
+
+	PolicyMinVulnerability string
+	PolicyRegistry []string
+	PolicyImageName []string
+	PolicyNonCompliant bool
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
@@ -131,6 +136,10 @@ func NewJiraAPI(settings PluginSettings) *JiraAPI {
 		unknowns:        settings.Unknowns,
 		sprintName:      settings.Sprint,
 		sprintId:        -1,
+		PolicyMinVulnerability: settings.PolicyMinVulnerability,
+		PolicyRegistry:  settings.PolicyRegistry,
+		PolicyImageName: settings.PolicyImageName,
+		PolicyNonCompliant: settings.PolicyNonCompliant,
 	}
 
 	if jiraApi.issuetype == "" {

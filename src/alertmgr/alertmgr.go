@@ -34,6 +34,11 @@ type PluginSettings struct {
 	Labels          []string          `json:"labels,omitempty"`
 	Sprint          string            `json:"sprint,omitempty"`
 	Unknowns        map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
+
+	PolicyMinVulnerability string `json:"Policy-Min-Vulnerability"`
+	PolicyRegistry []string `json:"Policy-Registry"`
+	PolicyImageName []string `json:"Policy-Image-Name"`
+	PolicyNonCompliant bool `json:"Policy-Non-Compliant"`
 }
 
 type AlertMgr struct {
