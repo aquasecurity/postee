@@ -25,6 +25,7 @@ func NewEmailPlugin(settings PluginSettings) *EmailPlugin {
 	em.host = settings.Host
 	em.port = settings.Port
 	em.recipients = settings.Recipients
+	em.sender = settings.Sender
 	return em
 }
 
@@ -50,7 +51,7 @@ func (email *EmailPlugin) Send(service *scanservice.ScanService) error {
 			"From: %s\r\n" +
 			"Subject: %s\r\n"+
 			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-		strings.Join(email.recipients,","), email.user, subject, content)
+		strings.Join(email.recipients,","), email.sender, subject, content)
 	auth := smtp.PlainAuth("", email.user, email.password, email.host)
 	err := smtp.SendMail(email.host+":"+email.port, auth, email.sender, email.recipients, []byte(msg))
 	if err != nil {

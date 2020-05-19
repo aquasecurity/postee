@@ -39,6 +39,7 @@ type PluginSettings struct {
 	Host string `json:"host"`
 	Port string `json:"port"`
 	Recipients []string `json:"recipients"`
+	Sender string `json:"sender"`
 }
 
 type AlertMgr struct {

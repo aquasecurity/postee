@@ -17,4 +17,5 @@
   password: "<Mandatory: Jira API Key>"
   host: smtp.gmail.com
   port: 587
+  sender: "<Mandatory: johndoe@gmail.com>"
   recipients: ["", ""]
