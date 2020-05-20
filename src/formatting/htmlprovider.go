@@ -1,4 +1,4 @@
-package htmlformatting
+package formatting
 
 import (
 	"bytes"

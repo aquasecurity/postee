@@ -1,4 +1,4 @@
-package jiraformatting
+package formatting
 
 import (
 	"bytes"

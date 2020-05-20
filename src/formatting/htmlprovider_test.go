@@ -1,6 +1,8 @@
-package htmlformatting
+package formatting
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestHtmlProvider_Table(t *testing.T) {
 	var tests = []struct {

@@ -20,12 +20,11 @@ func (scan *ScanService) GetId() string  {
 	return scan.scanInfo.GetUniqueId()
 }
 
-func (scan *ScanService) GetHead() string  {
-	return fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image)
-}
-
-func (scan *ScanService) GetBody(provider layout.LayoutProvider) string  {
-	return layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan)
+func (scan *ScanService) GetContent(provider layout.LayoutProvider) map[string]string {
+	content := make(map[string]string)
+	content["title"] = fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image)
+	content["description"] = layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan)
+	return content
 }
 
 func (scan *ScanService) Init(data string) ( err error) {

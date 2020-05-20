@@ -5,10 +5,10 @@ import (
 	"data"
 	"errors"
 	"fmt"
+	"formatting"
 	"io/ioutil"
-	"jiraformatting"
+	"layout"
 	"log"
-	"scanservice"
 	"strconv"
 
 	"net/http"
@@ -166,6 +166,10 @@ func (ctx *JiraAPI) Init() error {
 	return nil
 }
 
+func (jira *JiraAPI) GetLayoutProvider() layout.LayoutProvider {
+	return new(formatting.JiraLayoutProvider)
+}
+
 func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	tp := jira.BasicAuthTransport{
 		Username: ctx.user,
@@ -184,7 +188,7 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	return client, nil
 }
 
-func (ctx *JiraAPI) Send(service *scanservice.ScanService ) error {
+func (ctx *JiraAPI) Send(content map[string]string ) error {
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Printf("unable to create Jira client: %s", err)
@@ -203,8 +207,8 @@ func (ctx *JiraAPI) Send(service *scanservice.ScanService ) error {
 		return fmt.Errorf("Failed to create meta issue type: %s", err)
 	}
 
-	ctx.summary = service.GetHead()
-	ctx.description = service.GetBody(new(jiraformatting.JiraLayoutProvider))
+	ctx.summary = content["title"]
+	ctx.description = content["description"]
 
 	fieldsConfig := map[string]string{
 		"Issue Type":  ctx.issuetype,

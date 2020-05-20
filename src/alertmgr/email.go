@@ -2,10 +2,10 @@ package alertmgr
 
 import (
 	"fmt"
-	"htmlformatting"
+	"formatting"
+	"layout"
 	"log"
 	"net/smtp"
-	"scanservice"
 	"strings"
 )
 
@@ -42,16 +42,20 @@ func (email *EmailPlugin) Terminate() error {
 	return nil
 }
 
-func (email *EmailPlugin) Send(service *scanservice.ScanService) error {
-	content := service.GetBody(new(htmlformatting.HtmlProvider))
-	subject := service.GetHead()
+func (email *EmailPlugin) GetLayoutProvider() layout.LayoutProvider {
+	return new(formatting.HtmlProvider)
+}
+
+func (email *EmailPlugin) Send(content map[string]string) error {
+	subject := content["title"]
+	body := content["description"]
 
 	msg := fmt.Sprintf(
 		"To: %s\r\n"+
 			"From: %s\r\n" +
 			"Subject: %s\r\n"+
 			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-		strings.Join(email.recipients,","), email.sender, subject, content)
+		strings.Join(email.recipients,","), email.sender, subject, body)
 	auth := smtp.PlainAuth("", email.user, email.password, email.host)
 	err := smtp.SendMail(email.host+":"+email.port, auth, email.sender, email.recipients, []byte(msg))
 	if err != nil {

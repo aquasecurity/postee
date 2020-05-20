@@ -2,6 +2,7 @@ package alertmgr
 
 import (
 	"io/ioutil"
+	"layout"
 	"log"
 	"scanservice"
 	"sync"
@@ -12,8 +13,9 @@ import (
 
 type Plugin interface {
 	Init() error
-	Send(service *scanservice.ScanService) error
+	Send(map[string]string) error
 	Terminate() error
+	GetLayoutProvider() layout.LayoutProvider
 }
 
 type PluginSettings struct {
@@ -141,8 +143,9 @@ func (ctx *AlertMgr) listen() {
 			}
 			if scanService.IsNew() {
 				for _, plugin := range ctx.plugins {
+					content := scanService.GetContent(plugin.GetLayoutProvider())
 					if plugin != nil {
-						go plugin.Send(scanService)
+						go plugin.Send(content)
 					}
 				}
 			} else {

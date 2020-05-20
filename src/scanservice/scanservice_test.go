@@ -2,8 +2,7 @@ package scanservice
 
 import (
 	"data"
-	"htmlformatting"
-	"jiraformatting"
+	"formatting"
 	"layout"
 	"strconv"
 	"strings"
@@ -169,7 +168,7 @@ func TestScanImageInfo_GetUniqueId(t *testing.T) {
 }
 
 func BenchmarkGenTicketDescription(b *testing.B) {
-	provider := new (jiraformatting.JiraLayoutProvider)
+	provider := new (formatting.JiraLayoutProvider)
 	for i:=0; i < b.N; i++ {
 		layout.GenTicketDescription(provider, &AlpineImageResult, nil)
 	}
@@ -185,8 +184,8 @@ func TestGenTicketDescription(t *testing.T) {
 	}
 
 	providers := []layout.LayoutProvider{
-		new(jiraformatting.JiraLayoutProvider),
-		new(htmlformatting.HtmlProvider),
+		new(formatting.JiraLayoutProvider),
+		new(formatting.HtmlProvider),
 	}
 
 	for _, provider := range providers {
