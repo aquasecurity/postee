@@ -59,7 +59,7 @@ func (email *EmailPlugin) Send(content map[string]string) error {
 	auth := smtp.PlainAuth("", email.user, email.password, email.host)
 	err := smtp.SendMail(email.host+":"+email.port, auth, email.sender, email.recipients, []byte(msg))
 	if err != nil {
-		log.Println("Error", err)
+		log.Println("SendMail Error:", err)
 		return err
 	}
 	log.Println("Email was sent successfully!")
