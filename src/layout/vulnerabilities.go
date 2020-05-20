@@ -32,11 +32,11 @@ func VulnerabilitiesTable(provider LayoutProvider, rows [2][]string) string  {
 	var table [][]string
 	table = append(table, rows[0])
 	var r []string
-	r = append(r, provider.ColourText(rows[1][0], data.CriticalColor()))
-	r = append(r, provider.ColourText(rows[1][1], data.HighColor()))
-	r = append(r, provider.ColourText(rows[1][2], data.MediumColor()))
-	r = append(r, provider.ColourText(rows[1][3], data.LowColor()))
-	r = append(r, provider.ColourText(rows[1][4], data.NegligibleColor()))
+	r = append(r, provider.ColourText(rows[1][0], CriticalColor()))
+	r = append(r, provider.ColourText(rows[1][1], HighColor()))
+	r = append(r, provider.ColourText(rows[1][2], MediumColor()))
+	r = append(r, provider.ColourText(rows[1][3], LowColor()))
+	r = append(r, provider.ColourText(rows[1][4], NegligibleColor()))
 	table = append(table, r)
 	return provider.Table(table)
 }
