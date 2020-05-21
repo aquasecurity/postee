@@ -1,28 +1,24 @@
-# JIRA integration #
-How to integrate Aqua with JIRA, to create a ticket when vulnerabilities are found in an image
+# Application Lifecycle Management (ALM) Systems Integration #
+Use this project to integrate Aqua with JIRA, Email and ServiceNow systems and create ticket or send an email when vulnerabilities are found in an image.
 
 ------
 
-You can integrate the Aqua Server with JIRA, to open JIRA tickets whenever a new security vulnerability is discovered in an image.
-
-When this integration is enabled, a ticket is opened vulnerabilities are found in a new image, or when new vulnerabilities are found in an already scanned image (when it is re-scanned).
+When this integration is enabled, a ticket is opened, or an email is sent, with information about the vulnerabilities found in the image. In case of a rescan - a new ticket will be opened, or ticket will be sent, only if there are new vulneraibilities that are found in the image rescan.
 
 Follow these steps to set up the integration:
 
-1. Set up the JIRA configuration file (cfg.yaml).
-2. Run the Aqua ALM Integration container with the JIRA configuration file.
+1. Set up the configuration file (cfg.yaml).
+2. Run the Aqua ALM Integration container with the configuration file.
 3. Configure the Aqua Server to send a Webhook notification when a new vulnerability is found.
-4. Validate that a JIRA ticket has been opened.
+4. Validate that a ticket has been opened, or email was sent (depending on your configuration file).
 
 The following sections describe these steps in more detail.
 
-# Set up the JIRA Configuration File
+# Set up the Configuration File
 
-To set up the JIRA integration, you will first need to create a config.yaml* file, which contains your JIRA configuration settings.
+To set up the integration, you will first need to create a cfg.yaml file, which contains your ALM configuration settings.
 
-Create the file on the host where the Aqua Webhook Server container will run.
-
-Specify the following:
+The below example is to setup a JIRA integration: 
 
 ```yaml
 ---
@@ -60,11 +56,11 @@ Build and run the Aqua Webhook Server container on the same host where the JIRA 
 ```bash
 docker build -t alm-integration-image:latest .
 
-docker run -d --name=aqua-webhook -v /<path to JIRA configuration file>/jira.yaml:/config/jira.yaml -e AQUAALERT_CFG=/config/jira.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration-image:latest
+docker run -d --name=aqua-webhook -v /<path to JIRA configuration file>/cfg.yaml:/config/jira.yaml -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration-image:latest
 
 ```
 
-###### *There is a volume mount that mounts the JIRA configuration file from the host to the container. There is also an environment variable, AQUAALERT_CFG, that specifies the location of the JIRA configuration file inside the container.*
+###### *There is a volume mount that mounts the configuration file from the host to the container. There is also an environment variable, AQUAALERT_CFG, that specifies the location of the JIRA configuration file inside the container.*
 
 
 # Configure the Aqua Server with Webhook Integration
