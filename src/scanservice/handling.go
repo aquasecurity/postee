@@ -31,6 +31,12 @@ func (scan *ScanService) ResultHandling(input string, settings *ScanSettings, pl
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
 	}
+
+	if !scan.isNew {
+		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
+		return
+	}
+
 	if len(settings.PolicyImageName) > 0 && !compliesPolicies(settings.PolicyImageName, scan.scanInfo.Image) {
 		log.Printf("ScanService: Image %q was ignored (missed) by settings.\n", scan.scanInfo.Image)
 		return
@@ -41,23 +47,19 @@ func (scan *ScanService) ResultHandling(input string, settings *ScanSettings, pl
 		return
 	}
 
+	if settings.PolicyNonCompliant && scan.scanInfo.Disallowed {
+		log.Printf("This scan %q is Disallowed and will not sent by settings.\n", scan.scanInfo.GetUniqueId())
+		return
+	}
+
 	if len (settings.PolicyMinVulnerability) > 0 {
 		scan.removeLowLevelVulnerabilities(settings.PolicyMinVulnerability)
 	}
 
-	isCorrectNonCompliantSetting := true
-	if settings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
-		isCorrectNonCompliantSetting = false
-	}
-
-	if scan.isNew && isCorrectNonCompliantSetting {
-		for _, plugin := range plugins {
-			if plugin != nil {
-				plugin.Send( scan.getContent( plugin.GetLayoutProvider() ))
-			}
+	for _, plugin := range plugins {
+		if plugin != nil {
+			plugin.Send(scan.getContent(plugin.GetLayoutProvider()))
 		}
-	} else {
-		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
 	}
 }
 
