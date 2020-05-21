@@ -1,4 +1,4 @@
-# Application Lifecycle Management (ALM) Systems Integration #
+# Integrating Aqua Security with Application Lifecycle Management (ALM) Systems #
 Use this project to integrate Aqua with JIRA, Email and ServiceNow systems and create ticket or send an email when vulnerabilities are found in an image.
 
 ------
