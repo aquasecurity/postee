@@ -31,6 +31,15 @@ func (scan *ScanService) ResultHandling(input string, settings *ScanSettings, pl
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
 	}
+	if len(settings.PolicyImageName) > 0 && !compliesPolicies(settings.PolicyImageName, scan.scanInfo.Image) {
+		log.Printf("ScanService: Image %q was ignored (missed) by settings.\n", scan.scanInfo.Image)
+		return
+	}
+
+	if len(settings.PolicyRegistry) > 0 && !compliesPolicies(settings.PolicyRegistry, scan.scanInfo.Registry) {
+		log.Printf("ScanService: Registry %q was ignored by settings.\n", scan.scanInfo.Registry)
+		return
+	}
 
 	if len (settings.PolicyMinVulnerability) > 0 {
 		scan.removeLowLevelVulnerabilities(settings.PolicyMinVulnerability)
