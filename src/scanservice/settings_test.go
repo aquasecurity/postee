@@ -1,6 +1,8 @@
 package scanservice
 
 import (
+	"dbservice"
+	"os"
 	"testing"
 )
 
@@ -34,6 +36,12 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 		},
 	}
 
+	dbPathReal := dbservice.DbPath
+	defer func() {
+		dbservice.DbPath = dbPathReal
+	}()
+	dbservice.DbPath = "test_" + dbPathReal
+
 	settings :=  DefaultScanSettings()
 	for _, test := range tests {
 		for severity, count := range test.severities {
@@ -49,8 +57,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 				t.Errorf("Wrong severity %q for %s\nResult: %d\nWaiting:%d\n",
 					severity, service.scanInfo.GetUniqueId(), c, count)
 			}
+			os.Remove(dbservice.DbPath)
 		}
-
 	}
-
 }
