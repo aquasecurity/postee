@@ -53,6 +53,7 @@ type AlertMgr struct {
 	queue   chan string
 	cfgfile string
 	plugins map[string]plugins.Plugin
+	serviceSetting scanservice.ScanSettings
 }
 
 var initCtx sync.Once
@@ -186,21 +187,8 @@ func (ctx *AlertMgr) listen() {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			scanService := new(scanservice.ScanService)
-			if err := scanService.Init(data); err != nil {
-				log.Println("Can't init service with data:", data, "\nError:", err)
-				break
-			}
-			if scanService.IsNew() {
-				for _, plugin := range ctx.plugins {
-					content := scanService.GetContent(plugin.GetLayoutProvider())
-					if plugin != nil {
-						go plugin.Send(content)
-					}
-				}
-			} else {
-				log.Println("This scan result is old:", scanService.GetId())
-			}
+			service := new(scanservice.ScanService)
+			go service.ResultHandling(data, ctx.serviceSetting, ctx.plugins)
 		}
 	}
 }
