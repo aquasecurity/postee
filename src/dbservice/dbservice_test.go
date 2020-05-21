@@ -28,8 +28,8 @@ var (
 		[]data.InfoResources{
 			{
 				[]data.Vulnerability{
-					{"CVE-2018-20679", "", "",},
-					{"CVE-2019-5747", "", "",},
+					{"CVE-2018-20679", "", "", "medium"},
+					{"CVE-2019-5747", "", "","medium"},
 				},
 				data.ResourceDetails{"busybox"},
 			},
