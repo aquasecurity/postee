@@ -7,6 +7,17 @@ import (
 	"layout"
 	"log"
 	"plugins"
+	"strings"
+)
+
+var (
+	SeverityPriorities = map[string]int{
+		"critical":5,
+		"high":4,
+		"medium":3,
+		"low":2,
+		"negligible":1,
+	}
 )
 
 type ScanService struct {
@@ -15,25 +26,41 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (serv *ScanService) ResultHandling(input string, settings *ScanSettings, plugins map[string]plugins.Plugin) {
-	if err := serv.init(input); err != nil {
+func (scan *ScanService) ResultHandling(input string, settings *ScanSettings, plugins map[string]plugins.Plugin) {
+	if err := scan.init(input); err != nil {
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
 	}
 
-	isNonCompliantSetting := true
-	if settings.PolicyNonCompliant && !serv.scanInfo.Disallowed {
-		isNonCompliantSetting = false
+	if len (settings.PolicyMinVulnerability) > 0 {
+		scan.removeLowLevelVulnerabilities(settings.PolicyMinVulnerability)
 	}
 
-	if serv.isNew && isNonCompliantSetting {
+	isCorrectNonCompliantSetting := true
+	if settings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
+		isCorrectNonCompliantSetting = false
+	}
+
+	if scan.isNew && isCorrectNonCompliantSetting {
 		for _, plugin := range plugins {
 			if plugin != nil {
-				plugin.Send( serv.getContent( plugin.GetLayoutProvider() ))
+				plugin.Send( scan.getContent( plugin.GetLayoutProvider() ))
 			}
 		}
 	} else {
-		log.Println("This scan's result is old:", serv.scanInfo.GetUniqueId())
+		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
+	}
+}
+
+func (scan *ScanService) removeLowLevelVulnerabilities(down string)  {
+	min := SeverityPriorities[strings.ToLower(down)]
+
+	for r:=0; r<len(scan.scanInfo.Resources); r++ {
+		for i:= len(scan.scanInfo.Resources[r].Vulnerabilities)-1; i >= 0; i-- {
+			if SeverityPriorities[scan.scanInfo.Resources[r].Vulnerabilities[i].Severity] < min {
+				scan.scanInfo.Resources[r].Vulnerabilities = scan.scanInfo.Resources[r].Vulnerabilities[:i]
+			}
+		}
 	}
 }
 
