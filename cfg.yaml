@@ -1,4 +1,9 @@
 ---
+- name: settings
+  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
+  Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
+  Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
 - name: jira
   enable: true
   url: #Mandatory. E.g "https://johndoe.atlassian.net"
@@ -11,7 +16,3 @@
   issuetype: #Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:  #Optional. Specify the issues severity. Default is "High"
   assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket
-  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
-  Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
-  Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
