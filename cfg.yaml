@@ -5,6 +5,8 @@
   Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
   Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
   Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
+  Ignore-Registry: [] # <comma separated list of registries that will ignore for opening a ticket)
+  Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >
 - name: jira
   enable: true
   url: #Mandatory. E.g "https://johndoe.atlassian.net"

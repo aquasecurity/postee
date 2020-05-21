@@ -36,15 +36,18 @@ type PluginSettings struct {
 	Sprint          string            `json:"sprint,omitempty"`
 	Unknowns        map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
 
-	Host string `json:"host"`
-	Port string `json:"port"`
+	Host       string   `json:"host"`
+	Port       string   `json:"port"`
 	Recipients []string `json:"recipients"`
-	Sender string `json:"sender"`
+	Sender     string   `json:"sender"`
 
-	PolicyMinVulnerability string `json:"Policy-Min-Vulnerability"`
-	PolicyRegistry []string `json:"Policy-Registry"`
-	PolicyImageName []string `json:"Policy-Image-Name"`
-	PolicyNonCompliant bool `json:"Policy-Non-Compliant"`
+	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
+	PolicyRegistry         []string `json:"Policy-Registry"`
+	PolicyImageName        []string `json:"Policy-Image-Name"`
+	PolicyNonCompliant     bool     `json:"Policy-Non-Compliant"`
+
+	IgnoreRegistry  []string `json:"Ignore-Registry"`
+	IgnoreImageName []string `json:"Ignore-Image-Name"`
 }
 
 type AlertMgr struct {
@@ -112,6 +115,8 @@ func buildServiceSettings( settings PluginSettings ) *scanservice.ScanSettings {
 	serviceSettings.PolicyMinVulnerability = settings.PolicyMinVulnerability
 	serviceSettings.PolicyNonCompliant = settings.PolicyNonCompliant
 	serviceSettings.PolicyRegistry = settings.PolicyRegistry
+	serviceSettings.IgnoreImageName = settings.IgnoreImageName
+	serviceSettings.IgnoreRegistry = settings.IgnoreRegistry
 	return serviceSettings
 }
 
