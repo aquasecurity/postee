@@ -2,8 +2,8 @@ package alertmgr
 
 import (
 	"io/ioutil"
-	"layout"
 	"log"
+	"plugins"
 	"scanservice"
 	"sync"
 
@@ -11,12 +11,10 @@ import (
 	"utils"
 )
 
-type Plugin interface {
-	Init() error
-	Send(map[string]string) error
-	Terminate() error
-	GetLayoutProvider() layout.LayoutProvider
-}
+const (
+	IssueTypeDefault = "Task"
+	PriorityDefault = "High"
+)
 
 type PluginSettings struct {
 	Name            string `json:"name"`
@@ -54,11 +52,58 @@ type AlertMgr struct {
 	quit    chan struct{}
 	queue   chan string
 	cfgfile string
-	plugins map[string]Plugin
+	plugins map[string]plugins.Plugin
 }
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
+
+func NewEmailPlugin(settings PluginSettings) *plugins.EmailPlugin {
+	em := new(plugins.EmailPlugin)
+	em.User = settings.User
+	em.Password = settings.Password
+	em.Host = settings.Host
+	em.Port = settings.Port
+	em.Recipients = settings.Recipients
+	em.Sender = settings.Sender
+	return em
+}
+
+func NewJiraAPI(settings PluginSettings) *plugins.JiraAPI {
+	jiraApi := &plugins.JiraAPI{
+		Url:                    settings.Url,
+		User:                   settings.User,
+		Password:               settings.Password,
+		TlsVerify:              settings.TlsVerify,
+		Issuetype:              settings.IssueType,
+		ProjectKey:             settings.ProjectKey,
+		Priority:               settings.Priority,
+		Assignee:               settings.Assignee,
+		FixVersions:            settings.FixVersions,
+		AffectsVersions:        settings.AffectsVersions,
+		Labels:                 settings.Labels,
+		Unknowns:               settings.Unknowns,
+		SprintName:             settings.Sprint,
+		SprintId:               -1,
+		BoardName:              settings.BoardName,
+		PolicyMinVulnerability: settings.PolicyMinVulnerability,
+		PolicyRegistry:         settings.PolicyRegistry,
+		PolicyImageName:        settings.PolicyImageName,
+		PolicyNonCompliant:     settings.PolicyNonCompliant,
+	}
+	if jiraApi.Issuetype == "" {
+		jiraApi.Issuetype = IssueTypeDefault
+	}
+
+	if jiraApi.Priority == "" {
+		jiraApi.Priority = PriorityDefault
+	}
+
+	if jiraApi.Assignee == "" {
+		jiraApi.Assignee = jiraApi.User
+	}
+	return jiraApi
+}
 
 func Instance() *AlertMgr {
 	initCtx.Do(func() {
@@ -66,7 +111,7 @@ func Instance() *AlertMgr {
 			mutex:   sync.Mutex{},
 			quit:    make(chan struct{}),
 			queue:   make(chan string, 1000),
-			plugins: make(map[string]Plugin),
+			plugins: make(map[string]plugins.Plugin),
 		}
 	})
 	return alertmgrCtx

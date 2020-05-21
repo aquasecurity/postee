@@ -1,4 +1,4 @@
-package alertmgr
+package plugins
 
 import (
 	"fmt"
@@ -10,29 +10,18 @@ import (
 )
 
 type EmailPlugin struct{
-	user string
-	password string
-	host string
-	port string
-	sender string
-	recipients []string
-}
-
-func NewEmailPlugin(settings PluginSettings) *EmailPlugin {
-	em := new(EmailPlugin)
-	em.user = settings.User
-	em.password = settings.Password
-	em.host = settings.Host
-	em.port = settings.Port
-	em.recipients = settings.Recipients
-	em.sender = settings.Sender
-	return em
+	User       string
+	Password   string
+	Host       string
+	Port       string
+	Sender     string
+	Recipients []string
 }
 
 func (email *EmailPlugin) Init() error {
 	log.Printf("Starting Email plugin....")
-	if email.sender == "" {
-		email.sender = email.user
+	if email.Sender == "" {
+		email.Sender = email.User
 	}
 	return nil
 }
@@ -55,11 +44,12 @@ func (email *EmailPlugin) Send(content map[string]string) error {
 			"From: %s\r\n" +
 			"Subject: %s\r\n"+
 			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-		strings.Join(email.recipients,","), email.sender, subject, body)
-	auth := smtp.PlainAuth("", email.user, email.password, email.host)
-	err := smtp.SendMail(email.host+":"+email.port, auth, email.sender, email.recipients, []byte(msg))
+		strings.Join(email.Recipients,","), email.Sender, subject, body)
+	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
+	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.Sender, email.Recipients, []byte(msg))
 	if err != nil {
 		log.Println("SendMail Error:", err)
+		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
 		return err
 	}
 	log.Println("Email was sent successfully!")
