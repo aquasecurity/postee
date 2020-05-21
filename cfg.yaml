@@ -1,6 +1,6 @@
 ---
 - name: settings
-  enable: true
+  enable: true # if false, Webhook-server will use default settings
   Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
   Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
   Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
