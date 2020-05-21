@@ -15,7 +15,7 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (serv *ScanService) ResultHandling(input string, settings ScanSettings, plugins map[string]plugins.Plugin) {
+func (serv *ScanService) ResultHandling(input string, settings *ScanSettings, plugins map[string]plugins.Plugin) {
 	if err := serv.init(input); err != nil {
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return

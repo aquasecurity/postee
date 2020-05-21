@@ -53,13 +53,13 @@ type AlertMgr struct {
 	queue   chan string
 	cfgfile string
 	plugins map[string]plugins.Plugin
-	serviceSetting scanservice.ScanSettings
+	serviceSetting *scanservice.ScanSettings
 }
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
 
-func NewEmailPlugin(settings PluginSettings) *plugins.EmailPlugin {
+func buildEmailPlugin(settings PluginSettings) *plugins.EmailPlugin {
 	em := new(plugins.EmailPlugin)
 	em.User = settings.User
 	em.Password = settings.Password
@@ -70,7 +70,7 @@ func NewEmailPlugin(settings PluginSettings) *plugins.EmailPlugin {
 	return em
 }
 
-func NewJiraAPI(settings PluginSettings) *plugins.JiraAPI {
+func buildJiraPlugin(settings PluginSettings) *plugins.JiraAPI {
 	jiraApi := &plugins.JiraAPI{
 		Url:                    settings.Url,
 		User:                   settings.User,
@@ -104,6 +104,15 @@ func NewJiraAPI(settings PluginSettings) *plugins.JiraAPI {
 		jiraApi.Assignee = jiraApi.User
 	}
 	return jiraApi
+}
+
+func buildServiceSettings( settings PluginSettings ) *scanservice.ScanSettings {
+	serviceSettings := new(scanservice.ScanSettings)
+	serviceSettings.PolicyImageName = settings.PolicyImageName
+	serviceSettings.PolicyMinVulnerability = settings.PolicyMinVulnerability
+	serviceSettings.PolicyNonCompliant = settings.PolicyNonCompliant
+	serviceSettings.PolicyRegistry = settings.PolicyRegistry
+	return serviceSettings
 }
 
 func Instance() *AlertMgr {
@@ -167,16 +176,21 @@ func (ctx *AlertMgr) load() error {
 		if settings.Enable {
 			utils.Debug("Starting Plugin %s\n", settings.Name)
 			switch settings.Name {
+			case "settings":
+				ctx.serviceSetting = buildServiceSettings(settings)
 			case "jira":
-				plugin := NewJiraAPI(settings)
+				plugin := buildJiraPlugin(settings)
 				plugin.Init()
 				ctx.plugins["jira"] = plugin
 			case "email":
-				plugin := NewEmailPlugin(settings)
+				plugin := buildEmailPlugin(settings)
 				plugin.Init()
 				ctx.plugins["email"] = plugin
 			}
 		}
+	}
+	if ctx.serviceSetting == nil {
+		ctx.serviceSetting = scanservice.DefaultScanSettings()
 	}
 	return nil
 }
