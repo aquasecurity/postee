@@ -47,8 +47,8 @@ func (scan *ScanService) ResultHandling(input string, settings *ScanSettings, pl
 		return
 	}
 
-	if settings.PolicyNonCompliant && scan.scanInfo.Disallowed {
-		log.Printf("This scan %q is Disallowed and will not sent by settings.\n", scan.scanInfo.GetUniqueId())
+	if settings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
+		log.Printf("This scan %q isn't Disallowed and will not sent by settings.\n", scan.scanInfo.GetUniqueId())
 		return
 	}
 
