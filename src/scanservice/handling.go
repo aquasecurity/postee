@@ -21,7 +21,12 @@ func (serv *ScanService) ResultHandling(input string, settings *ScanSettings, pl
 		return
 	}
 
-	if serv.isNew {
+	isNonCompliantSetting := true
+	if settings.PolicyNonCompliant && !serv.scanInfo.Disallowed {
+		isNonCompliantSetting = false
+	}
+
+	if serv.isNew && isNonCompliantSetting {
 		for _, plugin := range plugins {
 			if plugin != nil {
 				plugin.Send( serv.getContent( plugin.GetLayoutProvider() ))
