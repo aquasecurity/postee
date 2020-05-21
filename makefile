@@ -46,8 +46,8 @@ fmt :
 	$(GO_FMT) -w ./src
 
 test :
-	go test ./src/layout -v -coverprofile=layout.out
+	go test ./src/scanservice -v -coverprofile=scanservice.out
 	go test ./src/dbservice -v -coverprofile=dbservice.out
 
-	go tool cover -html=layout.out
+	go tool cover -html=scanservice.out
 	go tool cover -html=dbservice.out

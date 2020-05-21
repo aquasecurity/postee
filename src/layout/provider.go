@@ -6,4 +6,5 @@ type LayoutProvider interface {
 	TitleH3(title string) string
 	ColourText(text, color string) string
 	Table(rows [][]string) string
+	P(p string) string
 }

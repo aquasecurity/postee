@@ -2,7 +2,9 @@ package alertmgr
 
 import (
 	"io/ioutil"
+	"layout"
 	"log"
+	"scanservice"
 	"sync"
 
 	"github.com/ghodss/yaml"
@@ -11,8 +13,9 @@ import (
 
 type Plugin interface {
 	Init() error
-	Send(data string) error
+	Send(map[string]string) error
 	Terminate() error
+	GetLayoutProvider() layout.LayoutProvider
 }
 
 type PluginSettings struct {
@@ -34,6 +37,11 @@ type PluginSettings struct {
 	Labels          []string          `json:"labels,omitempty"`
 	Sprint          string            `json:"sprint,omitempty"`
 	Unknowns        map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
+
+	Host string `json:"host"`
+	Port string `json:"port"`
+	Recipients []string `json:"recipients"`
+	Sender string `json:"sender"`
 }
 
 type AlertMgr struct {
@@ -112,6 +120,10 @@ func (ctx *AlertMgr) load() error {
 				plugin := NewJiraAPI(settings)
 				plugin.Init()
 				ctx.plugins["jira"] = plugin
+			case "email":
+				plugin := NewEmailPlugin(settings)
+				plugin.Init()
+				ctx.plugins["email"] = plugin
 			}
 		}
 	}
@@ -124,10 +136,20 @@ func (ctx *AlertMgr) listen() {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			for _, plugin := range ctx.plugins {
-				if plugin != nil {
-					go plugin.Send(data)
+			scanService := new(scanservice.ScanService)
+			if err := scanService.Init(data); err != nil {
+				log.Println("Can't init service with data:", data, "\nError:", err)
+				break
+			}
+			if scanService.IsNew() {
+				for _, plugin := range ctx.plugins {
+					content := scanService.GetContent(plugin.GetLayoutProvider())
+					if plugin != nil {
+						go plugin.Send(content)
+					}
 				}
+			} else {
+				log.Println("This scan result is old:", scanService.GetId())
 			}
 		}
 	}

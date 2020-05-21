@@ -11,3 +11,11 @@
   issuetype: #Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:  #Optional. Specify the issues severity. Default is "High"
   assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket
+- name: email
+  enable: true
+  user: "<Mandatory: johndoe@gmail.com>"
+  password: "<Mandatory: Jira API Key>"
+  host: smtp.gmail.com
+  port: 587
+  sender: "<Mandatory: johndoe@gmail.com>"
+  recipients: ["", ""]
