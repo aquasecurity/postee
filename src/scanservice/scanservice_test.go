@@ -1,8 +1,9 @@
-package layout
+package scanservice
 
 import (
 	"data"
-	"jiraformatting"
+	"formatting"
+	"layout"
 	"strconv"
 	"strings"
 	"testing"
@@ -139,7 +140,7 @@ func TestParseImageInfo( t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := data.ParseImageInfo(test.input)
+		got, err := parseImageInfo(test.input)
 		if err != nil {
 			t.Errorf("Can't parse next sequence: %s\nError: %s", string(test.input), err.Error())
 		}
@@ -167,9 +168,9 @@ func TestScanImageInfo_GetUniqueId(t *testing.T) {
 }
 
 func BenchmarkGenTicketDescription(b *testing.B) {
-	provider := new (jiraformatting.JiraLayoutProvider)
+	provider := new (formatting.JiraLayoutProvider)
 	for i:=0; i < b.N; i++ {
-		GenTicketDescription(provider, &AlpineImageResult, nil)
+		layout.GenTicketDescription(provider, &AlpineImageResult, nil)
 	}
 }
 
@@ -182,14 +183,19 @@ func TestGenTicketDescription(t *testing.T) {
 		{ &AshexPokemongoResult, nil },
 	}
 
-	provider := new (jiraformatting.JiraLayoutProvider)
+	providers := []layout.LayoutProvider{
+		new(formatting.JiraLayoutProvider),
+		new(formatting.HtmlProvider),
+	}
 
-	for _, test := range tests {
-		got := GenTicketDescription( provider, test.currentScan, test.previousScan)
-		important := getImportantData(test.currentScan)
-		for k, v := range important {
-			if !strings.Contains(got, k) {
-				t.Errorf("Rendered data (%s) doesn't contain important value:\n%s (%s)\n", got, k,v)
+	for _, provider := range providers {
+		for _, test := range tests {
+			got := layout.GenTicketDescription( provider, test.currentScan, test.previousScan)
+			important := getImportantData(test.currentScan)
+			for k, v := range important {
+				if !strings.Contains(got, k) {
+					t.Errorf("Rendered data (%s) doesn't contain important value:\n%s (%s)\n", got, k,v)
+				}
 			}
 		}
 	}

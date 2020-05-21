@@ -1,4 +1,4 @@
-package jiraformatting
+package formatting
 
 import (
 	"bytes"
@@ -7,6 +7,10 @@ import (
 )
 
 type JiraLayoutProvider struct{}
+
+func (jira *JiraLayoutProvider) P(p string) string  {
+	return fmt.Sprintf("%s\n", p)
+}
 
 func (jira *JiraLayoutProvider) TitleH2(title string) string {
 	return fmt.Sprintf("h2. %s\n", title)
@@ -27,10 +31,11 @@ func (jira *JiraLayoutProvider) Table(rows [][]string) string {
 	var builder bytes.Buffer
 	for i, row := range rows {
 		if i == 0 {
-			builder.WriteString(fmt.Sprintf("||%s||\n", strings.Join(row, "||")))
+			fmt.Fprintf( &builder, "||%s||\n", strings.Join(row, "||"))
 		} else {
-			builder.WriteString(fmt.Sprintf("|%s|\n", strings.Join(row, "|")))
+			fmt.Fprintf( &builder, "|%s|\n", strings.Join(row, "|"))
 		}
 	}
+	builder.WriteString("\n")
 	return builder.String()
 }
