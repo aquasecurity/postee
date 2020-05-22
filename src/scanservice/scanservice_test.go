@@ -37,7 +37,7 @@ var (
 				{"CVE-2018-20679", "", "","medium"},
 				{"CVE-2019-5747", "", "", "medium"},
 			},
-				data.ResourceDetails{"busybox"},
+				data.ResourceDetails{"busybox", "1.28.4-r3"},
 			},
 		},
 	}
@@ -65,7 +65,7 @@ var (
 				{"WS-2018-0076", "", "0.6.0", "negligible"},
 				{"", "", "",""},
 			},
-			data.ResourceDetails{""},
+			data.ResourceDetails{"", ""},
 		},
 		},
 	}
