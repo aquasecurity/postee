@@ -5,6 +5,7 @@ import (
 	"log"
 	"plugins"
 	"scanservice"
+	"settings"
 	"sync"
 
 	"github.com/ghodss/yaml"
@@ -56,44 +57,52 @@ type AlertMgr struct {
 	queue   chan string
 	cfgfile string
 	plugins map[string]plugins.Plugin
-	serviceSetting *scanservice.ScanSettings
 }
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
 
-func buildEmailPlugin(settings PluginSettings) *plugins.EmailPlugin {
-	em := new(plugins.EmailPlugin)
-	em.User = settings.User
-	em.Password = settings.Password
-	em.Host = settings.Host
-	em.Port = settings.Port
-	em.Recipients = settings.Recipients
-	em.Sender = settings.Sender
+func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
+	return &settings.Settings{
+		PolicyMinVulnerability: sourceSettings.PolicyMinVulnerability,
+		PolicyRegistry:         sourceSettings.PolicyRegistry,
+		PolicyImageName:        sourceSettings.PolicyImageName,
+		PolicyNonCompliant:     sourceSettings.PolicyNonCompliant,
+		IgnoreRegistry:         sourceSettings.IgnoreRegistry,
+		IgnoreImageName:        sourceSettings.IgnoreImageName,
+	}
+}
+
+func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
+	em := &plugins.EmailPlugin{
+		User:          sourceSettings.User,
+		Password:      sourceSettings.Password,
+		Host:          sourceSettings.Host,
+		Port:          sourceSettings.Port,
+		Sender:        sourceSettings.Sender,
+		Recipients:    sourceSettings.Recipients,
+	}
+	em.EmailSettings = buildSettings(sourceSettings)
 	return em
 }
 
-func buildJiraPlugin(settings PluginSettings) *plugins.JiraAPI {
+func buildJiraPlugin(sourceSettings *PluginSettings) *plugins.JiraAPI {
 	jiraApi := &plugins.JiraAPI{
-		Url:                    settings.Url,
-		User:                   settings.User,
-		Password:               settings.Password,
-		TlsVerify:              settings.TlsVerify,
-		Issuetype:              settings.IssueType,
-		ProjectKey:             settings.ProjectKey,
-		Priority:               settings.Priority,
-		Assignee:               settings.Assignee,
-		FixVersions:            settings.FixVersions,
-		AffectsVersions:        settings.AffectsVersions,
-		Labels:                 settings.Labels,
-		Unknowns:               settings.Unknowns,
-		SprintName:             settings.Sprint,
-		SprintId:               -1,
-		BoardName:              settings.BoardName,
-		PolicyMinVulnerability: settings.PolicyMinVulnerability,
-		PolicyRegistry:         settings.PolicyRegistry,
-		PolicyImageName:        settings.PolicyImageName,
-		PolicyNonCompliant:     settings.PolicyNonCompliant,
+		Url:             sourceSettings.Url,
+		User:            sourceSettings.User,
+		Password:        sourceSettings.Password,
+		TlsVerify:       sourceSettings.TlsVerify,
+		Issuetype:       sourceSettings.IssueType,
+		ProjectKey:      sourceSettings.ProjectKey,
+		Priority:        sourceSettings.Priority,
+		Assignee:        sourceSettings.Assignee,
+		FixVersions:     sourceSettings.FixVersions,
+		AffectsVersions: sourceSettings.AffectsVersions,
+		Labels:          sourceSettings.Labels,
+		Unknowns:        sourceSettings.Unknowns,
+		SprintName:      sourceSettings.Sprint,
+		SprintId:        -1,
+		BoardName:       sourceSettings.BoardName,
 	}
 	if jiraApi.Issuetype == "" {
 		jiraApi.Issuetype = IssueTypeDefault
@@ -106,18 +115,8 @@ func buildJiraPlugin(settings PluginSettings) *plugins.JiraAPI {
 	if jiraApi.Assignee == "" {
 		jiraApi.Assignee = jiraApi.User
 	}
+	jiraApi.JiraSettings = buildSettings(sourceSettings)
 	return jiraApi
-}
-
-func buildServiceSettings( settings PluginSettings ) *scanservice.ScanSettings {
-	serviceSettings := new(scanservice.ScanSettings)
-	serviceSettings.PolicyImageName = settings.PolicyImageName
-	serviceSettings.PolicyMinVulnerability = settings.PolicyMinVulnerability
-	serviceSettings.PolicyNonCompliant = settings.PolicyNonCompliant
-	serviceSettings.PolicyRegistry = settings.PolicyRegistry
-	serviceSettings.IgnoreImageName = settings.IgnoreImageName
-	serviceSettings.IgnoreRegistry = settings.IgnoreRegistry
-	return serviceSettings
 }
 
 func Instance() *AlertMgr {
@@ -181,21 +180,16 @@ func (ctx *AlertMgr) load() error {
 		if settings.Enable {
 			utils.Debug("Starting Plugin %s\n", settings.Name)
 			switch settings.Name {
-			case "settings":
-				ctx.serviceSetting = buildServiceSettings(settings)
 			case "jira":
-				plugin := buildJiraPlugin(settings)
+				plugin := buildJiraPlugin(&settings)
 				plugin.Init()
 				ctx.plugins["jira"] = plugin
 			case "email":
-				plugin := buildEmailPlugin(settings)
+				plugin := buildEmailPlugin(&settings)
 				plugin.Init()
 				ctx.plugins["email"] = plugin
 			}
 		}
-	}
-	if ctx.serviceSetting == nil {
-		ctx.serviceSetting = scanservice.DefaultScanSettings()
 	}
 	return nil
 }
@@ -207,7 +201,7 @@ func (ctx *AlertMgr) listen() {
 			return
 		case data := <-ctx.queue:
 			service := new(scanservice.ScanService)
-			go service.ResultHandling(data, ctx.serviceSetting, ctx.plugins)
+			go service.ResultHandling(data, ctx.plugins)
 		}
 	}
 }

@@ -26,7 +26,7 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input string, settings *ScanSettings, plugins map[string]plugins.Plugin) {
+func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins.Plugin) {
 	if err := scan.init(input); err != nil {
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
@@ -36,39 +36,42 @@ func (scan *ScanService) ResultHandling(input string, settings *ScanSettings, pl
 		return
 	}
 
-	if len(settings.IgnoreRegistry) > 0 && compliesPolicies(settings.IgnoreRegistry, scan.scanInfo.Registry) {
-		log.Printf("ScanService: Registry %q was ignored by settings.\n", scan.scanInfo.Registry)
-		return
-	}
-
-	if len(settings.IgnoreImageName) > 0 && compliesPolicies(settings.IgnoreImageName, scan.scanInfo.Image) {
-		log.Printf("ScanService: Image %q was ignored by settings.\n", scan.scanInfo.Image)
-		return
-	}
-
-	if len(settings.PolicyImageName) > 0 && !compliesPolicies(settings.PolicyImageName, scan.scanInfo.Image) {
-		log.Printf("ScanService: Image %q wasn't allowed (missed) by settings.\n", scan.scanInfo.Image)
-		return
-	}
-
-	if len(settings.PolicyRegistry) > 0 && !compliesPolicies(settings.PolicyRegistry, scan.scanInfo.Registry) {
-		log.Printf("ScanService: Registry %q wasn't allowed by settings.\n", scan.scanInfo.Registry)
-		return
-	}
-
-	if settings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
-		log.Printf("This scan %q isn't Disallowed and will not sent by settings.\n", scan.scanInfo.GetUniqueId())
-		return
-	}
-
-	if len (settings.PolicyMinVulnerability) > 0 {
-		scan.removeLowLevelVulnerabilities(settings.PolicyMinVulnerability)
-	}
-
 	for _, plugin := range plugins {
-		if plugin != nil {
-			plugin.Send(scan.getContent(plugin.GetLayoutProvider()))
+		if plugin == nil {
+			continue
 		}
+
+		settings := plugin.GetSettings()
+		if len(settings.IgnoreRegistry) > 0 && compliesPolicies(settings.IgnoreRegistry, scan.scanInfo.Registry) {
+			log.Printf("ScanService: Registry %q was ignored by settings.\n", scan.scanInfo.Registry)
+			return
+		}
+
+		if len(settings.IgnoreImageName) > 0 && compliesPolicies(settings.IgnoreImageName, scan.scanInfo.Image) {
+			log.Printf("ScanService: Image %q was ignored by settings.\n", scan.scanInfo.Image)
+			return
+		}
+
+		if len(settings.PolicyImageName) > 0 && !compliesPolicies(settings.PolicyImageName, scan.scanInfo.Image) {
+			log.Printf("ScanService: Image %q wasn't allowed (missed) by settings.\n", scan.scanInfo.Image)
+			return
+		}
+
+		if len(settings.PolicyRegistry) > 0 && !compliesPolicies(settings.PolicyRegistry, scan.scanInfo.Registry) {
+			log.Printf("ScanService: Registry %q wasn't allowed by settings.\n", scan.scanInfo.Registry)
+			return
+		}
+
+		if settings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
+			log.Printf("This scan %q isn't Disallowed and will not sent by settings.\n", scan.scanInfo.GetUniqueId())
+			return
+		}
+
+		if len (settings.PolicyMinVulnerability) > 0 {
+			scan.removeLowLevelVulnerabilities(settings.PolicyMinVulnerability)
+		}
+
+		plugin.Send(scan.getContent(plugin.GetLayoutProvider()))
 	}
 }
 

@@ -1,12 +1,4 @@
 ---
-- name: settings
-  enable: true # if false, Webhook-server will use default settings
-  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
-  Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
-  Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
-  Ignore-Registry: [] # <comma separated list of registries that will ignore for opening a ticket)
-  Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >
 - name: jira
   enable: true
   url: #Mandatory. E.g "https://johndoe.atlassian.net"
@@ -19,6 +11,13 @@
   issuetype: #Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:  #Optional. Specify the issues severity. Default is "High"
   assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket
+  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
+  Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
+  Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
+  Ignore-Registry: [] # <comma separated list of registries that will ignore for opening a ticket)
+  Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >
+
 - name: email
   enable: true
   user: "<Mandatory: johndoe@gmail.com>"
@@ -27,3 +26,9 @@
   port: 587
   sender: "<Mandatory: johndoe@gmail.com>"
   recipients: ["", ""]
+  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
+  Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
+  Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
+  Ignore-Registry: [] # <comma separated list of registries that will ignore for opening a ticket)
+  Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >

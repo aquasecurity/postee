@@ -6,6 +6,7 @@ import (
 	"layout"
 	"log"
 	"net/smtp"
+	"settings"
 	"strings"
 )
 
@@ -16,6 +17,11 @@ type EmailPlugin struct{
 	Port       string
 	Sender     string
 	Recipients []string
+	EmailSettings *settings.Settings
+}
+
+func (email *EmailPlugin) GetSettings() *settings.Settings {
+	return email.EmailSettings
 }
 
 func (email *EmailPlugin) Init() error {

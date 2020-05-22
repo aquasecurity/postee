@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"layout"
 	"log"
+	"settings"
 	"strconv"
 
 	"net/http"
@@ -44,10 +45,11 @@ type JiraAPI struct {
 	boardId  int
 	boardType string
 
-	PolicyMinVulnerability string
-	PolicyRegistry []string
-	PolicyImageName []string
-	PolicyNonCompliant bool
+	JiraSettings *settings.Settings
+}
+
+func (ctx *JiraAPI) GetSettings() *settings.Settings {
+	return ctx.JiraSettings
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
