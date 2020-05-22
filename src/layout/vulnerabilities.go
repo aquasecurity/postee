@@ -1,11 +1,21 @@
 package layout
 
 import (
+	"bytes"
 	"data"
 	"strconv"
 )
 
-func RenderVulnerabilities(provider LayoutProvider, title string, vulns []data.Vulnerability) string {
+func RenderVulnerabilities(resources []data.InfoResources, provider LayoutProvider, builder *bytes.Buffer) {
+	for _, r := range resources {
+		if len(r.Vulnerabilities) > 0 {
+			builder.WriteString( provider.TitleH3("Resource name: "+ r.Name))
+			builder.WriteString( RenderResourcesVulnerabilities( provider, r.Vulnerabilities) )
+		}
+	}
+}
+
+func RenderResourcesVulnerabilities(provider LayoutProvider, vulns []data.Vulnerability) string {
 	const empty = "none"
 	var table [][]string
 	table = append(table, []string{"#", "Name", "Version", "Fix version","Severity"})
