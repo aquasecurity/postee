@@ -8,18 +8,18 @@ import (
 func RenderVulnerabilities(provider LayoutProvider, title string, vulns []data.Vulnerability) string {
 	const empty = "none"
 	var table [][]string
-	table = append(table, []string{"#", "Name", "Version", "Fix version",})
+	table = append(table, []string{"#", "Name", "Version", "Fix version","Severity"})
 	for i, v := range vulns {
 		var name, version, fixVersion string
 		if v.Name == "" {name = empty} else { name = v.Name}
 		if v.Version == "" { version = empty} else {version =v.Version}
 		if v.FixVersion == "" { fixVersion = empty} else { fixVersion = data.ClearField(v.FixVersion)}
-
 		table = append(table, []string{
 			strconv.Itoa(i+1),
 			name,
 			version,
 			fixVersion,
+			v.Severity,
 		})
 	}
 	return provider.Table(table)
