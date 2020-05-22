@@ -46,6 +46,7 @@ type InfoResources struct {
 }
 type ResourceDetails struct {
 	Name string `json:"name"`
+	Version string `json:"version"`
 }
 
 type Vulnerability struct {
