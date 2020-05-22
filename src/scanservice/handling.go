@@ -8,6 +8,7 @@ import (
 	"log"
 	"plugins"
 	"settings"
+	"strings"
 )
 
 type ScanService struct {
@@ -36,6 +37,12 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			currentSettings = settings.GetDefaultSettings()
 		}
 
+		if len(currentSettings.PolicyMinVulnerability) > 0 && !scan.checkVulnerabilitiesLevel(currentSettings.PolicyMinVulnerability) {
+			log.Printf("ScanService: Scan %q contains only low-level vulnerabilities. Min level for %q is %q.\n",
+				scan.scanInfo.GetUniqueId(), name,currentSettings.PolicyMinVulnerability)
+			continue
+		}
+
 		if len(currentSettings.IgnoreRegistry) > 0 && compliesPolicies(currentSettings.IgnoreRegistry, scan.scanInfo.Registry) {
 			log.Printf("ScanService: Registry %q was ignored by currentSettings for %q.\n", scan.scanInfo.Registry, name)
 			continue
@@ -61,30 +68,18 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			continue
 		}
 
-		var base []data.InfoResources
-		var prev []data.InfoResources
-		if len (currentSettings.PolicyMinVulnerability) > 0 {
-			if len(plugins) > 1 {
-				base = scan.scanInfo.GetCopyOfResources()
-				if scan.prevScan != nil {
-					prev = scan.prevScan.GetCopyOfResources()
-				}
-			}
-			scan.scanInfo.RemoveLowLevelVulnerabilities(currentSettings.PolicyMinVulnerability)
-			if scan.prevScan != nil {
-				scan.prevScan.RemoveLowLevelVulnerabilities(currentSettings.PolicyMinVulnerability)
-			}
-		}
-
 		plugin.Send(scan.getContent(plugin.GetLayoutProvider()))
+	}
+}
 
-		if base != nil {
-			scan.scanInfo.SetCopyOfResources(base)
-			if scan.prevScan != nil {
-				scan.prevScan.SetCopyOfResources(prev)
-			}
+func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
+	vulns := [...]int { scan.scanInfo.Negligible, scan.scanInfo.Low, scan.scanInfo.Medium, scan.scanInfo.High, scan.scanInfo.Critical }
+	for i:=SeverityIndexes[strings.ToLower(minLevel)]; i < len(vulns); i++ {
+		if vulns[i] > 0 {
+			return true
 		}
 	}
+	return false
 }
 
 func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]string {
