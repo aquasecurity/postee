@@ -7,17 +7,7 @@ import (
 	"layout"
 	"log"
 	"plugins"
-	"strings"
-)
-
-var (
-	SeverityPriorities = map[string]int{
-		"critical":5,
-		"high":4,
-		"medium":3,
-		"low":2,
-		"negligible":1,
-	}
+	"settings"
 )
 
 type ScanService struct {
@@ -36,52 +26,62 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		return
 	}
 
-	for _, plugin := range plugins {
+	for name, plugin := range plugins {
 		if plugin == nil {
 			continue
 		}
 
-		settings := plugin.GetSettings()
-		if len(settings.IgnoreRegistry) > 0 && compliesPolicies(settings.IgnoreRegistry, scan.scanInfo.Registry) {
-			log.Printf("ScanService: Registry %q was ignored by settings.\n", scan.scanInfo.Registry)
-			return
+		currentSettings := plugin.GetSettings()
+		if currentSettings == nil {
+			currentSettings = settings.GetDefaultSettings()
 		}
 
-		if len(settings.IgnoreImageName) > 0 && compliesPolicies(settings.IgnoreImageName, scan.scanInfo.Image) {
-			log.Printf("ScanService: Image %q was ignored by settings.\n", scan.scanInfo.Image)
-			return
+		if len(currentSettings.IgnoreRegistry) > 0 && compliesPolicies(currentSettings.IgnoreRegistry, scan.scanInfo.Registry) {
+			log.Printf("ScanService: Registry %q was ignored by currentSettings for %q.\n", scan.scanInfo.Registry, name)
+			continue
 		}
 
-		if len(settings.PolicyImageName) > 0 && !compliesPolicies(settings.PolicyImageName, scan.scanInfo.Image) {
-			log.Printf("ScanService: Image %q wasn't allowed (missed) by settings.\n", scan.scanInfo.Image)
-			return
+		if len(currentSettings.IgnoreImageName) > 0 && compliesPolicies(currentSettings.IgnoreImageName, scan.scanInfo.Image) {
+			log.Printf("ScanService: Image %q was ignored by currentSettings for %q.\n", scan.scanInfo.Image, name)
+			continue
 		}
 
-		if len(settings.PolicyRegistry) > 0 && !compliesPolicies(settings.PolicyRegistry, scan.scanInfo.Registry) {
-			log.Printf("ScanService: Registry %q wasn't allowed by settings.\n", scan.scanInfo.Registry)
-			return
+		if len(currentSettings.PolicyImageName) > 0 && !compliesPolicies(currentSettings.PolicyImageName, scan.scanInfo.Image) {
+			log.Printf("ScanService: Image %q wasn't allowed (missed) by currentSettings for %q.\n", scan.scanInfo.Image, name)
+			continue
 		}
 
-		if settings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
-			log.Printf("This scan %q isn't Disallowed and will not sent by settings.\n", scan.scanInfo.GetUniqueId())
-			return
+		if len(currentSettings.PolicyRegistry) > 0 && !compliesPolicies(currentSettings.PolicyRegistry, scan.scanInfo.Registry) {
+			log.Printf("ScanService: Registry %q wasn't allowed by currentSettings for %q.\n", scan.scanInfo.Registry, name)
+			continue
 		}
 
-		if len (settings.PolicyMinVulnerability) > 0 {
-			scan.removeLowLevelVulnerabilities(settings.PolicyMinVulnerability)
+		if currentSettings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
+			log.Printf("This scan %q isn't Disallowed and will not sent by currentSettings for %q.\n", scan.scanInfo.GetUniqueId(), name)
+			continue
+		}
+
+		var base []data.InfoResources
+		var prev []data.InfoResources
+		if len (currentSettings.PolicyMinVulnerability) > 0 {
+			if len(plugins) > 1 {
+				base = scan.scanInfo.GetCopyOfResources()
+				if scan.prevScan != nil {
+					prev = scan.prevScan.GetCopyOfResources()
+				}
+			}
+			scan.scanInfo.RemoveLowLevelVulnerabilities(currentSettings.PolicyMinVulnerability)
+			if scan.prevScan != nil {
+				scan.prevScan.RemoveLowLevelVulnerabilities(currentSettings.PolicyMinVulnerability)
+			}
 		}
 
 		plugin.Send(scan.getContent(plugin.GetLayoutProvider()))
-	}
-}
 
-func (scan *ScanService) removeLowLevelVulnerabilities(down string)  {
-	min := SeverityPriorities[strings.ToLower(down)]
-
-	for r:=0; r<len(scan.scanInfo.Resources); r++ {
-		for i:= len(scan.scanInfo.Resources[r].Vulnerabilities)-1; i >= 0; i-- {
-			if SeverityPriorities[scan.scanInfo.Resources[r].Vulnerabilities[i].Severity] < min {
-				scan.scanInfo.Resources[r].Vulnerabilities = scan.scanInfo.Resources[r].Vulnerabilities[:i]
+		if base != nil {
+			scan.scanInfo.SetCopyOfResources(base)
+			if scan.prevScan != nil {
+				scan.prevScan.SetCopyOfResources(prev)
 			}
 		}
 	}

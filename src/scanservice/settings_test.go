@@ -44,7 +44,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	}()
 	dbservice.DbPath = "test_" + dbPathReal
 
-	setting :=  &settings.Settings{
+	setting1 :=  &settings.Settings{
 		PolicyMinVulnerability: "",
 		PolicyRegistry:         nil,
 		PolicyImageName:        nil,
@@ -53,17 +53,25 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 		IgnoreImageName:        nil,
 	}
 
-	plgs := map[string]plugins.Plugin {}
-	plgs["demo"] = &DemoPlugin{
-		name: "Demo plugin",
+	demoWithSettings := &DemoPlugin{
+		name: "Demo plugin with settings",
 		lay:  new(formatting.HtmlProvider),
-		sets: setting,
+		sets: setting1,
+		t:    t,
+	}
+	demoWithoutSettings := &DemoPlugin{
+		name: "Demo without settings",
+		lay:   new(formatting.JiraLayoutProvider),
+		sets: nil,
 		t:    t,
 	}
 
+	plgs := map[string]plugins.Plugin {}
+	plgs["demoSettings"] = demoWithSettings
+
 	for _, test := range tests {
 		for severity, count := range test.severities {
-			setting.PolicyMinVulnerability = severity
+			setting1.PolicyMinVulnerability = severity
 
 			service := new(ScanService)
 			service.ResultHandling( test.input,  plgs )
@@ -78,6 +86,32 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 			os.Remove(dbservice.DbPath)
 		}
 	}
+
+	plgs["demoWithoutSettings"]= demoWithoutSettings
+	for _, test := range tests {
+		total := 0
+		for _, s := range test.severities {
+			if s > total {
+				total = s
+			}
+		}
+
+		for severity, _ := range test.severities {
+			setting1.PolicyMinVulnerability = severity
+
+			service := new(ScanService)
+			service.ResultHandling( test.input,  plgs )
+			c := 0
+			for _, r := range service.scanInfo.Resources {
+				c += len(r.Vulnerabilities)
+			}
+			if c != total {
+				t.Errorf("Wrong severity %q for %s\nResult: %d\nWaiting:%d\n",
+					severity, service.scanInfo.GetUniqueId(), c, total)
+			}
+			os.Remove(dbservice.DbPath)
+		}
+	}
 }
 
 type DemoPlugin struct {
@@ -88,9 +122,9 @@ type DemoPlugin struct {
 }
 func (plg *DemoPlugin) Init() error {	return nil}
 func (plg *DemoPlugin) Send(data map[string]string) error {
-	plg.t.Logf("Sending data from Demo plugin %s\n", plg.name)
-	plg.t.Logf("Title: %q\n", data["title"])
-	plg.t.Logf("Description: %q\n", data["description"])
+	plg.t.Logf("Sending data via %q\n", plg.name)
+//	plg.t.Logf("Title: %q\n", data["title"])
+//	plg.t.Logf("Description: %q\n", data["description"])
 	return nil
 }
 
