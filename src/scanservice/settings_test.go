@@ -13,7 +13,7 @@ import (
 func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	var tests = []struct{
 		input      string
-		severities map[string]int
+		severities map[string]bool
 	} {
 		/*{
 			string(Bkmorrow),
@@ -28,12 +28,12 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 		 */
 		{
 			string(AlpineImageSource),
-			map[string]int{
-				"critical":0,
-				"high":0,
-				"medium":2,
-				"low":2,
-				"negligible":2,
+			map[string]bool{
+				"critical": false,
+				"high": false,
+				"medium":true,
+				"low":true,
+				"negligible":true,
 			},
 		},
 	}
@@ -59,55 +59,41 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 		sets: setting1,
 		t:    t,
 	}
+
+	for _, test := range tests {
+		for severity, needSending := range test.severities {
+			setting1.PolicyMinVulnerability = severity
+			plgs := map[string]plugins.Plugin {}
+			demoWithSettings.Sent = false
+			plgs["demoSettings"] = demoWithSettings
+
+			service := new(ScanService)
+			service.ResultHandling( test.input,  plgs )
+
+			if needSending != demoWithSettings.Sent {
+				t.Errorf("The notify was sent with wrong severity %q for %q\n",
+					severity, service.scanInfo.GetUniqueId())
+			}
+			os.Remove(dbservice.DbPath)
+		}
+	}
+
 	demoWithoutSettings := &DemoPlugin{
 		name: "Demo without settings",
 		lay:   new(formatting.JiraLayoutProvider),
 		sets: nil,
 		t:    t,
 	}
-
-	plgs := map[string]plugins.Plugin {}
-	plgs["demoSettings"] = demoWithSettings
-
 	for _, test := range tests {
-		for severity, count := range test.severities {
-			setting1.PolicyMinVulnerability = severity
-
+		for range test.severities {
+			plgs := map[string]plugins.Plugin {}
+			demoWithoutSettings.Sent = false
+			plgs["demoWithoutSettings"]= demoWithoutSettings
 			service := new(ScanService)
 			service.ResultHandling( test.input,  plgs )
-			c := 0
-			for _, r := range service.scanInfo.Resources {
-				c += len(r.Vulnerabilities)
-			}
-			if c != count {
-				t.Errorf("Wrong severity %q for %s\nResult: %d\nWaiting:%d\n",
-					severity, service.scanInfo.GetUniqueId(), c, count)
-			}
-			os.Remove(dbservice.DbPath)
-		}
-	}
-
-	plgs["demoWithoutSettings"]= demoWithoutSettings
-	for _, test := range tests {
-		total := 0
-		for _, s := range test.severities {
-			if s > total {
-				total = s
-			}
-		}
-
-		for severity, _ := range test.severities {
-			setting1.PolicyMinVulnerability = severity
-
-			service := new(ScanService)
-			service.ResultHandling( test.input,  plgs )
-			c := 0
-			for _, r := range service.scanInfo.Resources {
-				c += len(r.Vulnerabilities)
-			}
-			if c != total {
-				t.Errorf("Wrong severity %q for %s\nResult: %d\nWaiting:%d\n",
-					severity, service.scanInfo.GetUniqueId(), c, total)
+			if !demoWithoutSettings.Sent {
+				t.Errorf("The notify wasn't sent for plugin without settings for %q\n",
+					service.scanInfo.GetUniqueId())
 			}
 			os.Remove(dbservice.DbPath)
 		}
@@ -115,6 +101,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 }
 
 type DemoPlugin struct {
+	Sent bool
 	name string
 	lay  layout.LayoutProvider
 	sets *settings.Settings
@@ -122,6 +109,7 @@ type DemoPlugin struct {
 }
 func (plg *DemoPlugin) Init() error {	return nil}
 func (plg *DemoPlugin) Send(data map[string]string) error {
+	plg.Sent = true
 	plg.t.Logf("Sending data via %q\n", plg.name)
 //	plg.t.Logf("Title: %q\n", data["title"])
 //	plg.t.Logf("Description: %q\n", data["description"])
