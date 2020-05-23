@@ -1,6 +1,7 @@
 package settings
 
 type Settings struct {
+	PluginName             string
 	PolicyMinVulnerability string
 	PolicyRegistry         []string
 	PolicyImageName        []string
@@ -11,6 +12,7 @@ type Settings struct {
 
 func GetDefaultSettings() *Settings {
 	return &Settings{
+		PluginName:             "",
 		PolicyMinVulnerability: "",
 		PolicyRegistry:         []string{},
 		PolicyImageName:        []string{},
