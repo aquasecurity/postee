@@ -1,10 +1,9 @@
 GOPATH=$(CURDIR)
-GO=/usr/local/go/bin/go
-GO_FMT=/usr/local/go/bin/gofmt
-GO_GET=$(GO) get
-GO_BUILD=$(GO) build
-GO_INSTALL=$(GO) install
-GO_CLEAN=$(GO) clean
+GO_FMT=gofmt
+GO_GET=go get
+GO_BUILD=go build
+GO_INSTALL=go install
+GO_CLEAN=go clean
 EXENAME=webhooksrv
 BUILDPATH=$(CURDIR)
 export GOPATH=$(BUILDPATH)
