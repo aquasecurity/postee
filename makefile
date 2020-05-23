@@ -6,7 +6,6 @@ GO_INSTALL=go install
 GO_CLEAN=go clean
 EXENAME=webhooksrv
 BUILDPATH=$(CURDIR)
-export GOPATH=$(BUILDPATH)
 
 .PHONY: all clean get build fmt vet test
 
