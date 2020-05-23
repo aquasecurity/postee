@@ -9,13 +9,11 @@ notifications:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y rpm
+  - sudo apt-get install -y make git
 
 script:
   - make all
-  - make test
   
-
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
