@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get install -y rpm
 
 script:
-  - make tests
+  - make test
   
 
 after_success:
