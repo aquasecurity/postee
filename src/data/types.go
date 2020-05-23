@@ -46,12 +46,14 @@ type InfoResources struct {
 }
 type ResourceDetails struct {
 	Name string `json:"name"`
+	Version string `json:"version"`
 }
 
 type Vulnerability struct {
 	Name       string `json:"name"`
 	Version    string `json:"version"`
 	FixVersion string `json:"fix_version"`
+	Severity   string `json:"aqua_severity"`//`json:""`nvd_severity
 }
 
 func BuildUniqueId(digest, image, registry string) string {

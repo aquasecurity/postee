@@ -2,21 +2,20 @@ package alertmgr
 
 import (
 	"io/ioutil"
-	"layout"
 	"log"
+	"plugins"
 	"scanservice"
+	"settings"
 	"sync"
 
 	"github.com/ghodss/yaml"
 	"utils"
 )
 
-type Plugin interface {
-	Init() error
-	Send(map[string]string) error
-	Terminate() error
-	GetLayoutProvider() layout.LayoutProvider
-}
+const (
+	IssueTypeDefault = "Task"
+	PriorityDefault = "High"
+)
 
 type PluginSettings struct {
 	Name            string `json:"name"`
@@ -38,10 +37,18 @@ type PluginSettings struct {
 	Sprint          string            `json:"sprint,omitempty"`
 	Unknowns        map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
 
-	Host string `json:"host"`
-	Port string `json:"port"`
+	Host       string   `json:"host"`
+	Port       string   `json:"port"`
 	Recipients []string `json:"recipients"`
-	Sender string `json:"sender"`
+	Sender     string   `json:"sender"`
+
+	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
+	PolicyRegistry         []string `json:"Policy-Registry"`
+	PolicyImageName        []string `json:"Policy-Image-Name"`
+	PolicyNonCompliant     bool     `json:"Policy-Non-Compliant"`
+
+	IgnoreRegistry  []string `json:"Ignore-Registry"`
+	IgnoreImageName []string `json:"Ignore-Image-Name"`
 }
 
 type AlertMgr struct {
@@ -49,11 +56,68 @@ type AlertMgr struct {
 	quit    chan struct{}
 	queue   chan string
 	cfgfile string
-	plugins map[string]Plugin
+	plugins map[string]plugins.Plugin
 }
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
+
+func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
+	return &settings.Settings{
+		PolicyMinVulnerability: sourceSettings.PolicyMinVulnerability,
+		PolicyRegistry:         sourceSettings.PolicyRegistry,
+		PolicyImageName:        sourceSettings.PolicyImageName,
+		PolicyNonCompliant:     sourceSettings.PolicyNonCompliant,
+		IgnoreRegistry:         sourceSettings.IgnoreRegistry,
+		IgnoreImageName:        sourceSettings.IgnoreImageName,
+	}
+}
+
+func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
+	em := &plugins.EmailPlugin{
+		User:          sourceSettings.User,
+		Password:      sourceSettings.Password,
+		Host:          sourceSettings.Host,
+		Port:          sourceSettings.Port,
+		Sender:        sourceSettings.Sender,
+		Recipients:    sourceSettings.Recipients,
+	}
+	em.EmailSettings = buildSettings(sourceSettings)
+	return em
+}
+
+func buildJiraPlugin(sourceSettings *PluginSettings) *plugins.JiraAPI {
+	jiraApi := &plugins.JiraAPI{
+		Url:             sourceSettings.Url,
+		User:            sourceSettings.User,
+		Password:        sourceSettings.Password,
+		TlsVerify:       sourceSettings.TlsVerify,
+		Issuetype:       sourceSettings.IssueType,
+		ProjectKey:      sourceSettings.ProjectKey,
+		Priority:        sourceSettings.Priority,
+		Assignee:        sourceSettings.Assignee,
+		FixVersions:     sourceSettings.FixVersions,
+		AffectsVersions: sourceSettings.AffectsVersions,
+		Labels:          sourceSettings.Labels,
+		Unknowns:        sourceSettings.Unknowns,
+		SprintName:      sourceSettings.Sprint,
+		SprintId:        -1,
+		BoardName:       sourceSettings.BoardName,
+	}
+	if jiraApi.Issuetype == "" {
+		jiraApi.Issuetype = IssueTypeDefault
+	}
+
+	if jiraApi.Priority == "" {
+		jiraApi.Priority = PriorityDefault
+	}
+
+	if jiraApi.Assignee == "" {
+		jiraApi.Assignee = jiraApi.User
+	}
+	jiraApi.JiraSettings = buildSettings(sourceSettings)
+	return jiraApi
+}
 
 func Instance() *AlertMgr {
 	initCtx.Do(func() {
@@ -61,7 +125,7 @@ func Instance() *AlertMgr {
 			mutex:   sync.Mutex{},
 			quit:    make(chan struct{}),
 			queue:   make(chan string, 1000),
-			plugins: make(map[string]Plugin),
+			plugins: make(map[string]plugins.Plugin),
 		}
 	})
 	return alertmgrCtx
@@ -117,11 +181,11 @@ func (ctx *AlertMgr) load() error {
 			utils.Debug("Starting Plugin %s\n", settings.Name)
 			switch settings.Name {
 			case "jira":
-				plugin := NewJiraAPI(settings)
+				plugin := buildJiraPlugin(&settings)
 				plugin.Init()
 				ctx.plugins["jira"] = plugin
 			case "email":
-				plugin := NewEmailPlugin(settings)
+				plugin := buildEmailPlugin(&settings)
 				plugin.Init()
 				ctx.plugins["email"] = plugin
 			}
@@ -136,21 +200,8 @@ func (ctx *AlertMgr) listen() {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			scanService := new(scanservice.ScanService)
-			if err := scanService.Init(data); err != nil {
-				log.Println("Can't init service with data:", data, "\nError:", err)
-				break
-			}
-			if scanService.IsNew() {
-				for _, plugin := range ctx.plugins {
-					content := scanService.GetContent(plugin.GetLayoutProvider())
-					if plugin != nil {
-						go plugin.Send(content)
-					}
-				}
-			} else {
-				log.Println("This scan result is old:", scanService.GetId())
-			}
+			service := new(scanservice.ScanService)
+			go service.ResultHandling(data, ctx.plugins)
 		}
 	}
 }
