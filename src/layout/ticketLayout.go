@@ -46,24 +46,14 @@ func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.Scan
 	// Rendering Found vulnerabilities
 	if len(scanInfo.Resources) > 0 {
 		builder.WriteString( provider.TitleH2("Found vulnerabilities"))
-		for _, r := range scanInfo.Resources {
-			if len(r.Vulnerabilities) > 0 {
-				builder.WriteString( provider.TitleH3("Resource name: "+ r.Name))
-				builder.WriteString( RenderVulnerabilities( provider, r.Name, r.Vulnerabilities) )
-			}
-		}
+		RenderVulnerabilities( scanInfo.Resources, provider, &builder)
 	}
 
 	// Discovered vulnerabilities from last scan:
 	if prevScan != nil && len(prevScan.Resources) > 0 {
 		builder.WriteString("\n")
-		builder.WriteString(provider.TitleH2("Discovered vulnerabilities from last scan"))
-		for _, prev := range prevScan.Resources {
-			if len(prev.Vulnerabilities) > 0 {
-				builder.WriteString( provider.TitleH3("Resource name: "+ prev.Name))
-				builder.WriteString(RenderVulnerabilities(provider, prev.Name, prev.Vulnerabilities))
-			}
-		}
+		builder.WriteString( provider.TitleH2("Discovered vulnerabilities from last scan" ))
+		RenderVulnerabilities(prevScan.Resources, provider, &builder)
 	}
 	return builder.String()
 }
