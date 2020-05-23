@@ -26,7 +26,7 @@ get :
 	@$(GO_GET) github.com/gorilla/mux
 	@$(GO_GET) github.com/andygrunwald/go-jira
 	@$(GO_GET) go.etcd.io/bbolt
-        @$(GO_GET) github.com/spf13/cobra
+	@$(GO_GET) github.com/spf13/cobra
 
 all : makedir get build
 
