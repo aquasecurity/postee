@@ -12,7 +12,6 @@ before_install:
   - sudo apt-get install -y rpm
 
 script:
-  - export GOPATH=$GOPATH:`pwd`
   - make all
   - make test
   
