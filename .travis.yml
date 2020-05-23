@@ -13,7 +13,7 @@ before_install:
 
 script:
   - export GOPATH=$GOPATH:`pwd`
-  - make build
+  - make all
   - make test
   
 
