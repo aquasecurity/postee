@@ -17,6 +17,8 @@
   Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
   Ignore-Registry: [] # <comma separated list of registries that will ignore for opening a ticket)
   Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >
+  Aggregate-Issues-Per-Ticket: # a number
+  Aggregate-Timeout:  # number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
 
 - name: email
   enable: true

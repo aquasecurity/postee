@@ -6,6 +6,8 @@ import (
 	"plugins"
 	"scanservice"
 	"settings"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/ghodss/yaml"
@@ -49,6 +51,9 @@ type PluginSettings struct {
 
 	IgnoreRegistry  []string `json:"Ignore-Registry"`
 	IgnoreImageName []string `json:"Ignore-Image-Name"`
+
+	AggregateIssuesPerTicket int `json:"Aggregate-Issues-Per-Ticket"`
+	AggregateTimeout string `json:"Aggregate-Timeout"`
 }
 
 type AlertMgr struct {
@@ -63,6 +68,28 @@ var initCtx sync.Once
 var alertmgrCtx *AlertMgr
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
+	var timeout int
+	var err error
+
+	times := map[string]int {
+		"s":1,
+		"m": 60,
+		"h": 3600,
+	}
+
+	if len(sourceSettings.AggregateTimeout) > 0 {
+		for suffix, k := range times {
+			if strings.HasSuffix(strings.ToLower(sourceSettings.AggregateTimeout), suffix) {
+				timeout, err = strconv.Atoi(strings.TrimSuffix(sourceSettings.AggregateTimeout, suffix))
+				timeout *= k
+				break
+			}
+		}
+		if err != nil {
+			log.Printf("%q settings: Can't convert 'AggregateTimeout'(%q) to seconds.",
+				sourceSettings.Name, sourceSettings.AggregateTimeout)
+		}
+	}
 	return &settings.Settings{
 		PolicyMinVulnerability: sourceSettings.PolicyMinVulnerability,
 		PolicyRegistry:         sourceSettings.PolicyRegistry,
@@ -70,6 +97,8 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		PolicyNonCompliant:     sourceSettings.PolicyNonCompliant,
 		IgnoreRegistry:         sourceSettings.IgnoreRegistry,
 		IgnoreImageName:        sourceSettings.IgnoreImageName,
+		AggregateIssuesPerTicket: sourceSettings.AggregateIssuesPerTicket,
+		AggregateTimeoutSeconds:  timeout,
 	}
 }
 

@@ -7,6 +7,9 @@ type Settings struct {
 	PolicyNonCompliant     bool
 	IgnoreRegistry         []string
 	IgnoreImageName        []string
+
+	AggregateIssuesPerTicket int
+	AggregateTimeoutSeconds  int
 }
 
 func GetDefaultSettings() *Settings {
