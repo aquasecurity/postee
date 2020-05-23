@@ -1,14 +1,14 @@
-package alertmgr
+package plugins
 
 import (
 	"crypto/tls"
-	"data"
 	"errors"
 	"fmt"
 	"formatting"
 	"io/ioutil"
 	"layout"
 	"log"
+	"settings"
 	"strconv"
 
 	"net/http"
@@ -18,51 +18,38 @@ import (
 	"github.com/andygrunwald/go-jira"
 )
 
-const (
-	IssueTypeDefault = "Task"
-	PriorityDefault = "High"
-)
-
-type Totals struct {
-	Total        int64   `json:"total"`
-	High         int64   `json:"high"`
-	Medium       int64   `json:"medium"`
-	Low          int64   `json:"low"`
-	ScoreAverage float64 `json:"score_average"`
-}
-
-type CVES []data.Vulnerability
-
-type Cves struct {
-	ImageName  string `json:"image"`
-	Registry   string `json:"registry"`
-	Totals     Totals `json:"cves_counts"`
-	Disallowed bool   `json:"disallowed"`
-	CVES       CVES   `json:"cves"`
-}
-
 type JiraAPI struct {
-	url       string
-	user      string
-	password  string
-	tlsVerify bool
+	Enable		bool
 
-	issuetype   string
-	projectKey  string
+	Url       string
+	User      string
+	Password  string
+	TlsVerify bool
 
-	priority    string
-	assignee    string
-	description string
-	summary     string
-	sprintName  string
-	sprintId    int
+	Issuetype  string
+	ProjectKey string
 
-	fixVersions     []string
-	affectsVersions []string
-	labels          []string
+	Priority    string
+	Assignee    string
+	Description string
+	Summary     string
+	SprintName  string
+	SprintId    int
 
-	unknowns map[string]string
-	BoardId  int
+	FixVersions     []string
+	AffectsVersions []string
+	Labels          []string
+
+	Unknowns map[string]string
+	BoardName string
+	boardId  int
+	boardType string
+
+	JiraSettings *settings.Settings
+}
+
+func (ctx *JiraAPI) GetSettings() *settings.Settings {
+	return ctx.JiraSettings
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
@@ -72,85 +59,47 @@ func (ctx *JiraAPI) fetchBoardId(boardName string) {
 		return
 	}
 
-	boardlist, _, err := client.Board.GetAllBoards(&jira.BoardListOptions{ProjectKeyOrID: ctx.projectKey})
+	boardlist, _, err := client.Board.GetAllBoards(&jira.BoardListOptions{ProjectKeyOrID: ctx.ProjectKey})
 	if err != nil {
-		log.Printf("failed to get boards from Jira API GetAllBoards with ProjectID %s. %s", ctx.projectKey, err)
+		log.Printf("failed to get boards from Jira API GetAllBoards with ProjectID %s. %s", ctx.ProjectKey, err)
 		return
 	}
 	var matches int
 	for _, board := range boardlist.Values {
 		if board.Name == boardName {
-			ctx.BoardId = board.ID
+			ctx.boardId = board.ID
+			ctx.boardType = board.Type
 			matches++
 		}
 	}
 
 	if matches > 1 {
-		log.Printf("found more than one boards with name %q, working with board id %d", boardName, ctx.BoardId)
+		log.Printf("found more than one boards with name %q, working with board id %d", boardName, ctx.boardId)
 	} else if matches == 0 {
-		log.Printf("no boards found with name %s when getting all boards for user", boardName)
+		log.Printf("no boards found with name %s when getting all boards for User", boardName)
 		return
 	} else {
-		log.Printf("using board ID %d with Name %s", ctx.BoardId, boardName)
+		log.Printf("using board ID %d with Name %q", ctx.boardId, boardName)
 	}
 }
 
 func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
-	sprints, _, err := client.Board.GetAllSprintsWithOptions(ctx.BoardId, &jira.GetAllSprintsOptions{State: "active"})
+	sprints, _, err := client.Board.GetAllSprintsWithOptions(ctx.boardId, &jira.GetAllSprintsOptions{State: "active"})
 	if err != nil {
-		log.Printf("failed to get active sprint for board ID %d from Jira API. %s", ctx.BoardId, err)
+		log.Printf("failed to get active sprint for board ID %d from Jira API. %s", ctx.boardId, err)
 		return
 	}
 	if len(sprints.Values) > 1 {
-		ctx.sprintId = len(sprints.Values) - 1
-		log.Printf("Found more than one active sprint, using sprint id %d as the active sprint", ctx.sprintId)
+		ctx.SprintId = len(sprints.Values) - 1
+		log.Printf("Found more than one active sprint, using sprint id %d as the active sprint", ctx.SprintId)
 	} else if len(sprints.Values) == 1 {
-		if sprints.Values[0].ID != ctx.sprintId {
-			ctx.sprintId = sprints.Values[0].ID
-			log.Printf("using sprint id %d as the active sprint", ctx.sprintId)
+		if sprints.Values[0].ID != ctx.SprintId {
+			ctx.SprintId = sprints.Values[0].ID
+			log.Printf("using sprint id %d as the active sprint", ctx.SprintId)
 		}
 	} else {
-		log.Printf("no active sprints exist in board ID %d Name %s", ctx.BoardId, ctx.projectKey)
+		log.Printf("no active sprints exist in board ID %d Name %s", ctx.boardId, ctx.ProjectKey)
 	}
-}
-
-func NewJiraAPI(settings PluginSettings) *JiraAPI {
-	jiraApi := &JiraAPI{
-		url:             settings.Url,
-		user:            settings.User,
-		password:        settings.Password,
-		tlsVerify:       settings.TlsVerify,
-		issuetype:       settings.IssueType,
-		projectKey:      settings.ProjectKey,
-		priority:        settings.Priority,
-		assignee:        settings.Assignee,
-		fixVersions:     settings.FixVersions,
-		affectsVersions: settings.AffectsVersions,
-		labels:          settings.Labels,
-		unknowns:        settings.Unknowns,
-		sprintName:      settings.Sprint,
-		sprintId:        -1,
-	}
-
-	if jiraApi.issuetype == "" {
-		jiraApi.issuetype = IssueTypeDefault
-	}
-
-	if jiraApi.priority == "" {
-		jiraApi.priority = PriorityDefault
-	}
-
-	if jiraApi.assignee == "" {
-		jiraApi.assignee = jiraApi.user
-	}
-	var boardName string
-	if settings.BoardName == "" {
-		boardName = fmt.Sprintf("%s board", settings.ProjectKey)
-	} else {
-		boardName = settings.BoardName
-	}
-	jiraApi.fetchBoardId(boardName)
-	return jiraApi
 }
 
 func (ctx *JiraAPI) Terminate() error {
@@ -159,9 +108,14 @@ func (ctx *JiraAPI) Terminate() error {
 }
 
 func (ctx *JiraAPI) Init() error {
+	if ctx.BoardName == "" {
+		ctx.BoardName = fmt.Sprintf("%s board", ctx.ProjectKey)
+	}
+	ctx.fetchBoardId(ctx.BoardName)
+
 	log.Printf("Starting Jira plugin....")
-	if len(ctx.password) == 0 {
-		ctx.password = os.Getenv("JIRA_PASSWORD")
+	if len(ctx.Password) == 0 {
+		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}
 	return nil
 }
@@ -172,16 +126,16 @@ func (jira *JiraAPI) GetLayoutProvider() layout.LayoutProvider {
 
 func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	tp := jira.BasicAuthTransport{
-		Username: ctx.user,
-		Password: ctx.password,
+		Username: ctx.User,
+		Password: ctx.Password,
 	}
 
-	if !ctx.tlsVerify {
+	if !ctx.TlsVerify {
 		tp.Transport = &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
 	}
-	client, err := jira.NewClient(tp.Client(), ctx.url)
+	client, err := jira.NewClient(tp.Client(), ctx.Url)
 	if err != nil {
 		return client, fmt.Errorf("unable to create new JIRA client. %v", err)
 	}
@@ -195,39 +149,41 @@ func (ctx *JiraAPI) Send(content map[string]string ) error {
 		return err
 	}
 
-	ctx.fetchSprintId(*client)
+	if ctx.boardType == "scrum" {
+		ctx.fetchSprintId(*client)
+	}
 
-	metaProject, err := createMetaProject(client, ctx.projectKey)
+	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
 		return fmt.Errorf("Failed to create meta project: %s\n", err)
 	}
 
-	metaIssueType, err := createMetaIssueType(metaProject, ctx.issuetype)
+	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
 		return fmt.Errorf("Failed to create meta issue type: %s", err)
 	}
 
-	ctx.summary = content["title"]
-	ctx.description = content["description"]
+	ctx.Summary = content["title"]
+	ctx.Description = content["description"]
 
 	fieldsConfig := map[string]string{
-		"Issue Type":  ctx.issuetype,
-		"Project":     ctx.projectKey,
-		"Priority":    ctx.priority,
-		"Assignee":    ctx.assignee,
-		"Description": ctx.description,
-		"Summary":     ctx.summary,
+		"Issue Type":  ctx.Issuetype,
+		"Project":     ctx.ProjectKey,
+		"Priority":    ctx.Priority,
+		"Assignee":    ctx.Assignee,
+		"Description": ctx.Description,
+		"Summary":     ctx.Summary,
 	}
-	if ctx.sprintId > 0 {
-		fieldsConfig["Sprint"] = strconv.Itoa(ctx.sprintId)
+	if ctx.SprintId > 0 {
+		fieldsConfig["Sprint"] = strconv.Itoa(ctx.SprintId)
 	}
 
-	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom user defined in jira.
-	for k, v := range ctx.unknowns {
+	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom User defined in jira.
+	for k, v := range ctx.Unknowns {
 		fieldsConfig[k] = v
 	}
-	if len(ctx.unknowns) > 0 {
-		log.Printf("added %d custom fields to issue.", len(ctx.unknowns))
+	if len(ctx.Unknowns) > 0 {
+		log.Printf("added %d custom fields to issue.", len(ctx.Unknowns))
 	}
 
 	type Version struct {
@@ -240,29 +196,29 @@ func (ctx *JiraAPI) Send(content map[string]string ) error {
 		return err
 	}
 
-	if len(ctx.labels) > 0 {
-		for _, l := range ctx.labels {
+	if len(ctx.Labels) > 0 {
+		for _, l := range ctx.Labels {
 			issue.Fields.Labels = append(issue.Fields.Labels, l)
 		}
 	}
 
-	if len(ctx.fixVersions) > 0 {
-		for _, v := range ctx.fixVersions {
+	if len(ctx.FixVersions) > 0 {
+		for _, v := range ctx.FixVersions {
 			issue.Fields.FixVersions = append(issue.Fields.FixVersions, &jira.FixVersion{
 				Name: v,
 			})
 		}
 	}
 
-	if len(ctx.affectsVersions) > 0 {
+	if len(ctx.AffectsVersions) > 0 {
 		affectsVersions := []*Version{}
-		for _, v := range ctx.affectsVersions {
+		for _, v := range ctx.AffectsVersions {
 			affectsVersions = append(affectsVersions, &Version{
 				Name: v,
 			})
 		}
 		issue.Fields.Unknowns["versions"] = affectsVersions
-		log.Printf("added %d affected versions into Versions field", len(ctx.affectsVersions))
+		log.Printf("added %d affected versions into Versions field", len(ctx.AffectsVersions))
 	}
 
 	i, err := ctx.openIssue(client, issue)
@@ -275,7 +231,7 @@ func (ctx *JiraAPI) Send(content map[string]string ) error {
 }
 
 func (ctx *JiraAPI) login(client *jira.Client) error {
-	_, err := client.Authentication.AcquireSessionCookie(ctx.user, ctx.password)
+	_, err := client.Authentication.AcquireSessionCookie(ctx.User, ctx.Password)
 	return err
 }
 
@@ -290,55 +246,6 @@ func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Iss
 	return i, nil
 }
 
-func buildString(nvd string, vendor string) string {
-	severityStr := ""
-	high := "#e0443d"
-	medium := "#f79421"
-	low := "#e1c930"
-	negligible := "green"
-
-	if strings.TrimSpace(nvd) != "" {
-		color := ""
-		if nvd == "high" {
-			color = high
-		} else if nvd == "medium" {
-			color = medium
-		} else if nvd == "low" {
-			color = low
-		} else if nvd == "negligible" {
-			color = negligible
-		}
-		severityStr += fmt.Sprintf("*NVD:* {color:%s}%s{color}\n", color, nvd)
-	}
-
-	if strings.TrimSpace(vendor) != "" {
-		color := ""
-		if vendor == "high" {
-			color = high
-		} else if vendor == "medium" {
-			color = medium
-		} else if vendor == "low" {
-			color = low
-		} else if vendor == "negligible" {
-			color = negligible
-		}
-		severityStr += fmt.Sprintf("*Vendor:* {color:%s}%s{color}", color, vendor)
-	}
-	return severityStr
-}
-
-func (slice CVES) Len() int {
-	return len(slice)
-}
-
-/*
-func (slice CVES) Less(i, j int) bool {
-	return slice[i].Score < slice[j].Score
-}
-*/
-func (slice CVES) Swap(i, j int) {
-	slice[i], slice[j] = slice[j], slice[i]
-}
 
 func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error) {
 	meta, _, err := c.Issue.GetCreateMeta(project)
@@ -383,7 +290,7 @@ func InitIssue(metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType,
 			return nil, err
 		}
 
-		switch valueType {
+		switch strings.ToLower(valueType) {
 		case "array":
 			// split value (string) into slice by delimiter
 			elements := strings.Split(value, ",")
@@ -465,8 +372,6 @@ func InitIssue(metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType,
 			return nil, fmt.Errorf("Unknown issue type encountered: %s for %s", valueType, key)
 		}
 	}
-
 	issue.Fields = issueFields
-
 	return issue, nil
 }

@@ -28,10 +28,10 @@ var (
 		[]data.InfoResources{
 			{
 				[]data.Vulnerability{
-					{"CVE-2018-20679", "", "",},
-					{"CVE-2019-5747", "", "",},
+					{"CVE-2018-20679", "", "", "medium"},
+					{"CVE-2019-5747", "", "","medium"},
 				},
-				data.ResourceDetails{"busybox"},
+				data.ResourceDetails{"busybox", "1.28.4-r3"},
 			},
 		},
 	}

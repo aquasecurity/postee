@@ -1,6 +1,8 @@
 package data
 
-import "regexp"
+import (
+	"regexp"
+)
 
 func ClearField(source string) string {
 	re := regexp.MustCompile(`[[:cntrl:]]|[\x{FFFD}]`)
