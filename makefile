@@ -47,8 +47,8 @@ test :
 	rm coverage.txt
 	go test ./src/scanservice -race -coverprofile=profile.txt -covermode=atomic
 	cat profile.out >> coverage.txt
-        rm profile.out
+	rm profile.out
 	go test ./src/dbservice -race -coverprofile=profile.txt -covermode=atomic
 	cat profile.out >> coverage.txt
-        rm profile.out
+	rm profile.out
 	
