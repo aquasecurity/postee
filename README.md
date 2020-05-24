@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/aquasecurity/alm-integration.svg?branch=master)](https://travis-ci.org/aquasecurity/alm-integration)
+
 # Integrating Aqua Security with Application Lifecycle Management (ALM) Systems #
 Use this project to integrate Aqua with JIRA, Email and ServiceNow systems and create ticket or send an email when vulnerabilities are found in an image.
 
