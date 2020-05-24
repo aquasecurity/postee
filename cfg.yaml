@@ -1,5 +1,6 @@
 ---
-- name: jira
+- name: jira # name must be unique
+  type: jira # import: jira, email...
   enable: true
   url: #Mandatory. E.g "https://johndoe.atlassian.net"
   user: #Mandatory. E.g :johndoe@gmail.com"
@@ -19,6 +20,7 @@
   Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >
 
 - name: email
+  type: email # import: jira, email...
   enable: true
   user: "<Mandatory: johndoe@gmail.com>"
   password: "<Mandatory: Jira API Key>"
