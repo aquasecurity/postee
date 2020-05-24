@@ -44,9 +44,8 @@ test :
 	#go test ./src/dbservice -v -coverprofile=dbservice.out
 	#go tool cover -html=scanservice.out
 	#go tool cover -html=dbservice.out
-	rm coverage.txt
 	go test ./src/scanservice -race -coverprofile=profile.txt -covermode=atomic
-	cat profile.out >> coverage.txt
+	cat profile.out > coverage.txt
 	rm profile.out
 	go test ./src/dbservice -race -coverprofile=profile.txt -covermode=atomic
 	cat profile.out >> coverage.txt
