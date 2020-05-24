@@ -91,3 +91,18 @@ To validate that the integration is working, you can scan a new image for securi
 When vulnerabilities are found in an image, you will see that a JIRA ticket is opened on the board specified in the JIRA configuration file.
 
 ###### *To troubleshoot the integration, you can look at both the Aqua ALM Integration container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
+
+# Integration Settings
+You can setup integrations through the cfg.yaml file. Note that one yaml file can contain multiple integrations (e.g. multiple email integrations, where each integation is handeling different container imgage registry).
+
+The following are the cfg.yaml parameters:
+Key | Description | Possible Values
+--- | --- | ---
+name | The integration name |
+type | The integration type | jira, email
+Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integation | critical, high, medium, low
+Policy-Registry | Optional: the list of registry name that triggers the integration | 
+Policy-Image-Name | Optional: comma separated list of images that will trigger the integration
+Policy-Non-Compliant | Optional: whether to trigger the integration only on non-compliant images (true) or all images (false) | true, false
+Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
+Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
