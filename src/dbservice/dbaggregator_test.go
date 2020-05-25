@@ -74,4 +74,21 @@ func TestAggregateScans(t *testing.T) {
 			}
 		}
 	}
+
+	// Test of existence last scan in DB
+	lastScan,err := AggregateScans("jira", nil, 0, false)
+	if err != nil {
+		t.Fatalf("AggregateScans Error: %v", err)
+	}
+
+	if len(lastScan) != 1 {
+		t.Fatalf("Db don't contain last scan")
+	}
+
+	if lastScan[0]["title"] != scan4["title"] {
+		t.Errorf("Wrong title\nResult: %q\nWaited: %q", lastScan[0]["title"], scan4["title"])
+	}
+	if lastScan[0]["description"] != scan4["description"] {
+		t.Errorf("Wrong Description\nResult: %q\nWaited: %q", lastScan[0]["description"], scan4["description"])
+	}
 }
