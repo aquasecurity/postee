@@ -8,6 +8,9 @@ import (
 )
 
 func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, err error) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	currentId := scanInfo.GetUniqueId()
 	var prevId string
 	if scanInfo.PreviousDigest != "" {
