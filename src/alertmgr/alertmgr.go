@@ -19,6 +19,7 @@ const (
 
 type PluginSettings struct {
 	Name            string `json:"name"`
+	Type            string `json:"type"`
 	Enable          bool   `json:"enable"`
 	Url             string `json:"url"`
 	User            string `json:"user"`
@@ -64,6 +65,7 @@ var alertmgrCtx *AlertMgr
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	return &settings.Settings{
+		PluginName:             sourceSettings.Name,
 		PolicyMinVulnerability: sourceSettings.PolicyMinVulnerability,
 		PolicyRegistry:         sourceSettings.PolicyRegistry,
 		PolicyImageName:        sourceSettings.PolicyImageName,
@@ -177,17 +179,32 @@ func (ctx *AlertMgr) load() error {
 	}
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
+
+		settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
+		if len(settings.User) == 0 {
+			log.Printf("User for %q is empty", settings.Name)
+			continue
+		}
+		settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
+		if len(settings.Password) == 0 {
+			log.Printf("Password for %q is empty", settings.Name)
+			continue
+		}
+
 		if settings.Enable {
-			utils.Debug("Starting Plugin %s\n", settings.Name)
-			switch settings.Name {
+			utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
+			switch settings.Type {
 			case "jira":
 				plugin := buildJiraPlugin(&settings)
 				plugin.Init()
-				ctx.plugins["jira"] = plugin
+				ctx.plugins[settings.Name] = plugin
 			case "email":
 				plugin := buildEmailPlugin(&settings)
 				plugin.Init()
-				ctx.plugins["email"] = plugin
+				ctx.plugins[settings.Name] = plugin
+			default:
+				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
+					settings.Type, settings.Name)
 			}
 		}
 	}

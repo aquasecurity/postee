@@ -113,7 +113,7 @@ func (ctx *JiraAPI) Init() error {
 	}
 	ctx.fetchBoardId(ctx.BoardName)
 
-	log.Printf("Starting Jira plugin....")
+	log.Printf("Starting Jira plugin %q....", ctx.JiraSettings.PluginName)
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}

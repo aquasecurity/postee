@@ -1,13 +1,11 @@
 GOPATH=$(CURDIR)
-GO=/usr/local/go/bin/go
-GO_FMT=/usr/local/go/bin/gofmt
-GO_GET=$(GO) get
-GO_BUILD=$(GO) build
-GO_INSTALL=$(GO) install
-GO_CLEAN=$(GO) clean
+GO_FMT=gofmt
+GO_GET=go get
+GO_BUILD=go build
+GO_INSTALL=go install
+GO_CLEAN=go clean
 EXENAME=webhooksrv
 BUILDPATH=$(CURDIR)
-export GOPATH=$(BUILDPATH)
 
 .PHONY: all clean get build fmt vet test
 
@@ -24,11 +22,7 @@ build :
 
 get :
 	@echo "download 3rd party packages...."
-	@$(GO_GET) github.com/spf13/cobra
-	@$(GO_GET) github.com/gorilla/mux
-	@$(GO_GET) github.com/ghodss/yaml
-	@$(GO_GET) github.com/andygrunwald/go-jira
-	@$(GO_GET) go.etcd.io/bbolt
+	@$(GO_GET) github.com/ghodss/yaml github.com/gorilla/mux github.com/andygrunwald/go-jira go.etcd.io/bbolt github.com/spf13/cobra
 
 all : makedir get build
 
@@ -46,8 +40,9 @@ fmt :
 	$(GO_FMT) -w ./src
 
 test :
-	go test ./src/scanservice -v -coverprofile=scanservice.out
-	go test ./src/dbservice -v -coverprofile=dbservice.out
-
-	go tool cover -html=scanservice.out
-	go tool cover -html=dbservice.out
+	#go test ./src/scanservice -v -coverprofile=scanservice.out
+	#go test ./src/dbservice -v -coverprofile=dbservice.out
+	#go tool cover -html=scanservice.out
+	#go tool cover -html=dbservice.out
+	go test ./src/scanservice -race -coverprofile=coverage.txt -covermode=atomic
+	go test ./src/dbservice -race -coverprofile=coverage.txt -covermode=atomic

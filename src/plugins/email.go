@@ -25,7 +25,7 @@ func (email *EmailPlugin) GetSettings() *settings.Settings {
 }
 
 func (email *EmailPlugin) Init() error {
-	log.Printf("Starting Email plugin....")
+	log.Printf("Starting Email plugin %q...", email.EmailSettings.PluginName)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
