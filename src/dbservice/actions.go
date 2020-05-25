@@ -52,7 +52,7 @@ func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, 
 	}
 
 	currentBytes, _ := json.Marshal(scanInfo)
-	err = dbInsert(db, []byte(currentId), currentBytes)
+	err = dbInsert(db, dbBucketName, []byte(currentId), currentBytes)
 	if err != nil {
 		return nil, false, err
 	}
