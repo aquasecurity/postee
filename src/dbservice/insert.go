@@ -4,7 +4,7 @@ import bolt "go.etcd.io/bbolt"
 
 func dbInsert(db *bolt.DB, key, value []byte) error {
 	err := db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte(BucketName))
+		b, err := tx.CreateBucketIfNotExists([]byte(dbBucketName))
 		if err != nil {
 			return err
 		}
