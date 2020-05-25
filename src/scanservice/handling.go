@@ -96,7 +96,7 @@ func (scan *ScanService) aggregateScans(pluginName string, currentContent map[st
 	var names []string
 
 	for _, scan := range aggregatedScans {
-		descr.WriteString(layoutProvider.TitleH2(scan["title"]))
+		descr.WriteString(layoutProvider.TitleH1(scan["title"]))
 		descr.WriteString(scan["description"])
 		if len(scan["name"]) > 0 {
 			names = append(names, scan["name"])

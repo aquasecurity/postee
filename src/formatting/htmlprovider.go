@@ -12,6 +12,10 @@ func (html *HtmlProvider) P(p string) string {
 	return fmt.Sprintf("<p>%s</p>\n", p)
 }
 
+func (html *HtmlProvider) TitleH1(title string) string {
+	return fmt.Sprintf("<h1>%s</h1>\n", title)
+}
+
 func (html *HtmlProvider) TitleH2(title string) string {
 	return fmt.Sprintf("<h2>%s</h2>\n", title)
 }
