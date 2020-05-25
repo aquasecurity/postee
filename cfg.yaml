@@ -1,36 +1,54 @@
 ---
-- name: jira
+- name: my-jira # name must be unique
+  type: jira # supported types: jira, email
   enable: true
-  url: #Mandatory. E.g "https://johndoe.atlassian.net"
+  url:  #Mandatory. E.g "https://johndoe.atlassian.net"
   user: #Mandatory. E.g :johndoe@gmail.com"
   password: #Mandatory. Specify Jira user API key
   project_key: #Mandatory. Specify the JIRA product key
   tls_verify: false
   board: #Optional. Specify the Jira board name to open tickets on
-  labels: ["label1", "label2"]
+  labels: #Optional, specify array of labels to add to Ticket, for example: ["label1", "label2"]
   issuetype: #Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:  #Optional. Specify the issues severity. Default is "High"
   assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket
   Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
-  Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
-  Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
-  Ignore-Registry: [] # <comma separated list of registries that will ignore for opening a ticket)
-  Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >
+  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
   Aggregate-Issues-Per-Ticket: # a number
   Aggregate-Timeout:  # number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
 
-- name: email
+- name: my-email
+  type: email 
   enable: true
-  user: "<Mandatory: johndoe@gmail.com>"
-  password: "<Mandatory: Jira API Key>"
-  host: smtp.gmail.com
-  port: 587
-  sender: "<Mandatory: johndoe@gmail.com>"
-  recipients: ["", ""]
+  user: #Mandatory: SMTP user name (e.g. johndoe@gmail.com)
+  password: #Mandatory: SMTP password
+  host: #Mandatory: SMTP host name (e.g. smtp.gmail.com)
+  port: #Mandatory: SMTP server port (e.g. 587)
+  sender: #Mandatory: The email address to use as a sender
+  recipients: ["", ""] #Mandatory: comma seperated list of recipients
   Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #<comma separated list of registries that will trigger opening a ticket)
-  Policy-Image-Name: [alpine,alpine2] #<comma separated list of images that will trigger opening a ticket)
-  Policy-Non-Compliant: true # true/false (open ticket only if image is non-compliant)
-  Ignore-Registry: [] # <comma separated list of registries that will ignore for opening a ticket)
-  Ignore-Image-Name: [] #<list of comma separated images to ignore, need to support wildcards >
+  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+  
+- name: my-other-email #this is an example for multiple integrations of same type
+  type: email 
+  enable: true
+  user: #Mandatory: SMTP user name (e.g. johndoe@gmail.com)
+  password: #Mandatory: SMTP password
+  host: #Mandatory: SMTP host name (e.g. smtp.gmail.com)
+  port: #Mandatory: SMTP server port (e.g. 587)
+  sender: #Mandatory: The email address to use as a sender
+  recipients: ["", ""] #Mandatory: comma seperated list of recipients
+  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.

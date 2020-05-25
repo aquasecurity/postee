@@ -5,11 +5,20 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
 	dbg = false
 )
+
+func GetEnvironmentVarOrPlain(value string) string  {
+	const VarPrefix = "$"
+	if strings.HasPrefix(value, VarPrefix) {
+		return os.Getenv(strings.TrimPrefix(value, VarPrefix))
+	}
+	return value
+}
 
 func InitDebug() {
 	if os.Getenv("AQUAALERT_DEBUG") != "" {
