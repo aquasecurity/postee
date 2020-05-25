@@ -68,7 +68,15 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			continue
 		}
 
-		plugin.Send(scan.getContent(plugin.GetLayoutProvider()))
+		content := scan.getContent(plugin.GetLayoutProvider())
+		if currentSettings.AggregateTimeoutSeconds > 0 || currentSettings.AggregateIssuesPerTicket > 0 {
+			// ToDo
+			// Saving current scan to db
+			//
+		}
+		if len(content) > 0 {
+			plugin.Send(content)
+		}
 	}
 }
 
