@@ -3,7 +3,6 @@ package scanservice
 import (
 	"dbservice"
 	"formatting"
-	"layout"
 	"os"
 	"plugins"
 	"settings"
@@ -100,26 +99,3 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	}
 }
 
-type DemoPlugin struct {
-	Sent bool
-	name string
-	lay  layout.LayoutProvider
-	sets *settings.Settings
-	t    *testing.T
-}
-func (plg *DemoPlugin) Init() error {	return nil}
-func (plg *DemoPlugin) Send(data map[string]string) error {
-	plg.Sent = true
-	plg.t.Logf("Sending data via %q\n", plg.name)
-//	plg.t.Logf("Title: %q\n", data["title"])
-//	plg.t.Logf("Description: %q\n", data["description"])
-	return nil
-}
-
-func (plg *DemoPlugin) Terminate() error { return nil}
-func (plg *DemoPlugin) GetLayoutProvider() layout.LayoutProvider {
-	return plg.lay
-}
-func (plg *DemoPlugin) GetSettings() *settings.Settings {
-	return plg.sets
-}

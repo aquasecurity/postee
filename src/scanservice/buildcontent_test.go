@@ -7,8 +7,6 @@ import (
 )
 
 var (
-	scan1 = map[string]string{"title":"title1", "description":"<p>description1</p>\n", "name":"name1",}
-	scan2 = map[string]string{"title":"title2", "description":"<p>description2</p>\n", "name":"name2",}
 	lay = new(formatting.HtmlProvider)
 )
 
