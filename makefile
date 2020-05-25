@@ -1,4 +1,3 @@
-GOPATH=$(CURDIR)
 GO_FMT=gofmt
 GO_GET=go get
 GO_BUILD=go build
@@ -6,6 +5,7 @@ GO_INSTALL=go install
 GO_CLEAN=go clean
 EXENAME=webhooksrv
 BUILDPATH=$(CURDIR)
+export GOPATH=$(CURDIR)
 
 .PHONY: all clean get build fmt vet test
 
@@ -40,9 +40,11 @@ fmt :
 	$(GO_FMT) -w ./src
 
 test :
-	#go test ./src/scanservice -v -coverprofile=scanservice.out
-	#go test ./src/dbservice -v -coverprofile=dbservice.out
-	#go tool cover -html=scanservice.out
-	#go tool cover -html=dbservice.out
 	go test ./src/scanservice -race -coverprofile=coverage.txt -covermode=atomic
 	go test ./src/dbservice -race -coverprofile=coverage.txt -covermode=atomic
+
+cover :
+	go test ./src/scanservice -v -coverprofile=scanservice.out
+	go test ./src/dbservice -v -coverprofile=dbservice.out
+	go tool cover -html=scanservice.out
+	go tool cover -html=dbservice.out
