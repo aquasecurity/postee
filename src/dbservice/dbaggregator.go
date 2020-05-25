@@ -5,7 +5,10 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-func AggregateScans(plugin string, currentScan map[string]string, scansPerTicket int) ( []map[string]string, error) {
+func AggregateScans(plugin string,
+	currentScan map[string]string,
+	scansPerTicket int,
+	ignoreTheQuantity bool) ( []map[string]string, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -21,7 +24,9 @@ func AggregateScans(plugin string, currentScan map[string]string, scansPerTicket
 	}
 
 	aggregatedScans := make([]map[string]string, 0, scansPerTicket)
-	aggregatedScans = append(aggregatedScans, currentScan)
+	if len(currentScan) > 0 {
+		aggregatedScans = append(aggregatedScans, currentScan)
+	}
 	currentValue, err := dbSelect(db, dbBucketAggregator, plugin)
 	if err != nil {
 		return nil, err
@@ -36,7 +41,7 @@ func AggregateScans(plugin string, currentScan map[string]string, scansPerTicket
 		aggregatedScans = append(aggregatedScans, savedScans...)
 	}
 
-	if len(aggregatedScans) < scansPerTicket {
+	if ignoreTheQuantity || len(aggregatedScans) < scansPerTicket {
 		saving, err := json.Marshal(aggregatedScans)
 		if err != nil {
 			return nil, err

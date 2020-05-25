@@ -1,7 +1,6 @@
 package scanservice
 
 import (
-	"bytes"
 	"data"
 	"dbservice"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"plugins"
 	"settings"
 	"strings"
+	"time"
 )
 
 type ScanService struct {
@@ -70,40 +70,51 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		}
 
 		content := scan.getContent(plugin.GetLayoutProvider())
-		if currentSettings.AggregateTimeoutSeconds > 0 || currentSettings.AggregateIssuesPerTicket > 0 {
-			content = scan.aggregateScans(name, content, plugin.GetLayoutProvider(), currentSettings.AggregateIssuesPerTicket)
+		wasHandled := false
+		if currentSettings.AggregateIssuesPerTicket > 0  {
+			aggregated := AggregateScanAndGetQueue(name, content, currentSettings.AggregateIssuesPerTicket, false)
+			if len(aggregated) > 0 {
+				content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
+			}
+			wasHandled = true
 		}
-		if len(content) > 0 {
+
+		if currentSettings.AggregateTimeoutSeconds > 0  {
+			if !wasHandled {
+				AggregateScanAndGetQueue(name, content, 0, true)
+			}
+			if !currentSettings.IsScheduleRun {
+				go func() {
+					log.Printf("Scheduler is actived. Period: %d sec", currentSettings.AggregateTimeoutSeconds)
+					for {
+						time.Sleep(time.Duration(currentSettings.AggregateTimeoutSeconds) * time.Second)
+						queue := AggregateScanAndGetQueue(name, nil, 0, false)
+						if len(queue) > 0 {
+							plugin.Send(buildAggregatedContent(queue, plugin.GetLayoutProvider()))
+						}
+					}
+				}()
+				currentSettings.IsScheduleRun = true
+			}
+		}
+
+		if len(content) > 0 && !currentSettings.IsScheduleRun {
 			plugin.Send(content)
 		}
 	}
 }
 
-func (scan *ScanService) aggregateScans(pluginName string, currentContent map[string]string,
-	layoutProvider layout.LayoutProvider, counts int) map[string]string {
-	aggregatedScans, err := dbservice.AggregateScans(pluginName, currentContent, counts)
+func AggregateScanAndGetQueue(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
+	aggregatedScans, err := dbservice.AggregateScans(pluginName, currentContent, counts, ignoreLength)
 	if err != nil {
 		log.Printf("AggregateScans Error: %v", err)
-		return currentContent
+		return aggregatedScans
 	}
-
-	if len(aggregatedScans) == 0 {
-		log.Printf( "Scan was added to the queue without sengins. ScanId: %q", scan.scanInfo.GetUniqueId())
+	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
+		log.Printf( "Scan %q was added to the queue without sending.", currentContent["name"])
 		return nil
 	}
-
-	var descr bytes.Buffer
-	var names []string
-
-	for _, scan := range aggregatedScans {
-		descr.WriteString(layoutProvider.TitleH1(scan["title"]))
-		descr.WriteString(scan["description"])
-		if len(scan["name"]) > 0 {
-			names = append(names, scan["name"])
-		}
-	}
-	title := fmt.Sprintf("%s vulnerabilities scan report", strings.Join(names, ", "))
-	return BuildMapContent(title, descr.String(), "")
+	return aggregatedScans
 }
 
 func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
@@ -117,7 +128,7 @@ func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
 }
 
 func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]string {
-	return BuildMapContent(
+	return buildMapContent(
 		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
 		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan),
 		scan.scanInfo.Image)

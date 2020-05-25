@@ -11,6 +11,7 @@ type Settings struct {
 
 	AggregateIssuesPerTicket int
 	AggregateTimeoutSeconds  int
+	IsScheduleRun            bool
 }
 
 func GetDefaultSettings() *Settings {
