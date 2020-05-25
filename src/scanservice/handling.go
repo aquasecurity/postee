@@ -1,6 +1,7 @@
 package scanservice
 
 import (
+	"bytes"
 	"data"
 	"dbservice"
 	"fmt"
@@ -70,14 +71,39 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 
 		content := scan.getContent(plugin.GetLayoutProvider())
 		if currentSettings.AggregateTimeoutSeconds > 0 || currentSettings.AggregateIssuesPerTicket > 0 {
-			// ToDo
-			// Saving current scan to db
-			//
+			content = scan.aggregateScans(name, content, plugin.GetLayoutProvider(), currentSettings.AggregateIssuesPerTicket)
 		}
 		if len(content) > 0 {
 			plugin.Send(content)
 		}
 	}
+}
+
+func (scan *ScanService) aggregateScans(pluginName string, currentContent map[string]string,
+	layoutProvider layout.LayoutProvider, counts int) map[string]string {
+	aggregatedScans, err := dbservice.AggregateScans(pluginName, currentContent, counts)
+	if err != nil {
+		log.Printf("AggregateScans Error: %v", err)
+		return currentContent
+	}
+
+	if len(aggregatedScans) == 0 {
+		log.Printf( "Scan was added to the queue without sengins. ScanId: %q", scan.scanInfo.GetUniqueId())
+		return nil
+	}
+
+	var descr bytes.Buffer
+	var names []string
+
+	for _, scan := range aggregatedScans {
+		descr.WriteString(layoutProvider.TitleH2(scan["title"]))
+		descr.WriteString(scan["description"])
+		if len(scan["name"]) > 0 {
+			names = append(names, scan["name"])
+		}
+	}
+	title := fmt.Sprintf("%s vulnerabilities scan report", strings.Join(names, ", "))
+	return BuildMapContent(title, descr.String(), "")
 }
 
 func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
@@ -91,10 +117,10 @@ func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
 }
 
 func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]string {
-	content := make(map[string]string)
-	content["title"] = fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image)
-	content["description"] = layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan)
-	return content
+	return BuildMapContent(
+		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
+		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan),
+		scan.scanInfo.Image)
 }
 
 func (scan *ScanService) init(data string) ( err error) {
