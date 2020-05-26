@@ -50,3 +50,14 @@
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+
+- name: my-slack
+  type: slack
+  enable: true
+
+  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.

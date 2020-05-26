@@ -75,6 +75,12 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	}
 }
 
+func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
+	slack := &plugins.SlackPlugin{}
+	slack.SlackSettings = buildSettings(sourceSettings)
+	return slack
+}
+
 func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
 	em := &plugins.EmailPlugin{
 		User:          sourceSettings.User,
@@ -202,6 +208,9 @@ func (ctx *AlertMgr) load() error {
 				plugin := buildEmailPlugin(&settings)
 				plugin.Init()
 				ctx.plugins[settings.Name] = plugin
+			case "slack":
+				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
+				ctx.plugins[settings.Name].Init()
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
 					settings.Type, settings.Name)
