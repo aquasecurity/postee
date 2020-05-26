@@ -44,9 +44,11 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 	}()
 	dbservice.DbPath = "test_" + dbPathReal
 
+	const wantToAggregateIssues = 3
+
 	setting1 :=  &settings.Settings{
 		IgnoreImageName:       nil,
-		AggregateIssuesNumber: 3,
+		AggregateIssuesNumber: wantToAggregateIssues,
 	}
 
 	demoEmailPlg := DemoEmailPlugin{
@@ -58,15 +60,19 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 		"email": &demoEmailPlg,
 	}
 
-	srv := new(ScanService)
-	srv.ResultHandling(mockScan1, plugins)
-	t.Logf("Counts of sent email: %d",demoEmailPlg.emailCounts)
-	srv.ResultHandling(mockScan2, plugins)
-	t.Logf("Counts of sent email: %d",demoEmailPlg.emailCounts)
-	srv.ResultHandling(mockScan3, plugins)
-	t.Logf("Counts of sent email: %d",demoEmailPlg.emailCounts)
-	srv.ResultHandling(mockScan4, plugins)
-	t.Logf("Counts of sent email: %d",demoEmailPlg.emailCounts)
+	scans := []string{mockScan1, mockScan2, mockScan3, mockScan4}
+
+	for n, scan := range scans {
+		srv := new(ScanService)
+		srv.ResultHandling(scan, plugins)
+		if demoEmailPlg.emailCounts != 0 && (n+1) != wantToAggregateIssues {
+			t.Errorf("Email was sent for %dth scan. We want to aggregate %d issues.",
+				n+1, wantToAggregateIssues)
+		}
+		if demoEmailPlg.emailCounts != 0 && (n+1) == wantToAggregateIssues {
+			demoEmailPlg.emailCounts = 0
+		}
+	}
 }
 
 func TestAggregateTimeoutSeconds(t *testing.T) {

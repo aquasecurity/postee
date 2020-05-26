@@ -75,6 +75,8 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			aggregated := AggregateScanAndGetQueue(name, content, currentSettings.AggregateIssuesNumber, false)
 			if len(aggregated) > 0 {
 				content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
+			} else {
+				content = nil
 			}
 			wasHandled = true
 		}
