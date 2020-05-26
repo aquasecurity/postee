@@ -16,7 +16,7 @@ func TestBuildAggregatedContent(t *testing.T)  {
 <h1>title2</h1>
 <p>description2</p>
 `
-	wantTitle := "name1, name2"
+	wantTitle := "Vulnerability scan report"
 
 	result := buildAggregatedContent([]map[string]string{scan1, scan2}, lay)
 	if !strings.HasPrefix(result["title"], wantTitle) {
@@ -32,21 +32,20 @@ func TestBuildMapContent(t *testing.T) {
 	tests := [...]struct{
 		title string
 		descr string
-		name  string
 		want  map[string]string
 	}{
 		{
-			"title1", "description1", "name1",
+			"title1", "description1",
 			scan1,
 		},
 		{
-			"title2", "description2", "name2",
+			"title2", "description2",
 			scan2,
 		},
 	}
 
 	for _, test := range tests {
-		result := buildMapContent(test.title, lay.P(test.descr), test.name)
+		result := buildMapContent(test.title, lay.P(test.descr))
 		if len(result) != len(test.want) {
 			t.Errorf("Wrong result size\nResult: %v\nWaited: %v", result, test.want)
 			continue

@@ -113,7 +113,7 @@ func AggregateScanAndGetQueue(pluginName string, currentContent map[string]strin
 		return aggregatedScans
 	}
 	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
-		log.Printf( "Scan %q was added to the queue without sending.", currentContent["name"])
+		log.Printf( "New scan was added to the queue without sending.")
 		return nil
 	}
 	return aggregatedScans
@@ -132,8 +132,7 @@ func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
 func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]string {
 	return buildMapContent(
 		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
-		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan),
-		scan.scanInfo.Image)
+		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan))
 }
 
 func (scan *ScanService) init(data string) ( err error) {

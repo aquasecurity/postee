@@ -10,10 +10,10 @@ var (
 	plugin1 = "jira"
 	plugin2 = "email"
 
-	scan1 = map[string]string{"title":"title1", "description":"<p>description1</p>\n", "name":"name1",}
-	scan2 = map[string]string{"title":"title2", "description":"<p>description2</p>\n", "name":"name2",}
-	scan3 = map[string]string{"title":"title3", "description":"<p>description3</p>\n", "name":"name3",}
-	scan4 = map[string]string{"title":"title4", "description":"<p>description4</p>\n", "name":"name4",}
+	scan1 = map[string]string{"title":"title1", "description":"<p>description1</p>\n",}
+	scan2 = map[string]string{"title":"title2", "description":"<p>description2</p>\n",}
+	scan3 = map[string]string{"title":"title3", "description":"<p>description3</p>\n",}
+	scan4 = map[string]string{"title":"title4", "description":"<p>description4</p>\n",}
 )
 
 type DemoPlugin struct {
