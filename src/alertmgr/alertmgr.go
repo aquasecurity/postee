@@ -185,19 +185,17 @@ func (ctx *AlertMgr) load() error {
 	}
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
-
-		settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-		if len(settings.User) == 0 {
-			log.Printf("User for %q is empty", settings.Name)
-			continue
-		}
-		settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-		if len(settings.Password) == 0 {
-			log.Printf("Password for %q is empty", settings.Name)
-			continue
-		}
-
 		if settings.Enable {
+			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
+			if len(settings.User) == 0 {
+				log.Printf("User for %q is empty", settings.Name)
+				continue
+			}
+			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
+			if len(settings.Password) == 0 {
+				log.Printf("Password for %q is empty", settings.Name)
+				continue
+			}
 			utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
 			switch settings.Type {
 			case "jira":
