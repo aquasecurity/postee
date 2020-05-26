@@ -9,9 +9,9 @@ type Settings struct {
 	IgnoreRegistry         []string
 	IgnoreImageName        []string
 
-	AggregateIssuesPerTicket int
-	AggregateTimeoutSeconds  int
-	IsScheduleRun            bool
+	AggregateIssuesNumber   int
+	AggregateTimeoutSeconds int
+	IsScheduleRun           bool
 }
 
 func GetDefaultSettings() *Settings {

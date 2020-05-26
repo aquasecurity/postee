@@ -53,8 +53,8 @@ type PluginSettings struct {
 	IgnoreRegistry  []string `json:"Ignore-Registry"`
 	IgnoreImageName []string `json:"Ignore-Image-Name"`
 
-	AggregateIssuesPerTicket int `json:"Aggregate-Issues-Per-Ticket"`
-	AggregateTimeout string `json:"Aggregate-Timeout"`
+	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
+	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
 }
 
 type AlertMgr struct {
@@ -78,29 +78,29 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		"h": 3600,
 	}
 
-	if len(sourceSettings.AggregateTimeout) > 0 {
+	if len(sourceSettings.AggregateIssuesTimeout) > 0 {
 		for suffix, k := range times {
-			if strings.HasSuffix(strings.ToLower(sourceSettings.AggregateTimeout), suffix) {
-				timeout, err = strconv.Atoi(strings.TrimSuffix(sourceSettings.AggregateTimeout, suffix))
+			if strings.HasSuffix(strings.ToLower(sourceSettings.AggregateIssuesTimeout), suffix) {
+				timeout, err = strconv.Atoi(strings.TrimSuffix(sourceSettings.AggregateIssuesTimeout, suffix))
 				timeout *= k
 				break
 			}
 		}
 		if err != nil {
-			log.Printf("%q settings: Can't convert 'AggregateTimeout'(%q) to seconds.",
-				sourceSettings.Name, sourceSettings.AggregateTimeout)
+			log.Printf("%q settings: Can't convert 'AggregateIssuesTimeout'(%q) to seconds.",
+				sourceSettings.Name, sourceSettings.AggregateIssuesTimeout)
 		}
 	}
 	return &settings.Settings{
-		PluginName:             sourceSettings.Name,
-		PolicyMinVulnerability: sourceSettings.PolicyMinVulnerability,
-		PolicyRegistry:         sourceSettings.PolicyRegistry,
-		PolicyImageName:        sourceSettings.PolicyImageName,
-		PolicyNonCompliant:     sourceSettings.PolicyNonCompliant,
-		IgnoreRegistry:         sourceSettings.IgnoreRegistry,
-		IgnoreImageName:        sourceSettings.IgnoreImageName,
-		AggregateIssuesPerTicket: sourceSettings.AggregateIssuesPerTicket,
-		AggregateTimeoutSeconds:  timeout,
+		PluginName:              sourceSettings.Name,
+		PolicyMinVulnerability:  sourceSettings.PolicyMinVulnerability,
+		PolicyRegistry:          sourceSettings.PolicyRegistry,
+		PolicyImageName:         sourceSettings.PolicyImageName,
+		PolicyNonCompliant:      sourceSettings.PolicyNonCompliant,
+		IgnoreRegistry:          sourceSettings.IgnoreRegistry,
+		IgnoreImageName:         sourceSettings.IgnoreImageName,
+		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
+		AggregateTimeoutSeconds: timeout,
 	}
 }
 

@@ -45,8 +45,8 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 	dbservice.DbPath = "test_" + dbPathReal
 
 	setting1 :=  &settings.Settings{
-		IgnoreImageName:        nil,
-		AggregateIssuesPerTicket: 3,
+		IgnoreImageName:       nil,
+		AggregateIssuesNumber: 3,
 	}
 
 	demoEmailPlg := DemoEmailPlugin{
