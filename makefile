@@ -42,9 +42,12 @@ fmt :
 test :
 	go test ./src/scanservice -race -coverprofile=coverage.txt -covermode=atomic -short
 	go test ./src/dbservice -race -coverprofile=coverage.txt -covermode=atomic
+	go test ./src/alertmgr -race -coverprofile=coverage.txt -covermode=atomic
 
 cover :
 	go test ./src/scanservice -v -coverprofile=scanservice.out
 	go test ./src/dbservice -v -coverprofile=dbservice.out
+	go test ./src/alertmgr -v -coverprofile=alertmgr.out
 	go tool cover -html=scanservice.out
 	go tool cover -html=dbservice.out
+	go tool cover -html=alertmgr.out

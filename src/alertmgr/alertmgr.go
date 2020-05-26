@@ -79,12 +79,17 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	}
 
 	if len(sourceSettings.AggregateIssuesTimeout) > 0 {
+		wasConvert := false
 		for suffix, k := range times {
 			if strings.HasSuffix(strings.ToLower(sourceSettings.AggregateIssuesTimeout), suffix) {
 				timeout, err = strconv.Atoi(strings.TrimSuffix(sourceSettings.AggregateIssuesTimeout, suffix))
 				timeout *= k
+				wasConvert = true
 				break
 			}
+		}
+		if !wasConvert {
+			timeout, err = strconv.Atoi(sourceSettings.AggregateIssuesTimeout)
 		}
 		if err != nil {
 			log.Printf("%q settings: Can't convert 'AggregateIssuesTimeout'(%q) to seconds.",
