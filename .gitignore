@@ -6,5 +6,6 @@ src/gopkg.in/
 src/go.etcd.io/
 **/*.out
 **/*.db
+coverage.txt
 
 
