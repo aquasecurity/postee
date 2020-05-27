@@ -84,26 +84,34 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		if currentSettings.AggregateTimeoutSeconds > 0  {
 			if !wasHandled {
 				AggregateScanAndGetQueue(name, content, 0, true)
+				content = nil
 			}
 			if !currentSettings.IsScheduleRun {
-				go func() {
-					log.Printf("Scheduler is actived. Period: %d sec", currentSettings.AggregateTimeoutSeconds)
+				plg := plugin
+				go func(nm string) {
+					log.Printf("Scheduler is actived for %q(%q). Period: %d sec",
+						nm, plg.GetSettings().PluginName, plg.GetSettings().AggregateTimeoutSeconds)
 					for {
-						time.Sleep(time.Duration(currentSettings.AggregateTimeoutSeconds) * time.Second)
-						queue := AggregateScanAndGetQueue(name, nil, 0, false)
+						time.Sleep(time.Duration(plg.GetSettings().AggregateTimeoutSeconds) * time.Second)
+						queue := AggregateScanAndGetQueue(nm, nil, 0, false)
 						if len(queue) > 0 {
-							plugin.Send(buildAggregatedContent(queue, plugin.GetLayoutProvider()))
+							send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()), nm)
 						}
 					}
-				}()
+				}(name)
 				currentSettings.IsScheduleRun = true
 			}
 		}
 
-		if len(content) > 0 && !currentSettings.IsScheduleRun {
-			plugin.Send(content)
+		if len(content) > 0 {
+			send(plugin, content, name)
 		}
 	}
+}
+
+func send( plg plugins.Plugin, cnt map[string]string, name string) {
+	log.Printf("Sending message via %q", name)
+	plg.Send(cnt)
 }
 
 func AggregateScanAndGetQueue(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
@@ -113,7 +121,7 @@ func AggregateScanAndGetQueue(pluginName string, currentContent map[string]strin
 		return aggregatedScans
 	}
 	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
-		log.Printf( "New scan was added to the queue without sending.")
+		log.Printf( "New scan was added to the queue of %q without sending.", pluginName)
 		return nil
 	}
 	return aggregatedScans
