@@ -33,6 +33,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	dbservice.DbPath = "test_" + dbPathReal
 
 	setting1 :=  &settings.Settings{
+		PluginName: "Demo plugin with settings",
 		PolicyMinVulnerability: "",
 		PolicyRegistry:         nil,
 		PolicyImageName:        nil,
@@ -91,6 +92,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 func TestPolicySettings(t *testing.T) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
+		os.Remove(dbservice.DbPath)
 		dbservice.DbPath = dbPathReal
 	}()
 	dbservice.DbPath = "test_" + dbPathReal
