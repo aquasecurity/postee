@@ -77,6 +77,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 
 func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
 	slack := &plugins.SlackPlugin{}
+	slack.Url = sourceSettings.Url
 	slack.SlackSettings = buildSettings(sourceSettings)
 	return slack
 }
@@ -187,12 +188,12 @@ func (ctx *AlertMgr) load() error {
 		utils.Debug("%#v\n", settings)
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0 {
+			if len(settings.User) == 0 && settings.Type != "slack" {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}
 			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 {
+			if len(settings.Password) == 0 && settings.Type != "slack" {
 				log.Printf("Password for %q is empty", settings.Name)
 				continue
 			}

@@ -54,6 +54,7 @@
 - name: my-slack
   type: slack
   enable: true
+  url: https://hooks.slack.com/services/TAAAA/BBB/<key>
 
   Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
   Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
