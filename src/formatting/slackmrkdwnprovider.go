@@ -2,26 +2,16 @@ package formatting
 
 import (
 	"bytes"
+	"data"
 	"encoding/json"
 	"fmt"
 	"log"
 )
 
-type SlackTextBlock struct {
-	TypeField string `json:"type"`
-	TextField string `json:"text"`
-}
-
-type SlackBlock struct {
-	TypeField string `json:"type"`
-	TextField *SlackTextBlock `json:"text,omitempty"`
-	Fields []SlackTextBlock `json:"fields,omitempty"`
-}
-
 func getMrkdwnText(text string) string {
-	block := &SlackBlock{
+	block := &data.SlackBlock{
 		TypeField: "section",
-		TextField: &SlackTextBlock{
+		TextField: &data.SlackTextBlock{
 			TypeField: "mrkdwn",
 			TextField: text,
 		},
@@ -55,20 +45,20 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 	}
 	var builder bytes.Buffer
 
-	fields := &SlackBlock{
+	fields := &data.SlackBlock{
 		TypeField: "section",
 	}
 	if len(rows) == 2 && len(rows[0]) == 5 {
-		fields.Fields = make([]SlackTextBlock, 2*len(rows[0]))
+		fields.Fields = make([]data.SlackTextBlock, 2*len(rows[0]))
 		for i, r := range rows {
 			for j, f := range r {
 				if i == 0 {
-					fields.Fields[j*2] = SlackTextBlock{
+					fields.Fields[j*2] = data.SlackTextBlock{
 						TypeField: "mrkdwn",
 						TextField: fmt.Sprintf("*%s*", f),
 					}
 				} else {
-					fields.Fields[j*2+1] = SlackTextBlock{
+					fields.Fields[j*2+1] = data.SlackTextBlock{
 						TypeField: "mrkdwn",
 						TextField: f,
 					}
@@ -88,13 +78,13 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 					builder.Write(block)
 					builder.WriteByte(',')
 				}
-				fields = new(SlackBlock)
+				fields = new(data.SlackBlock)
 				fields.TypeField = "section"
 				current := 5
 				if (totalRows-line) < 5 {
 					current = totalRows-line
 				}
-				fields.Fields = make([]SlackTextBlock,  current*2)
+				fields.Fields = make([]data.SlackTextBlock,  current*2)
 			}
 			var cell1, cell2 bytes.Buffer
 			for j, f := range r {
@@ -109,17 +99,20 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 					if rows[0][0] == "#" {
 						fmt.Fprintf(&cell1, " %s%s%s", bold, f, bold)
 					} else {
-						fmt.Fprintf(&cell2, "%s%s%s", bold, f, bold)
+						fmt.Fprintf(&cell2, "%s%s%s / ", bold, f, bold)
 					}
 				default:
-					fmt.Fprintf(&cell2, " / %s%s%s", bold, f, bold)
+					if j > 2 {
+						cell2.WriteString(" / ")
+					}
+					fmt.Fprintf(&cell2, "%s%s%s", bold, f, bold)
 				}
 			}
-			fields.Fields[(line%5)*2] = SlackTextBlock{
+			fields.Fields[(line%5)*2] = data.SlackTextBlock{
 				TypeField: "mrkdwn",
 				TextField: cell1.String(),
 			}
-			fields.Fields[(line%5)*2+1] = SlackTextBlock{
+			fields.Fields[(line%5)*2+1] = data.SlackTextBlock{
 				TypeField: "mrkdwn",
 				TextField: cell2.String(),
 			}

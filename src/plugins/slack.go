@@ -2,7 +2,8 @@ package plugins
 
 import (
 	"bytes"
-	"fmt"
+	"data"
+	"encoding/json"
 	"formatting"
 	"io/ioutil"
 	"layout"
@@ -31,30 +32,53 @@ func clearSlackText (text string) string  {
 	return s
 }
 
-func (slack *SlackPlugin) Send(data map[string]string) error {
+func (slack *SlackPlugin) Send(input map[string]string) error {
 	log.Printf("Sending via Slack %q", slack.SlackSettings.PluginName)
-	var content bytes.Buffer
-	title := slack.slackLayout.TitleH2(data["title"])
-
+	title := clearSlackText(slack.slackLayout.TitleH2(input["title"]))
 	var body string
-	if strings.HasSuffix(data["description"], ",") {
-		body = strings.TrimSuffix(data["description"], ",")
+	if strings.HasSuffix(input["description"], ",") {
+		body = strings.TrimSuffix(input["description"], ",")
 	} else {
-		body = data["description"]
+		body = input["description"]
 	}
-	fmt.Fprintf( &content, "{\"blocks\":[%s %s]}", clearSlackText(title), clearSlackText(body))
-	r := bytes.NewReader(content.Bytes())
-	resp, err := http.Post( slack.Url, "application/json", r)
+	body = "[" + clearSlackText(body)+"]"
+	rawBlock := make([]data.SlackBlock, 0)
+	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
-		return nil
+		log.Printf("Unmarshal slack sending error: %v", err)
+		return err
 	}
-	if resp.StatusCode != http.StatusOK {
-		log.Println("Blocks:", content.String())
-		defer resp.Body.Close()
-		message, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("Sending has a problem. Status: %q. Message: %q", resp.Status,string(message))
-	} else {
-		log.Printf("Sending to %q was successful!", slack.SlackSettings.PluginName)
+
+	length := len(rawBlock)
+	for n := 0; n < length; {
+		d := length-n
+		if d >= 49 {
+			d = 49
+		}
+		cutData, _ := json.Marshal(rawBlock[n:n+d])
+		cutData = cutData[1:len(cutData)-1]
+		var content bytes.Buffer
+		content.WriteByte('{')
+		content.WriteString("\"blocks\":")
+		content.WriteByte('[')
+		content.WriteString(title)
+		content.Write(cutData)
+		content.WriteByte(']')
+		content.WriteByte('}')
+		r := bytes.NewReader(content.Bytes())
+		resp, err := http.Post( slack.Url, "application/json", r)
+		if err != nil {
+			log.Printf("Post request to Slack Error: %v", err)
+			return err
+		}
+		if resp.StatusCode != http.StatusOK {
+			defer resp.Body.Close()
+			message, _ := ioutil.ReadAll(resp.Body)
+			log.Printf("Sending had a problem. Status: %q. Message: %q", resp.Status,string(message))
+		} else {
+			log.Printf("Sending to %q was successful!", slack.SlackSettings.PluginName)
+		}
+		n += d
 	}
 	return nil
 }
