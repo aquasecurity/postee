@@ -5,6 +5,7 @@ import (
 	"data"
 	"encoding/json"
 	"formatting"
+	"io"
 	"io/ioutil"
 	"layout"
 	"log"
@@ -30,6 +31,12 @@ func clearSlackText (text string) string  {
 	s = strings.ReplaceAll( s, "<", "&lt;")
 	s = strings.ReplaceAll( s, ">", "&gt;")
 	return s
+}
+
+func prnLogResponse(body io.ReadCloser) string {
+	defer body.Close()
+	message, _ := ioutil.ReadAll(body)
+	return  string(message)
 }
 
 func (slack *SlackPlugin) Send(input map[string]string) error {
@@ -72,14 +79,16 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 			return err
 		}
 		if resp.StatusCode != http.StatusOK {
-			defer resp.Body.Close()
-			message, _ := ioutil.ReadAll(resp.Body)
-			log.Printf("Sending had a problem. Status: %q. Message: %q", resp.Status,string(message))
+			log.Printf("Sending had a problem. Status: %q. Message: %q",
+				resp.Status,prnLogResponse(resp.Body))
 		} else {
-			log.Printf("Sending to %q was successful!", slack.SlackSettings.PluginName)
+			log.Printf("Sending [%d/%d part] to %q was successful!",
+				int(n/49)+1,int(length/49)+1,
+				slack.SlackSettings.PluginName)
 		}
 		n += d
 	}
+	log.Printf("Sending via Slack %q was successful!", slack.SlackSettings.PluginName)
 	return nil
 }
 
