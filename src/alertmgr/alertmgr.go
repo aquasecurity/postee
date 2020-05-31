@@ -109,6 +109,13 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	}
 }
 
+func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
+	slack := &plugins.SlackPlugin{}
+	slack.Url = sourceSettings.Url
+	slack.SlackSettings = buildSettings(sourceSettings)
+	return slack
+}
+
 func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
 	em := &plugins.EmailPlugin{
 		User:          sourceSettings.User,
@@ -215,12 +222,12 @@ func (ctx *AlertMgr) load() error {
 		utils.Debug("%#v\n", settings)
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0 {
+			if len(settings.User) == 0 && settings.Type != "slack" {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}
 			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 {
+			if len(settings.Password) == 0 && settings.Type != "slack" {
 				log.Printf("Password for %q is empty", settings.Name)
 				continue
 			}
@@ -234,6 +241,9 @@ func (ctx *AlertMgr) load() error {
 				plugin := buildEmailPlugin(&settings)
 				plugin.Init()
 				ctx.plugins[settings.Name] = plugin
+			case "slack":
+				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
+				ctx.plugins[settings.Name].Init()
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
 					settings.Type, settings.Name)
