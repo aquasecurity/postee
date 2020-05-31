@@ -10,7 +10,7 @@ When this integration is enabled, a ticket is opened, or an email or message is 
 # Quick Start #
 Follow these steps to set up JIRA integration:
 
-1. Get the JIRA connection details from Jira's admin console.
+1. Get the connection details for your Jira, Slack or SMTP email server
 2. Edit the configuration file (cfg.yaml) with the connection details.
 3. Run the Aqua ALM Integration container with the configuration file.
 4. Configure the Aqua Server to send a Webhook notification when a new vulnerability is found.
@@ -24,10 +24,15 @@ Go to the user profile API tokens (JIRA Cloud users can find it here: https://id
 Click on the Create API Token. A new API token for the user is created.
 Keep the token value, together with the JIRA URL and user name, for the next step.
 
+## Getting the Slack connection details
+Open your Slack client, "Settings & Administration" -> "Manage Apps".
+Go to "Custom Integations", "Incoming Webhooks", "Add to Slack".
+Choose a chanel to send the Slack notifications to.
+Click "Add Incoming Webhook". Copy the WebHook URL.
 
 ## Set up the Configuration File
 
-To set up the integration, you will  need to create a cfg.yaml file, which contains the JIRA connection settings.
+To set up the integration, you will  need to create a cfg.yaml file, which contains the connection settings.
 
 The below example is to setup a JIRA integration: 
 
@@ -55,6 +60,8 @@ The below example is to setup a JIRA integration:
      custom-field-url: #URL value, e.g., https://tour.golang.org/moretypes/7
 ```
 
+See the buttom of this page for other integration types and their parameters.
+
 ###### *To prevent providing clear text passwords in text file you can pass an environment variable, e.g. $MY_PASSWORD.
 You will need to make sure this environment variable value is passed to the container.
 
@@ -80,15 +87,15 @@ Navigate to the **Settings** page in the System section, menu, under the "Image 
 Click "Enable sending image scan results to webhook", and specify the URL of the Aqua Webhook server.
 
 The URL is in the following formats:
-**HTTPS**: https://<Webhook IP or DNS>:8444/scan
+**HTTPS**: https://<Webhook IP or DNS>:8444
 or
-**HTTP**: http://<Webhook IP or DNS>:8084/scan
+**HTTP**: http://<Webhook IP or DNS>:8084
 
 ## Validate the Integration
 
 To validate that the integration is working, you can scan a new image for security vulnerabilities from the Aqua Server UI (Images > Add Image > Specify Image Name > Add).
 
-When vulnerabilities are found in an image, you will see that a JIRA ticket is opened on the board specified in the JIRA configuration file.
+When vulnerabilities are found in an image, you will see that a JIRA ticket is created/ Email is recieved/ Slack message is posted to the channel.
 
 ###### *To troubleshoot the integration, you can look at both the Aqua ALM Integration container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
 
