@@ -95,14 +95,61 @@ When vulnerabilities are found in an image, you will see that a JIRA ticket is o
 # Integration Settings
 You can setup integrations through the cfg.yaml file. Note that one yaml file can contain multiple integrations (e.g. multiple email integrations, where each integation is handeling different container imgage registry).
 
-The following are the cfg.yaml parameters:
+The following are the cfg.yaml parameters that apply for all integrations:
 Key | Description | Possible Values
 --- | --- | ---
-name | The integration name |
-type | The integration type | jira, email
+name | The integration name. You can provide any descriptive name |
+type | The integration type | jira, email, slack
+enable | Whether integration is enable or not | true, false
 Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integation | critical, high, medium, low
 Policy-Registry | Optional: the list of registry name that triggers the integration | 
 Policy-Image-Name | Optional: comma separated list of images that will trigger the integration
 Policy-Non-Compliant | Optional: whether to trigger the integration only on non-compliant images (true) or all images (false) | true, false
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
+
+## Jira integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+url | Jira project url |
+user | Jira user name | 
+password | User's API key | 
+project_key | The JIRA project key |
+board |  Optional: JIRA board key |
+priority|  Optional: ticket priority, e.g., High |
+assignee| Optional: assignee, e.g., John |
+issuetype| Optional: issue type, e.g., Bug |
+labels| Optional: comma seperated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
+sprint| Optional: Sprint name, e.g., "3.5 Sprint 8" |
+
+For Jira you can also specify custom fields that will be populated with values.
+Use the "unknowns" parameter in cfg.yaml for custom fields.
+Under the "unknowns" parameter, specify the list of fields names to provide value for.
+You can add "-numeric-field", "-multiple-value", "multiple-line-text-field", "-date-time-picker" and "-field-url" as suffix to the custom field name, to specify what is the field type.
+
+For example: 
+```yaml
+unknowns:
+     mycustom: "this is a text custom field"
+     mycustom-numeric-field: 123
+     mycustom-multiple-value: 1,2,3 
+     mycustom-multiple-line-text-field: "text \n moretext" 
+     mycustom-date-time-picker: 2014-04-11T12:14:26.880+0400
+     mycustom-url: https://tour.golang.org/moretypes/7
+```
+
+## Email integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+user | User name (usually email address) |
+password | Password | 
+host | SMTP host name | 
+port | SMTP port |
+sender |  Sender's email address |
+recipients|  Recipients (array of comma seperated emails), e.g. ["john@yahoo.com"] |
+
+## Slack integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+url | Slack WebHook URL (includes the access key) |
+
