@@ -6,6 +6,8 @@ import (
 	"plugins"
 	"scanservice"
 	"settings"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/ghodss/yaml"
@@ -50,6 +52,9 @@ type PluginSettings struct {
 
 	IgnoreRegistry  []string `json:"Ignore-Registry"`
 	IgnoreImageName []string `json:"Ignore-Image-Name"`
+
+	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
+	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
 }
 
 type AlertMgr struct {
@@ -64,14 +69,43 @@ var initCtx sync.Once
 var alertmgrCtx *AlertMgr
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
+	var timeout int
+	var err error
+
+	times := map[string]int {
+		"s":1,
+		"m": 60,
+		"h": 3600,
+	}
+
+	if len(sourceSettings.AggregateIssuesTimeout) > 0 {
+		wasConvert := false
+		for suffix, k := range times {
+			if strings.HasSuffix(strings.ToLower(sourceSettings.AggregateIssuesTimeout), suffix) {
+				timeout, err = strconv.Atoi(strings.TrimSuffix(sourceSettings.AggregateIssuesTimeout, suffix))
+				timeout *= k
+				wasConvert = true
+				break
+			}
+		}
+		if !wasConvert {
+			timeout, err = strconv.Atoi(sourceSettings.AggregateIssuesTimeout)
+		}
+		if err != nil {
+			log.Printf("%q settings: Can't convert 'AggregateIssuesTimeout'(%q) to seconds.",
+				sourceSettings.Name, sourceSettings.AggregateIssuesTimeout)
+		}
+	}
 	return &settings.Settings{
-		PluginName:             sourceSettings.Name,
-		PolicyMinVulnerability: sourceSettings.PolicyMinVulnerability,
-		PolicyRegistry:         sourceSettings.PolicyRegistry,
-		PolicyImageName:        sourceSettings.PolicyImageName,
-		PolicyNonCompliant:     sourceSettings.PolicyNonCompliant,
-		IgnoreRegistry:         sourceSettings.IgnoreRegistry,
-		IgnoreImageName:        sourceSettings.IgnoreImageName,
+		PluginName:              sourceSettings.Name,
+		PolicyMinVulnerability:  sourceSettings.PolicyMinVulnerability,
+		PolicyRegistry:          sourceSettings.PolicyRegistry,
+		PolicyImageName:         sourceSettings.PolicyImageName,
+		PolicyNonCompliant:      sourceSettings.PolicyNonCompliant,
+		IgnoreRegistry:          sourceSettings.IgnoreRegistry,
+		IgnoreImageName:         sourceSettings.IgnoreImageName,
+		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
+		AggregateTimeoutSeconds: timeout,
 	}
 }
 

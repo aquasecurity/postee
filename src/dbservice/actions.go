@@ -8,6 +8,9 @@ import (
 )
 
 func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, err error) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	currentId := scanInfo.GetUniqueId()
 	var prevId string
 	if scanInfo.PreviousDigest != "" {
@@ -20,12 +23,12 @@ func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, 
 	}
 	defer db.Close()
 
-	err = Init(db)
+	err = Init(db, dbBucketName)
 	if err != nil {
 		return
 	}
 
-	currentValue, err := dbSelect(db, currentId)
+	currentValue, err := dbSelect(db, dbBucketName, currentId)
 	if err != nil {
 		return
 	}
@@ -49,14 +52,14 @@ func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, 
 	}
 
 	currentBytes, _ := json.Marshal(scanInfo)
-	err = dbInsert(db, []byte(currentId), currentBytes)
+	err = dbInsert(db, dbBucketName, []byte(currentId), currentBytes)
 	if err != nil {
 		return nil, false, err
 	}
 	isNew = true
 
 	if prevId != "" && prevId != currentId {
-		prev,_ = dbSelect(db, prevId)
+		prev,_ = dbSelect(db, dbBucketName, prevId)
 	}
 	return
 }

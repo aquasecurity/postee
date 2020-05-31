@@ -18,7 +18,9 @@
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
-  
+  Aggregate-Issues-Number: # a number
+  Aggregate-Issues-Timeout:  # number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
+
 - name: my-email
   type: email 
   enable: true

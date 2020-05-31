@@ -3,7 +3,6 @@ package scanservice
 import (
 	"dbservice"
 	"formatting"
-	"layout"
 	"os"
 	"plugins"
 	"settings"
@@ -15,17 +14,6 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 		input      string
 		severities map[string]bool
 	} {
-		/*{
-			string(Bkmorrow),
-			map[string]int{
-				"critical":0,
-				"high":0,
-				"medium":2,
-				"low":2,
-				"negligible":2,
-			},
-		},
-		 */
 		{
 			string(AlpineImageSource),
 			map[string]bool{
@@ -45,6 +33,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	dbservice.DbPath = "test_" + dbPathReal
 
 	setting1 :=  &settings.Settings{
+		PluginName: "Demo plugin with settings",
 		PolicyMinVulnerability: "",
 		PolicyRegistry:         nil,
 		PolicyImageName:        nil,
@@ -100,26 +89,123 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	}
 }
 
-type DemoPlugin struct {
-	Sent bool
-	name string
-	lay  layout.LayoutProvider
-	sets *settings.Settings
-	t    *testing.T
-}
-func (plg *DemoPlugin) Init() error {	return nil}
-func (plg *DemoPlugin) Send(data map[string]string) error {
-	plg.Sent = true
-	plg.t.Logf("Sending data via %q\n", plg.name)
-//	plg.t.Logf("Title: %q\n", data["title"])
-//	plg.t.Logf("Description: %q\n", data["description"])
-	return nil
+func TestPolicySettings(t *testing.T) {
+	dbPathReal := dbservice.DbPath
+	defer func() {
+		os.Remove(dbservice.DbPath)
+		dbservice.DbPath = dbPathReal
+	}()
+	dbservice.DbPath = "test_" + dbPathReal
+	os.Remove(dbservice.DbPath)
+
+	setting1 :=  &settings.Settings{
+		PolicyImageName:[]string{"image1", "image2", },
+	}
+	demoEmailPlg := DemoEmailPlugin{
+		emailCounts: 0,
+		sets:        setting1,
+	}
+	plugins := map[string]plugins.Plugin {
+		"Demo Email Plugin": &demoEmailPlg,
+	}
+
+	srv := new(ScanService)
+
+	// -- Test PolicyImageName
+	srv.ResultHandling(mockScan1, plugins)
+	srv.ResultHandling(mockScan2, plugins)
+	srv.ResultHandling(mockScan3, plugins)
+	srv.ResultHandling(mockScan4, plugins)
+	srv.ResultHandling(mockScan5, plugins)
+	if demoEmailPlg.emailCounts != 2 {
+		t.Errorf("Rule PolicyImageName. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 2)
+	}
+	os.Remove(dbservice.DbPath)
+
+	//-- Policy-Registry
+	demoEmailPlg.emailCounts = 0
+	setting1.PolicyRegistry = []string{"registry5", "REGistry4", "Registry3"}
+	setting1.PolicyImageName = []string{}
+
+	srv.ResultHandling(mockScan1, plugins)
+	srv.ResultHandling(mockScan2, plugins)
+	srv.ResultHandling(mockScan3, plugins)
+	srv.ResultHandling(mockScan4, plugins)
+	srv.ResultHandling(mockScan5, plugins)
+	if demoEmailPlg.emailCounts != 3 {
+		t.Errorf("Rule Policy-Registry. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 3)
+	}
+	os.Remove(dbservice.DbPath)
+
+	//-- Ignore-Registry
+	demoEmailPlg.emailCounts = 0
+	setting1.IgnoreRegistry = []string{"registry5", "REGistry4", "Registry3"}
+	setting1.PolicyRegistry = []string{}
+	srv.ResultHandling(mockScan1, plugins)
+	srv.ResultHandling(mockScan2, plugins)
+	srv.ResultHandling(mockScan3, plugins)
+	srv.ResultHandling(mockScan4, plugins)
+	srv.ResultHandling(mockScan5, plugins)
+	if demoEmailPlg.emailCounts != 2 {
+		t.Errorf("Rule Ignore-Registry. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 2)
+	}
+	os.Remove(dbservice.DbPath)
+
+	//-- Ignore-Image-Name
+	demoEmailPlg.emailCounts = 0
+	setting1.IgnoreRegistry = []string{}
+	setting1.IgnoreImageName = []string{"image1", "image2", }
+	srv.ResultHandling(mockScan1, plugins)
+	srv.ResultHandling(mockScan2, plugins)
+	srv.ResultHandling(mockScan3, plugins)
+	srv.ResultHandling(mockScan4, plugins)
+	srv.ResultHandling(mockScan5, plugins)
+	if demoEmailPlg.emailCounts != 3 {
+		t.Errorf("Rule Ignore-Image-Name. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 3)
+	}
+	os.Remove(dbservice.DbPath)
+
+	//--	Policy-Min-Vulnerability
+	setting1.IgnoreImageName = []string{}
+
+	tests := []struct{
+		level string
+		waiting int
+	}{
+		{"critical", 1},
+		{"high", 2},
+		{"medium", 3},
+		{"low", 4},
+		{"negligible", 5},
+	}
+
+	for _, test := range tests {
+		demoEmailPlg.emailCounts = 0
+		setting1.PolicyMinVulnerability = test.level
+		srv.ResultHandling(mockScan1, plugins)
+		srv.ResultHandling(mockScan2, plugins)
+		srv.ResultHandling(mockScan3, plugins)
+		srv.ResultHandling(mockScan4, plugins)
+		srv.ResultHandling(mockScan5, plugins)
+		if demoEmailPlg.emailCounts != test.waiting {
+			t.Errorf("Wrong count of vulnerabilities for %q\nResult: %d\nWaiting: %d\n",
+				test.level, demoEmailPlg.emailCounts, test.waiting)
+		}
+		os.Remove(dbservice.DbPath)
+	}
+
+	//-- PolicyNonCompliant
+	demoEmailPlg.emailCounts = 0
+	setting1.PolicyMinVulnerability = ""
+	setting1.PolicyNonCompliant=true
+	srv.ResultHandling(mockScan1, plugins)
+	srv.ResultHandling(mockScan2, plugins)
+	srv.ResultHandling(mockScan3, plugins)
+	srv.ResultHandling(mockScan4, plugins)
+	srv.ResultHandling(mockScan5, plugins)
+	if demoEmailPlg.emailCounts != 4 {
+		t.Errorf("Rule PolicyNonCompliant. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 4)
+	}
+	os.Remove(dbservice.DbPath)
 }
 
-func (plg *DemoPlugin) Terminate() error { return nil}
-func (plg *DemoPlugin) GetLayoutProvider() layout.LayoutProvider {
-	return plg.lay
-}
-func (plg *DemoPlugin) GetSettings() *settings.Settings {
-	return plg.sets
-}
