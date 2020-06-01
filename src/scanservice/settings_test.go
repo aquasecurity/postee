@@ -9,6 +9,47 @@ import (
 	"testing"
 )
 
+var (
+	mockScanWithFix = `{
+"image":"Demo mock image with Fix version",
+"registry":"registry5",
+"resources":[
+	{
+		"vulnerabilities":[
+			{"name":"registry5-vuln1","fix_version":""},
+			{"name":"registry5-vuln2","fix_version":"fix_version1"}
+		]
+	},
+	{
+		"vulnerabilities": [
+			{"name":"registry5-vuln3","fix_version":""},
+			{"name":"registry5-vuln4","fix_version":""}
+		]
+	}
+]
+}`
+
+
+	mockScanWithoutFix = `{
+"image":"Demo mock image without Fix version",
+"registry":"registry5",
+"resources":[
+	{
+		"vulnerabilities":[
+			{"name":"registry5-vuln5","fix_version":""},
+			{"name":"registry5-vuln6","fix_version":""}
+		]
+	},
+	{
+		"vulnerabilities": [
+			{"name":"registry5-vuln7","fix_version":""},
+			{"name":"registry5-vuln8","fix_version":""}
+		]
+	}
+]
+}`
+)
+
 func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	var tests = []struct{
 		input      string
@@ -207,5 +248,17 @@ func TestPolicySettings(t *testing.T) {
 		t.Errorf("Rule PolicyNonCompliant. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 4)
 	}
 	os.Remove(dbservice.DbPath)
+
+	//-- PolicyOnlyFixAvailable
+	demoEmailPlg.emailCounts = 0
+	setting1.PolicyNonCompliant=false
+	setting1.PolicyOnlyFixAvailable=true
+	srv.ResultHandling(mockScanWithFix, plugins)
+	srv.ResultHandling(mockScanWithoutFix, plugins)
+	if demoEmailPlg.emailCounts != 1 {
+		t.Errorf("Rule PolicyOnlyFixAvailable. Wrong count of emails\nSent: %d\nWait:%d",
+			demoEmailPlg.emailCounts, 1)
+	}
 }
+
 
