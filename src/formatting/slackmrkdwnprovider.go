@@ -27,6 +27,10 @@ func getMrkdwnText(text string) string {
 
 type SlackMrkdwnProvider struct {}
 
+func (mrkdwn *SlackMrkdwnProvider) TitleH1(title string) string {
+	return getMrkdwnText(fmt.Sprintf("*%s*", title))
+}
+
 func (mrkdwn *SlackMrkdwnProvider) TitleH2(title string) string {
 	return getMrkdwnText(fmt.Sprintf("*%s*", title))
 }
