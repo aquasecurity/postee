@@ -6,6 +6,8 @@ import (
 	"plugins"
 	"scanservice"
 	"settings"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/ghodss/yaml"
@@ -50,6 +52,9 @@ type PluginSettings struct {
 
 	IgnoreRegistry  []string `json:"Ignore-Registry"`
 	IgnoreImageName []string `json:"Ignore-Image-Name"`
+
+	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
+	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
 }
 
 type AlertMgr struct {
@@ -64,15 +69,51 @@ var initCtx sync.Once
 var alertmgrCtx *AlertMgr
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
-	return &settings.Settings{
-		PluginName:             sourceSettings.Name,
-		PolicyMinVulnerability: sourceSettings.PolicyMinVulnerability,
-		PolicyRegistry:         sourceSettings.PolicyRegistry,
-		PolicyImageName:        sourceSettings.PolicyImageName,
-		PolicyNonCompliant:     sourceSettings.PolicyNonCompliant,
-		IgnoreRegistry:         sourceSettings.IgnoreRegistry,
-		IgnoreImageName:        sourceSettings.IgnoreImageName,
+	var timeout int
+	var err error
+
+	times := map[string]int {
+		"s":1,
+		"m": 60,
+		"h": 3600,
 	}
+
+	if len(sourceSettings.AggregateIssuesTimeout) > 0 {
+		wasConvert := false
+		for suffix, k := range times {
+			if strings.HasSuffix(strings.ToLower(sourceSettings.AggregateIssuesTimeout), suffix) {
+				timeout, err = strconv.Atoi(strings.TrimSuffix(sourceSettings.AggregateIssuesTimeout, suffix))
+				timeout *= k
+				wasConvert = true
+				break
+			}
+		}
+		if !wasConvert {
+			timeout, err = strconv.Atoi(sourceSettings.AggregateIssuesTimeout)
+		}
+		if err != nil {
+			log.Printf("%q settings: Can't convert 'AggregateIssuesTimeout'(%q) to seconds.",
+				sourceSettings.Name, sourceSettings.AggregateIssuesTimeout)
+		}
+	}
+	return &settings.Settings{
+		PluginName:              sourceSettings.Name,
+		PolicyMinVulnerability:  sourceSettings.PolicyMinVulnerability,
+		PolicyRegistry:          sourceSettings.PolicyRegistry,
+		PolicyImageName:         sourceSettings.PolicyImageName,
+		PolicyNonCompliant:      sourceSettings.PolicyNonCompliant,
+		IgnoreRegistry:          sourceSettings.IgnoreRegistry,
+		IgnoreImageName:         sourceSettings.IgnoreImageName,
+		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
+		AggregateTimeoutSeconds: timeout,
+	}
+}
+
+func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
+	slack := &plugins.SlackPlugin{}
+	slack.Url = sourceSettings.Url
+	slack.SlackSettings = buildSettings(sourceSettings)
+	return slack
 }
 
 func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
@@ -181,12 +222,12 @@ func (ctx *AlertMgr) load() error {
 		utils.Debug("%#v\n", settings)
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0 {
+			if len(settings.User) == 0 && settings.Type != "slack" {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}
 			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 {
+			if len(settings.Password) == 0 && settings.Type != "slack" {
 				log.Printf("Password for %q is empty", settings.Name)
 				continue
 			}
@@ -200,6 +241,9 @@ func (ctx *AlertMgr) load() error {
 				plugin := buildEmailPlugin(&settings)
 				plugin.Init()
 				ctx.plugins[settings.Name] = plugin
+			case "slack":
+				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
+				ctx.plugins[settings.Name].Init()
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
 					settings.Type, settings.Name)

@@ -12,6 +12,10 @@ func (jira *JiraLayoutProvider) P(p string) string  {
 	return fmt.Sprintf("%s\n", p)
 }
 
+func (jira *JiraLayoutProvider) TitleH1(title string) string {
+	return fmt.Sprintf("h1. %s\n", title)
+}
+
 func (jira *JiraLayoutProvider) TitleH2(title string) string {
 	return fmt.Sprintf("h2. %s\n", title)
 }

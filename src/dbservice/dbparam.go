@@ -1,6 +1,13 @@
 package dbservice
 
+import "sync"
+
+const (
+	dbBucketName       = "WebhookBucket"
+	dbBucketAggregator = "WebhookAggregator"
+)
+
 var (
 	DbPath = "webhooks.db"
-	BucketName = "WebhookBucket"
+	mutex   sync.Mutex
 )
