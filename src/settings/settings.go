@@ -12,6 +12,7 @@ type Settings struct {
 	AggregateIssuesNumber   int
 	AggregateTimeoutSeconds int
 	IsScheduleRun           bool
+	PolicyOnlyFixAvailable	bool
 }
 
 func GetDefaultSettings() *Settings {
