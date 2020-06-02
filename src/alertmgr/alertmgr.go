@@ -45,6 +45,8 @@ type PluginSettings struct {
 	Recipients []string `json:"recipients"`
 	Sender     string   `json:"sender"`
 
+	Token     string   `json:"token"`
+
 	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
 	PolicyRegistry         []string `json:"Policy-Registry"`
 	PolicyImageName        []string `json:"Policy-Image-Name"`
@@ -107,6 +109,13 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
 		AggregateTimeoutSeconds: timeout,
 	}
+}
+
+func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
+	teams := &plugins.TeamsPlugin{}
+	teams.TeamsSettings = buildSettings(sourceSettings)
+	teams.SetToken( sourceSettings.Token )
+	return teams
 }
 
 func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
@@ -222,12 +231,12 @@ func (ctx *AlertMgr) load() error {
 		utils.Debug("%#v\n", settings)
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0 && settings.Type != "slack" {
+			if len(settings.User) == 0  && settings.Type != "slack" && settings.Type != "teams" {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}
 			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 && settings.Type != "slack" {
+			if len(settings.Password) == 0 && settings.Type != "slack" && settings.Type != "teams" {
 				log.Printf("Password for %q is empty", settings.Name)
 				continue
 			}
@@ -243,6 +252,9 @@ func (ctx *AlertMgr) load() error {
 				ctx.plugins[settings.Name] = plugin
 			case "slack":
 				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
+				ctx.plugins[settings.Name].Init()
+			case "teams":
+				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings)
 				ctx.plugins[settings.Name].Init()
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",

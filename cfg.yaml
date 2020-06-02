@@ -64,3 +64,8 @@
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+
+- name: ms-team
+  type: teams
+  enable: true
+  token: # MS token Id
