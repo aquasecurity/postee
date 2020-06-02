@@ -64,3 +64,18 @@
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+
+- name: my-servicenow
+  type: serviceNow
+  enable: true
+  user: #Mandatory. E.g :johndoe@gmail.com"
+  password: #Mandatory. Specify user API key
+  instance: #Mandatory. Name of ServiceN  ow Instance
+  board: #Mandatory. Specify the ServiceNow board name to open tickets on
+
+  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.

@@ -55,6 +55,8 @@ type PluginSettings struct {
 
 	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
 	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
+	
+	InstanceName string `json:"instance"`
 }
 
 type AlertMgr struct {
@@ -107,6 +109,17 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
 		AggregateTimeoutSeconds: timeout,
 	}
+}
+
+func buildServiceNow (sourceSettings *PluginSettings) *plugins.ServiceNowPlugin{
+	serviceNow := &plugins.ServiceNowPlugin{
+		User:     sourceSettings.User,
+		Password: sourceSettings.Password,
+		Table:    sourceSettings.BoardName,
+		Instance: sourceSettings.InstanceName,
+	}
+	serviceNow.ServiceNowSettings = buildSettings(sourceSettings)
+	return serviceNow
 }
 
 func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
@@ -243,6 +256,9 @@ func (ctx *AlertMgr) load() error {
 				ctx.plugins[settings.Name] = plugin
 			case "slack":
 				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
+				ctx.plugins[settings.Name].Init()
+			case "serviceNow":
+				ctx.plugins[settings.Name] = buildServiceNow(&settings)
 				ctx.plugins[settings.Name].Init()
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
