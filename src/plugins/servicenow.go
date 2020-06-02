@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"encoding/json"
 	"formatting"
 	"layout"
 	"log"
@@ -26,14 +27,22 @@ func (sn *ServiceNowPlugin) Init() error {
 
 func (sn *ServiceNowPlugin) Send(content map[string]string) error {
 	log.Printf("Sending via ServiceNow %q", sn.ServiceNowSettings.PluginName)
-	log.Printf("Sending via ServiceNow %q was successful!", sn.ServiceNowSettings.PluginName)
-	body := content["description"]
-
-	err:= servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Instance, sn.Table, body)
+	d := &servicenow.ServiceNowData{
+		ShortDescription: content["title"],
+		WorkNotes:      "[code]"+content["description"]+"[/code]",
+	}
+	body, err := json.Marshal(d)
 	if err != nil {
 		log.Println("ServiceNow Error:", err)
+		return err
 	}
-	return err
+	err = servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Instance, sn.Table, body)
+	if err != nil {
+		log.Println("ServiceNow Error:", err)
+		return err
+	}
+	log.Printf("Sending via ServiceNow %q was successful!", sn.ServiceNowSettings.PluginName)
+	return nil
 }
 
 func (sn *ServiceNowPlugin) Terminate() error {
