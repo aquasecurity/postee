@@ -28,5 +28,5 @@ jobs:
     - name: Test
       run: make test
     
-    - name: Publish CodeCon
+    - name: Publish Codecov
       run: bash <(curl -s https://codecov.io/bash)
