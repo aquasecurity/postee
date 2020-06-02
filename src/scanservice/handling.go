@@ -69,6 +69,11 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			continue
 		}
 
+		if currentSettings.PolicyOnlyFixAvailable && !scan.checkFixVersions() {
+			log.Printf("This scan %q doesn't contain vulnerabilities which have a fix version. Settings for %q.\n", scan.scanInfo.GetUniqueId(), name)
+			continue
+		}
+
 		content := scan.getContent(plugin.GetLayoutProvider())
 		wasHandled := false
 		if currentSettings.AggregateIssuesNumber > 0  {
@@ -125,6 +130,17 @@ func AggregateScanAndGetQueue(pluginName string, currentContent map[string]strin
 		return nil
 	}
 	return aggregatedScans
+}
+
+func (scan *ScanService) checkFixVersions() bool {
+	for _, r := range scan.scanInfo.Resources {
+		for _, v := range r.Vulnerabilities {
+			if len(v.FixVersion) > 0 {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {

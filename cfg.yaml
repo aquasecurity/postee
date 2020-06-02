@@ -36,6 +36,7 @@
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+  Policy-Only-Fix-Available: false #Optional. Open ticket only if vulnerability has a fix
   
 - name: my-other-email #this is an example for multiple integrations of same type
   type: email 
