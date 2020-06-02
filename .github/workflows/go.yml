@@ -27,3 +27,6 @@ jobs:
 
     - name: Test
       run: make test
+    
+    - name: Publish CodeCon
+      run: bash <(curl -s https://codecov.io/bash)
