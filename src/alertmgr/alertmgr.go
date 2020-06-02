@@ -17,6 +17,8 @@ import (
 const (
 	IssueTypeDefault = "Task"
 	PriorityDefault = "High"
+
+	ServiceNowTableDefault = "incident"
 )
 
 type PluginSettings struct {
@@ -119,6 +121,11 @@ func buildServiceNow (sourceSettings *PluginSettings) *plugins.ServiceNowPlugin{
 		Instance: sourceSettings.InstanceName,
 	}
 	serviceNow.ServiceNowSettings = buildSettings(sourceSettings)
+
+	if len(serviceNow.Table) == 0 {
+		serviceNow.Table = ServiceNowTableDefault
+	}
+
 	return serviceNow
 }
 
