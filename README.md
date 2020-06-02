@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/aquasecurity/alm-integration.svg?branch=master)](https://travis-ci.org/aquasecurity/alm-integration)
-
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
 Use this project to integrate Aqua with JIRA, Email, Slack and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
 
