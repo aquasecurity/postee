@@ -114,9 +114,10 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 }
 
 func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
-	teams := &plugins.TeamsPlugin{}
+	teams := &plugins.TeamsPlugin{
+		Webhook: sourceSettings.Url,
+	}
 	teams.TeamsSettings = buildSettings(sourceSettings)
-	teams.SetToken( sourceSettings.Token )
 	return teams
 }
 

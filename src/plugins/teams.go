@@ -5,29 +5,29 @@ import (
 	"layout"
 	"log"
 	"settings"
+
+	msteams "teams-api"
 )
 
 type TeamsPlugin struct {
-	TeamsSettings *settings.Settings
 	teamsLayout   layout.LayoutProvider
-	token         string
-}
-
-func (teams *TeamsPlugin) SetToken( t string ) {
-	teams.token = t
+	TeamsSettings *settings.Settings
+	Webhook string
 }
 
 func (teams *TeamsPlugin) Init() error {
-	teams.teamsLayout = new(formatting.HtmlProvider)
 	log.Printf("Starting MS Teams plugin %q....", teams.TeamsSettings.PluginName)
+	teams.teamsLayout = new(formatting.HtmlProvider)
 	return nil
 }
 
-func (teams *TeamsPlugin) Send(map[string]string) error {
+func (teams *TeamsPlugin) Send(input map[string]string) error {
 	log.Printf("Sending to MS Teams via %q...", teams.TeamsSettings.PluginName)
-
-
-
+	err := msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"]) + input["description"])
+	if err != nil {
+		log.Printf("TeamsPlugin Send Error: %v", err)
+		return err
+	}
 	log.Printf("Sending to MS Teams via %q was successful!", teams.TeamsSettings.PluginName)
 	return nil
 }

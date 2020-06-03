@@ -69,4 +69,4 @@
 - name: ms-team
   type: teams
   enable: true
-  token: # MS token Id
+  url: https://outlook.office.com/webhook/.... # Webhook's url
