@@ -40,12 +40,14 @@ fmt :
 	$(GO_FMT) -w ./src
 
 test :
-	go test -race -coverprofile=coverage.txt -covermode=atomic -short  ./src/alertmgr ./src/scanservice ./src/dbservice
+	go test -race -coverprofile=coverage.txt -covermode=atomic -short  ./src/alertmgr ./src/scanservice ./src/dbservice ./src/formatting
 
 cover :
 	go test ./src/scanservice -v -coverprofile=scanservice.out
 	go test ./src/dbservice -v -coverprofile=dbservice.out
 	go test ./src/alertmgr -v -coverprofile=alertmgr.out
+	go test ./src/formatting -v -coverprofile=formatting.out
 	go tool cover -html=scanservice.out
 	go tool cover -html=dbservice.out
 	go tool cover -html=alertmgr.out
+	go tool cover -html=formatting.out
