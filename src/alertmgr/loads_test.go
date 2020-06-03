@@ -39,6 +39,16 @@ func TestLoads(t *testing.T) {
   host: smtp.gmail.com
   port: 587
   recipients: ["demo@gmail.com"]
+
+- name: ms-team
+  type: teams
+  enable: true
+  url: https://outlook.office.com/webhook/.... # Webhook's url
+
+- name: faild
+  enable: true
+  type: nextplugin
+
 `
 	cfgName :="cfg_test.yaml"
 	ioutil.WriteFile(cfgName, []byte(cfgData),0644)
@@ -48,7 +58,13 @@ func TestLoads(t *testing.T) {
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	if len(demoCtx.plugins) != 3 {
-		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", 3, len(demoCtx.plugins))
+	if len(demoCtx.plugins) != 4 {
+		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", 4, len(demoCtx.plugins))
 	}
+
+	_, ok := demoCtx.plugins["ms-team"]
+	if !ok {
+		t.Errorf("'ms-team' plugin didn't start!")
+	}
+
 }
