@@ -57,8 +57,8 @@ type PluginSettings struct {
 
 	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
 	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
-	
 	InstanceName string `json:"instance"`
+	PolicyOnlyFixAvailable bool `json:"Policy-Only-Fix-Available"`
 }
 
 type AlertMgr struct {
@@ -110,6 +110,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		IgnoreImageName:         sourceSettings.IgnoreImageName,
 		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
 		AggregateTimeoutSeconds: timeout,
+		PolicyOnlyFixAvailable:	 sourceSettings.PolicyOnlyFixAvailable,
 	}
 }
 

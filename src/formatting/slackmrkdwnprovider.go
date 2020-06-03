@@ -103,7 +103,10 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 					if rows[0][0] == "#" {
 						fmt.Fprintf(&cell1, " %s%s%s", bold, f, bold)
 					} else {
-						fmt.Fprintf(&cell2, "%s%s%s / ", bold, f, bold)
+						fmt.Fprintf(&cell2, "%s%s%s", bold, f, bold)
+						if len(r) > 2 {
+							fmt.Fprint(&cell2, " / ")
+						}
 					}
 				default:
 					if j > 2 {

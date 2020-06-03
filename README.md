@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/aquasecurity/alm-integration.svg?branch=master)](https://travis-ci.org/aquasecurity/alm-integration)
+[![codecov](https://codecov.io/gh/aquasecurity/alm-integration/branch/master/graph/badge.svg)](https://codecov.io/gh/aquasecurity/alm-integration)
+![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
 Use this project to integrate Aqua with JIRA, Email, Slack and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
@@ -111,7 +112,8 @@ enable | Whether integration is enable or not | true, false
 Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integation | critical, high, medium, low
 Policy-Registry | Optional: the list of registry name that triggers the integration | 
 Policy-Image-Name | Optional: comma separated list of images that will trigger the integration
-Policy-Non-Compliant | Optional: whether to trigger the integration only on non-compliant images (true) or all images (false) | true, false
+Policy-Only-Fix-Available | Optional: trigger the integration only if image has a vulnerability with fix available (true). If set to false, integration will be triggered even if all vulnerabilities has no fix available | true, false
+Policy-Non-Compliant | Optional: trigger the integration only for non-compliant images (true) or all images (false) | true, false
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
 
