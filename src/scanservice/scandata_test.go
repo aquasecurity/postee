@@ -3,6 +3,7 @@ package scanservice
 import (
 	"layout"
 	"settings"
+	"sync"
 	"testing"
 )
 
@@ -17,6 +18,8 @@ var (
 )
 
 type DemoPlugin struct {
+	wg sync.WaitGroup
+	mu sync.Mutex
 	Sent bool
 	name string
 	lay  layout.LayoutProvider
@@ -25,10 +28,11 @@ type DemoPlugin struct {
 }
 func (plg *DemoPlugin) Init() error {	return nil}
 func (plg *DemoPlugin) Send(data map[string]string) error {
+	plg.mu.Lock()
 	plg.Sent = true
+	plg.mu.Unlock()
 	plg.t.Logf("Sending data via %q\n", plg.name)
-	//	plg.t.Logf("Title: %q\n", data["title"])
-	//	plg.t.Logf("Description: %q\n", data["description"])
+	plg.wg.Done()
 	return nil
 }
 
