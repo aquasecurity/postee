@@ -116,7 +116,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 
 func send( plg plugins.Plugin, cnt map[string]string, name string) {
 	log.Printf("Sending message via %q", name)
-	plg.Send(cnt)
+	go plg.Send(cnt)
 }
 
 func AggregateScanAndGetQueue(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
