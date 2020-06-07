@@ -2,7 +2,7 @@
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
-Use this project to integrate Aqua with JIRA, Email, Slack and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
+Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
 
 ------
 
