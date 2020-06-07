@@ -1,4 +1,6 @@
 ---
+- AquaServer: # url of Aqua Server for links
+
 - name: my-jira # name must be unique
   type: jira # supported types: jira, email
   enable: true

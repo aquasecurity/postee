@@ -58,6 +58,8 @@ type PluginSettings struct {
 	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
 	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
 	PolicyOnlyFixAvailable bool `json:"Policy-Only-Fix-Available"`
+
+	AquaServer string `json:"AquaServer"`
 }
 
 type AlertMgr struct {
@@ -70,6 +72,7 @@ type AlertMgr struct {
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
+var aquaServer string
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	var timeout int
@@ -109,7 +112,8 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		IgnoreImageName:         sourceSettings.IgnoreImageName,
 		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
 		AggregateTimeoutSeconds: timeout,
-		PolicyOnlyFixAvailable:	 sourceSettings.PolicyOnlyFixAvailable,
+		PolicyOnlyFixAvailable:  sourceSettings.PolicyOnlyFixAvailable,
+		AquaServer:              aquaServer,
 	}
 }
 
@@ -232,6 +236,10 @@ func (ctx *AlertMgr) load() error {
 	}
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
+		if len(settings.AquaServer) > 0 {
+			aquaServer = settings.AquaServer
+		}
+
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
 			if len(settings.User) == 0  && settings.Type != "slack" && settings.Type != "teams" {
