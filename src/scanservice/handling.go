@@ -156,7 +156,8 @@ func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
 func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]string {
 	return buildMapContent(
 		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
-		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan))
+		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan),
+		scan.scanInfo.Registry + "/" + scan.scanInfo.Image)
 }
 
 func (scan *ScanService) init(data string) ( err error) {

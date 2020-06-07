@@ -9,6 +9,10 @@ import (
 	msteams "teams-api"
 )
 
+const (
+	teamsSizeLimit = 28672 // 28 KB is an approximate limit for MS Teams
+)
+
 type TeamsPlugin struct {
 	teamsLayout   layout.LayoutProvider
 	TeamsSettings *settings.Settings
@@ -23,7 +27,14 @@ func (teams *TeamsPlugin) Init() error {
 
 func (teams *TeamsPlugin) Send(input map[string]string) error {
 	log.Printf("Sending to MS Teams via %q...", teams.TeamsSettings.PluginName)
-	err := msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"]) + input["description"])
+	var body string
+	if len(input["description"]) > teamsSizeLimit {
+		body = buildShortMessage( teams.TeamsSettings.AquaServer , input["url"], teams.teamsLayout)
+	} else {
+		body = input["description"]
+	}
+
+	err := msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"]) + body)
 	if err != nil {
 		log.Printf("TeamsPlugin Send Error: %v", err)
 		return err
