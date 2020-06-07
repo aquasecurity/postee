@@ -30,11 +30,13 @@ func TestHtmlProviderTags(t *testing.T) {
 		{
 			"Lorem Ipsum",
 			"red",
+			"url",
 			"<span style='color:red'>Lorem Ipsum</span>",
 			"<h1>Lorem Ipsum</h1>\n",
 			"<h2>Lorem Ipsum</h2>\n",
 			"<h3>Lorem Ipsum</h3>\n",
 			"<p>Lorem Ipsum</p>\n",
+			"<a href='url'>Lorem Ipsum</a>",
 		},
 	}
 	tagsTesting(tests, t, new(HtmlProvider))

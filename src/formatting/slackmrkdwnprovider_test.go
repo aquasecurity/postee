@@ -7,11 +7,13 @@ func TestSlackMrkdwn(t *testing.T) {
 		{
 			"Lorem Ipsum",
 			"red",
+			"url",
 			"*Lorem Ipsum*",
 			"{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Lorem Ipsum*\"}},",
 			"{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Lorem Ipsum*\"}},",
 			"{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"*Lorem Ipsum*\"}},",
 			"{\"type\":\"section\",\"text\":{\"type\":\"mrkdwn\",\"text\":\"Lorem Ipsum\"}},",
+			"<url|Lorem Ipsum>",
 		},
 	}
 	tagsTesting(tests, t, new(SlackMrkdwnProvider))
