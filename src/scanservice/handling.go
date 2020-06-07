@@ -157,7 +157,8 @@ func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]s
 	return buildMapContent(
 		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
 		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan),
-		scan.scanInfo.Registry + "/" + scan.scanInfo.Image)
+		scan.scanInfo.Registry + "/" +
+			strings.ReplaceAll(scan.scanInfo.Image, "/", "%2F"))
 }
 
 func (scan *ScanService) init(data string) ( err error) {
