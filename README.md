@@ -2,7 +2,7 @@
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
-Use this project to integrate Aqua with JIRA, Email, Slack and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
+Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
 
 ------
 
@@ -73,7 +73,7 @@ Build and run the Aqua Webhook Server container on the same host where the JIRA 
 ```bash
 docker build -t alm-integration-image:latest .
 
-docker run -d --name=aqua-webhook -v /<path to JIRA configuration file>/cfg.yaml:/config/jira.yaml -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration-image:latest
+docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration-image:latest
 
 ```
 
