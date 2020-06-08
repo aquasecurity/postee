@@ -5,13 +5,16 @@ import (
 	"data"
 	"encoding/json"
 	"formatting"
-	"io"
-	"io/ioutil"
 	"layout"
 	"log"
-	"net/http"
 	"settings"
 	"strings"
+
+	slackAPI "slack-api"
+)
+
+const (
+	slackBlockLimit = 49
 )
 
 type SlackPlugin struct {
@@ -33,10 +36,16 @@ func clearSlackText (text string) string  {
 	return s
 }
 
-func prnLogResponse(body io.ReadCloser) string {
-	defer body.Close()
-	message, _ := ioutil.ReadAll(body)
-	return  string(message)
+func buildSlackBlock( title string, data []byte) []byte {
+	var content bytes.Buffer
+	content.WriteByte('{')
+	content.WriteString("\"blocks\":")
+	content.WriteByte('[')
+	content.WriteString(title)
+	content.Write(data)
+	content.WriteByte(']')
+	content.WriteByte('}')
+	return content.Bytes()
 }
 
 func (slack *SlackPlugin) Send(input map[string]string) error {
@@ -57,36 +66,29 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 	}
 
 	length := len(rawBlock)
-	for n := 0; n < length; {
-		d := length-n
-		if d >= 49 {
-			d = 49
+
+	if length >= slackBlockLimit {
+		message := buildShortMessage( slack.SlackSettings.AquaServer, input["url"], slack.slackLayout )
+		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
+			log.Printf("Slack Sending Error: %v", err)
 		}
-		cutData, _ := json.Marshal(rawBlock[n:n+d])
-		cutData = cutData[1:len(cutData)-1]
-		var content bytes.Buffer
-		content.WriteByte('{')
-		content.WriteString("\"blocks\":")
-		content.WriteByte('[')
-		content.WriteString(title)
-		content.Write(cutData)
-		content.WriteByte(']')
-		content.WriteByte('}')
-		r := bytes.NewReader(content.Bytes())
-		resp, err := http.Post( slack.Url, "application/json", r)
-		if err != nil {
-			log.Printf("Post request to Slack Error: %v", err)
-			return err
+	} else {
+		for n := 0; n < length; {
+			d := length-n
+			if d >= 49 {
+				d = 49
+			}
+			cutData, _ := json.Marshal(rawBlock[n:n+d])
+			cutData = cutData[1:len(cutData)-1]
+			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
+				log.Printf("Slack Sending Error: %v", err)
+			} else {
+				log.Printf("Sending [%d/%d part] to %q was successful!",
+					int(n/49)+1,int(length/49)+1,
+					slack.SlackSettings.PluginName)
+			}
+			n += d
 		}
-		if resp.StatusCode != http.StatusOK {
-			log.Printf("Sending had a problem. Status: %q. Message: %q",
-				resp.Status,prnLogResponse(resp.Body))
-		} else {
-			log.Printf("Sending [%d/%d part] to %q was successful!",
-				int(n/49)+1,int(length/49)+1,
-				slack.SlackSettings.PluginName)
-		}
-		n += d
 	}
 	log.Printf("Sending via Slack %q was successful!", slack.SlackSettings.PluginName)
 	return nil
