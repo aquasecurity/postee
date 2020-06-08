@@ -9,6 +9,7 @@ import (
 func TestLoads(t *testing.T) {
 	cfgData := `
 ---
+- AquaServer: https://demolab.aquasec.com
 - name: jira
   type: jira
   enable: true
@@ -67,4 +68,8 @@ func TestLoads(t *testing.T) {
 		t.Errorf("'ms-team' plugin didn't start!")
 	}
 
+	aquaWaiting := "https://demolab.aquasec.com/#/images/"
+	if aquaServer != aquaWaiting {
+		t.Errorf("Wrong init of AquaServer link.\nWait: %q\nGot: %q", aquaWaiting, aquaServer)
+	}
 }

@@ -1,6 +1,7 @@
 package alertmgr
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"plugins"
@@ -237,7 +238,11 @@ func (ctx *AlertMgr) load() error {
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
 		if len(settings.AquaServer) > 0 {
-			aquaServer = settings.AquaServer
+			var slash string
+			if !strings.HasSuffix(settings.AquaServer, "/") {
+				slash = "/"
+			}
+			aquaServer = fmt.Sprintf("%s%s#/images/", settings.AquaServer, slash)
 		}
 
 		if settings.Enable {

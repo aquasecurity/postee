@@ -1,5 +1,5 @@
 ---
-- AquaServer: # url of Aqua Server for links
+- AquaServer: # url of Aqua Server for links. E.g. https://demolab.aquasec.com
 
 - name: my-jira # name must be unique
   type: jira # supported types: jira, email
