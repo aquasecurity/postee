@@ -50,6 +50,13 @@ func TestLoads(t *testing.T) {
   enable: true
   type: nextplugin
 
+- name: my-servicenow
+  type: serviceNow
+  enable: true
+  user: SERVICENOWUSER
+  password: SERVICENOWPASS
+  instance: dev00000
+  board: incident
 `
 	cfgName :="cfg_test.yaml"
 	ioutil.WriteFile(cfgName, []byte(cfgData),0644)
@@ -71,5 +78,9 @@ func TestLoads(t *testing.T) {
 	aquaWaiting := "https://demolab.aquasec.com/#/images/"
 	if aquaServer != aquaWaiting {
 		t.Errorf("Wrong init of AquaServer link.\nWait: %q\nGot: %q", aquaWaiting, aquaServer)
+	}
+
+	if _, ok := demoCtx.plugins["my-servicenow"]; !ok {
+		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
 }

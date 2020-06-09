@@ -18,6 +18,8 @@ import (
 const (
 	IssueTypeDefault = "Task"
 	PriorityDefault = "High"
+
+	ServiceNowTableDefault = "incident"
 )
 
 type PluginSettings struct {
@@ -58,6 +60,7 @@ type PluginSettings struct {
 
 	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
 	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
+	InstanceName string `json:"instance"`
 	PolicyOnlyFixAvailable bool `json:"Policy-Only-Fix-Available"`
 
 	AquaServer string `json:"AquaServer"`
@@ -124,6 +127,22 @@ func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
 	}
 	teams.TeamsSettings = buildSettings(sourceSettings)
 	return teams
+}
+
+func buildServiceNow (sourceSettings *PluginSettings) *plugins.ServiceNowPlugin{
+	serviceNow := &plugins.ServiceNowPlugin{
+		User:     sourceSettings.User,
+		Password: sourceSettings.Password,
+		Table:    sourceSettings.BoardName,
+		Instance: sourceSettings.InstanceName,
+	}
+	serviceNow.ServiceNowSettings = buildSettings(sourceSettings)
+
+	if len(serviceNow.Table) == 0 {
+		serviceNow.Table = ServiceNowTableDefault
+	}
+
+	return serviceNow
 }
 
 func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
@@ -271,6 +290,9 @@ func (ctx *AlertMgr) load() error {
 				ctx.plugins[settings.Name].Init()
 			case "teams":
 				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings)
+				ctx.plugins[settings.Name].Init()
+			case "serviceNow":
+				ctx.plugins[settings.Name] = buildServiceNow(&settings)
 				ctx.plugins[settings.Name].Init()
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",

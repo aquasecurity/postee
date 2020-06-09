@@ -29,14 +29,14 @@ func (slack *SlackPlugin) Init() error {
 	return nil
 }
 
-func clearSlackText (text string) string  {
+func clearSlackText(text string) string {
 	s := strings.ReplaceAll(text, "&", "&amp;")
-	s = strings.ReplaceAll( s, "<", "&lt;")
-	s = strings.ReplaceAll( s, ">", "&gt;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	s = strings.ReplaceAll(s, ">", "&gt;")
 	return s
 }
 
-func buildSlackBlock( title string, data []byte) []byte {
+func buildSlackBlock(title string, data []byte) []byte {
 	var content bytes.Buffer
 	content.WriteByte('{')
 	content.WriteString("\"blocks\":")
@@ -57,7 +57,7 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 	} else {
 		body = input["description"]
 	}
-	body = "[" + clearSlackText(body)+"]"
+	body = "[" + clearSlackText(body) + "]"
 	rawBlock := make([]data.SlackBlock, 0)
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
@@ -68,23 +68,23 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 	length := len(rawBlock)
 
 	if length >= slackBlockLimit {
-		message := buildShortMessage( slack.SlackSettings.AquaServer, input["url"], slack.slackLayout )
+		message := buildShortMessage(slack.SlackSettings.AquaServer, input["url"], slack.slackLayout)
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
 			log.Printf("Slack Sending Error: %v", err)
 		}
 	} else {
 		for n := 0; n < length; {
-			d := length-n
+			d := length - n
 			if d >= 49 {
 				d = 49
 			}
-			cutData, _ := json.Marshal(rawBlock[n:n+d])
-			cutData = cutData[1:len(cutData)-1]
+			cutData, _ := json.Marshal(rawBlock[n : n+d])
+			cutData = cutData[1 : len(cutData)-1]
 			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
 				log.Printf("Slack Sending Error: %v", err)
 			} else {
 				log.Printf("Sending [%d/%d part] to %q was successful!",
-					int(n/49)+1,int(length/49)+1,
+					int(n/49)+1, int(length/49)+1,
 					slack.SlackSettings.PluginName)
 			}
 			n += d
