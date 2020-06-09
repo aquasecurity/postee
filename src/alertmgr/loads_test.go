@@ -64,10 +64,12 @@ func TestLoads(t *testing.T) {
 		os.Remove(cfgName)
 	}()
 
+
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	if len(demoCtx.plugins) != 4 {
-		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", 4, len(demoCtx.plugins))
+	pluginsNumber := 5
+	if len(demoCtx.plugins) != pluginsNumber {
+		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
 	}
 
 	_, ok := demoCtx.plugins["ms-team"]
