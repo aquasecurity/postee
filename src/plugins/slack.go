@@ -5,13 +5,12 @@ import (
 	"data"
 	"encoding/json"
 	"formatting"
-	"io"
-	"io/ioutil"
 	"layout"
 	"log"
 	"net/http"
 	"settings"
 	"strings"
+	"utils"
 )
 
 type SlackPlugin struct {
@@ -31,12 +30,6 @@ func clearSlackText (text string) string  {
 	s = strings.ReplaceAll( s, "<", "&lt;")
 	s = strings.ReplaceAll( s, ">", "&gt;")
 	return s
-}
-
-func prnLogResponse(body io.ReadCloser) string {
-	defer body.Close()
-	message, _ := ioutil.ReadAll(body)
-	return  string(message)
 }
 
 func (slack *SlackPlugin) Send(input map[string]string) error {
@@ -80,7 +73,7 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 		}
 		if resp.StatusCode != http.StatusOK {
 			log.Printf("Sending had a problem. Status: %q. Message: %q",
-				resp.Status,prnLogResponse(resp.Body))
+				resp.Status, utils.PrnLogResponse(resp.Body))
 		} else {
 			log.Printf("Sending [%d/%d part] to %q was successful!",
 				int(n/49)+1,int(length/49)+1,

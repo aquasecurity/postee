@@ -39,6 +39,14 @@ func TestLoads(t *testing.T) {
   host: smtp.gmail.com
   port: 587
   recipients: ["demo@gmail.com"]
+
+- name: my-servicenow
+  type: serviceNow
+  enable: true
+  user: SERVICENOWUSER
+  password: SERVICENOWPASS
+  instance: dev00000
+  board: incident
 `
 	cfgName :="cfg_test.yaml"
 	ioutil.WriteFile(cfgName, []byte(cfgData),0644)
@@ -48,7 +56,12 @@ func TestLoads(t *testing.T) {
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	if len(demoCtx.plugins) != 3 {
-		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", 3, len(demoCtx.plugins))
+	if len(demoCtx.plugins) != 4 {
+		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", 4, len(demoCtx.plugins))
+	}
+
+	_, ok := demoCtx.plugins["my-servicenow"]
+	if !ok {
+		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
 }
