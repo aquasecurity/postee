@@ -107,7 +107,7 @@ The following are the cfg.yaml parameters that apply for all integrations:
 Key | Description | Possible Values
 --- | --- | ---
 name | The integration name. You can provide any descriptive name |
-type | The integration type | jira, email, slack
+type | The integration type | jira, email, slack, serviceNow, teams
 enable | Whether integration is enable or not | true, false
 Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integation | critical, high, medium, low
 Policy-Registry | Optional: the list of registry name that triggers the integration | 
