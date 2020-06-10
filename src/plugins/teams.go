@@ -5,6 +5,7 @@ import (
 	"layout"
 	"log"
 	"settings"
+	"utils"
 
 	msteams "teams-api"
 )
@@ -27,12 +28,18 @@ func (teams *TeamsPlugin) Init() error {
 
 func (teams *TeamsPlugin) Send(input map[string]string) error {
 	log.Printf("Sending to MS Teams via %q...", teams.TeamsSettings.PluginName)
+	utils.Debug("Title for %q: %q\n", teams.TeamsSettings.PluginName, input["title"])
+	utils.Debug("Url(s) for %q: %q\n", teams.TeamsSettings.PluginName, input["url"])
+	utils.Debug("Webhook for %q: %q\n", teams.TeamsSettings.PluginName, teams.Webhook)
 	var body string
 	if len(input["description"]) > teamsSizeLimit {
+		utils.Debug("MS Team plugin will send SHORT message\n")
 		body = buildShortMessage( teams.TeamsSettings.AquaServer , input["url"], teams.teamsLayout)
 	} else {
+		utils.Debug("MS Team plugin will send LONG message\n")
 		body = input["description"]
 	}
+	utils.Debug("Message is: %q\n", body)
 
 	err := msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"]) + body)
 	if err != nil {
