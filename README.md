@@ -117,6 +117,14 @@ Policy-Non-Compliant | Optional: trigger the integration only for non-compliant 
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
 
+## ServiceNow integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+user | ServiceNow user name | 
+password | User API key / password |
+instance | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
+board | ServiceNow board name to open tickets on. Default is "incident" |
+  
 ## Jira integration parameters
 Key | Description | Possible Values
 --- | --- | ---
