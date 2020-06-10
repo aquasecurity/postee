@@ -27,7 +27,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
 		return
 	}
-
+	log.Printf("Handling a scan result of '%s/%s'", scan.scanInfo.Registry, scan.scanInfo.Image)
 	for name, plugin := range plugins {
 		if plugin == nil {
 			continue
@@ -100,7 +100,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 						time.Sleep(time.Duration(plg.GetSettings().AggregateTimeoutSeconds) * time.Second)
 						queue := AggregateScanAndGetQueue(nm, nil, 0, false)
 						if len(queue) > 0 {
-							send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()), nm)
+							send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()))
 						}
 					}
 				}(name)
@@ -109,13 +109,12 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		}
 
 		if len(content) > 0 {
-			send(plugin, content, name)
+			send(plugin, content)
 		}
 	}
 }
 
-func send( plg plugins.Plugin, cnt map[string]string, name string) {
-	log.Printf("Sending message via %q", name)
+func send( plg plugins.Plugin, cnt map[string]string) {
 	go plg.Send(cnt)
 }
 

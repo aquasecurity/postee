@@ -72,6 +72,7 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
 			log.Printf("Slack Sending Error: %v", err)
 		}
+		log.Printf("Sending via Slack %q was successful!", slack.SlackSettings.PluginName)
 	} else {
 		for n := 0; n < length; {
 			d := length - n
@@ -90,7 +91,6 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 			n += d
 		}
 	}
-	log.Printf("Sending via Slack %q was successful!", slack.SlackSettings.PluginName)
 	return nil
 }
 
