@@ -4,19 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
+	"utils"
 )
 
 type MSTeamsChannelMessage struct {
 	Text string `json:"text"`
-}
-
-func prnLogResponse(body io.ReadCloser) string {
-	defer body.Close()
-	message, _ := ioutil.ReadAll(body)
-	return  string(message)
 }
 
 func CreateMessageByWebhook(webhook, content string) error {
@@ -27,6 +21,7 @@ func CreateMessageByWebhook(webhook, content string) error {
 	if err != nil {
 		return err
 	}
+	utils.Debug("Data for sending to %q: %q\n", webhook, string(mb))
 	r := bytes.NewReader(mb)
 	client := http.DefaultClient
 	reg, err := http.NewRequest("POST", webhook, r)
@@ -34,8 +29,12 @@ func CreateMessageByWebhook(webhook, content string) error {
 	reg.Header.Add("Content-Type", "application/json")
 	resp, err := client.Do(reg)
 	if err != nil {		return err	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("InsertRecordToTable Error: %q\n%s",resp.Status, prnLogResponse(resp.Body))
+
+	defer resp.Body.Close()
+	if message, _ := ioutil.ReadAll(resp.Body); resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("InsertRecordToTable Error: %q\n%s",resp.Status, message)
+	} else {
+		utils.Debug("Response body: %q\n", message)
 	}
 	return nil
 }
