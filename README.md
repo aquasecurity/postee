@@ -107,7 +107,7 @@ The following are the cfg.yaml parameters that apply for all integrations:
 Key | Description | Possible Values
 --- | --- | ---
 name | The integration name. You can provide any descriptive name |
-type | The integration type | jira, email, slack
+type | The integration type | jira, email, slack, serviceNow, teams
 enable | Whether integration is enable or not | true, false
 Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integation | critical, high, medium, low
 Policy-Registry | Optional: the list of registry name that triggers the integration | 
@@ -117,6 +117,14 @@ Policy-Non-Compliant | Optional: trigger the integration only for non-compliant 
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
 
+## ServiceNow integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+user | ServiceNow user name | 
+password | User API key / password |
+instance | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
+board | ServiceNow board name to open tickets on. Default is "incident" |
+  
 ## Jira integration parameters
 Key | Description | Possible Values
 --- | --- | ---
