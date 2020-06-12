@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	teamsSizeLimit = 28672 // 28 KB is an approximate limit for MS Teams
+	teamsSizeLimit = 18000 // 28 KB is an approximate limit for MS Teams
 )
 
 type TeamsPlugin struct {
