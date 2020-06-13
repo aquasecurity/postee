@@ -190,3 +190,12 @@ url | Slack WebHook URL (includes the access key) |
 Key | Description | Possible Values
 --- | --- | ---
 url | MS Teams WebHook URL |
+
+# Data Persistency #
+The ALM-Integration contianer uses BoltDB to store information about previously scanned images.
+This is used to prevent resending messages that were already sent before.
+The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.
+
+If you would like to persist the database file between restarts of the ALM-Integration container, then you should
+use a persistent storage option to mount the "/server/database" directory of the container.
+The "Kubernetes" directory in this project contains an example deployment that includes a basic Host Persistency.
