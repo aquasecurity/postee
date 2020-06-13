@@ -31,6 +31,15 @@ Go to "Custom Integations", "Incoming Webhooks", "Add to Slack".
 Choose a chanel to send the Slack notifications to.
 Click "Add Incoming Webhook". Copy the WebHook URL.
 
+## Getting the MS Teams connection details
+Open your Microsoft Teams client. Click on the "..." near the channel you would like to send notifications to.
+Choose "Connectors". The connectors window will open.
+Look for the "Incoming Webhook" connector (it is under the "All" category).
+Click "Add" near the Incoming Webhook connector. Click "Add" again.
+Provide a name and click "Create".
+You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
+
+
 ## Set up the Configuration File
 
 To set up the integration, you will  need to create a cfg.yaml file, which contains the connection settings.
@@ -103,7 +112,13 @@ When vulnerabilities are found in an image, you will see that a JIRA ticket is c
 # Integration Settings
 You can setup integrations through the cfg.yaml file. Note that one yaml file can contain multiple integrations (e.g. multiple email integrations, where each integation is handeling different container imgage registry).
 
-The following are the cfg.yaml parameters that apply for all integrations:
+The following are the global cfg.yaml parameters that apply for all integrations:
+Key | Description | Possible Values
+--- | --- | ---
+AquaServer | Aqua Console URL. This is used for some of the integrations to include link to scan results |
+
+
+The following are the cfg.yaml parameters that you can include in every integration section:
 Key | Description | Possible Values
 --- | --- | ---
 name | The integration name. You can provide any descriptive name |
@@ -170,3 +185,8 @@ Key | Description | Possible Values
 --- | --- | ---
 url | Slack WebHook URL (includes the access key) |
 
+
+## MS Teams integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+url | MS Teams WebHook URL |
