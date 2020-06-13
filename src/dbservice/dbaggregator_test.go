@@ -50,7 +50,7 @@ func TestAggregateScans(t *testing.T) {
 		os.Remove(DbPath)
 		DbPath = dbPathReal
 	}()
-	DbPath = "test_" + dbPathReal
+	DbPath = "test_webhooks.db"
 
 	for i:=0; i < len(tests); i++ {
 		test := tests[i]
