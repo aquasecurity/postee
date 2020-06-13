@@ -310,7 +310,7 @@ func (ctx *AlertMgr) listen() {
 			return
 		case data := <-ctx.queue:
 			service := new(scanservice.ScanService)
-			go service.ResultHandling(data, ctx.plugins)
+			go service.ResultHandling(strings.ReplaceAll(data, "`", "'"), ctx.plugins)
 		}
 	}
 }
