@@ -2,27 +2,18 @@ package teams_api
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"utils"
 )
 
-type MSTeamsChannelMessage struct {
-	Text string `json:"text"`
-}
-
 func CreateMessageByWebhook(webhook, content string) error {
-	message := &MSTeamsChannelMessage{
-		Text: content,
-	}
-	mb, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-	utils.Debug("Data for sending to %q: %q\n", webhook, string(mb))
-	r := bytes.NewReader(mb)
+	var message bytes.Buffer
+	fmt.Fprintf(&message, "{\"text\":\"%s\"}", content)
+
+	utils.Debug("Data for sending to %q: %q\n", webhook, message.String())
+	r := bytes.NewReader(message.Bytes())
 	client := http.DefaultClient
 	reg, err := http.NewRequest("POST", webhook, r)
 	if err != nil { return err}
