@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: aqua-webhook
+  name: aqua-webhook
+  namespace: aqua
+spec:
+  ports:
+  - name: aqua-webhook-ssl
+    port: 8443
+    protocol: TCP
+    targetPort: 8445
+  - name: aqua-webhook
+    port: 8080
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    app: aqua-webhook
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: aqua-webhook
+  name: aqua-webhook
+  namespace: aqua
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aqua-webhook
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: aqua-webhook
+      name: aqua-webhook
+      namespace: aqua
+    spec:
+      containers:
+      - image: jerbi/webhook:latest
+        imagePullPolicy: Always
+        name: aqua-webhook
+        env:
+        - name: AQUAALERT_CFG
+          value: /policy/cfg.yaml/conf 
+        ports:
+        - containerPort: 8082
+          protocol: TCP
+        - containerPort: 8445
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - name: config-volume
+          mountPath: /policy/cfg.yaml
+        - name: webhook-db
+          mountPath: /server/database
+      volumes:
+      - configMap:
+          name: alm-config
+          items:
+          - key: cfg.yaml
+            path: conf
+        name: config-volume
+      - name: webhook-db
+        persistentVolumeClaim:
+          claimName: aqua-webhook-pvc
