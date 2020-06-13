@@ -12,7 +12,8 @@ type Settings struct {
 	AggregateIssuesNumber   int
 	AggregateTimeoutSeconds int
 	IsScheduleRun           bool
-	PolicyOnlyFixAvailable	bool
+	PolicyOnlyFixAvailable  bool
+	AquaServer              string
 }
 
 func GetDefaultSettings() *Settings {

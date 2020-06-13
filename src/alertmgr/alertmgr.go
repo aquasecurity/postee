@@ -1,6 +1,7 @@
 package alertmgr
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"plugins"
@@ -47,6 +48,8 @@ type PluginSettings struct {
 	Recipients []string `json:"recipients"`
 	Sender     string   `json:"sender"`
 
+	Token     string   `json:"token"`
+
 	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
 	PolicyRegistry         []string `json:"Policy-Registry"`
 	PolicyImageName        []string `json:"Policy-Image-Name"`
@@ -59,6 +62,8 @@ type PluginSettings struct {
 	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
 	InstanceName string `json:"instance"`
 	PolicyOnlyFixAvailable bool `json:"Policy-Only-Fix-Available"`
+
+	AquaServer string `json:"AquaServer"`
 }
 
 type AlertMgr struct {
@@ -71,6 +76,7 @@ type AlertMgr struct {
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
+var aquaServer string
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	var timeout int
@@ -110,8 +116,17 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		IgnoreImageName:         sourceSettings.IgnoreImageName,
 		AggregateIssuesNumber:   sourceSettings.AggregateIssuesNumber,
 		AggregateTimeoutSeconds: timeout,
-		PolicyOnlyFixAvailable:	 sourceSettings.PolicyOnlyFixAvailable,
+		PolicyOnlyFixAvailable:  sourceSettings.PolicyOnlyFixAvailable,
+		AquaServer:              aquaServer,
 	}
+}
+
+func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
+	teams := &plugins.TeamsPlugin{
+		Webhook: sourceSettings.Url,
+	}
+	teams.TeamsSettings = buildSettings(sourceSettings)
+	return teams
 }
 
 func buildServiceNow (sourceSettings *PluginSettings) *plugins.ServiceNowPlugin{
@@ -241,14 +256,22 @@ func (ctx *AlertMgr) load() error {
 	}
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
+		if len(settings.AquaServer) > 0 {
+			var slash string
+			if !strings.HasSuffix(settings.AquaServer, "/") {
+				slash = "/"
+			}
+			aquaServer = fmt.Sprintf("%s%s#/images/", settings.AquaServer, slash)
+		}
+
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0 && settings.Type != "slack" {
+			if len(settings.User) == 0  && settings.Type != "slack" && settings.Type != "teams" {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}
 			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 && settings.Type != "slack" {
+			if len(settings.Password) == 0 && settings.Type != "slack" && settings.Type != "teams" {
 				log.Printf("Password for %q is empty", settings.Name)
 				continue
 			}
@@ -264,6 +287,9 @@ func (ctx *AlertMgr) load() error {
 				ctx.plugins[settings.Name] = plugin
 			case "slack":
 				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
+				ctx.plugins[settings.Name].Init()
+			case "teams":
+				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings)
 				ctx.plugins[settings.Name].Init()
 			case "serviceNow":
 				ctx.plugins[settings.Name] = buildServiceNow(&settings)
@@ -284,7 +310,7 @@ func (ctx *AlertMgr) listen() {
 			return
 		case data := <-ctx.queue:
 			service := new(scanservice.ScanService)
-			go service.ResultHandling(data, ctx.plugins)
+			go service.ResultHandling(strings.ReplaceAll(data, "`", "'"), ctx.plugins)
 		}
 	}
 }

@@ -43,3 +43,7 @@ func (jira *JiraLayoutProvider) Table(rows [][]string) string {
 	builder.WriteString("\n")
 	return builder.String()
 }
+
+func (jira *JiraLayoutProvider) A(url, title string) string {
+	return fmt.Sprintf("[%s|%s]", title,url)
+}

@@ -138,3 +138,7 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 func (mrkdwn *SlackMrkdwnProvider) P(p string) string {
 	return getMrkdwnText(p)
 }
+
+func (mrkdwn *SlackMrkdwnProvider) A(url, title string) string {
+	return fmt.Sprintf("<%s|%s>", url, title)
+}

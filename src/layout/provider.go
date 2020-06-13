@@ -8,4 +8,5 @@ type LayoutProvider interface {
 	ColourText(text, color string) string
 	Table(rows [][]string) string
 	P(p string) string
+	A(url, title string) string
 }

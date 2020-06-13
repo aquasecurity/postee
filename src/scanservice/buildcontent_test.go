@@ -32,20 +32,21 @@ func TestBuildMapContent(t *testing.T) {
 	tests := [...]struct{
 		title string
 		descr string
+		url   string
 		want  map[string]string
 	}{
 		{
-			"title1", "description1",
+			"title1", "description1", "url1",
 			scan1,
 		},
 		{
-			"title2", "description2",
+			"title2", "description2", "url2",
 			scan2,
 		},
 	}
 
 	for _, test := range tests {
-		result := buildMapContent(test.title, lay.P(test.descr))
+		result := buildMapContent(test.title, lay.P(test.descr), test.url)
 		if len(result) != len(test.want) {
 			t.Errorf("Wrong result size\nResult: %v\nWaited: %v", result, test.want)
 			continue

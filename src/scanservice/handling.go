@@ -27,7 +27,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
 		return
 	}
-
+	log.Printf("Handling a scan result of '%s/%s'", scan.scanInfo.Registry, scan.scanInfo.Image)
 	for name, plugin := range plugins {
 		if plugin == nil {
 			continue
@@ -100,7 +100,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 						time.Sleep(time.Duration(plg.GetSettings().AggregateTimeoutSeconds) * time.Second)
 						queue := AggregateScanAndGetQueue(nm, nil, 0, false)
 						if len(queue) > 0 {
-							send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()), nm)
+							send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()))
 						}
 					}
 				}(name)
@@ -109,14 +109,13 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		}
 
 		if len(content) > 0 {
-			send(plugin, content, name)
+			send(plugin, content)
 		}
 	}
 }
 
-func send( plg plugins.Plugin, cnt map[string]string, name string) {
-	log.Printf("Sending message via %q", name)
-	plg.Send(cnt)
+func send( plg plugins.Plugin, cnt map[string]string) {
+	go plg.Send(cnt)
 }
 
 func AggregateScanAndGetQueue(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
@@ -156,7 +155,9 @@ func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
 func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]string {
 	return buildMapContent(
 		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
-		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan))
+		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan),
+		scan.scanInfo.Registry + "/" +
+			strings.ReplaceAll(scan.scanInfo.Image, "/", "%2F"))
 }
 
 func (scan *ScanService) init(data string) ( err error) {
