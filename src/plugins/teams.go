@@ -31,6 +31,9 @@ func (teams *TeamsPlugin) Send(input map[string]string) error {
 	utils.Debug("Title for %q: %q\n", teams.TeamsSettings.PluginName, input["title"])
 	utils.Debug("Url(s) for %q: %q\n", teams.TeamsSettings.PluginName, input["url"])
 	utils.Debug("Webhook for %q: %q\n", teams.TeamsSettings.PluginName, teams.Webhook)
+	utils.Debug("Length of Description for %q: %d/%d\n",
+		teams.TeamsSettings.PluginName, len(input["description"]), teamsSizeLimit)
+
 	var body string
 	if len(input["description"]) > teamsSizeLimit {
 		utils.Debug("MS Team plugin will send SHORT message\n")

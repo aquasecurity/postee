@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"utils"
 )
 
@@ -33,9 +32,9 @@ func CreateMessageByWebhook(webhook, content string) error {
 
 	defer resp.Body.Close()
 	if message, _ := ioutil.ReadAll(resp.Body); resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("InsertRecordToTable Error: %q\n%s",resp.Status, message)
+		return fmt.Errorf("InsertRecordToTable Error: %q. %s",resp.Status, message)
 	} else {
-		if strings.Contains(strings.ToLower(string(message)), "http error") {
+		if message[0] != '1' {
 			return fmt.Errorf("Teams Body Error: %q", string(message))
 		}
 		utils.Debug("Response body: %q\n", message)
