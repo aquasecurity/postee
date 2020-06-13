@@ -37,3 +37,8 @@ func (mrkdwn *MarkdownProvider) Table(rows [][]string) string {
 func (mrkdwn *MarkdownProvider) P(p string) string {
 	return fmt.Sprintf("%s\n", p)
 }
+
+func (mrkdwn *MarkdownProvider) A(url, title string) string {
+	return fmt.Sprintf("<%s|%s>", url, title)
+}
+

@@ -9,6 +9,7 @@ import (
 func TestLoads(t *testing.T) {
 	cfgData := `
 ---
+- AquaServer: https://demolab.aquasec.com
 - name: jira
   type: jira
   enable: true
@@ -40,6 +41,15 @@ func TestLoads(t *testing.T) {
   port: 587
   recipients: ["demo@gmail.com"]
 
+- name: ms-team
+  type: teams
+  enable: true
+  url: https://outlook.office.com/webhook/.... # Webhook's url
+
+- name: faild
+  enable: true
+  type: nextplugin
+
 - name: my-servicenow
   type: serviceNow
   enable: true
@@ -54,14 +64,25 @@ func TestLoads(t *testing.T) {
 		os.Remove(cfgName)
 	}()
 
+
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	if len(demoCtx.plugins) != 4 {
-		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", 4, len(demoCtx.plugins))
+	pluginsNumber := 5
+	if len(demoCtx.plugins) != pluginsNumber {
+		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
 	}
 
-	_, ok := demoCtx.plugins["my-servicenow"]
+	_, ok := demoCtx.plugins["ms-team"]
 	if !ok {
+		t.Errorf("'ms-team' plugin didn't start!")
+	}
+
+	aquaWaiting := "https://demolab.aquasec.com/#/images/"
+	if aquaServer != aquaWaiting {
+		t.Errorf("Wrong init of AquaServer link.\nWait: %q\nGot: %q", aquaWaiting, aquaServer)
+	}
+
+	if _, ok := demoCtx.plugins["my-servicenow"]; !ok {
 		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
 }

@@ -7,11 +7,13 @@ func TestJiraLayoutProvider_Tags(t *testing.T) {
 		{
 			"Lorem Ipsum",
 			"red",
+			"url",
 			"{color:red}Lorem Ipsum{color}",
 			"h1. Lorem Ipsum\n",
 			"h2. Lorem Ipsum\n",
 			"h3. Lorem Ipsum\n",
 			"Lorem Ipsum\n",
+			"[Lorem Ipsum|url]",
 		},
 	}
 	tagsTesting(tests, t, new(JiraLayoutProvider))
@@ -28,6 +30,10 @@ func TestJiraLayoutProvider_Table(t *testing.T) {
 |Field1|Field2|
 
 `,
+		},
+		{
+			source:nil,
+			result: "",
 		},
 	}
 	tableTesting(tests, t, new(JiraLayoutProvider))

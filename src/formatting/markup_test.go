@@ -8,7 +8,8 @@ import (
 type tagsTest struct {
 	source                    string
 	color                     string
-	colourText, h1, h2, h3, p string
+	link                     string
+	colourText, h1, h2, h3, p, a string
 }
 
 type tableTest struct {
@@ -32,6 +33,10 @@ func tagsTesting( tests []tagsTest, t *testing.T, provider layout.LayoutProvider
 		}
 		if p:= provider.P(test.source); p != test.p {
 			t.Errorf("Wrong P formatting for %q\nWaited: %q\n Result: %q", test.source, test.p, p)
+		}
+		if a:= provider.A(test.link, test.source); a != test.a {
+			t.Errorf("Wrong P formatting for link %q (%q)\nWaited: %q\n Result: %q",
+				test.link, test.source, test.a, a)
 		}
 	}
 }

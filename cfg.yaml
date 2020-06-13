@@ -1,4 +1,6 @@
 ---
+- AquaServer: # url of Aqua Server for links. E.g. https://myserver.aquasec.com
+
 - name: my-jira # name must be unique
   type: jira # supported types: jira, email
   enable: true
@@ -65,6 +67,11 @@
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+
+- name: ms-team
+  type: teams
+  enable: true
+  url: https://outlook.office.com/webhook/.... # Webhook's url
 
 - name: my-servicenow
   type: serviceNow

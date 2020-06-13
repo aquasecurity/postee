@@ -50,3 +50,7 @@ func (html *HtmlProvider) Table(rows [][]string) string {
 	table = append(table, "</TABLE>\n")
 	return strings.Join(table, "\n")
 }
+
+func (html *HtmlProvider) A(url, title string) string {
+	return fmt.Sprintf("<a href='%s'>%s</a>", url, title)
+}

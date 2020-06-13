@@ -28,8 +28,6 @@ var (
 	}
 ]
 }`
-
-
 	mockScanWithoutFix = `{
 "image":"Demo mock image without Fix version",
 "registry":"registry5",
@@ -91,14 +89,19 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		plgs := map[string]plugins.Plugin {}
+		plgs["demoSettings"] = demoWithSettings
 		for severity, needSending := range test.severities {
 			setting1.PolicyMinVulnerability = severity
-			plgs := map[string]plugins.Plugin {}
 			demoWithSettings.Sent = false
-			plgs["demoSettings"] = demoWithSettings
-
+			if needSending {
+				demoWithSettings.wg.Add(1)
+			}
 			service := new(ScanService)
 			service.ResultHandling( test.input,  plgs )
+			if needSending {
+				demoWithSettings.wg.Wait()
+			}
 
 			if needSending != demoWithSettings.Sent {
 				t.Errorf("The notify was sent with wrong severity %q for %q\n",
@@ -115,12 +118,14 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 		t:    t,
 	}
 	for _, test := range tests {
+		plgs := map[string]plugins.Plugin {}
+		plgs["demoWithoutSettings"]= demoWithoutSettings
 		for range test.severities {
-			plgs := map[string]plugins.Plugin {}
 			demoWithoutSettings.Sent = false
-			plgs["demoWithoutSettings"]= demoWithoutSettings
+			demoWithoutSettings.wg.Add(1)
 			service := new(ScanService)
 			service.ResultHandling( test.input,  plgs )
+			demoWithoutSettings.wg.Wait()
 			if !demoWithoutSettings.Sent {
 				t.Errorf("The notify wasn't sent for plugin without settings for %q\n",
 					service.scanInfo.GetUniqueId())
@@ -153,11 +158,13 @@ func TestPolicySettings(t *testing.T) {
 	srv := new(ScanService)
 
 	// -- Test PolicyImageName
+	demoEmailPlg.wg.Add(2)
 	srv.ResultHandling(mockScan1, plugins)
 	srv.ResultHandling(mockScan2, plugins)
 	srv.ResultHandling(mockScan3, plugins)
 	srv.ResultHandling(mockScan4, plugins)
 	srv.ResultHandling(mockScan5, plugins)
+	demoEmailPlg.wg.Wait()
 	if demoEmailPlg.emailCounts != 2 {
 		t.Errorf("Rule PolicyImageName. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 2)
 	}
@@ -168,11 +175,13 @@ func TestPolicySettings(t *testing.T) {
 	setting1.PolicyRegistry = []string{"registry5", "REGistry4", "Registry3"}
 	setting1.PolicyImageName = []string{}
 
+	demoEmailPlg.wg.Add(3)
 	srv.ResultHandling(mockScan1, plugins)
 	srv.ResultHandling(mockScan2, plugins)
 	srv.ResultHandling(mockScan3, plugins)
 	srv.ResultHandling(mockScan4, plugins)
 	srv.ResultHandling(mockScan5, plugins)
+	demoEmailPlg.wg.Wait()
 	if demoEmailPlg.emailCounts != 3 {
 		t.Errorf("Rule Policy-Registry. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 3)
 	}
@@ -182,11 +191,14 @@ func TestPolicySettings(t *testing.T) {
 	demoEmailPlg.emailCounts = 0
 	setting1.IgnoreRegistry = []string{"registry5", "REGistry4", "Registry3"}
 	setting1.PolicyRegistry = []string{}
+	demoEmailPlg.wg.Add(2)
 	srv.ResultHandling(mockScan1, plugins)
 	srv.ResultHandling(mockScan2, plugins)
 	srv.ResultHandling(mockScan3, plugins)
 	srv.ResultHandling(mockScan4, plugins)
 	srv.ResultHandling(mockScan5, plugins)
+	demoEmailPlg.wg.Wait()
+
 	if demoEmailPlg.emailCounts != 2 {
 		t.Errorf("Rule Ignore-Registry. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 2)
 	}
@@ -196,11 +208,14 @@ func TestPolicySettings(t *testing.T) {
 	demoEmailPlg.emailCounts = 0
 	setting1.IgnoreRegistry = []string{}
 	setting1.IgnoreImageName = []string{"image1", "image2", }
+	demoEmailPlg.wg.Add(3)
 	srv.ResultHandling(mockScan1, plugins)
 	srv.ResultHandling(mockScan2, plugins)
 	srv.ResultHandling(mockScan3, plugins)
 	srv.ResultHandling(mockScan4, plugins)
 	srv.ResultHandling(mockScan5, plugins)
+	demoEmailPlg.wg.Wait()
+
 	if demoEmailPlg.emailCounts != 3 {
 		t.Errorf("Rule Ignore-Image-Name. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 3)
 	}
@@ -223,11 +238,13 @@ func TestPolicySettings(t *testing.T) {
 	for _, test := range tests {
 		demoEmailPlg.emailCounts = 0
 		setting1.PolicyMinVulnerability = test.level
+		demoEmailPlg.wg.Add(test.waiting)
 		srv.ResultHandling(mockScan1, plugins)
 		srv.ResultHandling(mockScan2, plugins)
 		srv.ResultHandling(mockScan3, plugins)
 		srv.ResultHandling(mockScan4, plugins)
 		srv.ResultHandling(mockScan5, plugins)
+		demoEmailPlg.wg.Wait()
 		if demoEmailPlg.emailCounts != test.waiting {
 			t.Errorf("Wrong count of vulnerabilities for %q\nResult: %d\nWaiting: %d\n",
 				test.level, demoEmailPlg.emailCounts, test.waiting)
@@ -239,11 +256,14 @@ func TestPolicySettings(t *testing.T) {
 	demoEmailPlg.emailCounts = 0
 	setting1.PolicyMinVulnerability = ""
 	setting1.PolicyNonCompliant=true
+
+	demoEmailPlg.wg.Add(4)
 	srv.ResultHandling(mockScan1, plugins)
 	srv.ResultHandling(mockScan2, plugins)
 	srv.ResultHandling(mockScan3, plugins)
 	srv.ResultHandling(mockScan4, plugins)
 	srv.ResultHandling(mockScan5, plugins)
+	demoEmailPlg.wg.Wait()
 	if demoEmailPlg.emailCounts != 4 {
 		t.Errorf("Rule PolicyNonCompliant. Wrong count of emails\nSent: %d\nWait:%d", demoEmailPlg.emailCounts, 4)
 	}
@@ -253,8 +273,10 @@ func TestPolicySettings(t *testing.T) {
 	demoEmailPlg.emailCounts = 0
 	setting1.PolicyNonCompliant=false
 	setting1.PolicyOnlyFixAvailable=true
+	demoEmailPlg.wg.Add(1)
 	srv.ResultHandling(mockScanWithFix, plugins)
 	srv.ResultHandling(mockScanWithoutFix, plugins)
+	demoEmailPlg.wg.Wait()
 	if demoEmailPlg.emailCounts != 1 {
 		t.Errorf("Rule PolicyOnlyFixAvailable. Wrong count of emails\nSent: %d\nWait:%d",
 			demoEmailPlg.emailCounts, 1)
