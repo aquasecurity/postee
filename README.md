@@ -2,11 +2,24 @@
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
-Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
+Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
 
 ------
 
-When this integration is enabled, a ticket is opened, or an email or message is sent, with information about the vulnerabilities found in the image. In case of a rescan - a new ticket will be opened, or ticket/message will be sent, only if there are new vulneraibilities that are found in the image rescan.
+When this integration is enabled, a ticket is opened, or an email/message is sent, with information about the vulnerabilities found in the image. 
+
+Some featues that are supported with this integration:
+
+1. Image rescans: when an image is rescanned, the integration will not open a ticket/send a message it the scan results are same as the previous scan results. If the scan results are different then a ticket/message with the diff between the results will be sent.
+
+2. Scan policy: you can create a policy that will create ticket / send message based on image scan criteria. The criteria can be based on the image name, registry name and scan results (e.g. only if there are high severity vulnerabilities).
+For more information see "Policy-Min-Vulnerability", "Policy-Registry", "Policy-Image-Name", "Policy-Only-Fix-Available", "Policy-Non-Compliant" tokens in the cfg.yaml file.
+
+3. Ingore policy: you can create a policy that ignores specific registries/images.
+For more information see "Ignore-Registry" and "Ignore-Image-Name" tokens in the cfg.yaml file.
+
+
+
 
 # Quick Start #
 Follow these steps to set up JIRA integration:
