@@ -10,16 +10,16 @@ When this integration is enabled, a ticket is opened, or an email/message is sen
 
 Some featues that are supported with this integration:
 
-1. Image rescans: when an image is rescanned, the integration will not open a ticket/send a message it the scan results are same as the previous scan results. If the scan results are different then a ticket/message with the diff between the results will be sent.
+1. Image rescans: When an image is rescanned, the integration will not open a ticket/send a message it the scan results are same as the previous scan results. If the scan results are different then a ticket/message with the diff between the results will be sent.
 
-2. Scan policy: you can create a policy that will create ticket / send message based on image scan criteria. The criteria can be based on the image name, registry name and scan results (e.g. only if there are high severity vulnerabilities).
+2. Scan policy: You can create a policy that will create ticket / send message based on image scan criteria. The criteria can be based on the image name, registry name and scan results (e.g. only if there are high severity vulnerabilities).
 For more information see "Policy-Min-Vulnerability", "Policy-Registry", "Policy-Image-Name", "Policy-Only-Fix-Available", "Policy-Non-Compliant" tokens in the cfg.yaml file.
 
-3. Ingore policy: you can create a policy that ignores specific registries/images.
+3. Ingore policy: You can create a policy that ignores specific registries/images.
 For more information see "Ignore-Registry" and "Ignore-Image-Name" tokens in the cfg.yaml file.
 
-
-
+4. Aggregation policy: You can aggregate multiple scan results in a single ticket/message. This is useful if you would like to get a digest on daily/weekly basis.
+For more information see "Aggregate-Issues-Number" and "Aggregate-Issues-Timeout" tokens in the cfg.yaml file.
 
 # Quick Start #
 Follow these steps to set up JIRA integration:
@@ -144,6 +144,9 @@ Policy-Only-Fix-Available | Optional: trigger the integration only if image has 
 Policy-Non-Compliant | Optional: trigger the integration only for non-compliant images (true) or all images (false) | true, false
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
+Aggregate-Issues-Number | Optional: Aggregate multiple scans into one ticket/message | Numeric number. Default is 1
+Aggregate-Issues-Timeout| Optional: Aggregate multiple scans over period of time into one ticket/message | Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)
+
 
 ## ServiceNow integration parameters
 Key | Description | Possible Values
