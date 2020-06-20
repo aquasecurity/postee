@@ -49,7 +49,7 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 		os.Remove(dbservice.DbPath)
 		dbservice.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_" + dbPathReal
+	dbservice.DbPath = "test_webhooks.db"
 
 	const wantToAggregateIssues = 3
 
@@ -75,17 +75,6 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 		srv.ResultHandling(scan, plugins)
 	}
 	demoEmailPlg.wg.Wait()
-
-	/*
-	if demoEmailPlg.emailCounts != 0 && (n+1) != wantToAggregateIssues {
-		t.Errorf("Email was sent for %dth scan. We want to aggregate %d issues.",
-			n+1, wantToAggregateIssues)
-	}
-	if demoEmailPlg.emailCounts != 0 && (n+1) == wantToAggregateIssues {
-		demoEmailPlg.emailCounts = 0
-	}
-
-	 */
 }
 
 func TestAggregateTimeoutSeconds(t *testing.T) {
@@ -100,7 +89,7 @@ func TestAggregateTimeoutSeconds(t *testing.T) {
 		os.Remove(dbservice.DbPath)
 		dbservice.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_" + dbPathReal
+	dbservice.DbPath = "test_webhooks.db"
 
 	setting1 :=  &settings.Settings{
 		IgnoreImageName:        nil,
@@ -151,7 +140,7 @@ func TestAggregateSeveralPlugins(t *testing.T) {
 		os.Remove(dbservice.DbPath)
 		dbservice.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_" + dbPathReal
+	dbservice.DbPath = "test_webhooks.db"
 
 	setting1 :=  &settings.Settings{
 		PluginName:"demoPlugin1",
