@@ -2,11 +2,24 @@
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
-Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams and ServiceNow systems and create ticket or send a message/email when new vulnerabilities are found in an image.
+Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
 
 ------
 
-When this integration is enabled, a ticket is opened, or an email or message is sent, with information about the vulnerabilities found in the image. In case of a rescan - a new ticket will be opened, or ticket/message will be sent, only if there are new vulneraibilities that are found in the image rescan.
+When this integration is enabled, a ticket is opened, or an email/message is sent, with information about the vulnerabilities found in the image. 
+
+Some features that are supported with this integration:
+
+1. Image rescans: When an image is rescanned, the integration will not open a ticket/send a message it the scan results are same as the previous scan results. If the scan results are different then a ticket/message with the diff between the results will be sent.
+
+2. Scan policy: You can create a policy that will create ticket / send message based on image scan criteria. The criteria can be based on the image name, registry name and scan results (e.g. only if there are high severity vulnerabilities).
+For more information see "Policy-Min-Vulnerability", "Policy-Registry", "Policy-Image-Name", "Policy-Only-Fix-Available", "Policy-Non-Compliant" tokens in the cfg.yaml file.
+
+3. Ignore policy: You can create a policy that ignores specific registries/images.
+For more information see "Ignore-Registry" and "Ignore-Image-Name" tokens in the cfg.yaml file.
+
+4. Aggregation policy: You can aggregate multiple scan results in a single ticket/message. This is useful if you would like to get a digest on daily/weekly basis.
+For more information see "Aggregate-Issues-Number" and "Aggregate-Issues-Timeout" tokens in the cfg.yaml file.
 
 # Quick Start #
 Follow these steps to set up JIRA integration:
@@ -27,8 +40,8 @@ Keep the token value, together with the JIRA URL and user name, for the next ste
 
 ## Getting the Slack connection details
 Open your Slack client, "Settings & Administration" -> "Manage Apps".
-Go to "Custom Integations", "Incoming Webhooks", "Add to Slack".
-Choose a chanel to send the Slack notifications to.
+Go to "Custom Integrations", "Incoming Webhooks", "Add to Slack".
+Choose a channel to send the Slack notifications to.
 Click "Add Incoming Webhook". Copy the WebHook URL.
 
 ## Getting the MS Teams connection details
@@ -70,7 +83,7 @@ The below example is to setup a JIRA integration:
      custom-field-url: #URL value, e.g., https://tour.golang.org/moretypes/7
 ```
 
-See the buttom of this page for other integration types and their parameters.
+See the bottom of this page for other integration types and their parameters.
 
 ###### *To prevent providing clear text passwords in text file you can pass an environment variable, e.g. $MY_PASSWORD.
 You will need to make sure this environment variable value is passed to the container.
@@ -110,7 +123,7 @@ When vulnerabilities are found in an image, you will see that a JIRA ticket is c
 ###### *To troubleshoot the integration, you can look at both the Aqua ALM Integration container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
 
 # Integration Settings
-You can setup integrations through the cfg.yaml file. Note that one yaml file can contain multiple integrations (e.g. multiple email integrations, where each integation is handeling different container imgage registry).
+You can setup integrations through the cfg.yaml file. Note that one yaml file can contain multiple integrations (e.g. multiple email integrations, where each integration is handling different container image registry).
 
 The following are the global cfg.yaml parameters that apply for all integrations:
 Key | Description | Possible Values
@@ -124,13 +137,16 @@ Key | Description | Possible Values
 name | The integration name. You can provide any descriptive name |
 type | The integration type | jira, email, slack, serviceNow, teams
 enable | Whether integration is enable or not | true, false
-Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integation | critical, high, medium, low
+Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integration | critical, high, medium, low
 Policy-Registry | Optional: the list of registry name that triggers the integration | 
 Policy-Image-Name | Optional: comma separated list of images that will trigger the integration
 Policy-Only-Fix-Available | Optional: trigger the integration only if image has a vulnerability with fix available (true). If set to false, integration will be triggered even if all vulnerabilities has no fix available | true, false
 Policy-Non-Compliant | Optional: trigger the integration only for non-compliant images (true) or all images (false) | true, false
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
+Aggregate-Issues-Number | Optional: Aggregate multiple scans into one ticket/message | Numeric number. Default is 1
+Aggregate-Issues-Timeout| Optional: Aggregate multiple scans over period of time into one ticket/message | Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)
+
 
 ## ServiceNow integration parameters
 Key | Description | Possible Values
@@ -151,7 +167,7 @@ board |  Optional: JIRA board key |
 priority|  Optional: ticket priority, e.g., High |
 assignee| Optional: assignee, e.g., John |
 issuetype| Optional: issue type, e.g., Bug |
-labels| Optional: comma seperated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
+labels| Optional: comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
 sprint| Optional: Sprint name, e.g., "3.5 Sprint 8" |
 
 For Jira you can also specify custom fields that will be populated with values.
@@ -192,7 +208,7 @@ Key | Description | Possible Values
 url | MS Teams WebHook URL |
 
 # Data Persistency #
-The ALM-Integration contianer uses BoltDB to store information about previously scanned images.
+The ALM-Integration container uses BoltDB to store information about previously scanned images.
 This is used to prevent resending messages that were already sent before.
 The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.
 
