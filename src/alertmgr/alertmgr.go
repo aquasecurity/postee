@@ -121,6 +121,14 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	}
 }
 
+func buildWebhookPlugin(sourceSettings *PluginSettings) *plugins.WebhookPlugin {
+	webhook := &plugins.WebhookPlugin {
+		Url:sourceSettings.Url,
+	}
+	webhook.WebhookSettings = buildSettings(sourceSettings)
+	return webhook
+}
+
 func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
 	teams := &plugins.TeamsPlugin{
 		Webhook: sourceSettings.Url,
@@ -254,6 +262,13 @@ func (ctx *AlertMgr) load() error {
 			plugin.Terminate()
 		}
 	}
+
+	ignoreAuthorization := map[string]bool{
+		"slack": true,
+		"teams": true,
+		"webhook": true,
+	}
+
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
 		if len(settings.AquaServer) > 0 {
@@ -266,38 +281,35 @@ func (ctx *AlertMgr) load() error {
 
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0  && settings.Type != "slack" && settings.Type != "teams" {
+			if len(settings.User) == 0  && !ignoreAuthorization[settings.Type] {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}
 			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 && settings.Type != "slack" && settings.Type != "teams" {
+			if len(settings.Password) == 0 && !ignoreAuthorization[settings.Type] {
 				log.Printf("Password for %q is empty", settings.Name)
 				continue
 			}
 			utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
 			switch settings.Type {
 			case "jira":
-				plugin := buildJiraPlugin(&settings)
-				plugin.Init()
-				ctx.plugins[settings.Name] = plugin
+				ctx.plugins[settings.Name] = buildJiraPlugin(&settings)
 			case "email":
-				plugin := buildEmailPlugin(&settings)
-				plugin.Init()
-				ctx.plugins[settings.Name] = plugin
+				ctx.plugins[settings.Name] = buildEmailPlugin(&settings)
 			case "slack":
 				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
-				ctx.plugins[settings.Name].Init()
 			case "teams":
 				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings)
-				ctx.plugins[settings.Name].Init()
 			case "serviceNow":
 				ctx.plugins[settings.Name] = buildServiceNow(&settings)
-				ctx.plugins[settings.Name].Init()
+			case "webhook":
+				ctx.plugins[settings.Name] = buildWebhookPlugin(&settings)
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
 					settings.Type, settings.Name)
+				continue
 			}
+			ctx.plugins[settings.Name].Init()
 		}
 	}
 	return nil
