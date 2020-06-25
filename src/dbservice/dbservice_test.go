@@ -48,7 +48,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 	defer func() {
 		DbPath = dbPathReal
 	}()
-	DbPath = "test_" + dbPathReal
+	DbPath = "test_webhooks.db"
 
 	for _, test := range tests {
 

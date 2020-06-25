@@ -8,6 +8,6 @@ const (
 )
 
 var (
-	DbPath = "webhooks.db"
+	DbPath = "/server/database/webhooks.db"
 	mutex   sync.Mutex
 )
