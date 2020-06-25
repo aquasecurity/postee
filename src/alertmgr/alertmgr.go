@@ -1,6 +1,7 @@
 package alertmgr
 
 import (
+	"dbservice"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -64,6 +65,8 @@ type PluginSettings struct {
 	PolicyOnlyFixAvailable bool `json:"Policy-Only-Fix-Available"`
 
 	AquaServer string `json:"AquaServer"`
+	DBMaxSize int `json:"Max_DB_Size"`
+	DBRemoveOldData int `json:"Delete_Old_Data"`
 }
 
 type AlertMgr struct {
@@ -256,12 +259,18 @@ func (ctx *AlertMgr) load() error {
 	}
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
-		if len(settings.AquaServer) > 0 {
-			var slash string
-			if !strings.HasSuffix(settings.AquaServer, "/") {
-				slash = "/"
+		if settings.Type == "common" {
+			if len(settings.AquaServer) > 0 {
+				var slash string
+				if !strings.HasSuffix(settings.AquaServer, "/") {
+					slash = "/"
+				}
+				aquaServer = fmt.Sprintf("%s%s#/images/", settings.AquaServer, slash)
 			}
-			aquaServer = fmt.Sprintf("%s%s#/images/", settings.AquaServer, slash)
+			dbservice.DbSizeLimit = settings.DBMaxSize
+			dbservice.DbDueDate = settings.DBRemoveOldData
+
+			continue
 		}
 
 		if settings.Enable {

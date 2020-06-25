@@ -9,7 +9,10 @@ import (
 func TestLoads(t *testing.T) {
 	cfgData := `
 ---
-- AquaServer: https://demolab.aquasec.com
+- type: common
+  Max_DB_Size: 1000
+  Delete_Old_Data: 10
+  AquaServer: https://demolab.aquasec.com
 - name: jira
   type: jira
   enable: true
