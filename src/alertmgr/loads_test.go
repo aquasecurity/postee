@@ -86,12 +86,10 @@ func TestLoads(t *testing.T) {
 		baseForTicker = savedBaseForTicker
 		os.Remove(cfgName)
 		os.Remove(dbservice.DbPath)
-
 		dbservice.ChangeDbPath(dbPathReal)
-
 	}()
 	dbservice.DbPath = "test_webhooks.db"
-	baseForTicker = time.Millisecond
+	baseForTicker = time.Microsecond
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
@@ -114,4 +112,5 @@ func TestLoads(t *testing.T) {
 		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
 	demoCtx.Terminate()
+	time.Sleep(5*time.Microsecond)
 }
