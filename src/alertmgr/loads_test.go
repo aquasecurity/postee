@@ -50,6 +50,11 @@ func TestLoads(t *testing.T) {
   type: email
   enable: true
 
+- name: email-empty-pass
+  type: email
+  enable: true
+  user: EMAILUSER
+
 - name: ms-team
   type: teams
   enable: true
