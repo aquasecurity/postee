@@ -153,3 +153,22 @@ func TestDbDelete(t *testing.T) {
 	bucket = ""
 	dbInsert(db, bucket, key, value)
 }
+
+func TestWithoutAccessToDb(t *testing.T) {
+	dbPathReal := DbPath
+	defer func() {
+		os.Remove(DbPath)
+		DbPath = dbPathReal
+	}()
+	DbPath = "test_webhooks.db"
+	db, err := bolt.Open( DbPath, 0220, nil )
+	if err != nil {
+		t.Fatal("Can't open db:", DbPath)
+		return
+	}
+	db.Close()
+	DbSizeLimit = 1
+	DbDueDate   = 1
+	CheckSizeLimit()
+	CheckExpiredData()
+}
