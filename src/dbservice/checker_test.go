@@ -30,13 +30,13 @@ func TestExpiredDates(t *testing.T) {
 	}
 
 	DbDueDate = 1
-	checkExpiredData()
+	CheckExpiredData()
 
 	for _, test := range tests {
 		t.Log(test.title)
 		DbDueDate = test.limit
 		if test.needRun {
-			checkExpiredData()
+			CheckExpiredData()
 		}
 
 		_, isNew, err := HandleCurrentInfo(&AlpineImageResult)
@@ -72,13 +72,13 @@ func TestDbSizeLimnit(t *testing.T) {
 	}
 
 	DbSizeLimit = 1
-	checkSizeLimit()
+	CheckSizeLimit()
 
 	for _, test := range tests {
 		t.Log(test.title)
 		DbSizeLimit = test.limit
 		if test.needRun {
-			checkSizeLimit()
+			CheckSizeLimit()
 		}
 
 		_, isNew, err := HandleCurrentInfo(&AlpineImageResult)
@@ -112,7 +112,7 @@ func TestWrongBuckets(t *testing.T) {
 	DbSizeLimit = 1
 	dbBucketName = ""
 	dbBucketExpiryDates = ""
-	checkSizeLimit()
+	CheckSizeLimit()
 }
 
 func TestDbDelete(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func checkSizeLimit() {
+func CheckSizeLimit() {
 	if DbSizeLimit == 0 {
 		return
 	}
@@ -41,7 +41,7 @@ func checkSizeLimit() {
 	}
 }
 
-func checkExpiredData() {
+func CheckExpiredData() {
 	if DbDueDate == 0 {
 		return
 	}

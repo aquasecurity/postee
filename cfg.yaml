@@ -3,6 +3,7 @@
   AquaServer: # url of Aqua Server for links. E.g. https://myserver.aquasec.com
   Max_DB_Size: 1000 # Max size of DB. MB. if empty then unlimited
   Delete_Old_Data: 10 # delete data older than N day(s).  If empty then we do not delete.
+  DbVerifyInterval: 1 # hours. an Interval between tests of DB. Default: 1 hour
 
 - name: my-jira # name must be unique
   type: jira # supported types: jira, email

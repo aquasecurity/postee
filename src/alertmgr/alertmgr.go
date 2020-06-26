@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ghodss/yaml"
 	"utils"
@@ -67,6 +68,7 @@ type PluginSettings struct {
 	AquaServer string `json:"AquaServer"`
 	DBMaxSize int `json:"Max_DB_Size"`
 	DBRemoveOldData int `json:"Delete_Old_Data"`
+	DBTestInterval int `json:"DbVerifyInterval"`
 }
 
 type AlertMgr struct {
@@ -269,6 +271,20 @@ func (ctx *AlertMgr) load() error {
 			}
 			dbservice.DbSizeLimit = settings.DBMaxSize
 			dbservice.DbDueDate = settings.DBRemoveOldData
+
+			if settings.DBTestInterval == 0 {
+				settings.DBTestInterval = 1
+			}
+
+			if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
+				ticker := time.NewTicker(time.Hour*time.Duration(settings.DBTestInterval))
+				go func() {
+					for range ticker.C {
+						dbservice.CheckSizeLimit()
+						dbservice.CheckExpiredData()
+					}
+				}()
+			}
 
 			continue
 		}
