@@ -70,7 +70,6 @@ func TestLoads(t *testing.T) {
   user: SERVICENOWUSER
   password: SERVICENOWPASS
   instance: dev00000
-  board: incident
 
 - name: noname
   type: future-plugin
