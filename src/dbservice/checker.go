@@ -16,7 +16,7 @@ func CheckSizeLimit() {
 
 	db, err := bolt.Open( DbPath, 0666, nil )
 	if err != nil {
-		log.Fatalln("Can't open db:", DbPath)
+		log.Println("Can't open db:", DbPath)
 		return
 	}
 	defer db.Close()
@@ -50,7 +50,7 @@ func CheckExpiredData() {
 
 	db, err := bolt.Open( DbPath, 0666, nil )
 	if err != nil {
-		log.Fatalln("Can't open db:", DbPath)
+		log.Println("Can't open db:", DbPath)
 		return
 	}
 	defer db.Close()

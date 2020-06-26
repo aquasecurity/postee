@@ -111,5 +111,5 @@ func TestLoads(t *testing.T) {
 		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
 	demoCtx.Terminate()
-	time.Sleep(5*time.Microsecond)
+	time.Sleep(200*time.Millisecond)
 }
