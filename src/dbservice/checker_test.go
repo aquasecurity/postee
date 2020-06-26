@@ -1,6 +1,7 @@
 package dbservice
 
 import (
+	bolt "go.etcd.io/bbolt"
 	"os"
 	"testing"
 	"time"
@@ -89,4 +90,54 @@ func TestDbSizeLimnit(t *testing.T) {
 			t.Errorf("Error handling! Want isNew: %t, rgot: %t", test.isNew, isNew)
 		}
 	}
+}
+
+func TestWrongBuckets(t *testing.T) {
+	savedDbBucketName := dbBucketName
+	savedDbBucketExpiryDates := dbBucketExpiryDates
+	dbPathReal := DbPath
+	defer func() {
+		dbBucketName = savedDbBucketName
+		dbBucketExpiryDates = savedDbBucketExpiryDates
+		os.Remove(DbPath)
+		DbPath = dbPathReal
+	}()
+	DbPath = "test_webhooks.db"
+
+	_, _, err := HandleCurrentInfo(&AlpineImageResult)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	DbSizeLimit = 1
+	dbBucketName = ""
+	dbBucketExpiryDates = ""
+	checkSizeLimit()
+}
+
+func TestDbDelete(t *testing.T) {
+	dbPathReal := DbPath
+	defer func() {
+		os.Remove(DbPath)
+		DbPath = dbPathReal
+	}()
+	DbPath = "test_webhooks.db"
+
+	db, err := bolt.Open( DbPath, 0666, nil )
+	if err != nil {
+		t.Fatal("Can't open db:", DbPath)
+		return
+	}
+	defer db.Close()
+
+	key := []byte("key")
+	value := []byte("value")
+	bucket := "b"
+
+	dbInsert(db, bucket, key, value)
+	dbDelete(db, bucket, [][]byte{ key })
+	dbDelete(db, bucket, [][]byte{ key })
+
+	bucket = ""
+	dbInsert(db, bucket, key, value)
 }

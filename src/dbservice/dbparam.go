@@ -5,13 +5,11 @@ import (
 	"time"
 )
 
-const (
+var (
 	dbBucketName       = "WebhookBucket"
 	dbBucketAggregator = "WebhookAggregator"
 	dbBucketExpiryDates= "WebookExpiryDates"
-)
 
-var (
 	DbSizeLimit = 0
 	DbDueDate   = 0
 	dueTimeBase = time.Hour*time.Duration(24)
