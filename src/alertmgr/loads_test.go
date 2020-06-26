@@ -12,8 +12,8 @@ func TestLoads(t *testing.T) {
 	cfgData := `
 ---
 - type: common
-  Max_DB_Size: 0
-  Delete_Old_Data: 0
+  Max_DB_Size: 10
+  Delete_Old_Data: 10
   AquaServer: https://demolab.aquasec.com
 - name: jira
   type: jira
@@ -86,7 +86,9 @@ func TestLoads(t *testing.T) {
 		baseForTicker = savedBaseForTicker
 		os.Remove(cfgName)
 		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+
+		dbservice.ChangeDbPath(dbPathReal)
+
 	}()
 	dbservice.DbPath = "test_webhooks.db"
 	baseForTicker = time.Millisecond

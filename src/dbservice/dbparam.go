@@ -17,3 +17,9 @@ var (
 	DbPath = "/server/database/webhooks.db"
 	mutex   sync.Mutex
 )
+
+func ChangeDbPath(newPath string) {
+	mutex.Lock()
+	DbPath = newPath
+	mutex.Unlock()
+}
