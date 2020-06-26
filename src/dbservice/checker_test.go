@@ -113,6 +113,18 @@ func TestWrongBuckets(t *testing.T) {
 	dbBucketName = ""
 	dbBucketExpiryDates = ""
 	CheckSizeLimit()
+
+	dbBucketName = "dbBucketName"
+	_, _, err = HandleCurrentInfo(&AlpineImageResult)
+	if err == nil {
+		t.Error("No error for empty dbBucketExpiryDates")
+	}
+	dbBucketExpiryDates = "dbBucketExpiryDates"
+	dbBucketName = ""
+	_, _, err = HandleCurrentInfo(&AlpineImageResult)
+	if err == nil {
+		t.Error("No error for empty dbBucketName")
+	}
 }
 
 func TestDbDelete(t *testing.T) {
