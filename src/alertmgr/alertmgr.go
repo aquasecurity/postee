@@ -49,8 +49,7 @@ type PluginSettings struct {
 	Port       string   `json:"port"`
 	Recipients []string `json:"recipients"`
 	Sender     string   `json:"sender"`
-
-	Token     string   `json:"token"`
+	Token      string   `json:"token"`
 
 	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
 	PolicyRegistry         []string `json:"Policy-Registry"`
@@ -62,13 +61,13 @@ type PluginSettings struct {
 
 	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
 	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
-	InstanceName string `json:"instance"`
-	PolicyOnlyFixAvailable bool `json:"Policy-Only-Fix-Available"`
+	InstanceName           string `json:"instance"`
+	PolicyOnlyFixAvailable bool   `json:"Policy-Only-Fix-Available"`
 
-	AquaServer string `json:"AquaServer"`
-	DBMaxSize int `json:"Max_DB_Size"`
-	DBRemoveOldData int `json:"Delete_Old_Data"`
-	DBTestInterval int `json:"DbVerifyInterval"`
+	AquaServer      string `json:"AquaServer"`
+	DBMaxSize       int    `json:"Max_DB_Size"`
+	DBRemoveOldData int    `json:"Delete_Old_Data"`
+	DBTestInterval  int    `json:"DbVerifyInterval"`
 }
 
 type AlertMgr struct {
@@ -82,13 +81,15 @@ type AlertMgr struct {
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
 var aquaServer string
+var baseForTicker = time.Hour
+var ticker *time.Ticker
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	var timeout int
 	var err error
 
-	times := map[string]int {
-		"s":1,
+	times := map[string]int{
+		"s": 1,
 		"m": 60,
 		"h": 3600,
 	}
@@ -126,7 +127,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	}
 }
 
-func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
+func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin {
 	teams := &plugins.TeamsPlugin{
 		Webhook: sourceSettings.Url,
 	}
@@ -134,7 +135,7 @@ func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
 	return teams
 }
 
-func buildServiceNow (sourceSettings *PluginSettings) *plugins.ServiceNowPlugin{
+func buildServiceNow(sourceSettings *PluginSettings) *plugins.ServiceNowPlugin {
 	serviceNow := &plugins.ServiceNowPlugin{
 		User:     sourceSettings.User,
 		Password: sourceSettings.Password,
@@ -159,12 +160,12 @@ func buildSlackPlugin(sourceSettings *PluginSettings) *plugins.SlackPlugin {
 
 func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
 	em := &plugins.EmailPlugin{
-		User:          sourceSettings.User,
-		Password:      sourceSettings.Password,
-		Host:          sourceSettings.Host,
-		Port:          sourceSettings.Port,
-		Sender:        sourceSettings.Sender,
-		Recipients:    sourceSettings.Recipients,
+		User:       sourceSettings.User,
+		Password:   sourceSettings.Password,
+		Host:       sourceSettings.Host,
+		Port:       sourceSettings.Port,
+		Sender:     sourceSettings.Sender,
+		Recipients: sourceSettings.Recipients,
 	}
 	em.EmailSettings = buildSettings(sourceSettings)
 	return em
@@ -230,6 +231,9 @@ func (ctx *AlertMgr) Terminate() {
 			plugin.Terminate()
 		}
 	}
+	if ticker != nil {
+		ticker.Stop()
+	}
 }
 
 func (ctx *AlertMgr) Send(data string) {
@@ -277,7 +281,7 @@ func (ctx *AlertMgr) load() error {
 			}
 
 			if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
-				ticker := time.NewTicker(time.Hour*time.Duration(settings.DBTestInterval))
+				ticker = time.NewTicker(baseForTicker * time.Duration(settings.DBTestInterval))
 				go func() {
 					for range ticker.C {
 						dbservice.CheckSizeLimit()
@@ -285,13 +289,12 @@ func (ctx *AlertMgr) load() error {
 					}
 				}()
 			}
-
 			continue
 		}
 
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0  && settings.Type != "slack" && settings.Type != "teams" {
+			if len(settings.User) == 0 && settings.Type != "slack" && settings.Type != "teams" {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}
