@@ -70,8 +70,12 @@ func getExpired(db *bolt.DB) (keys [][]byte, err error) {
 	keys = [][]byte{}
 	ttlKeys := [][]byte{}
 
-	err = db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte(dbBucketExpiryDates)).Cursor()
+	if err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(dbBucketExpiryDates))
+		if b == nil {
+			return nil
+		}
+		c := b.Cursor()
 
 		d := time.Duration(DbDueDate)* dueTimeBase
 		max := []byte(time.Now().UTC().Add(-d).Format(time.RFC3339Nano))
@@ -80,8 +84,13 @@ func getExpired(db *bolt.DB) (keys [][]byte, err error) {
 			ttlKeys = append(ttlKeys, k)
 		}
 		return nil
-	})
+	}); err != nil {
+		return nil, err
+	}
 
-	err = dbDelete(db, dbBucketExpiryDates, ttlKeys)
+	if err = dbDelete(db, dbBucketExpiryDates, ttlKeys); err != nil {
+		return nil, err
+	}
+
 	return
 }
