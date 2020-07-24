@@ -12,8 +12,9 @@ EXPOSE 8082
 EXPOSE 8445
 RUN mkdir /server
 RUN mkdir /config
+RUN mkdir /server/database
 COPY --from=builder /webhook/bin/webhooksrv /server/
-COPY --from=builder /webhook/cfg.yaml /config/
+COPY --from=builder /webhook/cfg.sncr.yaml /config/cfg.yaml
 WORKDIR /server
 RUN chmod +x webhooksrv
 RUN adduser -D -g '' webhook
