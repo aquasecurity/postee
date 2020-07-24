@@ -14,7 +14,7 @@ RUN mkdir /server
 RUN mkdir /config
 RUN mkdir /server/database
 COPY --from=builder /webhook/bin/webhooksrv /server/
-COPY --from=builder /webhook/cfg.sncr.yaml /config/cfg.yaml
+COPY --from=builder /webhook/cfg.yaml /config/
 WORKDIR /server
 RUN chmod +x webhooksrv
 RUN adduser -D -g '' webhook
