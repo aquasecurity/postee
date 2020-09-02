@@ -19,11 +19,11 @@
   priority:  #Optional. Specify the issues severity. Default is "High"
   assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket
   Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
-  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Registry: #Optional. Comma separated list of registries that will trigger opening a ticket, for example: ["Docker Hub"]
+  Policy-Image-Name: #Optional. Comma separated list of images that will trigger opening a ticket, for example: ["alpine"]
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
-  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
-  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+  Ignore-Registry: #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: #Optional. You can specify array of image names to ignore.
   Aggregate-Issues-Number: # a number
   Aggregate-Issues-Timeout:  # number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
 
