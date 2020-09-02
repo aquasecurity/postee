@@ -11,6 +11,7 @@ RUN apk update && apk add wget ca-certificates
 EXPOSE 8082
 EXPOSE 8445
 RUN mkdir /server
+RUN mkdir /server/database
 RUN mkdir /config
 COPY --from=builder /webhook/bin/webhooksrv /server/
 COPY --from=builder /webhook/cfg.yaml /config/
