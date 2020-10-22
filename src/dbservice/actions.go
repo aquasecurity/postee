@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	bolt "go.etcd.io/bbolt"
+	"time"
 )
 
 func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, err error) {
@@ -23,8 +24,10 @@ func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, 
 	}
 	defer db.Close()
 
-	err = Init(db, dbBucketName)
-	if err != nil {
+	if err = Init(db, dbBucketName); err != nil {
+		return
+	}
+	if err = Init(db, dbBucketExpiryDates); err != nil {
 		return
 	}
 
@@ -52,11 +55,17 @@ func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, 
 	}
 
 	currentBytes, _ := json.Marshal(scanInfo)
-	err = dbInsert(db, dbBucketName, []byte(currentId), currentBytes)
+	bCurrentId := []byte(currentId)
+	err = dbInsert(db, dbBucketName, bCurrentId, currentBytes)
 	if err != nil {
 		return nil, false, err
 	}
 	isNew = true
+
+	err = dbInsert(db, dbBucketExpiryDates, []byte(time.Now().UTC().Format(time.RFC3339Nano)), bCurrentId)
+	if err != nil {
+		return
+	}
 
 	if prevId != "" && prevId != currentId {
 		prev,_ = dbSelect(db, dbBucketName, prevId)
