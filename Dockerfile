@@ -17,7 +17,8 @@ COPY --from=builder /webhook/bin/webhooksrv /server/
 COPY --from=builder /webhook/cfg.yaml /config/
 WORKDIR /server
 RUN chmod +x webhooksrv
-RUN adduser -D -g '' webhook
+RUN addgroup -g 1099 webhook
+RUN adduser -D -g '' -G webhook -u 1099 webhook
 RUN chown -R webhook:webhook /server
 RUN chown -R webhook:webhook /config
 USER webhook
