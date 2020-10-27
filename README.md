@@ -38,7 +38,7 @@ Go to the user profile API tokens (JIRA Cloud users can find it here: https://id
 Click on the Create API Token. A new API token for the user is created.
 Keep the token value, together with the JIRA URL and user name, for the next step.
 
-## Getting the Slack connection details
+## Getting the Slack connection details: [Webhooks](https://api.slack.com/messaging/webhooks)
 Open your Slack client, "Settings & Administration" -> "Manage Apps".
 Go to "Custom Integrations", "Incoming Webhooks", "Add to Slack".
 Choose a channel to send the Slack notifications to.
@@ -57,7 +57,7 @@ You will be provided with a URL address. Copy this URL and put it in the cfg.yam
 
 To set up the integration, you will  need to create a cfg.yaml file, which contains the connection settings.
 
-The below example is to setup a JIRA integration: 
+The below example is to setup a JIRA integration:
 
 ```yaml
 ---
