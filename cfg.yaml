@@ -18,13 +18,13 @@
   issuetype: #Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:  #Optional. Specify the issues severity. Default is "High"
   assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket
-  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
-  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
-  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
-  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
-  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
-  Aggregate-Issues-Number: # a number
+  Policy-Min-Vulnerability: #Optional. The minimum vulnerability severity that triggers a ticket
+  Policy-Registry: #Optional. Comma separated list of registries that will trigger opening a ticket, for example: ["Docker Hub"]
+  Policy-Image-Name: #Optional. Comma separated list of images that will trigger opening a ticket, for example: ["alpine"]
+  Policy-Non-Compliant: #Optional. Open a ticket only if image is non-compliant (true) or in any case (false). Default is false
+  Ignore-Registry: #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: #Optional. You can specify array of image names to ignore.
+  Aggregate-Issues-Number: # a number of scans to aggregate into one ticket
   Aggregate-Issues-Timeout:  # number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
 
 - name: my-email
@@ -42,7 +42,7 @@
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
-  Policy-Only-Fix-Available: false #Optional. Open ticket only if vulnerability has a fix
+  Policy-Only-Fix-Available: #Optional. Open ticket only if vulnerability has a fix (true or false)
   
 - name: my-other-email #this is an example for multiple integrations of same type
   type: email 
@@ -54,9 +54,9 @@
   sender: #Mandatory: The email address to use as a sender
   recipients: ["", ""] #Mandatory: comma seperated list of recipients
   Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
-  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
-  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Policy-Registry: [] #Optional. Comma separated list of registries that will trigger opening a ticket, e.g. [Docker Hub]  
+  Policy-Image-Name: [] #Optional. Comma separated list of images that will trigger opening a ticket, e.g. [alpine]
+  Policy-Non-Compliant: #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
 
@@ -65,12 +65,12 @@
   enable: true
   url: https://hooks.slack.com/services/TAAAA/BBB/<key>
 
-  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
-  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Min-Vulnerability: #Optional (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: #Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: #Optional. Comma separated list of images that will trigger opening a ticket
   Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
-  Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
-  Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.
+  Ignore-Registry: #Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: #Optional. You can specify array of image names to ignore.
 
 - name: ms-team
   type: teams
@@ -85,9 +85,9 @@
   instance: #Mandatory. Name of ServiceN  ow Instance
   board: # Specify the ServiceNow board name to open tickets on. Default is "incident"
 
-  Policy-Min-Vulnerability: high # (what is the minimum vulnerability severity that triggers a ticket)
-  Policy-Registry: [alpine, Docker image] #Optional. Comma separated list of registries that will trigger opening a ticket
-  Policy-Image-Name: [alpine,alpine2] #Optional. Comma separated list of images that will trigger opening a ticket
-  Policy-Non-Compliant: true #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Policy-Min-Vulnerability: #(what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: #Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: #Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Non-Compliant: #Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
   Ignore-Registry: [] #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: [] #Optional. You can specify array of image names to ignore.

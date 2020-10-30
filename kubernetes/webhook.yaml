@@ -44,6 +44,10 @@ spec:
       name: aqua-webhook
       namespace: aqua
     spec:
+      securityContext:
+        runAsUser: 1099
+        runAsGroup: 1099
+        fsGroup: 1099
       containers:
       - image: jerbi/webhook:latest
         imagePullPolicy: Always
