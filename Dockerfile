@@ -13,6 +13,7 @@ EXPOSE 8445
 RUN mkdir /server
 RUN mkdir /server/database
 RUN mkdir /config
+RUN mkdir /server/database
 COPY --from=builder /webhook/bin/webhooksrv /server/
 COPY --from=builder /webhook/cfg.yaml /config/
 WORKDIR /server
