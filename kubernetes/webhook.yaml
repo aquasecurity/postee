@@ -44,17 +44,26 @@ spec:
       name: aqua-webhook
       namespace: aqua
     spec:
-      securityContext:
-        runAsUser: 1099
-        runAsGroup: 1099
-        fsGroup: 1099
+      initContainers:
+      - name: chmod-er
+        image: busybox:latest
+        command:
+        - /bin/chown
+        - -R
+        - "1099"  # webhook UID
+        - /server/database
+        volumeMounts:
+        - name: webhook-db
+          mountPath: /server/database
       containers:
       - image: jerbi/webhook:latest
         imagePullPolicy: Always
         name: aqua-webhook
         env:
         - name: AQUAALERT_CFG
-          value: /policy/cfg.yaml/conf 
+          value: /policy/cfg.yaml/conf
+        - name: AQUAALERT_DEBUG
+          value: "not"
         ports:
         - containerPort: 8082
           protocol: TCP
