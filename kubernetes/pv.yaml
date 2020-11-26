@@ -1,14 +1,15 @@
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: PersistentVolume
 metadata:
-  creationTimestamp: null
-  name: aqua-webhook-pvc
-  namespace: aqua
+  labels:
+    app: aqua-alm
+  name: aquaalm-pv
 spec:
   accessModes:
   - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: hostpath
-status: {}
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: /tmp/aquaalm/
+  persistentVolumeReclaimPolicy: Recycle
+

@@ -17,7 +17,7 @@
   labels: #Optional, specify array of labels to add to Ticket, for example: ["label1", "label2"]
   issuetype: #Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:  #Optional. Specify the issues severity. Default is "High"
-  assignee:  #Optional. Specify the assigned user. Defulat is the user that opened the ticket
+  assignee:  #Optional. Specify the assigned user. Default is the user that opened the ticket
   Policy-Min-Vulnerability: #Optional. The minimum vulnerability severity that triggers a ticket
   Policy-Registry: #Optional. Comma separated list of registries that will trigger opening a ticket, for example: ["Docker Hub"]
   Policy-Image-Name: #Optional. Comma separated list of images that will trigger opening a ticket, for example: ["alpine"]
