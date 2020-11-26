@@ -9,6 +9,7 @@ func TestCompliesPolicies(t *testing.T) {
 		want bool
 	} {
 		{[]string{}, "image", false},
+		{[]string{"(*"}, "(image", false},
 		{[]string{":latest", "mongo:1", "mon*:*"}, "all-in-one:3.5.19223", false},
 		{[]string{":latest", "mongo:1", "mon*:*"}, "mongo:2.2", true},
 		{[]string{":latest", "mongo:1", "mon*:"}, "mongo:2.2", true},
