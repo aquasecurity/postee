@@ -281,6 +281,29 @@ func TestPolicySettings(t *testing.T) {
 		t.Errorf("Rule PolicyOnlyFixAvailable. Wrong count of emails\nSent: %d\nWait:%d",
 			demoEmailPlg.emailCounts, 1)
 	}
+
+	//-- PolicyShowAll: true
+	setting1.PolicyOnlyFixAvailable=false
+
+	demoEmailPlg.emailCounts = 0
+	setting1.PolicyShowAll = true
+	demoEmailPlg.wg.Add(1)
+	srv.ResultHandling(mockScanWithFix, plugins)
+	demoEmailPlg.wg.Wait()
+	if demoEmailPlg.emailCounts != 1 {
+		t.Errorf("Rule PolicyOnlyFixAvailable. Wrong count of emails\nSent: %d\nWait:%d",
+			demoEmailPlg.emailCounts, 1)
+	}
+	//-- PolicyShowAll: false
+	demoEmailPlg.emailCounts = 0
+	setting1.PolicyShowAll = false
+
+	demoEmailPlg.wg.Add(1)
+	srv.ResultHandling(mockScanWithFix, plugins)
+	srv.ResultHandling(mockScan1, plugins)
+	demoEmailPlg.wg.Wait()
+	if demoEmailPlg.emailCounts != 1 {
+		t.Errorf("Rule PolicyOnlyFixAvailable. Wrong count of emails\nSent: %d\nWait:%d",
+			demoEmailPlg.emailCounts, 1)
+	}
 }
-
-
