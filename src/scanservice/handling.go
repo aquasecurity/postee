@@ -23,19 +23,18 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
 	}
-	if !scan.isNew {
-		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
-		return
-	}
 	log.Printf("Handling a scan result of '%s/%s'", scan.scanInfo.Registry, scan.scanInfo.Image)
 	for name, plugin := range plugins {
 		if plugin == nil {
 			continue
 		}
-
 		currentSettings := plugin.GetSettings()
 		if currentSettings == nil {
 			currentSettings = settings.GetDefaultSettings()
+		}
+		if !scan.isNew && !currentSettings.PolicyShowAll {
+			log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
+			continue
 		}
 
 		if len(currentSettings.PolicyMinVulnerability) > 0 && !scan.checkVulnerabilitiesLevel(currentSettings.PolicyMinVulnerability) {

@@ -13,6 +13,7 @@ type Settings struct {
 	AggregateTimeoutSeconds int
 	IsScheduleRun           bool
 	PolicyOnlyFixAvailable  bool
+	PolicyShowAll			bool
 	AquaServer              string
 }
 
@@ -22,6 +23,7 @@ func GetDefaultSettings() *Settings {
 		PolicyMinVulnerability: "",
 		PolicyRegistry:         []string{},
 		PolicyImageName:        []string{},
+		PolicyShowAll: 			false,
 		PolicyNonCompliant:     false,
 		IgnoreRegistry:         []string{},
 		IgnoreImageName:        []string{},
