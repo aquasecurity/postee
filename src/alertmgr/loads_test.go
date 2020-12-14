@@ -1,15 +1,20 @@
 package alertmgr
 
 import (
+	"dbservice"
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestLoads(t *testing.T) {
 	cfgData := `
 ---
-- AquaServer: https://demolab.aquasec.com
+- type: common
+  Max_DB_Size: 10
+  Delete_Old_Data: 10
+  AquaServer: https://demolab.aquasec.com
 - name: jira
   type: jira
   enable: true
@@ -17,7 +22,7 @@ func TestLoads(t *testing.T) {
   user: admin
   password: admin
   tls_verify: false
-  project_key: KEY
+  project_key: key
   description:
   summary:
   issuetype: "Bug"
@@ -41,6 +46,15 @@ func TestLoads(t *testing.T) {
   port: 587
   recipients: ["demo@gmail.com"]
 
+- name: email-empty
+  type: email
+  enable: true
+
+- name: email-empty-pass
+  type: email
+  enable: true
+  user: EMAILUSER
+
 - name: ms-team
   type: teams
   enable: true
@@ -56,14 +70,25 @@ func TestLoads(t *testing.T) {
   user: SERVICENOWUSER
   password: SERVICENOWPASS
   instance: dev00000
-  board: incident
+
+- name: noname
+  type: future-plugin
+  enable: true
+  user: user
+  password: password
 `
 	cfgName :="cfg_test.yaml"
 	ioutil.WriteFile(cfgName, []byte(cfgData),0644)
+	dbPathReal := dbservice.DbPath
+	savedBaseForTicker := baseForTicker
 	defer func() {
+		baseForTicker = savedBaseForTicker
 		os.Remove(cfgName)
+		os.Remove(dbservice.DbPath)
+		dbservice.ChangeDbPath(dbPathReal)
 	}()
-
+	dbservice.DbPath = "test_webhooks.db"
+	baseForTicker = time.Microsecond
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
@@ -85,4 +110,6 @@ func TestLoads(t *testing.T) {
 	if _, ok := demoCtx.plugins["my-servicenow"]; !ok {
 		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
+	demoCtx.Terminate()
+	time.Sleep(200*time.Millisecond)
 }

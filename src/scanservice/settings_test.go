@@ -69,7 +69,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	defer func() {
 		dbservice.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_" + dbPathReal
+	dbservice.DbPath = "test_webhooks.db"
 
 	setting1 :=  &settings.Settings{
 		PluginName: "Demo plugin with settings",
@@ -141,7 +141,7 @@ func TestPolicySettings(t *testing.T) {
 		os.Remove(dbservice.DbPath)
 		dbservice.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_" + dbPathReal
+	dbservice.DbPath = "test_webhooks.db"
 	os.Remove(dbservice.DbPath)
 
 	setting1 :=  &settings.Settings{
