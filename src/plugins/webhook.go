@@ -22,9 +22,9 @@ func (webhook *WebhookPlugin) Init() error {
 	return nil
 }
 
-func (webhook *WebhookPlugin) Send(map[string]string) error {
+func (webhook *WebhookPlugin) Send(content map[string]string) error {
 	log.Printf("Sending webhook to %q", webhook.Url)
-	data := `{"Data":"Data for tests"}`
+	data := content["src"]
 	resp, err := http.Post( webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
 		log.Printf("Sending webhook Error: %v", err)
@@ -42,8 +42,6 @@ func (webhook *WebhookPlugin) Send(map[string]string) error {
 		log.Printf(msg,resp.StatusCode, body)
 		return fmt.Errorf(msg, resp.StatusCode, body)
 	}
-	log.Printf("%q Body: %s", webhook.WebhookSettings.PluginName, body)
-
 	log.Printf("Sending Webhook to %q was successful!", webhook.WebhookSettings.PluginName)
 	return nil
 }
