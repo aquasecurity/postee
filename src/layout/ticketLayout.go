@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.ScanImageInfo) string {
+func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.ScanImageInfo, link string) string {
 	var builder bytes.Buffer
 	builder.WriteString(provider.P("Image name: " + scanInfo.Image))
 	builder.WriteString(provider.P("Registry: " + scanInfo.Registry  ))
@@ -55,6 +55,7 @@ func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.Scan
 		builder.WriteString( provider.TitleH2("Discovered vulnerabilities from last scan" ))
 		RenderVulnerabilities(prevScan.Resources, provider, &builder)
 	}
+	builder.WriteString(provider.P("See more: " + provider.A(link, link)))
 	return builder.String()
 }
 

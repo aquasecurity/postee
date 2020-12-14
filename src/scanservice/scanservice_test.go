@@ -172,7 +172,7 @@ func TestScanImageInfo_GetUniqueId(t *testing.T) {
 func BenchmarkGenTicketDescription(b *testing.B) {
 	provider := new (formatting.JiraLayoutProvider)
 	for i:=0; i < b.N; i++ {
-		layout.GenTicketDescription(provider, &AlpineImageResult, nil)
+		layout.GenTicketDescription(provider, &AlpineImageResult, nil, "https://demolab.aquasec.com/")
 	}
 }
 
@@ -192,7 +192,7 @@ func TestGenTicketDescription(t *testing.T) {
 
 	for _, provider := range providers {
 		for _, test := range tests {
-			got := layout.GenTicketDescription( provider, test.currentScan, test.previousScan)
+			got := layout.GenTicketDescription( provider, test.currentScan, test.previousScan, "https://demolab.aquasec.com")
 			important := getImportantData(test.currentScan)
 			for k, v := range important {
 				if !strings.Contains(got, k) {
