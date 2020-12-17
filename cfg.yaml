@@ -78,6 +78,11 @@
   enable: true
   url: https://outlook.office.com/webhook/.... # Webhook's url
 
+- name: webhook
+  type: webhook
+  enable: true
+  url: https://..../webhook/ # Webhook's url
+
 - name: my-servicenow
   type: serviceNow
   enable: true
