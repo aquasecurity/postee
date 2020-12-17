@@ -76,6 +76,11 @@ func TestLoads(t *testing.T) {
   enable: true
   user: user
   password: password
+
+- name: webhook
+  type: webhook
+  enable: true
+  url: https://postman-echo.com/post
 `
 	cfgName :="cfg_test.yaml"
 	ioutil.WriteFile(cfgName, []byte(cfgData),0644)
@@ -92,7 +97,7 @@ func TestLoads(t *testing.T) {
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	pluginsNumber := 5
+	pluginsNumber := 6
 	if len(demoCtx.plugins) != pluginsNumber {
 		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
 	}
