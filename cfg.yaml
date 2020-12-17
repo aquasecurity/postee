@@ -22,6 +22,7 @@
   Policy-Registry: #Optional. Comma separated list of registries that will trigger opening a ticket, for example: ["Docker Hub"]
   Policy-Image-Name: #Optional. Comma separated list of images that will trigger opening a ticket, for example: ["alpine"]
   Policy-Non-Compliant: #Optional. Open a ticket only if image is non-compliant (true) or in any case (false). Default is false
+  Policy-Show-All: #Optonal. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
   Ignore-Registry: #Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: #Optional. You can specify array of image names to ignore.
   Aggregate-Issues-Number: # a number of scans to aggregate into one ticket
