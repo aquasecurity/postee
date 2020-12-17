@@ -55,6 +55,7 @@ type PluginSettings struct {
 	PolicyRegistry         []string `json:"Policy-Registry"`
 	PolicyImageName        []string `json:"Policy-Image-Name"`
 	PolicyNonCompliant     bool     `json:"Policy-Non-Compliant"`
+	PolicyShowAll		   bool		`json:"Policy-Show-All"`
 
 	IgnoreRegistry  []string `json:"Ignore-Registry"`
 	IgnoreImageName []string `json:"Ignore-Image-Name"`
@@ -117,6 +118,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		PolicyMinVulnerability:  sourceSettings.PolicyMinVulnerability,
 		PolicyRegistry:          sourceSettings.PolicyRegistry,
 		PolicyImageName:         sourceSettings.PolicyImageName,
+		PolicyShowAll: 			 sourceSettings.PolicyShowAll,
 		PolicyNonCompliant:      sourceSettings.PolicyNonCompliant,
 		IgnoreRegistry:          sourceSettings.IgnoreRegistry,
 		IgnoreImageName:         sourceSettings.IgnoreImageName,

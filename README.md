@@ -142,6 +142,7 @@ Policy-Registry | Optional: the list of registry name that triggers the integrat
 Policy-Image-Name | Optional: comma separated list of images that will trigger the integration. Wild cards are supported.
 Policy-Only-Fix-Available | Optional: trigger the integration only if image has a vulnerability with fix available (true). If set to false, integration will be triggered even if all vulnerabilities has no fix available | true, false
 Policy-Non-Compliant | Optional: trigger the integration only for non-compliant images (true) or all images (false) | true, false
+Policy-Show-All | Optional: trigger the integration for all scan results. If set to true, integration will be triggered even for old scan results. Default value: false | true, false
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
 Aggregate-Issues-Number | Optional: Aggregate multiple scans into one ticket/message | Numeric number. Default is 1
