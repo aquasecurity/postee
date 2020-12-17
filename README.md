@@ -2,7 +2,7 @@
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
-Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
+Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams, Generic WebHook and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
 
 ------
 
@@ -135,7 +135,7 @@ The following are the cfg.yaml parameters that you can include in every integrat
 Key | Description | Possible Values
 --- | --- | ---
 name | The integration name. You can provide any descriptive name |
-type | The integration type | jira, email, slack, serviceNow, teams
+type | The integration type | jira, email, slack, serviceNow, teams, webhook
 enable | Whether integration is enable or not | true, false
 Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integration | critical, high, medium, low
 Policy-Registry | Optional: the list of registry name that triggers the integration | 
@@ -207,6 +207,11 @@ url | Slack WebHook URL (includes the access key) |
 Key | Description | Possible Values
 --- | --- | ---
 url | MS Teams WebHook URL |
+
+## Generic Webhook integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+url | Webhook URL |
 
 # Data Persistency #
 The ALM-Integration container uses BoltDB to store information about previously scanned images.
