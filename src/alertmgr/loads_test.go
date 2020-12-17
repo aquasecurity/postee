@@ -22,7 +22,7 @@ func TestLoads(t *testing.T) {
   user: admin
   password: admin
   tls_verify: false
-  project_key: KEY
+  project_key: key
   description:
   summary:
   issuetype: "Bug"

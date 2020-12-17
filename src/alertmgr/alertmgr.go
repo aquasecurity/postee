@@ -180,7 +180,7 @@ func buildJiraPlugin(sourceSettings *PluginSettings) *plugins.JiraAPI {
 		Password:        sourceSettings.Password,
 		TlsVerify:       sourceSettings.TlsVerify,
 		Issuetype:       sourceSettings.IssueType,
-		ProjectKey:      sourceSettings.ProjectKey,
+		ProjectKey:      strings.ToUpper(sourceSettings.ProjectKey),
 		Priority:        sourceSettings.Priority,
 		Assignee:        sourceSettings.Assignee,
 		FixVersions:     sourceSettings.FixVersions,
