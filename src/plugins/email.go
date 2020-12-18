@@ -3,11 +3,20 @@ package plugins
 import (
 	"fmt"
 	"formatting"
+	"github.com/pkg/errors"
 	"layout"
 	"log"
 	"net/smtp"
 	"settings"
 	"strings"
+)
+
+const (
+	ApplicationScopeOwner = "<%application_scope_owner%>"
+)
+
+var (
+	errThereIsNoRecipient = errors.New("there is no recipient")
 )
 
 type EmailPlugin struct{
@@ -44,15 +53,33 @@ func (email *EmailPlugin) GetLayoutProvider() layout.LayoutProvider {
 func (email *EmailPlugin) Send(content map[string]string) error {
 	subject := content["title"]
 	body := content["description"]
-
+	recipients := []string{}
+	for _, r := range email.Recipients {
+		if r == ApplicationScopeOwner {
+			ownersIn, ok := content["owners"]
+			if !ok {
+				log.Printf("%q issue: recipients field contains %q, but received a webhook without this data",
+				email.EmailSettings.PluginName, ApplicationScopeOwner)
+				continue
+			}
+			for _, o := range strings.Split(ownersIn, ";") {
+				if o != "" { recipients = append(recipients, o) }
+			}
+		} else {
+			recipients = append(recipients, r)
+		}
+	}
+	if len(recipients) == 0 {
+		return errThereIsNoRecipient
+	}
 	msg := fmt.Sprintf(
 		"To: %s\r\n"+
 			"From: %s\r\n" +
 			"Subject: %s\r\n"+
 			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-		strings.Join(email.Recipients,","), email.Sender, subject, body)
+		strings.Join(recipients,","), email.Sender, subject, body)
 	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
-	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.Sender, email.Recipients, []byte(msg))
+	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
 		log.Println("SendMail Error:", err)
 		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
