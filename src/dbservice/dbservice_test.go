@@ -9,11 +9,11 @@ import (
 
 var (
 	AlpineImageResult = data.ScanImageInfo{
-		"alpine:3.8",
-		"Docker Hub",
-		"sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
-		"sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
-		data.ImageAssuranceResults{
+		Image: "alpine:3.8",
+		Registry: "Docker Hub",
+		Digest: "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
+		PreviousDigest: "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
+		ImageAssuranceResults: data.ImageAssuranceResults{
 			true,
 			[]data.ControlCheck{
 				{"max_severity", "Default", false},
@@ -21,11 +21,11 @@ var (
 				{"max_score", "Default", false},
 			},
 		},
-		data.VulnerabilitySummary{
+		VulnerabilitySummary: data.VulnerabilitySummary{
 			2, 0, 0, 2, 0,0,0,0,
 		},
-		data.ScanOptions{true, true},
-		[]data.InfoResources{
+		ScanOptions: data.ScanOptions{true, true},
+		Resources: []data.InfoResources{
 			{
 				[]data.Vulnerability{
 					{"CVE-2018-20679", "", "", "medium"},
