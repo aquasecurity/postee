@@ -60,14 +60,15 @@ var (
 		249,2,52,184,11, 34, 15, 0},
 		ScanOptions: data.ScanOptions{true, true},
 		Resources: []data.InfoResources{
-		{
-			[]data.Vulnerability{
-				{"WS-2018-0076", "", "0.6.0", "negligible"},
-				{"", "", "",""},
+			{
+				[]data.Vulnerability{
+					{"WS-2018-0076", "", "0.6.0", "negligible"},
+					{"", "", "",""},
+				},
+				data.ResourceDetails{"", ""},
 			},
-			data.ResourceDetails{"", ""},
 		},
-		},
+		ApplicationScopeOwners: []string{ "recipient1@aquasec.com", "recipient1@aquasec.com" },
 	}
 )
 
