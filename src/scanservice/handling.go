@@ -73,7 +73,11 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			continue
 		}
 
-		content := scan.getContent(plugin.GetLayoutProvider())
+		server := ""
+		if plSettings := plugin.GetSettings(); plSettings != nil {
+			server = plugin.GetSettings().AquaServer
+		}
+		content := scan.getContent(plugin.GetLayoutProvider(), server)
 		content["src"] = input
 		wasHandled := false
 		if currentSettings.AggregateIssuesNumber > 0  {
@@ -152,12 +156,12 @@ func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
 	return false
 }
 
-func (scan *ScanService) getContent(provider layout.LayoutProvider) map[string]string {
+func (scan *ScanService) getContent(provider layout.LayoutProvider, server string) map[string]string {
+	url := scan.scanInfo.Registry + "/" + strings.ReplaceAll(scan.scanInfo.Image, "/", "%2F")
 	return buildMapContent(
 		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
-		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan),
-		scan.scanInfo.Registry + "/" +
-			strings.ReplaceAll(scan.scanInfo.Image, "/", "%2F"))
+		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan, server + url),
+		url)
 }
 
 func (scan *ScanService) init(data string) ( err error) {
