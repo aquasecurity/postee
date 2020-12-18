@@ -3,14 +3,15 @@ package data
 import "fmt"
 
 type ScanImageInfo struct {
-	Image                 string `json:"image"`
-	Registry              string `json:"registry"`
-	Digest                string `json:"digest"`
-	PreviousDigest        string `json:"previous_digest"`
-	ImageAssuranceResults `json:"image_assurance_results"`
-	VulnerabilitySummary  `json:"vulnerability_summary"`
-	ScanOptions           `json:"scan_options"`
-	Resources             []InfoResources `json:"resources"`
+	Image                  string `json:"image"`
+	Registry               string `json:"registry"`
+	Digest                 string `json:"digest"`
+	PreviousDigest         string `json:"previous_digest"`
+	ImageAssuranceResults  `json:"image_assurance_results"`
+	VulnerabilitySummary   `json:"vulnerability_summary"`
+	ScanOptions            `json:"scan_options"`
+	Resources              []InfoResources `json:"resources"`
+	ApplicationScopeOwners []string        `json:"application_scope_owners"`
 }
 
 type ImageAssuranceResults struct {
@@ -45,7 +46,7 @@ type InfoResources struct {
 	ResourceDetails `json:"resource"`
 }
 type ResourceDetails struct {
-	Name string `json:"name"`
+	Name    string `json:"name"`
 	Version string `json:"version"`
 }
 
@@ -53,7 +54,7 @@ type Vulnerability struct {
 	Name       string `json:"name"`
 	Version    string `json:"version"`
 	FixVersion string `json:"fix_version"`
-	Severity   string `json:"aqua_severity"`//`json:""`nvd_severity
+	Severity   string `json:"aqua_severity"` //`json:""`nvd_severity
 }
 
 func BuildUniqueId(digest, image, registry string) string {
