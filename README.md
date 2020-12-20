@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/gh/aquasecurity/alm-integration/branch/master/graph/badge.svg)](https://codecov.io/gh/aquasecurity/alm-integration)
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/aquasecurity/alm-integration/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-mit-blue.svg)](https://github.com/aquasecurity/alm-integration/blob/master/LICENSE)
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
 Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams, Generic WebHook and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
