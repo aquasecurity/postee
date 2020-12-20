@@ -195,7 +195,7 @@ password | Password |
 host | SMTP host name | 
 port | SMTP port |
 sender |  Sender's email address |
-recipients|  Recipients (array of comma seperated emails), e.g. ["john@yahoo.com"] |
+recipients|  Recipients (array of comma seperated emails), e.g. ["john@yahoo.com"]. To send the email to the Application owner (as defined in Aqua Application Scope, owner email field) specify ["<%application_scope_owner%>"] as the recipients value |
 
 ## Slack integration parameters
 Key | Description | Possible Values
