@@ -38,7 +38,9 @@ docker build -t alm-integration:latest .
 
 4. Run the Aqua ALM Integration container with the configuration file: 
 ```bash
-docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration:latest
+docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \ 
+    -p 8444:8444 -p 8084:8084 alm-integration:latest
 ```
 
 5. Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
@@ -111,7 +113,9 @@ Build and run the Aqua Webhook Server container on the same host where the JIRA 
 ```bash
 docker build -t alm-integration-image:latest .
 
-docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration-image:latest
+docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \
+    -p 8444:8444 -p 8084:8084 alm-integration-image:latest
 
 ```
 
