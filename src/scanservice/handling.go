@@ -24,6 +24,11 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		return
 	}
 	log.Printf("Handling a scan result of '%s/%s'", scan.scanInfo.Registry, scan.scanInfo.Image)
+	owners := ""
+	if len(scan.scanInfo.ApplicationScopeOwners) > 0 {
+		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
+	}
+
 	for name, plugin := range plugins {
 		if plugin == nil {
 			continue
@@ -79,6 +84,10 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		}
 		content := scan.getContent(plugin.GetLayoutProvider(), server)
 		content["src"] = input
+		if owners != "" {
+			content["owners"] = owners
+		}
+
 		wasHandled := false
 		if currentSettings.AggregateIssuesNumber > 0  {
 			aggregated := AggregateScanAndGetQueue(name, content, currentSettings.AggregateIssuesNumber, false)
