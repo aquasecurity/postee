@@ -34,8 +34,7 @@ git clone git@github.com:aquasecurity/alm-integration.git
 docker build -t alm-integration:latest .
 ```
 
-3. Edit the configuration file (cfg.yaml) with the connection details of your JIRA, Slack, etc.
-
+3. [Edit the configuration file (cfg.yaml)](#set-up-the-configuration-file) with the connection details of your JIRA, Slack, etc.
 
 4. Run the Aqua ALM Integration container with the configuration file: 
 ```bash
@@ -100,7 +99,7 @@ The below example is to setup a JIRA integration:
      custom-field-url: #URL value, e.g., https://tour.golang.org/moretypes/7
 ```
 
-See the bottom of this page for other integration types and their parameters.
+See the [bottom of this page](#Integration-Settings) for other integration types and their parameters.
 
 ###### *To prevent providing clear text passwords in text file you can pass an environment variable, e.g. $MY_PASSWORD.
 You will need to make sure this environment variable value is passed to the container.
