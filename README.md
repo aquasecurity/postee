@@ -24,11 +24,28 @@ For more information see "Aggregate-Issues-Number" and "Aggregate-Issues-Timeout
 # Quick Start #
 Follow these steps to set up JIRA integration:
 
-1. Get the connection details for your Jira, Slack or SMTP email server
-2. Edit the configuration file (cfg.yaml) with the connection details.
-3. Run the Aqua ALM Integration container with the configuration file.
-4. Configure the Aqua Server to send a Webhook notification when a new vulnerability is found.
-5. Validate that a ticket has been opened, or email was sent (depending on your configuration file).
+Clone this project: 
+```bash
+git clone git@github.com:aquasecurity/alm-integration.git
+```
+
+Build the alm-integration Docker image: 
+```bash
+docker build -t alm-integration:latest .
+```
+
+Edit the configuration file (cfg.yaml) with the connection details of your JIRA, Slack, etc.
+
+
+Run the Aqua ALM Integration container with the configuration file: 
+```bash
+docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 -p 8444:8444 -p 8084:8084 alm-integration:latest
+```
+
+Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
+![Screenshot](webhook-integration.png)
+
+Validate that a ticket has been opened, or email was sent (depending on your configuration file).
 
 The following sections describe these steps in more detail.
 
