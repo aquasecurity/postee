@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -6,10 +7,9 @@ metadata:
   name: aquaalm-pv
 spec:
   accessModes:
-  - ReadWriteOnce
+    - ReadWriteOnce
   capacity:
     storage: 1Gi
   hostPath:
     path: /tmp/aquaalm/
   persistentVolumeReclaimPolicy: Recycle
-
