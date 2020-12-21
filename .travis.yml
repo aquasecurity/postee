@@ -5,7 +5,7 @@ go:
   - 1.12.x
 
 services:
-  - docker 
+  - docker
 
 notifications:
   email: false
@@ -17,7 +17,7 @@ before_install:
 script:
   - make all
   - make test
-  
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
@@ -28,5 +28,3 @@ deploy:
     on:
       tags: true
       condition: "$TRAVIS_OS_NAME = linux"
-  
-

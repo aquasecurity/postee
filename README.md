@@ -1,6 +1,23 @@
-[![codecov](https://codecov.io/gh/aquasecurity/alm-integration/branch/master/graph/badge.svg)](https://codecov.io/gh/aquasecurity/alm-integration)
+[![GitHub Release][release-img]][release]
+![Downloads][download]
+![Docker Pulls][docker-pull]
+[![Go Report Card][report-card-img]][report-card]
+[![Go Doc][go-doc-img]][go-doc]
+![Code Coverage][code-cov]
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
-[![License](https://img.shields.io/badge/License-mit-blue.svg)](https://github.com/aquasecurity/alm-integration/blob/master/LICENSE)
+[![License][license-img]][license]
+
+[download]: https://img.shields.io/github/downloads/aquasecurity/alm-integration/total?logo=github
+[release-img]: https://img.shields.io/github/release/aquasecurity/alm-integration.svg?logo=github
+[release]: https://github.com/aquasecurity/alm-integration/releases
+[docker-pull]: https://img.shields.io/docker/pulls/aquasec/alm-integration?logo=docker&label=docker%20pulls%20%2F%20alm-integration
+[report-card-img]: https://goreportcard.com/badge/github.com/aquasecurity/alm-integration
+[report-card]: https://goreportcard.com/report/github.com/aquasecurity/alm-integration
+[go-doc-img]: https://godoc.org/github.com/aquasecurity/alm-integration?status.svg
+[go-doc]: https://godoc.org/github.com/aquasecurity/alm-integration
+[code-cov]: https://codecov.io/gh/aquasecurity/alm-integration/branch/master/graph/badge.svg
+[license-img]: https://img.shields.io/badge/License-mit-blue.svg
+[license]: https://github.com/aquasecurity/alm-integration/blob/master/LICENSE
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
 Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams, Generic WebHook and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
