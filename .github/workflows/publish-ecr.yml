@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     name: Publish to Amazon ECR
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -17,11 +17,6 @@ jobs:
           aws-region: us-east-1
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Install AWS Cli 2.0
-        run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
       - name: Get the version
         id: vars
         run: echo ::set-output name=tag::$(echo ${GITHUB_REF:10})
