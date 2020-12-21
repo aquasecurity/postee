@@ -57,7 +57,7 @@ spec:
             - name: webhook-db
               mountPath: /server/database
       containers:
-        - image: jerbi/webhook:latest
+        - image: aquasec/alm-integration:latest
           imagePullPolicy: Always
           name: aqua-webhook
           env:
@@ -70,12 +70,11 @@ spec:
               protocol: TCP
             - containerPort: 8445
               protocol: TCP
-      resources: {}
-      volumeMounts:
-        - name: config-volume
-          mountPath: /policy/cfg.yaml
-        - name: webhook-db
-          mountPath: /server/database
+          volumeMounts:
+            - name: config-volume
+              mountPath: /policy/cfg.yaml
+            - name: webhook-db
+              mountPath: /server/database
       volumes:
         - configMap:
             name: alm-config
