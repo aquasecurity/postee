@@ -1,6 +1,4 @@
 ![Docker Pulls][docker-pull]
-[![Go Report Card][report-card-img]][report-card]
-[![Go Doc][go-doc-img]][go-doc]
 ![Code Coverage][code-cov]
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 [![License][license-img]][license]
