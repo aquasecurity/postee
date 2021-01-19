@@ -32,6 +32,12 @@ func TestLoads(t *testing.T) {
   labels: ["label1", "label2"]
   Policy-Min-Vulnerability: high
 
+- name: jiraWithoutPass
+  type: jira
+  enable: true
+  url: "http://localhost:2990/jira"
+  user: admin
+
 - name: my-slack
   type: slack
   enable: true
