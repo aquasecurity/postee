@@ -104,7 +104,7 @@ func TestLoads(t *testing.T) {
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	pluginsNumber := 6
+	pluginsNumber := 9
 	if len(demoCtx.plugins) != pluginsNumber {
 		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
 	}
