@@ -46,6 +46,13 @@ func TestLoads(t *testing.T) {
   port: 587
   recipients: ["demo@gmail.com"]
 
+- name: localEmail
+  type: email
+  enable: true
+  useMX: true
+  sender: mail@alm.demo.co
+  recipients: ["demo@gmail.com"]
+
 - name: email-empty
   type: email
   enable: true
