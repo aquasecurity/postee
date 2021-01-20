@@ -58,7 +58,7 @@
   Ignore-Registry: []  # Optional. You can specify array of registry names to ignore.
   Ignore-Image-Name: []  # Optional. You can specify array of image names to ignore.
   Policy-Only-Fix-Available:  # Optional. Open ticket only if vulnerability has a fix (true or false)
-  
+
 - name: my-other-email  # this is an example for multiple integrations of same type
   type: email
   enable: true
