@@ -1,8 +1,4 @@
-[![GitHub Release][release-img]][release]
-![Downloads][download]
 ![Docker Pulls][docker-pull]
-[![Go Report Card][report-card-img]][report-card]
-[![Go Doc][go-doc-img]][go-doc]
 ![Code Coverage][code-cov]
 ![](https://github.com/aquasecurity/alm-integration/workflows/Go/badge.svg)
 [![License][license-img]][license]
@@ -11,10 +7,7 @@
 [release-img]: https://img.shields.io/github/release/aquasecurity/alm-integration.svg?logo=github
 [release]: https://github.com/aquasecurity/alm-integration/releases
 [docker-pull]: https://img.shields.io/docker/pulls/aquasec/alm-integration?logo=docker&label=docker%20pulls%20%2F%20alm-integration
-[report-card-img]: https://goreportcard.com/badge/github.com/aquasecurity/alm-integration
-[report-card]: https://goreportcard.com/report/github.com/aquasecurity/alm-integration
 [go-doc-img]: https://godoc.org/github.com/aquasecurity/alm-integration?status.svg
-[go-doc]: https://godoc.org/github.com/aquasecurity/alm-integration
 [code-cov]: https://codecov.io/gh/aquasecurity/alm-integration/branch/master/graph/badge.svg
 [license-img]: https://img.shields.io/badge/License-mit-blue.svg
 [license]: https://github.com/aquasecurity/alm-integration/blob/master/LICENSE
@@ -228,6 +221,7 @@ unknowns:
 ## Email integration parameters
 Key | Description | Possible Values
 --- | --- | ---
+UseMX | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
 user | User name (usually email address) |
 password | Password | 
 host | SMTP host name | 

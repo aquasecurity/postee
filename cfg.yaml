@@ -45,6 +45,20 @@
   Ignore-Image-Name: []  # Optional. You can specify array of image names to ignore.
   Policy-Only-Fix-Available:  # Optional. Open ticket only if vulnerability has a fix (true or false)
 
+- name: my-email-smtp-server
+  type: email
+  enable: true
+  UseMX: true
+  sender:  # Mandatory: The email address to use as a sender
+  recipients: ["", ""]  # Mandatory: comma seperated list of recipients
+  Policy-Min-Vulnerability: high   #  (what is the minimum vulnerability severity that triggers a ticket)
+  Policy-Registry: [alpine, Docker image]  # Optional. Comma separated list of registries that will trigger opening a ticket
+  Policy-Image-Name: [alpine, alpine2]  # Optional. Comma separated list of images that will trigger opening a ticket
+  Policy-Non-Compliant: true  # Optional. Open a ticket only if image is non-compliant (true) or in any case (false)
+  Ignore-Registry: []  # Optional. You can specify array of registry names to ignore.
+  Ignore-Image-Name: []  # Optional. You can specify array of image names to ignore.
+  Policy-Only-Fix-Available:  # Optional. Open ticket only if vulnerability has a fix (true or false)
+  
 - name: my-other-email  # this is an example for multiple integrations of same type
   type: email
   enable: true

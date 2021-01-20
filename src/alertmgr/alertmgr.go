@@ -50,6 +50,7 @@ type PluginSettings struct {
 	Recipients []string `json:"recipients"`
 	Sender     string   `json:"sender"`
 	Token      string   `json:"token"`
+	UseMX      bool 	`json:"useMX"`
 
 	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
 	PolicyRegistry         []string `json:"Policy-Registry"`
@@ -176,6 +177,7 @@ func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
 		Port:       sourceSettings.Port,
 		Sender:     sourceSettings.Sender,
 		Recipients: sourceSettings.Recipients,
+		UseMX: 		sourceSettings.UseMX,
 	}
 	em.EmailSettings = buildSettings(sourceSettings)
 	return em
@@ -278,6 +280,7 @@ func (ctx *AlertMgr) load() error {
 		"slack": true,
 		"teams": true,
 		"webhook": true,
+		"email": true,
 	}
 
 	for _, settings := range pluginSettings {
