@@ -7,8 +7,8 @@ on:
       - "v*"
   workflow_dispatch:
 env:
-  ALIAS: aquasecurity
-  REP: alm-integration
+  ALIAS: krol
+  REP: cv-alm-integration
 jobs:
   publish:
     name: Publish
