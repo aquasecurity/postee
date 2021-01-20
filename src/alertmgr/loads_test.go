@@ -32,6 +32,12 @@ func TestLoads(t *testing.T) {
   labels: ["label1", "label2"]
   Policy-Min-Vulnerability: high
 
+- name: jiraWithoutPass
+  type: jira
+  enable: true
+  url: "http://localhost:2990/jira"
+  user: admin
+
 - name: my-slack
   type: slack
   enable: true
@@ -44,6 +50,13 @@ func TestLoads(t *testing.T) {
   password: EMAILPASS
   host: smtp.gmail.com
   port: 587
+  recipients: ["demo@gmail.com"]
+
+- name: localEmail
+  type: email
+  enable: true
+  useMX: true
+  sender: mail@alm.demo.co
   recipients: ["demo@gmail.com"]
 
 - name: email-empty
@@ -97,7 +110,7 @@ func TestLoads(t *testing.T) {
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	pluginsNumber := 6
+	pluginsNumber := 9
 	if len(demoCtx.plugins) != pluginsNumber {
 		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
 	}
