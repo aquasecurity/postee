@@ -9,7 +9,7 @@ on:
 env:
   ALIAS_AWS: aquasecurity
   ALIAS_DOCKER: aquasec
-  REP: cv-alm-integration
+  REP: alm-integration
 jobs:
   publish:
     name: Publish
