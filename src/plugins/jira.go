@@ -190,7 +190,7 @@ func (ctx *JiraAPI) Send(content map[string]string ) error {
 		Name string `json:"name"`
 	}
 
-	issue, err := InitIssue(metaProject, metaIssueType, fieldsConfig)
+	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig)
 	if err != nil {
 		log.Printf("Failed to init issue: %s\n", err)
 		return err
@@ -271,7 +271,7 @@ func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira
 	return metaIssuetype, nil
 }
 
-func InitIssue(metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
+func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
 	issue := new(jira.Issue)
 	issueFields := new(jira.IssueFields)
 	issueFields.Unknowns =  make(map[string]interface{})
@@ -356,9 +356,20 @@ func InitIssue(metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType,
 		case "priority":
 			issueFields.Unknowns[jiraKey] = jira.Priority{Name: value}
 		case "user":
-			issueFields.Unknowns[jiraKey] = jira.User{
-				Name: value,
+			users, resp, err := c.User.Find(value)
+			if err != nil {
+				log.Printf("Get Jira User info error: %v", err)
+				continue
 			}
+			if resp.StatusCode != http.StatusOK {
+				log.Printf("http response failed: %q", resp.Status)
+				continue
+			}
+			if len(users) == 0 {
+				log.Printf("There is no user for %q", value)
+				continue
+			}
+			issueFields.Unknowns[jiraKey] = users[0]
 		case "issuetype":
 			issueFields.Unknowns[jiraKey] = jira.IssueType{
 				Name: value,
