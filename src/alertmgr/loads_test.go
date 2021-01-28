@@ -94,6 +94,12 @@ func TestLoads(t *testing.T) {
   type: webhook
   enable: true
   url: https://postman-echo.com/post
+
+- name: splunk
+  type: splunk
+  enable: true
+  url: http://localhost:8088
+  token: splunk-demo-token
 `
 	cfgName :="cfg_test.yaml"
 	ioutil.WriteFile(cfgName, []byte(cfgData),0644)
@@ -110,7 +116,7 @@ func TestLoads(t *testing.T) {
 
 	demoCtx := Instance()
 	demoCtx.Start(cfgName)
-	pluginsNumber := 9
+	pluginsNumber := 10
 	if len(demoCtx.plugins) != pluginsNumber {
 		t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
 	}
