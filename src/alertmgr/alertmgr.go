@@ -130,12 +130,19 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	}
 }
 
-func buildWebhookPlugin(sourceSettings *PluginSettings) *plugins.WebhookPlugin {
-	webhook := &plugins.WebhookPlugin {
-		Url:sourceSettings.Url,
+func buildSplunkPlugin(sourceSettings *PluginSettings) *plugins.SplunkPlugin {
+	return &plugins.SplunkPlugin{
+		Url:            sourceSettings.Url,
+		Token:          sourceSettings.Token,
+		SplunkSettings: buildSettings(sourceSettings),
 	}
-	webhook.WebhookSettings = buildSettings(sourceSettings)
-	return webhook
+}
+
+func buildWebhookPlugin(sourceSettings *PluginSettings) *plugins.WebhookPlugin {
+	return &plugins.WebhookPlugin {
+		Url:sourceSettings.Url,
+		WebhookSettings: buildSettings(sourceSettings),
+	}
 }
 
 func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
@@ -281,6 +288,7 @@ func (ctx *AlertMgr) load() error {
 		"teams": true,
 		"webhook": true,
 		"email": true,
+		"splunk": true,
 	}
 
 	for _, settings := range pluginSettings {
@@ -337,6 +345,8 @@ func (ctx *AlertMgr) load() error {
 				ctx.plugins[settings.Name] = buildServiceNow(&settings)
 			case "webhook":
 				ctx.plugins[settings.Name] = buildWebhookPlugin(&settings)
+			case "splunk":
+				ctx.plugins[settings.Name] = buildSplunkPlugin(&settings)
 			default:
 				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
 					settings.Type, settings.Name)
