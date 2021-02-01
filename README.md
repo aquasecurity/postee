@@ -1,3 +1,7 @@
+# Postee
+
+![Postee](postee.png)
+
 ![Docker Pulls][docker-pull]
 ![Code Coverage][code-cov]
 ![](https://github.com/aquasecurity/postee/workflows/Go/badge.svg)
@@ -11,6 +15,7 @@
 [code-cov]: https://codecov.io/gh/aquasecurity/posteen/branch/master/graph/badge.svg
 [license-img]: https://img.shields.io/badge/License-mit-blue.svg
 [license]: https://github.com/aquasecurity/postee/blob/master/LICENSE
+
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
 Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
