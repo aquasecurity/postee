@@ -1,6 +1,6 @@
 # Postee
 
-![Postee](postee.png)
+![Postee](postee.jpeg)
 
 ![Docker Pulls][docker-pull]
 ![Code Coverage][code-cov]
