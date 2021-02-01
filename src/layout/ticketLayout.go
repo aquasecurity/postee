@@ -55,17 +55,16 @@ func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.Scan
 		builder.WriteString( provider.TitleH2("Discovered vulnerabilities from last scan" ))
 		RenderVulnerabilities(prevScan.Resources, provider, &builder)
 	}
-
-	// Malware data
 	if len(scanInfo.Malwares) > 0 {
 		builder.WriteString("\n")
-		builder.WriteString( provider.TitleH2("Discovered vulnerabilities from last scan" ))
+		builder.WriteString( provider.TitleH2("Malware" ))
 		RenderMalware(scanInfo.Malwares, provider, &builder)
 	}
-
+	if len(scanInfo.SensitiveData) > 0 {
+		builder.WriteString("\n")
+		builder.WriteString( provider.TitleH2("Sensitive Data" ))
+		RenderSensitiveData(scanInfo.SensitiveData, provider, &builder)
+	}
 	builder.WriteString(provider.P("See more: " + provider.A(link, link)))
 	return builder.String()
 }
-
-
-
