@@ -12,7 +12,7 @@
 [release]: https://github.com/aquasecurity/postee/releases
 [docker-pull]: https://img.shields.io/docker/pulls/aquasec/postee?logo=docker&label=docker%20pulls%20%2F%20postee
 [go-doc-img]: https://godoc.org/github.com/aquasecurity/postee?status.svg
-[code-cov]: https://codecov.io/gh/aquasecurity/posteen/branch/master/graph/badge.svg
+[code-cov]: https://codecov.io/gh/aquasecurity/postee/branch/master/graph/badge.svg
 [license-img]: https://img.shields.io/badge/License-mit-blue.svg
 [license]: https://github.com/aquasecurity/postee/blob/master/LICENSE
 
