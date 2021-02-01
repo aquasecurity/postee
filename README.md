@@ -132,6 +132,11 @@ docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/con
 
 ###### *There is a volume mount that mounts the configuration file from the host to the container. There is also an environment variable, AQUAALERT_CFG, that specifies the location of the JIRA configuration file inside the container.*
 
+## Configure the Splunk Integration
+You will need to craate an HTTP Event Collector in Splunk Enterprise or Splunk Cloud.
+This can usually be found in the Splunk console under "Settings -> Data Inputs -> HTTP Event Collector -> Add New".
+Once you create an HTTP Event Collector you will receive a token. You should provide this token, together with the Splunk HTTP Collector
+URL, as part of the cfg.yaml settings.
 
 ## Configure the Aqua Server with Webhook Integration
 
