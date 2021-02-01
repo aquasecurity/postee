@@ -13,7 +13,7 @@
 [license]: https://github.com/aquasecurity/alm-integration/blob/master/LICENSE
 
 # Integrating Aqua Security with Ticketing and Collaboration Systems #
-Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams, Generic WebHook and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
+Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
 
 ------
 
@@ -239,6 +239,12 @@ url | Slack WebHook URL (includes the access key) |
 Key | Description | Possible Values
 --- | --- | ---
 url | MS Teams WebHook URL |
+
+## Splunk integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+token | The Splunk HTTP event collector token | 
+url | URL to Splunk HTTP event collector (e.g. http://server:8088) |
 
 ## Generic Webhook integration parameters
 Key | Description | Possible Values
