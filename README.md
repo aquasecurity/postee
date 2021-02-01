@@ -16,19 +16,18 @@
 [license-img]: https://img.shields.io/badge/License-mit-blue.svg
 [license]: https://github.com/aquasecurity/postee/blob/master/LICENSE
 
+## Description
 
-# Integrating Aqua Security with Ticketing and Collaboration Systems #
-Use this project to integrate Aqua with JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow systems and create a ticket, or send a message/email when new vulnerabilities are found in an image scan done by Aqua.
+A simple container for enhancing the available outputs for Aqua Security.
+Postee can send a message to variety of target systems one a new image vulnerability is discovered.
+The supported systems are: JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow.
 
-------
 
-When this integration is enabled, a ticket is opened, or an email/message is sent, with information about the vulnerabilities found in the image. 
+Some features that are supported by Postee:
 
-Some features that are supported with this integration:
+1. Image rescans: When an image is rescanned, the integration will not send a message if the scan results are same as the previous scan results. If the scan results are different then a message with the diff between the results will be sent.
 
-1. Image rescans: When an image is rescanned, the integration will not open a ticket/send a message it the scan results are same as the previous scan results. If the scan results are different then a ticket/message with the diff between the results will be sent.
-
-2. Scan policy: You can create a policy that will create ticket / send message based on image scan criteria. The criteria can be based on the image name, registry name and scan results (e.g. only if there are high severity vulnerabilities).
+2. Scan policy: You can create a policy that sends a message based on image scan criteria. The criteria can be based on the image name, registry name and scan results (e.g. only if there are high severity vulnerabilities).
 For more information see "Policy-Min-Vulnerability", "Policy-Registry", "Policy-Image-Name", "Policy-Only-Fix-Available", "Policy-Non-Compliant" tokens in the cfg.yaml file.
 
 3. Ignore policy: You can create a policy that ignores specific registries/images.
@@ -37,7 +36,7 @@ For more information see "Ignore-Registry" and "Ignore-Image-Name" tokens in the
 4. Aggregation policy: You can aggregate multiple scan results in a single ticket/message. This is useful if you would like to get a digest on daily/weekly basis.
 For more information see "Aggregate-Issues-Number" and "Aggregate-Issues-Timeout" tokens in the cfg.yaml file.
 
-# Quick Start #
+## Quick Start 
 Follow these steps to set up JIRA integration:
 
 1. Clone this project: 
