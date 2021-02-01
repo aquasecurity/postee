@@ -22,8 +22,8 @@ A simple container for enhancing the available outputs for Aqua Security.
 Postee can send a message to variety of target systems one a new image vulnerability is discovered.
 The supported systems are: JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow.
 
-
-Some features that are supported by Postee:
+## Main Features
+Some features that Postee provides:
 
 1. Image rescans: When an image is rescanned, the integration will not send a message if the scan results are same as the previous scan results. If the scan results are different then a message with the diff between the results will be sent.
 
