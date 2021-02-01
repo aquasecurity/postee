@@ -12,6 +12,13 @@ type ScanImageInfo struct {
 	ScanOptions            `json:"scan_options"`
 	Resources              []InfoResources `json:"resources"`
 	ApplicationScopeOwners []string        `json:"application_scope_owners"`
+	Malwares 			   []MalwareData `json:"malware"`
+}
+
+type MalwareData struct {
+	Malware string `json:"malware"`
+	Path    string `json:"path"`
+	Hash    string `json:"hash"`
 }
 
 type ImageAssuranceResults struct {
