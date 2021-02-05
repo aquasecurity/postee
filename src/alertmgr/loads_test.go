@@ -100,6 +100,7 @@ func TestLoads(t *testing.T) {
   enable: true
   url: http://localhost:8088
   token: splunk-demo-token
+  SizeLimit: 20000
 `
 	cfgName :="cfg_test.yaml"
 	ioutil.WriteFile(cfgName, []byte(cfgData),0644)

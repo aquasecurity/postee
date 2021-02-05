@@ -7,13 +7,13 @@ type ScanImageInfo struct {
 	Registry               string `json:"registry"`
 	Digest                 string `json:"digest"`
 	PreviousDigest         string `json:"previous_digest"`
-	ImageAssuranceResults  `json:"image_assurance_results"`
-	VulnerabilitySummary   `json:"vulnerability_summary"`
-	ScanOptions            `json:"scan_options"`
-	Resources              []InfoResources `json:"resources"`
-	ApplicationScopeOwners []string        `json:"application_scope_owners"`
-	Malwares 			   []MalwareData `json:"malware"`
-	SensitiveData          []SensitiveData `json:"sensitive_data"`
+	ImageAssuranceResults  `json:"image_assurance_results,omitempty"`
+	VulnerabilitySummary   `json:"vulnerability_summary,omitempty"`
+	ScanOptions            `json:"scan_options,omitempty"`
+	Resources              []InfoResources `json:"resources,omitempty"`
+	ApplicationScopeOwners []string        `json:"application_scope_owners,omitempty"`
+	Malwares 			   []MalwareData `json:"malware,omitempty"`
+	SensitiveData          []SensitiveData `json:"sensitive_data,omitempty"`
 }
 
 type SensitiveData struct {
