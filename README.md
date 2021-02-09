@@ -105,7 +105,7 @@ The below example is to setup a JIRA integration:
   priority: #Optional ticket priority, e.g., High
   assignee: $Optional assignee, e.g., John
   issuetype: $Optional issue type, e.g., Bug
-  labels: #Optional comma seperated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]
+  labels: #Optional comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]
   sprint: #Optional Sprint name, e.g., "3.5 Sprint 8"
   unknowns: #optional custom fields. Replace the "custom-field" text with the field name in JIRA
      custom-field: #text value, e.g. "hello world"
@@ -158,7 +158,7 @@ or
 
 To validate that the integration is working, you can scan a new image for security vulnerabilities from the Aqua Server UI (Images > Add Image > Specify Image Name > Add).
 
-When vulnerabilities are found in an image, you will see that a JIRA ticket is created/ Email is recieved/ Slack message is posted to the channel.
+When vulnerabilities are found in an image, you will see that a JIRA ticket is created/ Email is received/ Slack message is posted to the channel.
 
 ###### *To troubleshoot the integration, you can look at both the Aqua Postee container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
 
@@ -236,7 +236,7 @@ password | Password |
 host | SMTP host name | 
 port | SMTP port |
 sender |  Sender's email address |
-recipients|  Recipients (array of comma seperated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
+recipients|  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
 
 ## Slack integration parameters
 Key | Description | Possible Values

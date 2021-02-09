@@ -3,9 +3,9 @@ name: Go
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
   pull_request:
-    branches: [master, main]
+    branches: [main]
 
 jobs:
 
@@ -25,6 +25,11 @@ jobs:
 
       - name: yaml-lint
         uses: ibiqlik/action-yamllint@v3
+
+      - name: check spell
+        uses: codespell-project/actions-codespell@master
+        with:
+          skip: src
 
       - name: Build
         run: make all
