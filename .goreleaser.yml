@@ -5,7 +5,7 @@ release:
 env:
   - GO111MODULE=off
   - CGO_ENABLED=0
-  - GOPATH=/home/runner/work/alm-integration/alm-integration/
+  - GOPATH=/home/runner/work/postee/postee/
 before:
   hooks:
     - make all
