@@ -3,13 +3,13 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   labels:
-    app: aqua-alm
-  name: aquaalm-pv
+    app: postee
+  name: postee-pv
 spec:
   accessModes:
     - ReadWriteOnce
   capacity:
     storage: 1Gi
   hostPath:
-    path: /tmp/aquaalm/
+    path: /tmp/aqua/postee
   persistentVolumeReclaimPolicy: Recycle
