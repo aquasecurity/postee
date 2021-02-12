@@ -1,0 +1,10 @@
+FROM alpine:latest
+
+EXPOSE 8082
+EXPOSE 8445
+
+RUN mkdir -p /opt/aquasec
+ADD postee /opt/aquasec/
+WORKDIR /opt/aquasec/
+CMD ["/opt/aquasec/postee"]
+

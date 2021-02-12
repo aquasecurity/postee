@@ -100,8 +100,8 @@
 - name: splunk
   type: splunk
   enable: true
-  url: http://localhost:8088 # Mandatory. Url of a Splunk server
-  token: <token> # Mandatory. a HTTP Event Collector Token
+  url: http://localhost:8088  # Mandatory. Url of a Splunk server
+  token: <token>  # Mandatory. a HTTP Event Collector Token
 
 - name: my-servicenow
   type: serviceNow

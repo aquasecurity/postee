@@ -7,5 +7,6 @@ src/go.etcd.io/
 **/*.out
 **/*.db
 coverage.txt
+dist/
 
 
