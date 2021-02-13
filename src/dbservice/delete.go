@@ -2,7 +2,7 @@ package dbservice
 
 import bolt "go.etcd.io/bbolt"
 
-func dbDelete (db *bolt.DB, bucket string, keys [][]byte) error {
+func dbDelete(db *bolt.DB, bucket string, keys [][]byte) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
 		if b == nil {

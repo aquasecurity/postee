@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type MarkdownProvider struct {}
+type MarkdownProvider struct{}
 
 func (mrkdwn *MarkdownProvider) TitleH2(title string) string {
 	return fmt.Sprintf("## %s\n", title)
@@ -27,9 +27,9 @@ func (mrkdwn *MarkdownProvider) Table(rows [][]string) string {
 	var builder bytes.Buffer
 	for i, row := range rows {
 		if i == 1 {
-			fmt.Fprintf( &builder, "|%s\n", strings.Repeat(" --- |", len(row)))
+			fmt.Fprintf(&builder, "|%s\n", strings.Repeat(" --- |", len(row)))
 		}
-		fmt.Fprintf( &builder, "| %s |\n", strings.Join(row, " | "))
+		fmt.Fprintf(&builder, "| %s |\n", strings.Join(row, " | "))
 	}
 	return builder.String()
 }
@@ -41,4 +41,3 @@ func (mrkdwn *MarkdownProvider) P(p string) string {
 func (mrkdwn *MarkdownProvider) A(url, title string) string {
 	return fmt.Sprintf("<%s|%s>", url, title)
 }
-

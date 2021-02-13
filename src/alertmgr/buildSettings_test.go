@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-func TestBuildSettings(t *testing.T){
-	tests := []struct{
+func TestBuildSettings(t *testing.T) {
+	tests := []struct {
 		sourceSettings *PluginSettings
-		waitSettings *settings.Settings
-	} {
+		waitSettings   *settings.Settings
+	}{
 		{
 			&PluginSettings{
 				Name:                   "Timeout without suffix",
@@ -48,7 +48,7 @@ func TestBuildSettings(t *testing.T){
 		},
 	}
 
-	for _ , test := range tests {
+	for _, test := range tests {
 		result := buildSettings(test.sourceSettings)
 		if result.PluginName != test.waitSettings.PluginName {
 			t.Errorf("Wrong getting 'PluginName'\nResult: %q\nWanted: %q",

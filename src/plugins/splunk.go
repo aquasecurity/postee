@@ -17,7 +17,7 @@ import (
 
 type SplunkPlugin struct {
 	Url            string
-	Token 		   string
+	Token          string
 	SplunkSettings *settings.Settings
 	splunkLayout   layout.LayoutProvider
 }
@@ -28,7 +28,7 @@ func (splunk *SplunkPlugin) Init() error {
 	return nil
 }
 
-func (splunk *SplunkPlugin) Send(d map[string]string) error{
+func (splunk *SplunkPlugin) Send(d map[string]string) error {
 	log.Printf("Sending a message to %q", splunk.SplunkSettings.PluginName)
 
 	if !strings.HasSuffix(splunk.Url, "/") {
@@ -52,13 +52,17 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error{
 	buff.Write(fields)
 	buff.WriteByte('}')
 
-	req, err := http.NewRequest("POST", splunk.Url + "services/collector", &buff)
-	if err != nil { return err }
+	req, err := http.NewRequest("POST", splunk.Url+"services/collector", &buff)
+	if err != nil {
+		return err
+	}
 
-	req.Header.Add("Authorization", "Splunk " + splunk.Token)
+	req.Header.Add("Authorization", "Splunk "+splunk.Token)
 
 	resp, err := http.DefaultClient.Do(req)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
@@ -69,7 +73,7 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error{
 	return nil
 }
 
-func (splunk *SplunkPlugin)  Terminate() error {
+func (splunk *SplunkPlugin) Terminate() error {
 	log.Printf("Splunk plugin %q terminated", splunk.SplunkSettings.PluginName)
 	return nil
 }

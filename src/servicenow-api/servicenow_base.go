@@ -8,5 +8,5 @@ const (
 
 type ServiceNowData struct {
 	ShortDescription string `json:"short_description"`
-	WorkNotes string `json:"work_notes"`
+	WorkNotes        string `json:"work_notes"`
 }

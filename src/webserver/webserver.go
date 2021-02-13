@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"alertmgr"
-	"utils"
 	"github.com/gorilla/mux"
+	"utils"
 )
 
 type WebServer struct {

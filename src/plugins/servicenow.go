@@ -29,7 +29,7 @@ func (sn *ServiceNowPlugin) Send(content map[string]string) error {
 	log.Printf("Sending via ServiceNow %q", sn.ServiceNowSettings.PluginName)
 	d := &servicenow.ServiceNowData{
 		ShortDescription: content["title"],
-		WorkNotes:      "[code]"+content["description"]+"[/code]",
+		WorkNotes:        "[code]" + content["description"] + "[/code]",
 	}
 	body, err := json.Marshal(d)
 	if err != nil {

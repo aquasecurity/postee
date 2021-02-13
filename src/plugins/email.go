@@ -20,14 +20,14 @@ var (
 	errThereIsNoRecipient = errors.New("there is no recipient")
 )
 
-type EmailPlugin struct{
-	User       string
-	Password   string
-	Host       string
-	Port       string
-	Sender     string
-	Recipients []string
-	UseMX 	   bool
+type EmailPlugin struct {
+	User          string
+	Password      string
+	Host          string
+	Port          string
+	Sender        string
+	Recipients    []string
+	UseMX         bool
 	EmailSettings *settings.Settings
 }
 
@@ -61,11 +61,13 @@ func (email *EmailPlugin) Send(content map[string]string) error {
 			ownersIn, ok := content["owners"]
 			if !ok {
 				log.Printf("%q issue: recipients field contains %q, but received a webhook without this data",
-				email.EmailSettings.PluginName, ApplicationScopeOwner)
+					email.EmailSettings.PluginName, ApplicationScopeOwner)
 				continue
 			}
 			for _, o := range strings.Split(ownersIn, ";") {
-				if o != "" { recipients = append(recipients, o) }
+				if o != "" {
+					recipients = append(recipients, o)
+				}
 			}
 		} else {
 			recipients = append(recipients, r)
@@ -82,18 +84,18 @@ func (email *EmailPlugin) Send(content map[string]string) error {
 
 	msg := fmt.Sprintf(
 		"To: %s\r\n"+
-		"From: %s\r\n" +
+			"From: %s\r\n"+
 			"Subject: %s\r\n"+
-				"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-			strings.Join(recipients,","), email.Sender, subject, body)
+			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
+		strings.Join(recipients, ","), email.Sender, subject, body)
 
-		auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
-		err := smtp.SendMail(email.Host+":"+email.Port, auth, email.Sender, recipients, []byte(msg))
-		if err != nil {
-			log.Println("SendMail Error:", err)
-			log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
-			return err
-		}
+	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
+	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.Sender, recipients, []byte(msg))
+	if err != nil {
+		log.Println("SendMail Error:", err)
+		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
+		return err
+	}
 	log.Println("Email was sent successfully!")
 	return nil
 }
@@ -114,7 +116,7 @@ func sendViaMxServers(from, subj, msg string, recipients []string) {
 		for _, mx := range mxs {
 			message := fmt.Sprintf(
 				"To: %s\r\n"+
-					"From: %s\r\n" +
+					"From: %s\r\n"+
 					"Subject: %s\r\n"+
 					"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n", rcpt, from, subj, msg)
 

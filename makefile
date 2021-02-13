@@ -37,7 +37,7 @@ docker :
 
 fmt :
 	@echo "fmt...."
-	$(GO_FMT) -w ./src
+	$(GO_FMT) -s -w ./src
 
 test :
 	go test -race -coverprofile=coverage.txt -covermode=atomic -short  ./src/alertmgr ./src/scanservice ./src/dbservice ./src/formatting
