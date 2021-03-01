@@ -254,6 +254,7 @@ Key | Description | Possible Values
 --- | --- | ---
 token | The Splunk HTTP event collector token | 
 url | URL to Splunk HTTP event collector (e.g. http://server:8088) |
+SizeLimit | Optional. Maximum scan length, in bytes. Default: 10000 | 10000
 
 ## Generic Webhook integration parameters
 Key | Description | Possible Values

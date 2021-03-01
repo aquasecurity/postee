@@ -15,9 +15,12 @@ import (
 	"strings"
 )
 
+const defaultSizeLimit = 10000
+
 type SplunkPlugin struct {
 	Url            string
 	Token 		   string
+	EventLimit	   int
 	SplunkSettings *settings.Settings
 	splunkLayout   layout.LayoutProvider
 }
@@ -31,6 +34,14 @@ func (splunk *SplunkPlugin) Init() error {
 func (splunk *SplunkPlugin) Send(d map[string]string) error{
 	log.Printf("Sending a message to %q", splunk.SplunkSettings.PluginName)
 
+	if splunk.EventLimit == 0 {
+		splunk.EventLimit = defaultSizeLimit
+	}
+	if splunk.EventLimit < defaultSizeLimit {
+		log.Printf("[WARNING] %q has a short limit %d (default %d)",
+			splunk.SplunkSettings.PluginName, splunk.EventLimit, defaultSizeLimit)
+	}
+
 	if !strings.HasSuffix(splunk.Url, "/") {
 		splunk.Url += "/"
 	}
@@ -41,14 +52,41 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error{
 		log.Printf("sending to %q error: %v", splunk.SplunkSettings.PluginName, err)
 		return err
 	}
-	fields, err := json.Marshal(scanInfo)
-	if err != nil {
-		log.Printf("sending to %q error: %v", splunk.SplunkSettings.PluginName, err)
-		return err
+
+	eventFormat := "{\"sourcetype\": \"_json\", \"event\": "
+	constLimit := len(eventFormat)-1
+
+	var fields []byte
+
+	for {
+		fields, err = json.Marshal(scanInfo)
+		if err != nil {
+			log.Printf("sending to %q error: %v", splunk.SplunkSettings.PluginName, err)
+			return err
+		}
+		if len(fields) < splunk.EventLimit-constLimit {
+			break
+		}
+		switch {
+		case len(scanInfo.Resources) > 0:
+			scanInfo.Resources = nil
+			continue
+		case len(scanInfo.Malwares) > 0:
+			scanInfo.Malwares = nil
+			continue
+		case len(scanInfo.SensitiveData) > 0:
+			scanInfo.SensitiveData = nil
+			continue
+		default:
+			msg := fmt.Sprintf("Scan result for %q is large for %q , its size if %d (limit %d)",
+				scanInfo.Image, splunk.SplunkSettings.PluginName, len(fields), splunk.EventLimit)
+			log.Print(msg)
+			return errors.New(msg)
+		}
 	}
 
 	var buff bytes.Buffer
-	fmt.Fprintf(&buff, "{\"sourcetype\": \"_json\", \"event\": ")
+	buff.WriteString(eventFormat)
 	buff.Write(fields)
 	buff.WriteByte('}')
 

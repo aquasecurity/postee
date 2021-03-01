@@ -70,6 +70,8 @@ type PluginSettings struct {
 	DBMaxSize       int    `json:"Max_DB_Size"`
 	DBRemoveOldData int    `json:"Delete_Old_Data"`
 	DBTestInterval  int    `json:"DbVerifyInterval"`
+
+	SizeLimit		int		`json:"SizeLimit"`
 }
 
 type AlertMgr struct {
@@ -135,6 +137,7 @@ func buildSplunkPlugin(sourceSettings *PluginSettings) *plugins.SplunkPlugin {
 		Url:            sourceSettings.Url,
 		Token:          sourceSettings.Token,
 		SplunkSettings: buildSettings(sourceSettings),
+		EventLimit:     sourceSettings.SizeLimit,
 	}
 }
 
