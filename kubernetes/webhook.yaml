@@ -57,7 +57,7 @@ spec:
             - name: webhook-db
               mountPath: /server/database
       containers:
-        - image: aquasec/alm-integration:latest
+        - image: aquasec/postee:latest
           imagePullPolicy: Always
           name: aqua-webhook
           env:
@@ -77,11 +77,11 @@ spec:
               mountPath: /server/database
       volumes:
         - configMap:
-            name: alm-config
+            name: postee-config
             items:
               - key: cfg.yaml
                 path: conf
           name: config-volume
         - name: webhook-db
           persistentVolumeClaim:
-            claimName: aqua-webhook-pvc
+            claimName: postee-pvc
