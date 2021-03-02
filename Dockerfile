@@ -1,4 +1,4 @@
-FROM golang:alpine as builder
+FROM golang:1.15.8-alpine as builder
 RUN apk add --update make git
 ADD . /webhook/
 WORKDIR /webhook/
