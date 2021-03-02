@@ -100,8 +100,9 @@
 - name: splunk
   type: splunk
   enable: true
-  url: http://localhost:8088  # Mandatory. Url of a Splunk server
-  token: <token>  # Mandatory. a HTTP Event Collector Token
+  url: http://localhost:8088 # Mandatory. Url of a Splunk server
+  token: <token> # Mandatory. a HTTP Event Collector Token
+  SizeLimit: 10000 # Optional. Maximum scan length, in bytes. Default: 10000
 
 - name: my-servicenow
   type: serviceNow

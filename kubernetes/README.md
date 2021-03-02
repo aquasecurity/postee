@@ -1,25 +1,26 @@
-To deploy the ALM-Integration on Kubernetes do the following:
+To deploy the Postee Integration on Kubernetes do the following:
 
 1. Create "aqua" namespace
 
  ``` bash
- kubectl create ns aqua 
+ kubectl create ns aqua
  ```
 
 2. Create a ConfigMap resource that will hold the cfg.yaml file contents
 
  ``` bash
- ./configmap.sh 
+ kubectl create -n aqua configmap postee-config --from-file=../cfg.yaml
  ```
 
-3. Create a PersistentVolume to hold the ALM-Integration database (BoltDB file)
+3. Create a PersistentVolume to hold the Postee Integration database (BoltDB file)
 
  ``` bash
- kubectl create -n aqua -f pv.yaml 
+ kubectl create -n aqua -f pv.yaml
+ kubectl create -n aqua -f pvc.yaml
  ```
 
-4. Create the ALM-Integration deployment and services
+4. Create the Postee Integration deployment and services
 
  ``` bash
- kubectl create -n aqua -f webhook.yaml 
+ kubectl create -n aqua -f webhook.yaml
  ```
