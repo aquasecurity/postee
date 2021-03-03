@@ -3,7 +3,6 @@ package scanservice
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/open-policy-agent/opa/rego"
 )
 
@@ -30,9 +29,10 @@ func isRegoCorrect(files []string, scanResult string) (bool, error) {
 	}
 
 	if len(rs) > 0 {
-
-		fmt.Println("Result:", rs[0].Bindings["x"])
-		//		return rs[0].Bindings["x"], nil
+		switch rs[0].Bindings["x"].(type)  {
+		case bool:
+			return rs[0].Bindings["x"].(bool) , nil
+		}
 	}
 	return false, nil
 }
