@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"plugins"
 	"scanservice"
 	"settings"
@@ -118,6 +119,21 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 				sourceSettings.Name, sourceSettings.AggregateIssuesTimeout)
 		}
 	}
+	opaPolicy := []string{}
+	if len(sourceSettings.PolicyOPA) > 0 {
+		for _, policyFile := range sourceSettings.PolicyOPA {
+			if _, err := os.Stat(policyFile); err != nil {
+				if os.IsNotExist(err) {
+					log.Printf("Policy file %q doesn't exist.", policyFile)
+				} else {
+					log.Printf("There is a problem with %q polycy: %v", policyFile, err)
+				}
+				continue
+			}
+			opaPolicy = append(opaPolicy, policyFile)
+		}
+	}
+
 	return &settings.Settings{
 		PluginName:              sourceSettings.Name,
 		PolicyMinVulnerability:  sourceSettings.PolicyMinVulnerability,
@@ -131,7 +147,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		AggregateTimeoutSeconds: timeout,
 		PolicyOnlyFixAvailable:  sourceSettings.PolicyOnlyFixAvailable,
 		AquaServer:              aquaServer,
-		PolicyOPA:               sourceSettings.PolicyOPA,
+		PolicyOPA:               opaPolicy,
 	}
 }
 

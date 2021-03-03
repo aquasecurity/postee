@@ -29,9 +29,9 @@ func isRegoCorrect(files []string, scanResult string) (bool, error) {
 	}
 
 	if len(rs) > 0 {
-		switch rs[0].Bindings["x"].(type)  {
+		switch rs[0].Bindings["x"].(type) {
 		case bool:
-			return rs[0].Bindings["x"].(bool) , nil
+			return rs[0].Bindings["x"].(bool), nil
 		}
 	}
 	return false, nil
