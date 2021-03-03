@@ -44,8 +44,8 @@ dockers:
   - dockerfile: Dockerfile.release
     use_buildx: true
     image_templates:
-      - "docker.io/krol/postee:{{ .Version }}"
-      - "public.ecr.aws/v4f3f9r2/postee:{{ .Version }}"
+      - "docker.io/aquasec/postee:{{ .Version }}"
+      - "public.ecr.aws/aquasecurity/postee:{{ .Version }}"
     ids:
       - postee
     build_flag_templates:
