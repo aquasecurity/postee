@@ -16,7 +16,7 @@ func getMrkdwnText(text string) string {
 			TextField: text,
 		},
 	}
-	result,err := json.Marshal(block)
+	result, err := json.Marshal(block)
 	if err != nil {
 		log.Printf("SlackMrkdwnProvider Error: %v", err)
 		return ""
@@ -25,7 +25,7 @@ func getMrkdwnText(text string) string {
 	return string(result)
 }
 
-type SlackMrkdwnProvider struct {}
+type SlackMrkdwnProvider struct{}
 
 func (mrkdwn *SlackMrkdwnProvider) TitleH1(title string) string {
 	return getMrkdwnText(fmt.Sprintf("*%s*", title))
@@ -74,7 +74,7 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 		for line, r := range rows {
 			if line%5 == 0 {
 				if fields.Fields != nil {
-					block,err := json.Marshal(fields)
+					block, err := json.Marshal(fields)
 					if err != nil {
 						log.Printf("SlackMrkdwnProvider Error: %v", err)
 						return ""
@@ -85,10 +85,10 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 				fields = new(data.SlackBlock)
 				fields.TypeField = "section"
 				current := 5
-				if (totalRows-line) < 5 {
-					current = totalRows-line
+				if (totalRows - line) < 5 {
+					current = totalRows - line
 				}
-				fields.Fields = make([]data.SlackTextBlock,  current*2)
+				fields.Fields = make([]data.SlackTextBlock, current*2)
 			}
 			var cell1, cell2 bytes.Buffer
 			for j, f := range r {
@@ -125,7 +125,7 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 			}
 		}
 	}
-	result,err := json.Marshal(fields)
+	result, err := json.Marshal(fields)
 	if err != nil {
 		log.Printf("SlackMrkdwnProvider Error: %v", err)
 		return ""

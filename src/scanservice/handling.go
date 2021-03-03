@@ -44,7 +44,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 
 		if len(currentSettings.PolicyMinVulnerability) > 0 && !scan.checkVulnerabilitiesLevel(currentSettings.PolicyMinVulnerability) {
 			log.Printf("ScanService: Scan %q contains only low-level vulnerabilities. Min level for %q is %q.\n",
-				scan.scanInfo.GetUniqueId(), name,currentSettings.PolicyMinVulnerability)
+				scan.scanInfo.GetUniqueId(), name, currentSettings.PolicyMinVulnerability)
 			continue
 		}
 
@@ -89,7 +89,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		}
 
 		wasHandled := false
-		if currentSettings.AggregateIssuesNumber > 0  {
+		if currentSettings.AggregateIssuesNumber > 0 {
 			aggregated := AggregateScanAndGetQueue(name, content, currentSettings.AggregateIssuesNumber, false)
 			if len(aggregated) > 0 {
 				content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
@@ -99,7 +99,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			wasHandled = true
 		}
 
-		if currentSettings.AggregateTimeoutSeconds > 0  {
+		if currentSettings.AggregateTimeoutSeconds > 0 {
 			if !wasHandled {
 				AggregateScanAndGetQueue(name, content, 0, true)
 				content = nil
@@ -127,7 +127,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 	}
 }
 
-func send( plg plugins.Plugin, cnt map[string]string) {
+func send(plg plugins.Plugin, cnt map[string]string) {
 	go plg.Send(cnt)
 }
 
@@ -138,7 +138,7 @@ func AggregateScanAndGetQueue(pluginName string, currentContent map[string]strin
 		return aggregatedScans
 	}
 	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
-		log.Printf( "New scan was added to the queue of %q without sending.", pluginName)
+		log.Printf("New scan was added to the queue of %q without sending.", pluginName)
 		return nil
 	}
 	return aggregatedScans
@@ -156,8 +156,8 @@ func (scan *ScanService) checkFixVersions() bool {
 }
 
 func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
-	vulns := [...]int { scan.scanInfo.Negligible, scan.scanInfo.Low, scan.scanInfo.Medium, scan.scanInfo.High, scan.scanInfo.Critical }
-	for i:=SeverityIndexes[strings.ToLower(minLevel)]; i < len(vulns); i++ {
+	vulns := [...]int{scan.scanInfo.Negligible, scan.scanInfo.Low, scan.scanInfo.Medium, scan.scanInfo.High, scan.scanInfo.Critical}
+	for i := SeverityIndexes[strings.ToLower(minLevel)]; i < len(vulns); i++ {
 		if vulns[i] > 0 {
 			return true
 		}
@@ -169,11 +169,11 @@ func (scan *ScanService) getContent(provider layout.LayoutProvider, server strin
 	url := scan.scanInfo.Registry + "/" + strings.ReplaceAll(scan.scanInfo.Image, "/", "%2F")
 	return buildMapContent(
 		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
-		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan, server + url),
+		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan, server+url),
 		url)
 }
 
-func (scan *ScanService) init(data string) ( err error) {
+func (scan *ScanService) init(data string) (err error) {
 	scan.scanInfo, err = parseImageInfo([]byte(data))
 	if err != nil {
 		return err

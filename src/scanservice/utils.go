@@ -22,7 +22,7 @@ func buildAggregatedContent(scans []map[string]string, layoutProvider layout.Lay
 		if urls.Len() > 0 {
 			urls.WriteByte('\n')
 		}
-		urls.WriteString( scan["url"] )
+		urls.WriteString(scan["url"])
 	}
 	title := "Vulnerability scan report"
 	return buildMapContent(title, descr.String(), urls.String())

@@ -102,8 +102,8 @@ func TestLoads(t *testing.T) {
   token: splunk-demo-token
   SizeLimit: 20000
 `
-	cfgName :="cfg_test.yaml"
-	ioutil.WriteFile(cfgName, []byte(cfgData),0644)
+	cfgName := "cfg_test.yaml"
+	ioutil.WriteFile(cfgName, []byte(cfgData), 0644)
 	dbPathReal := dbservice.DbPath
 	savedBaseForTicker := baseForTicker
 	defer func() {
@@ -136,5 +136,5 @@ func TestLoads(t *testing.T) {
 		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
 	demoCtx.Terminate()
-	time.Sleep(200*time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 }

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, err error) {
+func HandleCurrentInfo(scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, err error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -18,7 +18,7 @@ func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, 
 		prevId = data.BuildUniqueId(scanInfo.PreviousDigest, scanInfo.Image, scanInfo.Registry)
 	}
 
-	db, err := bolt.Open( DbPath, 0666, nil )
+	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		return nil, false, err
 	}
@@ -68,9 +68,7 @@ func HandleCurrentInfo( scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, 
 	}
 
 	if prevId != "" && prevId != currentId {
-		prev,_ = dbSelect(db, dbBucketName, prevId)
+		prev, _ = dbSelect(db, dbBucketName, prevId)
 	}
 	return
 }
-
-

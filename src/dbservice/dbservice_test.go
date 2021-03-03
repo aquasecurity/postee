@@ -9,9 +9,9 @@ import (
 
 var (
 	AlpineImageResult = data.ScanImageInfo{
-		Image: "alpine:3.8",
-		Registry: "Docker Hub",
-		Digest: "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
+		Image:          "alpine:3.8",
+		Registry:       "Docker Hub",
+		Digest:         "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
 		PreviousDigest: "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
 		ImageAssuranceResults: data.ImageAssuranceResults{
 			true,
@@ -22,14 +22,14 @@ var (
 			},
 		},
 		VulnerabilitySummary: data.VulnerabilitySummary{
-			2, 0, 0, 2, 0,0,0,0,
+			2, 0, 0, 2, 0, 0, 0, 0,
 		},
 		ScanOptions: data.ScanOptions{true, true},
 		Resources: []data.InfoResources{
 			{
 				[]data.Vulnerability{
 					{"CVE-2018-20679", "", "", "medium"},
-					{"CVE-2019-5747", "", "","medium"},
+					{"CVE-2019-5747", "", "", "medium"},
 				},
 				data.ResourceDetails{"busybox", "1.28.4-r3"},
 			},
@@ -38,10 +38,10 @@ var (
 )
 
 func TestHandleCurrentInfo(t *testing.T) {
-	var tests = []struct{
+	var tests = []struct {
 		input *data.ScanImageInfo
 	}{
-		{ &AlpineImageResult },
+		{&AlpineImageResult},
 	}
 
 	dbPathReal := DbPath
@@ -53,7 +53,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 	for _, test := range tests {
 
 		// Handling of first scan
-		_, isNew, err := HandleCurrentInfo( test.input)
+		_, isNew, err := HandleCurrentInfo(test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -62,7 +62,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 		}
 
 		// Handling of second scan with the same data
-		_, isNew, err = HandleCurrentInfo( test.input)
+		_, isNew, err = HandleCurrentInfo(test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -72,7 +72,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 
 		// Change number of High vulnerabilities and handling it
 		test.input.High++
-		_, isNew, err = HandleCurrentInfo( test.input)
+		_, isNew, err = HandleCurrentInfo(test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -82,13 +82,13 @@ func TestHandleCurrentInfo(t *testing.T) {
 
 		// image scan with same name and registry, but different digest than previous scan.
 		// get bytes of Base Scan
-		testScanBytes,err := json.Marshal(test.input)
+		testScanBytes, err := json.Marshal(test.input)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
 		t.Log("Base scan:", string(testScanBytes))
 		// Set current scan as previous for a next scan, and change digest inside a new scan
-		test.input.PreviousDigest , test.input.Digest = test.input.Digest, "sha256:manual_digest"
+		test.input.PreviousDigest, test.input.Digest = test.input.Digest, "sha256:manual_digest"
 
 		prevScanBytesFromDb, isNew, err := HandleCurrentInfo(test.input)
 		if err != nil {
@@ -115,4 +115,3 @@ func TestHandleCurrentInfo(t *testing.T) {
 	}
 	os.Remove(DbPath)
 }
-

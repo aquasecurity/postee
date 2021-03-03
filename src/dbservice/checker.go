@@ -14,7 +14,7 @@ func CheckSizeLimit() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open( DbPath, 0666, nil )
+	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		log.Println("CheckSizeLimit: Can't open db:", DbPath)
 		return
@@ -28,7 +28,7 @@ func CheckSizeLimit() {
 		}
 		c := b.Cursor()
 		size := 0
-		for k,v := c.First(); k != nil; k,v = c.Next() {
+		for k, v := c.First(); k != nil; k, v = c.Next() {
 			size += len(v)
 		}
 		if size > DbSizeLimit {
@@ -48,7 +48,7 @@ func CheckExpiredData() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open( DbPath, 0666, nil )
+	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		log.Println("CheckExpiredData: Can't open db:", DbPath)
 		return
@@ -77,9 +77,9 @@ func getExpired(db *bolt.DB) (keys [][]byte, err error) {
 		}
 		c := b.Cursor()
 
-		d := time.Duration(DbDueDate)* dueTimeBase
+		d := time.Duration(DbDueDate) * dueTimeBase
 		max := []byte(time.Now().UTC().Add(-d).Format(time.RFC3339Nano))
-		for k, v := c.First(); k != nil && bytes.Compare(k, max) <= 0; k,v = c.Next() {
+		for k, v := c.First(); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 			keys = append(keys, v)
 			ttlKeys = append(ttlKeys, k)
 		}

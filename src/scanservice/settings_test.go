@@ -49,18 +49,18 @@ var (
 )
 
 func TestRemoveLowLevelVulnerabilities(t *testing.T) {
-	var tests = []struct{
+	var tests = []struct {
 		input      string
 		severities map[string]bool
-	} {
+	}{
 		{
 			string(AlpineImageSource),
 			map[string]bool{
-				"critical": false,
-				"high": false,
-				"medium":true,
-				"low":true,
-				"negligible":true,
+				"critical":   false,
+				"high":       false,
+				"medium":     true,
+				"low":        true,
+				"negligible": true,
 			},
 		},
 	}
@@ -71,8 +71,8 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	}()
 	dbservice.DbPath = "test_webhooks.db"
 
-	setting1 :=  &settings.Settings{
-		PluginName: "Demo plugin with settings",
+	setting1 := &settings.Settings{
+		PluginName:             "Demo plugin with settings",
 		PolicyMinVulnerability: "",
 		PolicyRegistry:         nil,
 		PolicyImageName:        nil,
@@ -89,7 +89,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		plgs := map[string]plugins.Plugin {}
+		plgs := map[string]plugins.Plugin{}
 		plgs["demoSettings"] = demoWithSettings
 		for severity, needSending := range test.severities {
 			setting1.PolicyMinVulnerability = severity
@@ -98,7 +98,7 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 				demoWithSettings.wg.Add(1)
 			}
 			service := new(ScanService)
-			service.ResultHandling( test.input,  plgs )
+			service.ResultHandling(test.input, plgs)
 			if needSending {
 				demoWithSettings.wg.Wait()
 			}
@@ -113,18 +113,18 @@ func TestRemoveLowLevelVulnerabilities(t *testing.T) {
 
 	demoWithoutSettings := &DemoPlugin{
 		name: "Demo without settings",
-		lay:   new(formatting.JiraLayoutProvider),
+		lay:  new(formatting.JiraLayoutProvider),
 		sets: nil,
 		t:    t,
 	}
 	for _, test := range tests {
-		plgs := map[string]plugins.Plugin {}
-		plgs["demoWithoutSettings"]= demoWithoutSettings
+		plgs := map[string]plugins.Plugin{}
+		plgs["demoWithoutSettings"] = demoWithoutSettings
 		for range test.severities {
 			demoWithoutSettings.Sent = false
 			demoWithoutSettings.wg.Add(1)
 			service := new(ScanService)
-			service.ResultHandling( test.input,  plgs )
+			service.ResultHandling(test.input, plgs)
 			demoWithoutSettings.wg.Wait()
 			if !demoWithoutSettings.Sent {
 				t.Errorf("The notify wasn't sent for plugin without settings for %q\n",
@@ -144,14 +144,14 @@ func TestPolicySettings(t *testing.T) {
 	dbservice.DbPath = "test_webhooks.db"
 	os.Remove(dbservice.DbPath)
 
-	setting1 :=  &settings.Settings{
-		PolicyImageName:[]string{"image1", "image2", },
+	setting1 := &settings.Settings{
+		PolicyImageName: []string{"image1", "image2"},
 	}
 	demoEmailPlg := DemoEmailPlugin{
 		emailCounts: 0,
 		sets:        setting1,
 	}
-	plugins := map[string]plugins.Plugin {
+	plugins := map[string]plugins.Plugin{
 		"Demo Email Plugin": &demoEmailPlg,
 	}
 
@@ -207,7 +207,7 @@ func TestPolicySettings(t *testing.T) {
 	//-- Ignore-Image-Name
 	demoEmailPlg.emailCounts = 0
 	setting1.IgnoreRegistry = []string{}
-	setting1.IgnoreImageName = []string{"image1", "image2", }
+	setting1.IgnoreImageName = []string{"image1", "image2"}
 	demoEmailPlg.wg.Add(3)
 	srv.ResultHandling(mockScan1, plugins)
 	srv.ResultHandling(mockScan2, plugins)
@@ -224,8 +224,8 @@ func TestPolicySettings(t *testing.T) {
 	//--	Policy-Min-Vulnerability
 	setting1.IgnoreImageName = []string{}
 
-	tests := []struct{
-		level string
+	tests := []struct {
+		level   string
 		waiting int
 	}{
 		{"critical", 1},
@@ -255,7 +255,7 @@ func TestPolicySettings(t *testing.T) {
 	//-- PolicyNonCompliant
 	demoEmailPlg.emailCounts = 0
 	setting1.PolicyMinVulnerability = ""
-	setting1.PolicyNonCompliant=true
+	setting1.PolicyNonCompliant = true
 
 	demoEmailPlg.wg.Add(4)
 	srv.ResultHandling(mockScan1, plugins)
@@ -271,8 +271,8 @@ func TestPolicySettings(t *testing.T) {
 
 	//-- PolicyOnlyFixAvailable
 	demoEmailPlg.emailCounts = 0
-	setting1.PolicyNonCompliant=false
-	setting1.PolicyOnlyFixAvailable=true
+	setting1.PolicyNonCompliant = false
+	setting1.PolicyOnlyFixAvailable = true
 	demoEmailPlg.wg.Add(1)
 	srv.ResultHandling(mockScanWithFix, plugins)
 	srv.ResultHandling(mockScanWithoutFix, plugins)
@@ -283,7 +283,7 @@ func TestPolicySettings(t *testing.T) {
 	}
 
 	//-- PolicyShowAll: true
-	setting1.PolicyOnlyFixAvailable=false
+	setting1.PolicyOnlyFixAvailable = false
 
 	demoEmailPlg.emailCounts = 0
 	setting1.PolicyShowAll = true

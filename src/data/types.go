@@ -12,15 +12,15 @@ type ScanImageInfo struct {
 	ScanOptions            `json:"scan_options,omitempty"`
 	Resources              []InfoResources `json:"resources,omitempty"`
 	ApplicationScopeOwners []string        `json:"application_scope_owners,omitempty"`
-	Malwares 			   []MalwareData `json:"malware,omitempty"`
+	Malwares 			         []MalwareData `json:"malware,omitempty"`
 	SensitiveData          []SensitiveData `json:"sensitive_data,omitempty"`
 }
 
 type SensitiveData struct {
 	Filename string `json:"filename"`
-	Path string `json:"path"`
-	Type string `json:"type"`
-	Hash string `json:"hash"`
+	Path     string `json:"path"`
+	Type     string `json:"type"`
+	Hash     string `json:"hash"`
 }
 
 type MalwareData struct {

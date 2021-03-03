@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"alertmgr"
-	"utils"
-	"webserver"
+	"fmt"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
+	"utils"
+	"webserver"
 )
 
 const (

@@ -8,11 +8,11 @@ import (
 func AggregateScans(plugin string,
 	currentScan map[string]string,
 	scansPerTicket int,
-	ignoreTheQuantity bool) ( []map[string]string, error) {
+	ignoreTheQuantity bool) ([]map[string]string, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open( DbPath, 0666, nil )
+	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func AggregateScans(plugin string,
 		return nil, err
 	}
 
-	if len(currentValue)>0 {
+	if len(currentValue) > 0 {
 		var savedScans []map[string]string
 		err = json.Unmarshal(currentValue, &savedScans)
 		if err != nil {

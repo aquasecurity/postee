@@ -12,4 +12,3 @@ func dbInsert(db *bolt.DB, bucket string, key, value []byte) error {
 	})
 	return err
 }
-

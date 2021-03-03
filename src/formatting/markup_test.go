@@ -6,9 +6,9 @@ import (
 )
 
 type tagsTest struct {
-	source                    string
-	color                     string
-	link                     string
+	source                       string
+	color                        string
+	link                         string
 	colourText, h1, h2, h3, p, a string
 }
 
@@ -17,7 +17,7 @@ type tableTest struct {
 	result string
 }
 
-func tagsTesting( tests []tagsTest, t *testing.T, provider layout.LayoutProvider) {
+func tagsTesting(tests []tagsTest, t *testing.T, provider layout.LayoutProvider) {
 	for _, test := range tests {
 		if c := provider.ColourText(test.source, test.color); c != test.colourText {
 			t.Errorf("Wrong colorur text\nWaited: %q\n Result: %q", test.colourText, c)
@@ -31,17 +31,17 @@ func tagsTesting( tests []tagsTest, t *testing.T, provider layout.LayoutProvider
 		if h3 := provider.TitleH3(test.source); h3 != test.h3 {
 			t.Errorf("Wrong H3 formatting for %q\nWaited: %q\n Result: %q", test.source, test.h3, h3)
 		}
-		if p:= provider.P(test.source); p != test.p {
+		if p := provider.P(test.source); p != test.p {
 			t.Errorf("Wrong P formatting for %q\nWaited: %q\n Result: %q", test.source, test.p, p)
 		}
-		if a:= provider.A(test.link, test.source); a != test.a {
+		if a := provider.A(test.link, test.source); a != test.a {
 			t.Errorf("Wrong P formatting for link %q (%q)\nWaited: %q\n Result: %q",
 				test.link, test.source, test.a, a)
 		}
 	}
 }
 
-func tableTesting( tests []tableTest, t *testing.T, provider layout.LayoutProvider)   {
+func tableTesting(tests []tableTest, t *testing.T, provider layout.LayoutProvider) {
 	for _, test := range tests {
 		if got := provider.Table(test.source); got != test.result {
 			t.Errorf("Error: html.Table(test.Source)\nResult: %s\nWaited: %s\n", got, test.result)

@@ -7,7 +7,7 @@ import (
 
 func RenderAssurances(provider LayoutProvider, assuranceResults data.ImageAssuranceResults) string {
 	var assurances [][]string
-	assurances = append(assurances, []string{"#","Control",	"Policy Name","Status",})
+	assurances = append(assurances, []string{"#", "Control", "Policy Name", "Status"})
 
 	for i, ass := range assuranceResults.ChecksPerformed {
 		var status string
@@ -16,12 +16,12 @@ func RenderAssurances(provider LayoutProvider, assuranceResults data.ImageAssura
 		} else {
 			status = "PASS"
 		}
-		assurances = append(assurances, []string {
-				strconv.Itoa(i+1),
-				ass.Control,
-				ass.PolicyName,
-				status,
-			})
+		assurances = append(assurances, []string{
+			strconv.Itoa(i + 1),
+			ass.Control,
+			ass.PolicyName,
+			status,
+		})
 	}
 	return provider.Table(assurances)
 }

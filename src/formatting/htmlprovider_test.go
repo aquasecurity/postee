@@ -5,13 +5,13 @@ import (
 )
 
 func TestHtmlProvider_Table(t *testing.T) {
-	var tests = []tableTest {
+	var tests = []tableTest{
 		{
 			source: [][]string{
-				{"Header1", "Header2",},
-				{"Field1", "Field2",},
+				{"Header1", "Header2"},
+				{"Field1", "Field2"},
 			},
-			result:`<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+			result: `<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
 <TR>
 <TH style='padding: 5px;'>Header1</TH><TH style='padding: 5px;'>Header2</TH>
 </TR>
