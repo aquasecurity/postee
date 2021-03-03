@@ -50,9 +50,9 @@ var (
 		PreviousDigest: "sha256:ecc79e40b241b1b3b2580c58619cbc4c73b833308d780ad035bf6bdfbb529435",
 		ImageAssuranceResults: data.ImageAssuranceResults{
 			true, []data.ControlCheck{
-				data.ControlCheck{"trusted_base_images", "Default", true},
-				data.ControlCheck{"max_score", "Default", true},
-				data.ControlCheck{"max_severity", "Default", true},
+				{"trusted_base_images", "Default", true},
+				{"max_score", "Default", true},
+				{"max_severity", "Default", true},
 			},
 		},
 		VulnerabilitySummary: data.VulnerabilitySummary{
