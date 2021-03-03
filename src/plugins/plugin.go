@@ -12,4 +12,3 @@ type Plugin interface {
 	GetLayoutProvider() layout.LayoutProvider
 	GetSettings() *settings.Settings
 }
-

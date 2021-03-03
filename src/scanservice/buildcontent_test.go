@@ -10,7 +10,7 @@ var (
 	lay = new(formatting.HtmlProvider)
 )
 
-func TestBuildAggregatedContent(t *testing.T)  {
+func TestBuildAggregatedContent(t *testing.T) {
 	wantBody := `<h1>title1</h1>
 <p>description1</p>
 <h1>title2</h1>
@@ -29,7 +29,7 @@ func TestBuildAggregatedContent(t *testing.T)  {
 }
 
 func TestBuildMapContent(t *testing.T) {
-	tests := [...]struct{
+	tests := [...]struct {
 		title string
 		descr string
 		url   string
@@ -58,4 +58,3 @@ func TestBuildMapContent(t *testing.T) {
 		}
 	}
 }
-

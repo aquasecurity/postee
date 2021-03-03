@@ -8,7 +8,7 @@ import (
 
 type JiraLayoutProvider struct{}
 
-func (jira *JiraLayoutProvider) P(p string) string  {
+func (jira *JiraLayoutProvider) P(p string) string {
 	return fmt.Sprintf("%s\n", p)
 }
 
@@ -35,9 +35,9 @@ func (jira *JiraLayoutProvider) Table(rows [][]string) string {
 	var builder bytes.Buffer
 	for i, row := range rows {
 		if i == 0 {
-			fmt.Fprintf( &builder, "||%s||\n", strings.Join(row, "||"))
+			fmt.Fprintf(&builder, "||%s||\n", strings.Join(row, "||"))
 		} else {
-			fmt.Fprintf( &builder, "|%s|\n", strings.Join(row, "|"))
+			fmt.Fprintf(&builder, "|%s|\n", strings.Join(row, "|"))
 		}
 	}
 	builder.WriteString("\n")
@@ -45,5 +45,5 @@ func (jira *JiraLayoutProvider) Table(rows [][]string) string {
 }
 
 func (jira *JiraLayoutProvider) A(url, title string) string {
-	return fmt.Sprintf("[%s|%s]", title,url)
+	return fmt.Sprintf("[%s|%s]", title, url)
 }

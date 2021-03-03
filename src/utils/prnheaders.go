@@ -8,7 +8,5 @@ import (
 func PrnLogResponse(body io.ReadCloser) string {
 	defer body.Close()
 	message, _ := ioutil.ReadAll(body)
-	return  string(message)
+	return string(message)
 }
-
-

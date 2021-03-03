@@ -19,7 +19,7 @@ import (
 
 const (
 	IssueTypeDefault = "Task"
-	PriorityDefault = "High"
+	PriorityDefault  = "High"
 
 	ServiceNowTableDefault = "incident"
 )
@@ -50,13 +50,13 @@ type PluginSettings struct {
 	Recipients []string `json:"recipients"`
 	Sender     string   `json:"sender"`
 	Token      string   `json:"token"`
-	UseMX      bool 	`json:"useMX"`
+	UseMX      bool     `json:"useMX"`
 
 	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
 	PolicyRegistry         []string `json:"Policy-Registry"`
 	PolicyImageName        []string `json:"Policy-Image-Name"`
 	PolicyNonCompliant     bool     `json:"Policy-Non-Compliant"`
-	PolicyShowAll		   bool		`json:"Policy-Show-All"`
+	PolicyShowAll          bool     `json:"Policy-Show-All"`
 
 	IgnoreRegistry  []string `json:"Ignore-Registry"`
 	IgnoreImageName []string `json:"Ignore-Image-Name"`
@@ -121,7 +121,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		PolicyMinVulnerability:  sourceSettings.PolicyMinVulnerability,
 		PolicyRegistry:          sourceSettings.PolicyRegistry,
 		PolicyImageName:         sourceSettings.PolicyImageName,
-		PolicyShowAll: 			 sourceSettings.PolicyShowAll,
+		PolicyShowAll:           sourceSettings.PolicyShowAll,
 		PolicyNonCompliant:      sourceSettings.PolicyNonCompliant,
 		IgnoreRegistry:          sourceSettings.IgnoreRegistry,
 		IgnoreImageName:         sourceSettings.IgnoreImageName,
@@ -142,13 +142,13 @@ func buildSplunkPlugin(sourceSettings *PluginSettings) *plugins.SplunkPlugin {
 }
 
 func buildWebhookPlugin(sourceSettings *PluginSettings) *plugins.WebhookPlugin {
-	return &plugins.WebhookPlugin {
-		Url:sourceSettings.Url,
+	return &plugins.WebhookPlugin{
+		Url:             sourceSettings.Url,
 		WebhookSettings: buildSettings(sourceSettings),
 	}
 }
 
-func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin  {
+func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin {
 	teams := &plugins.TeamsPlugin{
 		Webhook: sourceSettings.Url,
 	}
@@ -187,7 +187,7 @@ func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
 		Port:       sourceSettings.Port,
 		Sender:     sourceSettings.Sender,
 		Recipients: sourceSettings.Recipients,
-		UseMX: 		sourceSettings.UseMX,
+		UseMX:      sourceSettings.UseMX,
 	}
 	em.EmailSettings = buildSettings(sourceSettings)
 	return em
@@ -287,11 +287,11 @@ func (ctx *AlertMgr) load() error {
 	}
 
 	ignoreAuthorization := map[string]bool{
-		"slack": true,
-		"teams": true,
+		"slack":   true,
+		"teams":   true,
 		"webhook": true,
-		"email": true,
-		"splunk": true,
+		"email":   true,
+		"splunk":  true,
 	}
 
 	for _, settings := range pluginSettings {
@@ -325,7 +325,7 @@ func (ctx *AlertMgr) load() error {
 
 		if settings.Enable {
 			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0  && !ignoreAuthorization[settings.Type] {
+			if len(settings.User) == 0 && !ignoreAuthorization[settings.Type] {
 				log.Printf("User for %q is empty", settings.Name)
 				continue
 			}

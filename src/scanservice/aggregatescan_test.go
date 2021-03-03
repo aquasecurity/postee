@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 )
+
 var (
 	mockScan1 = `{"image":"Demo mock image1","registry":"registry1","vulnerability_summary":{"critical":0,"high":1,"medium":3,"low":4,"negligible":5},"image_assurance_results":{"disallowed":true}}`
 	mockScan2 = `{"image":"Demo mock Image2","registry":"registry2","vulnerability_summary":{"critical":0,"high":0,"medium":3,"low":4,"negligible":5},"image_assurance_results":{"disallowed":false}}`
@@ -21,12 +22,13 @@ var (
 )
 
 type DemoEmailPlugin struct {
-	wg sync.WaitGroup
-	mu sync.Mutex
+	wg          sync.WaitGroup
+	mu          sync.Mutex
 	emailCounts int
-	sets *settings.Settings
+	sets        *settings.Settings
 }
-func (plg *DemoEmailPlugin) Init() error {	return nil}
+
+func (plg *DemoEmailPlugin) Init() error { return nil }
 func (plg *DemoEmailPlugin) Send(data map[string]string) error {
 	plg.mu.Lock()
 	plg.emailCounts++
@@ -35,7 +37,7 @@ func (plg *DemoEmailPlugin) Send(data map[string]string) error {
 	return nil
 }
 
-func (plg *DemoEmailPlugin) Terminate() error { return nil}
+func (plg *DemoEmailPlugin) Terminate() error { return nil }
 func (plg *DemoEmailPlugin) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
@@ -53,7 +55,7 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 
 	const wantToAggregateIssues = 3
 
-	setting1 :=  &settings.Settings{
+	setting1 := &settings.Settings{
 		IgnoreImageName:       nil,
 		AggregateIssuesNumber: wantToAggregateIssues,
 	}
@@ -63,7 +65,7 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 		sets:        setting1,
 	}
 
-	plugins := map[string]plugins.Plugin {
+	plugins := map[string]plugins.Plugin{
 		"email": &demoEmailPlg,
 	}
 
@@ -91,8 +93,8 @@ func TestAggregateTimeoutSeconds(t *testing.T) {
 	}()
 	dbservice.DbPath = "test_webhooks.db"
 
-	setting1 :=  &settings.Settings{
-		IgnoreImageName:        nil,
+	setting1 := &settings.Settings{
+		IgnoreImageName:         nil,
 		AggregateTimeoutSeconds: SleepingSec,
 	}
 
@@ -101,7 +103,7 @@ func TestAggregateTimeoutSeconds(t *testing.T) {
 		sets:        setting1,
 	}
 
-	plugins := map[string]plugins.Plugin {
+	plugins := map[string]plugins.Plugin{
 		"email": &demoEmailPlg,
 	}
 
@@ -118,7 +120,7 @@ func TestAggregateTimeoutSeconds(t *testing.T) {
 	}
 
 	t.Logf("Test will be waiting %d seconds...", SleepingSec+1)
-	time.Sleep(time.Duration(SleepingSec+1) *time.Second)
+	time.Sleep(time.Duration(SleepingSec+1) * time.Second)
 	if demoEmailPlg.emailCounts != 1 {
 		t.Error("ScanService didn't send a package")
 	} else {
@@ -142,17 +144,17 @@ func TestAggregateSeveralPlugins(t *testing.T) {
 	}()
 	dbservice.DbPath = "test_webhooks.db"
 
-	setting1 :=  &settings.Settings{
-		PluginName:"demoPlugin1",
+	setting1 := &settings.Settings{
+		PluginName: "demoPlugin1",
 	}
-	setting2 :=  &settings.Settings{
-		PluginName:"demoPlugin2",
-		AggregateIssuesNumber: 2,
+	setting2 := &settings.Settings{
+		PluginName:              "demoPlugin2",
+		AggregateIssuesNumber:   2,
 		AggregateTimeoutSeconds: timeoutBase,
 	}
-	setting3 :=  &settings.Settings{
-		PluginName:"demoPlugin3",
-		AggregateTimeoutSeconds: timeoutBase*2,
+	setting3 := &settings.Settings{
+		PluginName:              "demoPlugin3",
+		AggregateTimeoutSeconds: timeoutBase * 2,
 	}
 
 	demoEmailPlg1 := DemoEmailPlugin{
@@ -168,7 +170,7 @@ func TestAggregateSeveralPlugins(t *testing.T) {
 		sets:        setting3,
 	}
 
-	plugins := map[string]plugins.Plugin {
+	plugins := map[string]plugins.Plugin{
 		"demoPlugin1": &demoEmailPlg1,
 		"demoPlugin2": &demoEmailPlg2,
 		"demoPlugin3": &demoEmailPlg3,
@@ -183,13 +185,13 @@ func TestAggregateSeveralPlugins(t *testing.T) {
 	srv1.ResultHandling(mockScan1, plugins)
 	demoEmailPlg1.wg.Wait()
 	// after first scan only first plugin has to send a message
-	if demoEmailPlg1.emailCounts != 1  {
+	if demoEmailPlg1.emailCounts != 1 {
 		t.Error("The first plugin didn't send a message after first scan")
 	}
-	if demoEmailPlg2.emailCounts != 0  {
+	if demoEmailPlg2.emailCounts != 0 {
 		t.Error("The second plugin sent a message after first scan.")
 	}
-	if demoEmailPlg3.emailCounts != 0  {
+	if demoEmailPlg3.emailCounts != 0 {
 		t.Error("The third plugin sent a message after first scan")
 	}
 
@@ -200,18 +202,18 @@ func TestAggregateSeveralPlugins(t *testing.T) {
 	srv2.ResultHandling(mockScan2, plugins)
 	demoEmailPlg1.wg.Wait()
 	demoEmailPlg2.wg.Wait()
-	if demoEmailPlg1.emailCounts != 2  {
+	if demoEmailPlg1.emailCounts != 2 {
 		t.Error("The first plugin didn't send a message after second scan")
 	}
-	if demoEmailPlg2.emailCounts != 1  {
+	if demoEmailPlg2.emailCounts != 1 {
 		t.Error("The second plugin didn't send a message after second scan.")
 	}
-	if demoEmailPlg3.emailCounts != 0  {
+	if demoEmailPlg3.emailCounts != 0 {
 		t.Error("The third plugin sent a message after second scan")
 	}
 
 	log.Printf("Waiting %d second...", 1)
-	time.Sleep(time.Duration(1) *time.Second)
+	time.Sleep(time.Duration(1) * time.Second)
 
 	// Add third scan
 	log.Println("Add Third scan")
@@ -221,33 +223,33 @@ func TestAggregateSeveralPlugins(t *testing.T) {
 	demoEmailPlg3.wg.Add(1)
 	srv3.ResultHandling(mockScan3, plugins)
 	demoEmailPlg1.wg.Wait()
-	if demoEmailPlg1.emailCounts != 3  {
+	if demoEmailPlg1.emailCounts != 3 {
 		t.Error("The first plugin didn't send a message after third scan and without timeout")
 	}
-	if demoEmailPlg2.emailCounts != 1  {
+	if demoEmailPlg2.emailCounts != 1 {
 		t.Error("The second plugin sent a message after third scan and without timeout.")
 	}
-	if demoEmailPlg3.emailCounts != 0  {
+	if demoEmailPlg3.emailCounts != 0 {
 		t.Error("The third plugin sent a message after third scan and without timeout")
 	}
 
 	log.Printf("Waiting %d second...", timeoutBase)
-	time.Sleep(time.Duration(timeoutBase) *time.Second)
+	time.Sleep(time.Duration(timeoutBase) * time.Second)
 
-	if demoEmailPlg2.emailCounts != 2  {
+	if demoEmailPlg2.emailCounts != 2 {
 		t.Error("The second plugin didn't send  messages after second scan and timeout.")
 	}
 
 	log.Printf("Waiting %d second again...", timeoutBase+1)
-	time.Sleep(time.Duration(timeoutBase+1) *time.Second)
+	time.Sleep(time.Duration(timeoutBase+1) * time.Second)
 
-	if demoEmailPlg1.emailCounts != 3  {
+	if demoEmailPlg1.emailCounts != 3 {
 		t.Error("The First plugin sent a wrong message.")
 	}
-	if demoEmailPlg2.emailCounts != 2  {
+	if demoEmailPlg2.emailCounts != 2 {
 		t.Error("The Second plugin sent a wrong message.")
 	}
-	if demoEmailPlg3.emailCounts != 1  {
+	if demoEmailPlg3.emailCounts != 1 {
 		t.Error("The third plugin didn't send a message after third scan and big timeout")
 	}
 }

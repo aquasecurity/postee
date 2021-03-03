@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 )
+
 func TestExpiredDates(t *testing.T) {
 	dbPathReal := DbPath
 	realDueDate := DbDueDate
@@ -19,14 +20,14 @@ func TestExpiredDates(t *testing.T) {
 	dueTimeBase = time.Nanosecond
 	DbPath = "test_webhooks.db"
 	tests := []struct {
-		title string
-		limit int
+		title   string
+		limit   int
 		needRun bool
-		isNew bool
+		isNew   bool
 	}{
-		{ "First scan", 0, false, true },
-		{ "Second scan", 0, true, false },
-		{ "Third scan", 1, true, true },
+		{"First scan", 0, false, true},
+		{"Second scan", 0, true, false},
+		{"Third scan", 1, true, true},
 	}
 
 	DbDueDate = 1
@@ -61,14 +62,14 @@ func TestDbSizeLimnit(t *testing.T) {
 	DbPath = "test_webhooks.db"
 
 	tests := []struct {
-		title string
-		limit int
+		title   string
+		limit   int
 		needRun bool
-		isNew bool
+		isNew   bool
 	}{
-		{ "First scan", 0, false, true },
-		{ "Second scan", 0, true, false },
-		{ "Third scan", 1, true, true },
+		{"First scan", 0, false, true},
+		{"Second scan", 0, true, false},
+		{"Third scan", 1, true, true},
 	}
 
 	DbSizeLimit = 1
@@ -135,7 +136,7 @@ func TestDbDelete(t *testing.T) {
 	}()
 	DbPath = "test_webhooks.db"
 
-	db, err := bolt.Open( DbPath, 0666, nil )
+	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		t.Fatal("Can't open db:", DbPath)
 		return
@@ -147,8 +148,8 @@ func TestDbDelete(t *testing.T) {
 	bucket := "b"
 
 	dbInsert(db, bucket, key, value)
-	dbDelete(db, bucket, [][]byte{ key })
-	dbDelete(db, bucket, [][]byte{ key })
+	dbDelete(db, bucket, [][]byte{key})
+	dbDelete(db, bucket, [][]byte{key})
 
 	bucket = ""
 	dbInsert(db, bucket, key, value)
@@ -161,14 +162,14 @@ func TestWithoutAccessToDb(t *testing.T) {
 		DbPath = dbPathReal
 	}()
 	DbPath = "test_webhooks.db"
-	db, err := bolt.Open( DbPath, 0220, nil )
+	db, err := bolt.Open(DbPath, 0220, nil)
 	if err != nil {
 		t.Fatal("Can't open db:", DbPath)
 		return
 	}
 	db.Close()
 	DbSizeLimit = 1
-	DbDueDate   = 1
+	DbDueDate = 1
 	CheckSizeLimit()
 	CheckExpiredData()
 }

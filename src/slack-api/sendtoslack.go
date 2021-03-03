@@ -10,7 +10,7 @@ import (
 
 func SendToUrl(url string, data []byte) error {
 	r := bytes.NewReader(data)
-	resp, err := http.Post( url, "application/json", r)
+	resp, err := http.Post(url, "application/json", r)
 	if err != nil {
 		log.Printf("Post request to Slack Error: %v", err)
 		return err

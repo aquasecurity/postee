@@ -12,7 +12,7 @@ var (
 	dbg = false
 )
 
-func GetEnvironmentVarOrPlain(value string) string  {
+func GetEnvironmentVarOrPlain(value string) string {
 	const VarPrefix = "$"
 	if strings.HasPrefix(value, VarPrefix) {
 		return os.Getenv(strings.TrimPrefix(value, VarPrefix))

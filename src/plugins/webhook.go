@@ -12,7 +12,7 @@ import (
 )
 
 type WebhookPlugin struct {
-	Url string
+	Url             string
 	WebhookSettings *settings.Settings
 }
 
@@ -25,7 +25,7 @@ func (webhook *WebhookPlugin) Init() error {
 func (webhook *WebhookPlugin) Send(content map[string]string) error {
 	log.Printf("Sending webhook to %q", webhook.Url)
 	data := content["src"]
-	resp, err := http.Post( webhook.Url, "application/json", strings.NewReader(data))
+	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
 		log.Printf("Sending webhook Error: %v", err)
 		return err
@@ -39,7 +39,7 @@ func (webhook *WebhookPlugin) Send(content map[string]string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		msg := "Sending webhook wrong status: %q. Body: %s"
-		log.Printf(msg,resp.StatusCode, body)
+		log.Printf(msg, resp.StatusCode, body)
 		return fmt.Errorf(msg, resp.StatusCode, body)
 	}
 	log.Printf("Sending Webhook to %q was successful!", webhook.WebhookSettings.PluginName)
@@ -60,5 +60,3 @@ func (webhook *WebhookPlugin) GetLayoutProvider() layout.LayoutProvider {
 func (webhook *WebhookPlugin) GetSettings() *settings.Settings {
 	return webhook.WebhookSettings
 }
-
-

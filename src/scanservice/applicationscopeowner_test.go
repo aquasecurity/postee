@@ -20,7 +20,9 @@ func TestApplicationScopeOwner(t *testing.T) {
 	srv := new(ScanService)
 
 	b, err := json.Marshal(AshexPokemongoResult)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	email := &MockPlugin{
 		sender: func(data map[string]string) error {
@@ -42,7 +44,7 @@ func TestApplicationScopeOwner(t *testing.T) {
 			return nil
 		},
 	}
-	plugins := map[string]plugins.Plugin {
+	plugins := map[string]plugins.Plugin{
 		"email": email,
 	}
 	srv.ResultHandling(string(b), plugins)

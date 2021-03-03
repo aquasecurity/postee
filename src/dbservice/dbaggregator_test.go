@@ -7,17 +7,17 @@ import (
 
 func TestAggregateScans(t *testing.T) {
 	var (
-		scan1 =  map[string]string{ "title": "t1", "description":"d1",}
-		scan2 =  map[string]string{ "title": "t2", "description":"d2",}
-		scan3 =  map[string]string{ "title": "t3", "description":"d3",}
-		scan4 =  map[string]string{ "title": "t4", "description":"d4",}
+		scan1 = map[string]string{"title": "t1", "description": "d1"}
+		scan2 = map[string]string{"title": "t2", "description": "d2"}
+		scan3 = map[string]string{"title": "t3", "description": "d3"}
+		scan4 = map[string]string{"title": "t4", "description": "d4"}
 	)
 
-	var tests = [...]struct{
-		plugin            string
-		currentScan       map[string]string
-		scansPerTicket    int
-		want []map[string]string
+	var tests = [...]struct {
+		plugin         string
+		currentScan    map[string]string
+		scansPerTicket int
+		want           []map[string]string
 	}{
 		{
 			"jira",
@@ -52,9 +52,9 @@ func TestAggregateScans(t *testing.T) {
 	}()
 	DbPath = "test_webhooks.db"
 
-	for i:=0; i < len(tests); i++ {
+	for i := 0; i < len(tests); i++ {
 		test := tests[i]
-		aggregated,err := AggregateScans(test.plugin, test.currentScan, test.scansPerTicket, false)
+		aggregated, err := AggregateScans(test.plugin, test.currentScan, test.scansPerTicket, false)
 		if err != nil {
 			t.Errorf("AggregateScans Error: %v", err)
 			continue
@@ -65,7 +65,7 @@ func TestAggregateScans(t *testing.T) {
 			continue
 		}
 
-		for i :=0; i < len(aggregated); i++ {
+		for i := 0; i < len(aggregated); i++ {
 			if aggregated[i]["title"] != test.want[i]["title"] {
 				t.Errorf("Wrong title\nResult: %q\nWaited: %q", aggregated[i]["title"], test.want[i]["title"])
 			}
@@ -76,7 +76,7 @@ func TestAggregateScans(t *testing.T) {
 	}
 
 	// Test of existence last scan in DB
-	lastScan,err := AggregateScans("jira", nil, 0, false)
+	lastScan, err := AggregateScans("jira", nil, 0, false)
 	if err != nil {
 		t.Fatalf("AggregateScans Error: %v", err)
 	}

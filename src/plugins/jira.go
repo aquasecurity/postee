@@ -19,7 +19,7 @@ import (
 )
 
 type JiraAPI struct {
-	Enable		bool
+	Enable bool
 
 	Url       string
 	User      string
@@ -40,9 +40,9 @@ type JiraAPI struct {
 	AffectsVersions []string
 	Labels          []string
 
-	Unknowns map[string]string
+	Unknowns  map[string]string
 	BoardName string
-	boardId  int
+	boardId   int
 	boardType string
 
 	JiraSettings *settings.Settings
@@ -142,7 +142,7 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	return client, nil
 }
 
-func (ctx *JiraAPI) Send(content map[string]string ) error {
+func (ctx *JiraAPI) Send(content map[string]string) error {
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Printf("unable to create Jira client: %s", err)
@@ -246,7 +246,6 @@ func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Iss
 	return i, nil
 }
 
-
 func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error) {
 	meta, _, err := c.Issue.GetCreateMeta(project)
 	if err != nil {
@@ -274,7 +273,7 @@ func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira
 func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
 	issue := new(jira.Issue)
 	issueFields := new(jira.IssueFields)
-	issueFields.Unknowns =  make(map[string]interface{})
+	issueFields.Unknowns = make(map[string]interface{})
 
 	// map the field names the User presented to jira's internal key
 	allFields, _ := metaIssuetype.GetAllFields()
