@@ -66,12 +66,14 @@ type PluginSettings struct {
 	InstanceName           string `json:"instance"`
 	PolicyOnlyFixAvailable bool   `json:"Policy-Only-Fix-Available"`
 
+	PolicyOPA []string `json:"Policy_OPA"`
+
 	AquaServer      string `json:"AquaServer"`
 	DBMaxSize       int    `json:"Max_DB_Size"`
 	DBRemoveOldData int    `json:"Delete_Old_Data"`
 	DBTestInterval  int    `json:"DbVerifyInterval"`
 
-	SizeLimit		int		`json:"SizeLimit"`
+	SizeLimit int `json:"SizeLimit"`
 }
 
 type AlertMgr struct {
@@ -129,6 +131,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		AggregateTimeoutSeconds: timeout,
 		PolicyOnlyFixAvailable:  sourceSettings.PolicyOnlyFixAvailable,
 		AquaServer:              aquaServer,
+		PolicyOPA:               sourceSettings.PolicyOPA,
 	}
 }
 

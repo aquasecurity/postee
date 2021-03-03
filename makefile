@@ -22,7 +22,7 @@ build :
 
 get :
 	@echo "download 3rd party packages...."
-	@$(GO_GET) github.com/ghodss/yaml github.com/gorilla/mux github.com/andygrunwald/go-jira go.etcd.io/bbolt github.com/spf13/cobra
+	@$(GO_GET) github.com/ghodss/yaml github.com/gorilla/mux github.com/andygrunwald/go-jira go.etcd.io/bbolt github.com/spf13/cobra github.com/open-policy-agent/opa/rego
 
 all : makedir get build
 
