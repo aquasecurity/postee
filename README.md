@@ -191,7 +191,7 @@ Ignore-Registry | Optional: comma separated list of registries that will be igno
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
 Aggregate-Issues-Number | Optional: Aggregate multiple scans into one ticket/message | Numeric number. Default is 1
 Aggregate-Issues-Timeout| Optional: Aggregate multiple scans over period of time into one ticket/message | Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)
-Policy_OPA | Optional: a list of files with OPA/REGO policies | opap.rego
+Policy-OPA | Optional: a list of files with OPA/REGO policies. Input string will be matched against the REGO policies and message will be handled only if there is a positive match | ["<path to rego policy file>"]
 
 A sample of a REGO policy file:
 ```
