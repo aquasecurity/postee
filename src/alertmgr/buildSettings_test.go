@@ -1,6 +1,8 @@
 package alertmgr
 
 import (
+	"io/ioutil"
+	"os"
 	"settings"
 	"testing"
 )
@@ -62,5 +64,45 @@ func TestBuildSettings(t *testing.T) {
 			t.Errorf("Wrong getting 'AggregateIssuesTimeout': %q\nResult: %d\nWanted: %d",
 				test.sourceSettings.AggregateIssuesNumber, result.AggregateIssuesNumber, test.waitSettings.AggregateIssuesNumber)
 		}
+	}
+
+	// OPA/REGO policy test
+	realFile := "opa.rego"
+	if err := ioutil.WriteFile(realFile, []byte("rego"), 0666); err != nil {
+		t.Errorf("Can't create a demo file (%q) with rego policy: %v", realFile, err)
+		return
+	}
+	wrongfile := "://wrongfile"
+	nofile := "nofile"
+
+	osStat = func(name string) (os.FileInfo, error) {
+		switch name {
+		case nofile:
+			return nil, os.ErrNotExist
+		case wrongfile:
+			return nil, os.ErrClosed
+		}
+		return nil, nil
+	}
+	defer func() {
+		osStat = os.Stat
+		os.RemoveAll(realFile)
+	}()
+
+	sourceSettings := &PluginSettings{
+		PolicyOPA: []string{
+			realFile,
+			wrongfile,
+			nofile,
+		},
+	}
+
+	builtSettings := buildSettings(sourceSettings)
+	if len(builtSettings.PolicyOPA) != 1 {
+		t.Errorf("buildSettings returned undefined rego policy files %v", builtSettings.PolicyOPA)
+		return
+	}
+	if builtSettings.PolicyOPA[0] != realFile {
+		t.Errorf("buildSettings returned an undefined policy file: %q, waited: %q", builtSettings.PolicyOPA[0], realFile)
 	}
 }

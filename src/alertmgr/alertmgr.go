@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"plugins"
 	"scanservice"
 	"settings"
@@ -66,12 +67,14 @@ type PluginSettings struct {
 	InstanceName           string `json:"instance"`
 	PolicyOnlyFixAvailable bool   `json:"Policy-Only-Fix-Available"`
 
+	PolicyOPA []string `json:"Policy_OPA"`
+
 	AquaServer      string `json:"AquaServer"`
 	DBMaxSize       int    `json:"Max_DB_Size"`
 	DBRemoveOldData int    `json:"Delete_Old_Data"`
 	DBTestInterval  int    `json:"DbVerifyInterval"`
 
-	SizeLimit		int		`json:"SizeLimit"`
+	SizeLimit int `json:"SizeLimit"`
 }
 
 type AlertMgr struct {
@@ -87,6 +90,8 @@ var alertmgrCtx *AlertMgr
 var aquaServer string
 var baseForTicker = time.Hour
 var ticker *time.Ticker
+
+var osStat = os.Stat
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	var timeout int
@@ -116,6 +121,21 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 				sourceSettings.Name, sourceSettings.AggregateIssuesTimeout)
 		}
 	}
+	opaPolicy := []string{}
+	if len(sourceSettings.PolicyOPA) > 0 {
+		for _, policyFile := range sourceSettings.PolicyOPA {
+			if _, err := osStat(policyFile); err != nil {
+				if os.IsNotExist(err) {
+					log.Printf("Policy file %q doesn't exist.", policyFile)
+				} else {
+					log.Printf("There is a problem with %q polycy: %v", policyFile, err)
+				}
+				continue
+			}
+			opaPolicy = append(opaPolicy, policyFile)
+		}
+	}
+
 	return &settings.Settings{
 		PluginName:              sourceSettings.Name,
 		PolicyMinVulnerability:  sourceSettings.PolicyMinVulnerability,
@@ -129,6 +149,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 		AggregateTimeoutSeconds: timeout,
 		PolicyOnlyFixAvailable:  sourceSettings.PolicyOnlyFixAvailable,
 		AquaServer:              aquaServer,
+		PolicyOPA:               opaPolicy,
 	}
 }
 

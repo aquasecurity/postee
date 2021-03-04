@@ -9,6 +9,8 @@ type Settings struct {
 	IgnoreRegistry         []string
 	IgnoreImageName        []string
 
+	PolicyOPA []string
+
 	AggregateIssuesNumber   int
 	AggregateTimeoutSeconds int
 	IsScheduleRun           bool
