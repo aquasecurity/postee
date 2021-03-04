@@ -67,7 +67,7 @@ type PluginSettings struct {
 	InstanceName           string `json:"instance"`
 	PolicyOnlyFixAvailable bool   `json:"Policy-Only-Fix-Available"`
 
-	PolicyOPA []string `json:"Policy_OPA"`
+	PolicyOPA []string `json:"Policy-OPA"`
 
 	AquaServer      string `json:"AquaServer"`
 	DBMaxSize       int    `json:"Max_DB_Size"`
