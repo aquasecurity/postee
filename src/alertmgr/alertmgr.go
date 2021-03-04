@@ -91,6 +91,8 @@ var aquaServer string
 var baseForTicker = time.Hour
 var ticker *time.Ticker
 
+var osStat = os.Stat
+
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	var timeout int
 	var err error
@@ -122,7 +124,7 @@ func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	opaPolicy := []string{}
 	if len(sourceSettings.PolicyOPA) > 0 {
 		for _, policyFile := range sourceSettings.PolicyOPA {
-			if _, err := os.Stat(policyFile); err != nil {
+			if _, err := osStat(policyFile); err != nil {
 				if os.IsNotExist(err) {
 					log.Printf("Policy file %q doesn't exist.", policyFile)
 				} else {
