@@ -311,19 +311,18 @@ func TestPolicySettings(t *testing.T) {
 	os.Remove(dbservice.DbPath)
 	//-- Policy OPA
 	fileAllow := "allow.rego"
-	ioutil.WriteFile( fileAllow, []byte("package postee\n\ndefault allow = true"),0666)
+	ioutil.WriteFile(fileAllow, []byte("package postee\n\ndefault allow = true"), 0666)
 
 	fileDeny := "deny.rego"
-	ioutil.WriteFile( fileDeny, []byte("package postee\n\ndefault allow = false"),0666)
+	ioutil.WriteFile(fileDeny, []byte("package postee\n\ndefault allow = false"), 0666)
 
 	defer func() {
 		os.RemoveAll(fileAllow)
 		os.RemoveAll(fileDeny)
 	}()
 
-
 	demoEmailPlg.emailCounts = 0
-	setting1.PolicyOPA = []string{ fileDeny }
+	setting1.PolicyOPA = []string{fileDeny}
 
 	srv.ResultHandling(mockScan1, plugins)
 	if demoEmailPlg.emailCounts != 0 {
@@ -333,7 +332,7 @@ func TestPolicySettings(t *testing.T) {
 	os.Remove(dbservice.DbPath)
 
 	demoEmailPlg.emailCounts = 0
-	setting1.PolicyOPA = []string{ fileAllow }
+	setting1.PolicyOPA = []string{fileAllow}
 
 	demoEmailPlg.wg.Add(1)
 	srv.ResultHandling(mockScan1, plugins)
