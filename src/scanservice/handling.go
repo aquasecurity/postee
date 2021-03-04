@@ -78,6 +78,18 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			continue
 		}
 
+		if len(currentSettings.PolicyOPA) > 0 {
+			log.Printf("Plugin %q uses OPA policies from '%s'", currentSettings.PluginName, strings.Join(currentSettings.PolicyOPA, "','"))
+			if res, err := isRegoCorrect(currentSettings.PolicyOPA, input); err != nil {
+				log.Printf("isRegoCorrect error for %q OPA policy: %v", currentSettings.PluginName, err)
+				continue
+			} else if !res {
+				log.Printf("Scan result for %q doesn't match OPA/REGO rules for %q",
+					scan.scanInfo.Image, currentSettings.PluginName)
+				continue
+			}
+		}
+
 		server := ""
 		if plSettings := plugin.GetSettings(); plSettings != nil {
 			server = plugin.GetSettings().AquaServer

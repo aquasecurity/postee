@@ -3,6 +3,7 @@ package scanservice
 import (
 	"dbservice"
 	"formatting"
+	"io/ioutil"
 	"os"
 	"plugins"
 	"settings"
@@ -304,6 +305,40 @@ func TestPolicySettings(t *testing.T) {
 	demoEmailPlg.wg.Wait()
 	if demoEmailPlg.emailCounts != 1 {
 		t.Errorf("Rule PolicyOnlyFixAvailable. Wrong count of emails\nSent: %d\nWait:%d",
+			demoEmailPlg.emailCounts, 1)
+	}
+
+	os.Remove(dbservice.DbPath)
+	//-- Policy OPA
+	fileAllow := "allow.rego"
+	ioutil.WriteFile(fileAllow, []byte("package postee\n\ndefault allow = true"), 0666)
+
+	fileDeny := "deny.rego"
+	ioutil.WriteFile(fileDeny, []byte("package postee\n\ndefault allow = false"), 0666)
+
+	defer func() {
+		os.RemoveAll(fileAllow)
+		os.RemoveAll(fileDeny)
+	}()
+
+	demoEmailPlg.emailCounts = 0
+	setting1.PolicyOPA = []string{fileDeny}
+
+	srv.ResultHandling(mockScan1, plugins)
+	if demoEmailPlg.emailCounts != 0 {
+		t.Errorf("Rule PolicyOPA. Wrong count of emails\nSent: %d\nWait:%d",
+			demoEmailPlg.emailCounts, 0)
+	}
+	os.Remove(dbservice.DbPath)
+
+	demoEmailPlg.emailCounts = 0
+	setting1.PolicyOPA = []string{fileAllow}
+
+	demoEmailPlg.wg.Add(1)
+	srv.ResultHandling(mockScan1, plugins)
+	demoEmailPlg.wg.Wait()
+	if demoEmailPlg.emailCounts != 1 {
+		t.Errorf("Rule PolicyOPA. Wrong count of emails\nSent: %d\nWait:%d",
 			demoEmailPlg.emailCounts, 1)
 	}
 }

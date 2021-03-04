@@ -19,8 +19,8 @@ const defaultSizeLimit = 10000
 
 type SplunkPlugin struct {
 	Url            string
-	Token 		     string
-	EventLimit	   int
+	Token          string
+	EventLimit     int
 	SplunkSettings *settings.Settings
 	splunkLayout   layout.LayoutProvider
 }
@@ -54,7 +54,7 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error {
 	}
 
 	eventFormat := "{\"sourcetype\": \"_json\", \"event\": "
-	constLimit := len(eventFormat)-1
+	constLimit := len(eventFormat) - 1
 
 	var fields []byte
 

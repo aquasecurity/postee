@@ -12,7 +12,7 @@ type ScanImageInfo struct {
 	ScanOptions            `json:"scan_options,omitempty"`
 	Resources              []InfoResources `json:"resources,omitempty"`
 	ApplicationScopeOwners []string        `json:"application_scope_owners,omitempty"`
-	Malwares 			         []MalwareData `json:"malware,omitempty"`
+	Malwares               []MalwareData   `json:"malware,omitempty"`
 	SensitiveData          []SensitiveData `json:"sensitive_data,omitempty"`
 }
 
