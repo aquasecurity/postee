@@ -30,7 +30,7 @@ type JiraAPI struct {
 	ProjectKey string
 
 	Priority    string
-	Assignee    string
+	Assignee    []string
 	Description string
 	Summary     string
 	SprintName  string
@@ -166,11 +166,19 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	ctx.Summary = content["title"]
 	ctx.Description = content["description"]
 
+	assignee := ctx.User
+	if len(ctx.Assignee) > 0 {
+		assignees := getHandledRecipients(ctx.Assignee, &content, ctx.JiraSettings.PluginName)
+		if len(assignees) > 0 {
+			assignee = assignees[0]
+		}
+	}
+
 	fieldsConfig := map[string]string{
 		"Issue Type":  ctx.Issuetype,
 		"Project":     ctx.ProjectKey,
 		"Priority":    ctx.Priority,
-		"Assignee":    ctx.Assignee,
+		"Assignee":    assignee,
 		"Description": ctx.Description,
 		"Summary":     ctx.Summary,
 	}

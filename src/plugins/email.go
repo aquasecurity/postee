@@ -12,10 +12,6 @@ import (
 	"strings"
 )
 
-const (
-	ApplicationScopeOwner = "<%application_scope_owner%>"
-)
-
 var (
 	errThereIsNoRecipient = errors.New("there is no recipient")
 )
@@ -55,24 +51,7 @@ func (email *EmailPlugin) GetLayoutProvider() layout.LayoutProvider {
 func (email *EmailPlugin) Send(content map[string]string) error {
 	subject := content["title"]
 	body := content["description"]
-	recipients := []string{}
-	for _, r := range email.Recipients {
-		if r == ApplicationScopeOwner {
-			ownersIn, ok := content["owners"]
-			if !ok {
-				log.Printf("%q issue: recipients field contains %q, but received a webhook without this data",
-					email.EmailSettings.PluginName, ApplicationScopeOwner)
-				continue
-			}
-			for _, o := range strings.Split(ownersIn, ";") {
-				if o != "" {
-					recipients = append(recipients, o)
-				}
-			}
-		} else {
-			recipients = append(recipients, r)
-		}
-	}
+	recipients := getHandledRecipients(email.Recipients, &content, email.EmailSettings.PluginName)
 	if len(recipients) == 0 {
 		return errThereIsNoRecipient
 	}

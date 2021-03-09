@@ -26,18 +26,18 @@ const (
 )
 
 type PluginSettings struct {
-	Name            string `json:"name"`
-	Type            string `json:"type"`
-	Enable          bool   `json:"enable"`
-	Url             string `json:"url"`
-	User            string `json:"user"`
-	Password        string `json:"password"`
-	TlsVerify       bool   `json:"tls_verify"`
-	ProjectKey      string `json:"project_key,omitempty" structs:"project_key,omitempty"`
-	IssueType       string `json:"issuetype" structs:"issuetype"`
-	BoardName       string `json:"board,omitempty" structs:"board,omitempty"`
-	Priority        string `json:"priority,omitempty"`
-	Assignee        string `json:"assignee,omitempty"`
+	Name            string   `json:"name"`
+	Type            string   `json:"type"`
+	Enable          bool     `json:"enable"`
+	Url             string   `json:"url"`
+	User            string   `json:"user"`
+	Password        string   `json:"password"`
+	TlsVerify       bool     `json:"tls_verify"`
+	ProjectKey      string   `json:"project_key,omitempty" structs:"project_key,omitempty"`
+	IssueType       string   `json:"issuetype" structs:"issuetype"`
+	BoardName       string   `json:"board,omitempty" structs:"board,omitempty"`
+	Priority        string   `json:"priority,omitempty"`
+	Assignee        []string `json:"assignee,omitempty"`
 	Description     string
 	Summary         string            `json:"summary,omitempty"`
 	FixVersions     []string          `json:"fixVersions,omitempty"`
@@ -240,8 +240,8 @@ func buildJiraPlugin(sourceSettings *PluginSettings) *plugins.JiraAPI {
 		jiraApi.Priority = PriorityDefault
 	}
 
-	if jiraApi.Assignee == "" {
-		jiraApi.Assignee = jiraApi.User
+	if len(jiraApi.Assignee) == 0 {
+		jiraApi.Assignee = []string{jiraApi.User}
 	}
 	jiraApi.JiraSettings = buildSettings(sourceSettings)
 	return jiraApi
