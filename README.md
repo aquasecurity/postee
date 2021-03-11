@@ -221,7 +221,7 @@ password | User's API key |
 project_key | The JIRA project key |
 board |  Optional: JIRA board key |
 priority|  Optional: ticket priority, e.g., High |
-assignee| Optional: assignee, e.g., John |
+assignee| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value |
 issuetype| Optional: issue type, e.g., Bug |
 labels| Optional: comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
 sprint| Optional: Sprint name, e.g., "3.5 Sprint 8" |
