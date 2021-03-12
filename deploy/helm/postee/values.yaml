@@ -3,12 +3,16 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
-applicationConfigPath: "files/cfg.yaml"
+posteeConfigPath: "files/*"
 image:
   repository: aquasec/postee
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "main"
+imageInit:
+  repository: busybox
+  pullPolicy: IfNotPresent
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
