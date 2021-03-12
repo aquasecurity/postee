@@ -1,0 +1,15 @@
+{{- $fullName := include "postee.fullname" . -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  labels:
+    {{- include "postee.labels" . | nindent 4 }}
+  name: {{ include "postee.fullname" . }}-pvc
+spec:
+  accessModes:
+  {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}

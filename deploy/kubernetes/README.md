@@ -9,7 +9,7 @@ To deploy the Postee Integration on Kubernetes do the following:
 2. Create a ConfigMap resource that will hold the cfg.yaml file contents
 
  ``` bash
- kubectl create -n aqua configmap postee-config --from-file=../cfg.yaml
+ kubectl create -n aqua configmap postee-config --from-file=../../cfg.yaml
  ```
 
 3. Create a PersistentVolume to hold the Postee Integration database (BoltDB file)
