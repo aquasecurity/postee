@@ -21,5 +21,4 @@
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
 {{- end }}
 
-  export SERVICE_NAME=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "postee.fullname" . }}
-  echo http://$SERVICE_NAME:{{ .Values.service.port }}
+echo http://{{ include "postee.fullname" . }}:{{ .Values.service.portSsl }}

@@ -56,8 +56,12 @@ spec:
                 path: conf
           name: {{ $fullName }}-cm
         - name: {{ $fullName }}-pvc
+        {{- if .Values.persistentVolume.enabled }}
           persistentVolumeClaim:
-            claimName: {{ $fullName }}-pvc
+            claimName: {{ if .Values.persistentVolume.existingClaim }}{{ .Values.persistentVolume.existingClaim }}{{- else }}{{ $fullName }}-pvc {{- end }}
+        {{- else }}
+          emptyDir: {}
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

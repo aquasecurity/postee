@@ -83,5 +83,7 @@ spec:
                 path: conf
           name: config-volume
         - name: webhook-db
-          persistentVolumeClaim:
-            claimName: postee-pvc
+          emptyDir: {}
+          # In case to configure PVC
+          # persistentVolumeClaim:
+          #   claimName: postee-pvc
