@@ -33,7 +33,7 @@ clean :
 
 docker :
 	@echo "Building image...."
-	docker build -t aquasec/webhook-server:latest -f Dockerfile.webhook-server .
+	docker build -t aquasec/postee:latest -f Dockerfile .
 
 fmt :
 	@echo "fmt...."
