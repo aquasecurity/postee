@@ -5,7 +5,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: aqua-webhook
-  name: aqua-webhook
+  name: postee
   namespace: aqua
 spec:
   ports:
@@ -29,7 +29,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: aqua-webhook
-  name: aqua-webhook
+  name: postee
   namespace: aqua
 spec:
   replicas: 1
@@ -62,7 +62,7 @@ spec:
           name: aqua-webhook
           env:
             - name: AQUAALERT_CFG
-              value: /policy/cfg.yaml/conf
+              value: /policy/cfg.yaml
             - name: AQUAALERT_DEBUG
               value: "not"
           ports:
@@ -72,15 +72,12 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /policy/cfg.yaml
+              mountPath: /policy
             - name: webhook-db
               mountPath: /server/database
       volumes:
         - configMap:
             name: postee-config
-            items:
-              - key: cfg.yaml
-                path: conf
           name: config-volume
         - name: webhook-db
           emptyDir: {}

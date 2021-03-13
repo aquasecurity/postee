@@ -44,6 +44,11 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: AQUAALERT_CFG
+              value: /policy/cfg.yaml
+            - name: AQUAALERT_DEBUG
+              value: "not"
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
@@ -53,7 +58,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: {{ $fullName }}-cfg
-              mountPath: /policy/cfg.yaml
+              mountPath: /policy
             - name: {{ $fullName }}-db
               mountPath: {{ .Values.persistentVolume.mountPath }}
           resources:
@@ -61,9 +66,6 @@ spec:
       volumes:
         - configMap:
             name: {{ $fullName }}-cfg
-            items:
-              - key: cfg.yaml
-                path: conf
           name: {{ $fullName }}-cfg
         - name: {{ $fullName }}-db
         {{- if .Values.persistentVolume.enabled }}
