@@ -21,11 +21,12 @@
 [license]: https://github.com/aquasecurity/postee/blob/master/LICENSE
 
 # Table of Contents
-- [Abstract](##abstract)
-- [Features](##features)
-- [Installation](##installation)
-- [Configure the Aqua Server with Webhook Integration](##configure-the-aqua-server-with-webhook-integration)
-- [Set up the Configuration File](##set-up-the-configuration-file)
+- [Abstract](#abstract)
+- [Features](#features)
+- [Installation](#installation)
+- [Configure the Aqua Server with Webhook Integration](#configure-the-aqua-server-with-webhook-integration)
+- [Set up the Configuration File](#set-up-the-configuration-file)
+
 ## Abstract
 
 A simple container for enhancing the available outputs for Aqua Security.
