@@ -60,12 +60,11 @@ make all
 Build the postee Docker image: 
 ```bash
 docker build -t postee:latest .
-make docker
 ```
 
 Run the Aqua Postee container with the configuration file:
 ```bash
-docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+docker run -d --name=aqua-postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
     -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \ 
     -p 8444:8444 -p 8084:8084 postee:latest
 ```
@@ -84,12 +83,12 @@ Validate that a ticket has been opened, or email was sent (depending on your con
 You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
 Navigate to the **Settings** page in the System section, menu, under the "Image Scan Results Webhook" section.
 
-Click "Enable sending image scan results to webhook", and specify the URL of the Aqua Webhook server.
+Click "Enable sending image scan results to Postee server", and specify the URL of the Aqua Webhook server.
 
 The URL is in the following formats:
-**HTTPS**: https://<Webhook IP or DNS>:8444
+**HTTPS**: https://<Postee IP or DNS>:8444
 or
-**HTTP**: http://<Webhook IP or DNS>:8084
+**HTTP**: http://<Postee IP or DNS>:8084
 
 ### Validate the Integration
 
@@ -142,7 +141,7 @@ Build and run the Aqua Webhook Server container on the same host where the JIRA 
 ```bash
 docker build -t postee:latest .
 
-docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+docker run -d --name=aqua-Postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
     -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \
     -p 8444:8444 -p 8084:8084 postee:latest
 
@@ -195,7 +194,7 @@ name | The integration name. You can provide any descriptive name |
 type | The integration type | jira, email, slack, serviceNow, teams, webhook
 enable | Whether integration is enable or not | true, false
 Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integration | critical, high, medium, low
-Policy-Registry | Optional: the list of registry name that triggers the integration | 
+Policy-Registry | Optional: the list of registry name that triggers the integration |
 Policy-Image-Name | Optional: comma separated list of images that will trigger the integration. Wild cards are supported.
 Policy-Only-Fix-Available | Optional: trigger the integration only if image has a vulnerability with fix available (true). If set to false, integration will be triggered even if all vulnerabilities has no fix available | true, false
 Policy-Non-Compliant | Optional: trigger the integration only for non-compliant images (true) or all images (false) | true, false
@@ -224,7 +223,7 @@ user | ServiceNow user name |
 password | User API key / password |
 instance | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
 board | ServiceNow board name to open tickets on. Default is "incident" |
-  
+
 ## Jira integration parameters
 Key | Description | Possible Values
 --- | --- | ---
