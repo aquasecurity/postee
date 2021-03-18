@@ -91,6 +91,7 @@
   type: teams
   enable: true
   url: https://outlook.office.com/webhook/....   #  Webhook's url
+  Policy-OPA: ["/config/image.rego"]
 
 - name: webhook
   type: webhook
