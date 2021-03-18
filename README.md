@@ -40,25 +40,25 @@ For more information see "Ignore-Registry" and "Ignore-Image-Name" tokens in the
 4. Aggregation policy: You can aggregate multiple scan results in a single ticket/message. This is useful if you would like to get a digest on daily/weekly basis.
 For more information see "Aggregate-Issues-Number" and "Aggregate-Issues-Timeout" tokens in the cfg.yaml file.
 
-## Quick Start 
+## Quick Start
 Follow these steps to set up JIRA integration:
 
-1. Clone this project: 
+1. Clone this project:
 ```bash
 git clone git@github.com:aquasecurity/postee.git
 ```
 
-2. Build the postee Docker image: 
+2. Build the postee Docker image:
 ```bash
 docker build -t postee:latest .
 ```
 
 3. [Edit the configuration file (cfg.yaml)](#set-up-the-configuration-file) with the connection details of your JIRA, Slack, etc.
 
-4. Run the Aqua Postee container with the configuration file: 
+4. Run the Aqua Postee container with the configuration file:
 ```bash
-docker run -d --name=aqua-webhook -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
-    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \ 
+docker run -d --name=aqua-postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \
     -p 8444:8444 -p 8084:8084 postee:latest
 ```
 
@@ -182,7 +182,7 @@ name | The integration name. You can provide any descriptive name |
 type | The integration type | jira, email, slack, serviceNow, teams, webhook
 enable | Whether integration is enable or not | true, false
 Policy-Min-Vulnerability| Optional: the minimum vulnerability severity that triggers the integration | critical, high, medium, low
-Policy-Registry | Optional: the list of registry name that triggers the integration | 
+Policy-Registry | Optional: the list of registry name that triggers the integration |
 Policy-Image-Name | Optional: comma separated list of images that will trigger the integration. Wild cards are supported.
 Policy-Only-Fix-Available | Optional: trigger the integration only if image has a vulnerability with fix available (true). If set to false, integration will be triggered even if all vulnerabilities has no fix available | true, false
 Policy-Non-Compliant | Optional: trigger the integration only for non-compliant images (true) or all images (false) | true, false
@@ -207,17 +207,17 @@ allow {
 ## ServiceNow integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-user | ServiceNow user name | 
+user | ServiceNow user name |
 password | User API key / password |
 instance | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
 board | ServiceNow board name to open tickets on. Default is "incident" |
-  
+
 ## Jira integration parameters
 Key | Description | Possible Values
 --- | --- | ---
 url | Jira project url |
-user | Jira user name | 
-password | User's API key | 
+user | Jira user name |
+password | User's API key |
 project_key | The JIRA project key |
 board |  Optional: JIRA board key |
 priority|  Optional: ticket priority, e.g., High |
@@ -231,13 +231,13 @@ Use the "unknowns" parameter in cfg.yaml for custom fields.
 Under the "unknowns" parameter, specify the list of fields names to provide value for.
 You can add "-numeric-field", "-multiple-value", "multiple-line-text-field", "-date-time-picker" and "-field-url" as suffix to the custom field name, to specify what is the field type.
 
-For example: 
+For example:
 ```yaml
 unknowns:
      mycustom: "this is a text custom field"
      mycustom-numeric-field: 123
-     mycustom-multiple-value: 1,2,3 
-     mycustom-multiple-line-text-field: "text \n moretext" 
+     mycustom-multiple-value: 1,2,3
+     mycustom-multiple-line-text-field: "text \n moretext"
      mycustom-date-time-picker: 2014-04-11T12:14:26.880+0400
      mycustom-url: https://tour.golang.org/moretypes/7
 ```
@@ -247,8 +247,8 @@ Key | Description | Possible Values
 --- | --- | ---
 UseMX | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
 user | User name (usually email address) |
-password | Password | 
-host | SMTP host name | 
+password | Password |
+host | SMTP host name |
 port | SMTP port |
 sender |  Sender's email address |
 recipients|  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
@@ -267,7 +267,7 @@ url | MS Teams WebHook URL |
 ## Splunk integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-token | The Splunk HTTP event collector token | 
+token | The Splunk HTTP event collector token |
 url | URL to Splunk HTTP event collector (e.g. http://server:8088) |
 SizeLimit | Optional. Maximum scan length, in bytes. Default: 10000 | 10000
 
