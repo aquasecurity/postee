@@ -1,0 +1,17 @@
+{{- if and .Values.persistentVolume.enabled (not .Values.persistentVolume.existingClaim) }}
+{{- $fullName := include "postee.fullname" . -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  labels:
+    {{- include "postee.labels" . | nindent 4 }}
+  name: {{ include "postee.fullname" . }}-pvc
+spec:
+  accessModes:
+  {{- range .Values.persistentVolume.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistentVolume.size | quote }}
+{{- end }}
