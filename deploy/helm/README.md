@@ -8,7 +8,7 @@
 ## Install
 
 **NOTE**
-The cfg.yaml is located under `.deploy/helm/postee/files/cfg.yaml`
+The cfg.yaml is located under `deploy/helm/postee/files/cfg.yaml`
 
 `helm install my-postee -n aqua --debug ./postee`
 

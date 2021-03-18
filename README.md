@@ -141,7 +141,7 @@ Build and run the Aqua Webhook Server container on the same host where the JIRA 
 ```bash
 docker build -t postee:latest .
 
-docker run -d --name=aqua-Postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+docker run -d --name=aqua-postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
     -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \
     -p 8444:8444 -p 8084:8084 postee:latest
 
