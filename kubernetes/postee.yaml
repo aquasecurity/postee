@@ -1,0 +1,87 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: aqua-postee
+  name: aqua-postee
+  namespace: aqua
+spec:
+  ports:
+    - name: aqua-postee-ssl
+      port: 8443
+      protocol: TCP
+      targetPort: 8445
+    - name: aqua-postee
+      port: 8080
+      protocol: TCP
+      targetPort: 8082
+  selector:
+    app: aqua-postee
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: aqua-postee
+  name: aqua-postee
+  namespace: aqua
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aqua-postee
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: aqua-postee
+      name: aqua-postee
+      namespace: aqua
+    spec:
+      initContainers:
+        - name: chmod-er
+          image: busybox:latest
+          command:
+            - /bin/chown
+            - -R
+            - "1099"  # postee UID
+            - /server/database
+          volumeMounts:
+            - name: postee-db
+              mountPath: /server/database
+      containers:
+        - image: aquasec/postee:latest
+          imagePullPolicy: Always
+          name: aqua-postee
+          env:
+            - name: AQUAALERT_CFG
+              value: /policy/cfg.yaml/conf
+            - name: AQUAALERT_DEBUG
+              value: "not"
+          ports:
+            - containerPort: 8082
+              protocol: TCP
+            - containerPort: 8445
+              protocol: TCP
+          volumeMounts:
+            - name: config-volume
+              mountPath: /policy/cfg.yaml
+            - name: postee-db
+              mountPath: /server/database
+      volumes:
+        - configMap:
+            name: postee-config
+            items:
+              - key: cfg.yaml
+                path: conf
+          name: config-volume
+        - name: postee-db
+          persistentVolumeClaim:
+            claimName: postee-pvc
