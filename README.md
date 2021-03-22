@@ -50,16 +50,16 @@ git clone git@github.com:aquasecurity/postee.git
 
 2. Build the postee Docker image:
 ```bash
-docker build -t aqua-postee:latest .
+docker build -t aquasec/postee:latest .
 ```
 
 3. [Edit the configuration file (cfg.yaml)](#set-up-the-configuration-file) with the connection details of your JIRA, Slack, etc.
 
 4. Run the Aqua Postee container with the configuration file:
 ```bash
-docker run -d --name=aqua-postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
     -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \
-    -p 8444:8444 -p 8084:8084 aqua-postee:latest
+    -p 8444:8444 -p 8084:8084 aquasec/postee:latest
 ```
 
 5. Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
