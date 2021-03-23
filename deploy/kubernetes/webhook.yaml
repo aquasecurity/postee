@@ -5,7 +5,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: aqua-webhook
-  name: postee
+  name: postee-svc
   namespace: aqua
 spec:
   ports:
@@ -73,14 +73,19 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /policy
+            - name: rego-config
+              mountPath: /config
             - name: webhook-db
               mountPath: /server/database
       volumes:
         - configMap:
             name: postee-config
           name: config-volume
+        - configMap:
+            name: rego-config
+          name: rego-config
         - name: webhook-db
           emptyDir: {}
-          # In case to configure PVC
+          # In case to configure PVC - OPTIONAL
           # persistentVolumeClaim:
           #   claimName: postee-pvc
