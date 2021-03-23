@@ -1,7 +1,6 @@
 package postee
+# This policy will match against vulnerabilities that are medium and above
 default allow = false
 allow {
-input.vulnerability_summary.critical=0
-input.vulnerability_summary.high=0
 input.vulnerability_summary.medium>0
 }
