@@ -1,11 +1,11 @@
 package plugins
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/settings"
-	"github.com/pkg/errors"
 	"log"
 	"net"
 	"net/smtp"
