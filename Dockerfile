@@ -1,9 +1,8 @@
 FROM golang:1.15.8-alpine as builder
-RUN apk add --update make git
+# RUN apk add --update git
 ADD . /webhook/
 WORKDIR /webhook/
-ENV GOPATH=$GOPATH:/webhook
-RUN make all
+RUN go build -o webhooksrv
 
 
 FROM alpine
@@ -13,7 +12,7 @@ EXPOSE 8445
 RUN mkdir /server
 RUN mkdir /server/database
 RUN mkdir /config
-COPY --from=builder /webhook/bin/webhooksrv /server/
+COPY --from=builder /webhook/webhooksrv /server/
 COPY --from=builder /webhook/cfg.yaml /config/
 WORKDIR /server
 RUN chmod +x webhooksrv
