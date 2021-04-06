@@ -1,10 +1,10 @@
 package scanservice
 
 import (
-	"github.com/aquasecurity/postee/dbservice"
 	"encoding/json"
-	"os"
+	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/plugins"
+	"os"
 	"strings"
 	"testing"
 )

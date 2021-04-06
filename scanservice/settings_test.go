@@ -3,10 +3,10 @@ package scanservice
 import (
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/formatting"
-	"io/ioutil"
-	"os"
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/settings"
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
