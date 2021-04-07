@@ -26,7 +26,7 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -v -race -coverprofile=coverage.txt -covermode=atomic -short  ./alertmgr ./scanservice ./dbservice ./formatting ./data
+	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./alertmgr ./scanservice ./dbservice ./formatting ./data
 
 cover :
 	go test ./scanservice -v -coverprofile=scanservice.out

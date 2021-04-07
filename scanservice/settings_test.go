@@ -7,6 +7,7 @@ import (
 	"github.com/aquasecurity/postee/settings"
 	"io/ioutil"
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -149,6 +150,7 @@ func TestPolicySettings(t *testing.T) {
 		PolicyImageName: []string{"image1", "image2"},
 	}
 	demoEmailPlg := DemoEmailPlugin{
+		wg:          &sync.WaitGroup{},
 		emailCounts: 0,
 		sets:        setting1,
 	}
