@@ -4,14 +4,8 @@
 # Active module mode, as we use Go modules to manage dependencies
 export GO111MODULE=on
 GOPATH=$(shell go env GOPATH)
-GOBIN=$(GOPATH)/bin
 
 GO_FMT=gofmt
-GO_GET=go get
-GO_BUILD=go build
-GO_INSTALL=go install
-GO_CLEAN=go clean
-EXENAME=webhooksrv
 
 .PHONY: all build fmt vet test
 
@@ -32,7 +26,7 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -v -race -coverprofile=coverage.txt -covermode=atomic -short  ./alertmgr ./scanservice ./dbservice ./formatting
+	go test -v -race -coverprofile=coverage.txt -covermode=atomic -short  ./alertmgr ./scanservice ./dbservice ./formatting ./data
 
 cover :
 	go test ./scanservice -v -coverprofile=scanservice.out
