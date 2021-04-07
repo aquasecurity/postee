@@ -23,7 +23,7 @@ func TestSchedulersStop(t *testing.T) {
 	}
 	demoPlugins["pl2"] = hook2
 	schedulersStop(demoPlugins)
-	if hook2.GetSettings().IsScheduleRun != nil {
+	if _, ok := <-hook2.GetSettings().IsScheduleRun; ok {
 		t.Error("schedulersStop didn't stop the scheduler!")
 	}
 }
