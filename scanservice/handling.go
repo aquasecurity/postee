@@ -116,25 +116,47 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 				AggregateScanAndGetQueue(name, content, 0, true)
 				content = nil
 			}
-			if !currentSettings.IsScheduleRun {
+			if currentSettings.IsScheduleRun == nil {
 				plg := plugin
-				go func(nm string) {
-					log.Printf("Scheduler is activated for %q(%q). Period: %d sec",
-						nm, plg.GetSettings().PluginName, plg.GetSettings().AggregateTimeoutSeconds)
+				ticker := getTicker(plg.GetSettings().AggregateTimeoutSeconds)
+				currentSettings.IsScheduleRun = make(chan struct{})
+				log.Printf("Scheduler is activated for %q(%q). Period: %d sec",
+					name, plg.GetSettings().PluginName, plg.GetSettings().AggregateTimeoutSeconds)
+				go func(nm string, done chan struct{}, currentTicker *time.Ticker) {
 					for {
-						time.Sleep(time.Duration(plg.GetSettings().AggregateTimeoutSeconds) * time.Second)
-						queue := AggregateScanAndGetQueue(nm, nil, 0, false)
-						if len(queue) > 0 {
-							send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()))
+						select {
+						case <-done:
+							currentTicker.Stop()
+							log.Printf("Scheduler for %q was stopped", nm)
+							return
+						case <-currentTicker.C:
+							log.Printf("Scheduler triggered for %q", nm)
+							queue := AggregateScanAndGetQueue(nm, nil, 0, false)
+							if len(queue) > 0 {
+								send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()))
+							}
 						}
 					}
-				}(name)
-				currentSettings.IsScheduleRun = true
+				}(name, currentSettings.IsScheduleRun, ticker)
 			}
 		}
-
 		if len(content) > 0 {
 			send(plugin, content)
+		}
+	}
+}
+
+func schedulersStop(plugins map[string]plugins.Plugin) {
+	for _, plugin := range plugins {
+		if plugin == nil {
+			continue
+		}
+		sets := plugin.GetSettings()
+		if sets == nil {
+			continue
+		}
+		if sets.IsScheduleRun != nil {
+			close(sets.IsScheduleRun)
 		}
 	}
 }
@@ -143,7 +165,11 @@ func send(plg plugins.Plugin, cnt map[string]string) {
 	go plg.Send(cnt)
 }
 
-func AggregateScanAndGetQueue(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
+var getTicker = func(seconds int) *time.Ticker {
+	return time.NewTicker(time.Duration(seconds) * time.Second)
+}
+
+var AggregateScanAndGetQueue = func(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
 	aggregatedScans, err := dbservice.AggregateScans(pluginName, currentContent, counts, ignoreLength)
 	if err != nil {
 		log.Printf("AggregateScans Error: %v", err)

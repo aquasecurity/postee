@@ -13,7 +13,7 @@ type Settings struct {
 
 	AggregateIssuesNumber   int
 	AggregateTimeoutSeconds int
-	IsScheduleRun           bool
+	IsScheduleRun           chan struct{}
 	PolicyOnlyFixAvailable  bool
 	PolicyShowAll           bool
 	AquaServer              string
