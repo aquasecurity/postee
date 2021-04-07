@@ -73,7 +73,7 @@ func TestLoads(t *testing.T) {
   enable: true
   url: https://outlook.office.com/webhook/.... # Webhook's url
 
-- name: faild
+- name: failed
   enable: true
   type: nextplugin
 

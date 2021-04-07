@@ -104,7 +104,7 @@ func sendViaMxServers(from, subj, msg string, recipients []string) {
 				log.Print(err)
 				continue
 			}
-			log.Printf("The message to %q was sent succesful via %q!", rcpt, mx.Host)
+			log.Printf("The message to %q was sent successful via %q!", rcpt, mx.Host)
 			break
 		}
 	}

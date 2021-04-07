@@ -86,12 +86,12 @@ func TestBuildEmailPlugin(t *testing.T) {
 		if len(r.Recipients) == len(test.email.Recipients) {
 			for i := range r.Recipients {
 				if r.Recipients[i] != test.email.Recipients[i] {
-					t.Errorf("Wrong recepients :\nWaited: %q\nResult: %q",
+					t.Errorf("Wrong recipients :\nWaited: %q\nResult: %q",
 						test.email.Recipients[i], r.Recipients[i])
 				}
 			}
 		} else {
-			t.Errorf("Wrong size of Recepients:\nWaited: %d\nResult: %d", len(test.email.Recipients), len(r.Recipients))
+			t.Errorf("Wrong size of Recipients:\nWaited: %d\nResult: %d", len(test.email.Recipients), len(r.Recipients))
 		}
 	}
 }

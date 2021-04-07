@@ -10,7 +10,7 @@ func TestClearField(t *testing.T) {
 	}{
 		{"test\r", "test"},
 		{"test\n", "test"},
-		{"te\xFF\xFDst", "test"},
+		{"the\xFF \xFDtest", "the test"},
 	}
 
 	for _, test := range tests {

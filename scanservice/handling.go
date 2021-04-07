@@ -119,7 +119,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 			if !currentSettings.IsScheduleRun {
 				plg := plugin
 				go func(nm string) {
-					log.Printf("Scheduler is actived for %q(%q). Period: %d sec",
+					log.Printf("Scheduler is activated for %q(%q). Period: %d sec",
 						nm, plg.GetSettings().PluginName, plg.GetSettings().AggregateTimeoutSeconds)
 					for {
 						time.Sleep(time.Duration(plg.GetSettings().AggregateTimeoutSeconds) * time.Second)
