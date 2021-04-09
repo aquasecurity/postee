@@ -2,17 +2,19 @@ package alertmgr
 
 import (
 	"fmt"
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/plugins"
-	"github.com/aquasecurity/postee/scanservice"
-	"github.com/aquasecurity/postee/settings"
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/scanservice"
+	"github.com/aquasecurity/postee/settings"
 
 	"github.com/aquasecurity/postee/utils"
 	"github.com/ghodss/yaml"
@@ -23,6 +25,7 @@ const (
 	PriorityDefault  = "High"
 
 	ServiceNowTableDefault = "incident"
+	AnonymizeReplacement   = "<hidden>"
 )
 
 type PluginSettings struct {
@@ -92,6 +95,29 @@ var baseForTicker = time.Hour
 var ticker *time.Ticker
 
 var osStat = os.Stat
+
+func anonymizeSettings(settings *PluginSettings) *PluginSettings {
+	fieldsToAnonymize := [...]string{
+		"User",
+		"Password",
+		"Url",
+		"InstanceName",
+	}
+	copyToAnonymize := *settings
+
+	for _, key := range fieldsToAnonymize {
+
+		r := reflect.ValueOf(&copyToAnonymize)
+		v := reflect.Indirect(r).FieldByName(key)
+		prop := v.String()
+
+		if prop != "" {
+			v.SetString(AnonymizeReplacement)
+		}
+	}
+
+	return &copyToAnonymize
+}
 
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	var timeout int
@@ -316,7 +342,7 @@ func (ctx *AlertMgr) load() error {
 	}
 
 	for _, settings := range pluginSettings {
-		utils.Debug("%#v\n", settings)
+		utils.Debug("%#v\n", anonymizeSettings(&settings))
 		if settings.Type == "common" {
 			if len(settings.AquaServer) > 0 {
 				var slash string
@@ -381,7 +407,6 @@ func (ctx *AlertMgr) load() error {
 	}
 	return nil
 }
-
 func (ctx *AlertMgr) listen() {
 	for {
 		select {
