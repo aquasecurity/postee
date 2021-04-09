@@ -159,11 +159,15 @@ Go to the user profile API tokens (JIRA Cloud users can find it here: https://id
 Click on the Create API Token. A new API token for the user is created.
 Keep the token value, together with the JIRA URL and user name, for the next step.
 
-### Getting the Slack connection details: [Webhooks](https://api.slack.com/messaging/webhooks)
-Open your Slack client, "Settings & Administration" -> "Manage Apps".
-Go to "Custom Integrations", "Incoming Webhooks", "Add to Slack".
-Choose a channel to send the Slack notifications to.
-Click "Add Incoming Webhook". Copy the WebHook URL.
+### Getting the Slack connection details: [Slack Custom App](https://api.slack.com/)
+1. Visit api.slack.com
+2. Press "Create custom app"
+3. Fill app name and select slack workspace
+4. Open "Incoming webhooks" tab
+5. Enable "Incoming webhooks"
+6. Add webhook to workspace
+7. On next screen pick slack channel and click allow
+8. Copy webhook url to the Postee config
 
 ### Getting the MS Teams connection details
 Open your Microsoft Teams client. Click on the "..." near the channel you would like to send notifications to.
