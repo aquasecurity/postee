@@ -15,7 +15,6 @@ import (
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/scanservice"
 	"github.com/aquasecurity/postee/settings"
-
 	"github.com/aquasecurity/postee/utils"
 	"github.com/ghodss/yaml"
 )
