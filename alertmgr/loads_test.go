@@ -135,6 +135,10 @@ func TestLoads(t *testing.T) {
 	if _, ok := demoCtx.plugins["my-servicenow"]; !ok {
 		t.Errorf("Plugin 'my-servicenow' didn't run!")
 	}
+	demoCtx.ReloadConfig()
+	if len(demoCtx.plugins) != pluginsNumber {
+		t.Errorf("There are stopped plugins after ReloadConfig\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
+	}
 	demoCtx.Terminate()
 	time.Sleep(200 * time.Millisecond)
 }
