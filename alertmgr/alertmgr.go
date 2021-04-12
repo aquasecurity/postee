@@ -78,18 +78,19 @@ type PluginSettings struct {
 }
 
 type AlertMgr struct {
-	mutex   sync.Mutex
-	quit    chan struct{}
-	queue   chan string
-	cfgfile string
-	plugins map[string]plugins.Plugin
+	mutex      sync.Mutex
+	quit       chan struct{}
+	queue      chan string
+	ticker     *time.Ticker
+	stopTicker chan struct{}
+	cfgfile    string
+	plugins    map[string]plugins.Plugin
 }
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
 var aquaServer string
 var baseForTicker = time.Hour
-var ticker *time.Ticker
 
 var osStat = os.Stat
 
@@ -250,32 +251,37 @@ func buildJiraPlugin(sourceSettings *PluginSettings) *plugins.JiraAPI {
 func Instance() *AlertMgr {
 	initCtx.Do(func() {
 		alertmgrCtx = &AlertMgr{
-			mutex:   sync.Mutex{},
-			quit:    make(chan struct{}),
-			queue:   make(chan string, 1000),
-			plugins: make(map[string]plugins.Plugin),
+			mutex:      sync.Mutex{},
+			quit:       make(chan struct{}),
+			queue:      make(chan string, 1000),
+			plugins:    make(map[string]plugins.Plugin),
+			stopTicker: make(chan struct{}),
 		}
 	})
 	return alertmgrCtx
 }
 
+func (ctx *AlertMgr) ReloadConfig() {
+	ctx.Terminate()
+	ctx.Start(ctx.cfgfile)
+}
+
 func (ctx *AlertMgr) Start(cfgfile string) {
 	log.Printf("Starting AlertMgr....")
 	ctx.cfgfile = cfgfile
+	ctx.plugins = map[string]plugins.Plugin{}
 	ctx.load()
 	go ctx.listen()
 }
 
 func (ctx *AlertMgr) Terminate() {
 	log.Printf("Terminating AlertMgr....")
-	close(ctx.quit)
+	ctx.quit <- struct{}{}
+	ctx.stopTicker <- struct{}{}
 	for _, plugin := range ctx.plugins {
 		if plugin != nil {
 			plugin.Terminate()
 		}
-	}
-	if ticker != nil {
-		ticker.Stop()
 	}
 }
 
@@ -333,11 +339,16 @@ func (ctx *AlertMgr) load() error {
 			}
 
 			if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
-				ticker = time.NewTicker(baseForTicker * time.Duration(settings.DBTestInterval))
+				ctx.ticker = time.NewTicker(baseForTicker * time.Duration(settings.DBTestInterval))
 				go func() {
-					for range ticker.C {
-						dbservice.CheckSizeLimit()
-						dbservice.CheckExpiredData()
+					for {
+						select {
+						case <-ctx.stopTicker:
+							return
+						case <-ctx.ticker.C:
+							dbservice.CheckSizeLimit()
+							dbservice.CheckExpiredData()
+						}
 					}
 				}()
 			}

@@ -54,6 +54,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("POST")
+	ctx.router.HandleFunc("/reload", ctx.reload).Methods("GET")
 
 	go func() {
 		log.Printf("Listening for HTTP on %s ", host)
