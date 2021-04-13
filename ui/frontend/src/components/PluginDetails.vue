@@ -176,7 +176,7 @@ export default {
     },
     updateSettings(e) {
       const propName = e.target.attributes["name"].value;
-      const inputType = e.target.attributes["type"].value;
+      const inputType = e.target.attributes["type"]?.value;
       this.settings[propName] =
         inputType == "checkbox" ? e.target.checked : e.target.value;
     },
