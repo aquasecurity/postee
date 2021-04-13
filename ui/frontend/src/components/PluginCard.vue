@@ -1,24 +1,44 @@
 <template>
-    <div class="col mb-4">
-        <div class="card text-center">
-            <div class="card-header">
-                Plugin name {{ title }} (Plugin type)
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">Was sent {{ sentCount }}</h5>
-                <router-link :to="{name: 'plugin', params: {name: title}}" class="card-link">Edit</router-link>
-            </div>
-        </div>
+  <div class="col mb-4">
+    <div class="card text-center">
+      <div class="card-header">
+        {{ type }}
+      </div>
+      <div class="card-body">
+        <h5 class="card-title">
+          {{ name || "no name" }}
+          <span v-show="enable === true" class="badge bg-success text-light"
+            >enabled</span
+          >
+        </h5>
+
+        <h6 class="card-subtitle text-muted">{{ sentCount }} scans received</h6>
+
+        <router-link
+          :to="{ name: 'plugin', params: { id: id } }"
+          class="btn btn-link"
+          >Edit</router-link
+        >
+        <button type="button" @click="doRemove" class="btn btn-link">
+          Remove
+        </button>
+      </div>
     </div>
+  </div>
 </template>
 
 <script>
 export default {
-    props: ['title'],
-    data() {
-        return {
-            sentCount: 10
-        };
-    }
-}
+  props: ["type", "name", "id", "enable"],
+  data() {
+    return {
+      sentCount: 10,
+    };
+  },
+  methods: {
+    doRemove() {
+      this.$store.commit("removeSettings", this.id);
+    },
+  },
+};
 </script>
