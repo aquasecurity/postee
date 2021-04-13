@@ -6,7 +6,7 @@
       </div>
       <div class="card-body">
         <h5 class="card-title">
-          {{ name || "no name" }}
+          {{ type==="common" ? "Defaults":  name }}
           <span v-show="enable === true" class="badge bg-success text-light"
             >enabled</span
           >

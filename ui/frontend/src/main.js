@@ -53,9 +53,14 @@ const store = new Vuex.Store({
 
     },
     removeSettings(state, id) {
-      console.log('remove', id);
       const filtered = state.config.entries.filter(item => item.id != id)
       state.config.entries = [...filtered]
+    },
+    addSettings(state, settings) {
+      const entries = state.config.entries
+      enrichId(settings)
+      entries.push(settings)
+      state.config.entries = [...entries]
     }
   }
 })
