@@ -24,6 +24,7 @@ func Instance(webLocalPath, port, cfg, boltDb, updateUrl, updateKey string) *uiS
 		updateKey:  updateKey,
 		router:     mux.NewRouter().StrictSlash(true),
 	}
+	server.router.HandleFunc("/update", server.updateConfig).Methods("POST")
 	server.router.HandleFunc("/plugins", server.pluginList).Methods("GET")
 	server.router.HandleFunc("/plugins/{plugin}", server.pluginDetails).Methods("GET", "POST", "UPDATE", "DELETE")
 
