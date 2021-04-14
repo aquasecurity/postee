@@ -1,8 +1,10 @@
 package uiserver
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
@@ -10,7 +12,7 @@ import (
 const (
 	testCfgFile = "test.cfg"
 
-	inputConfigJson = `[{"type":"common"}]}`
+	inputConfigJson = `[{"type":"common"}]`
 )
 
 func TestUpdateConfig(t *testing.T) {
@@ -24,14 +26,23 @@ func TestUpdateConfig(t *testing.T) {
 	srv := &uiServer{
 		cfgPath: testCfgFile,
 	}
-	//	defer os.RemoveAll(testCfgFile)
+	os.Create(testCfgFile)
+	defer os.RemoveAll(testCfgFile)
 
 	for _, test := range tests {
 		req := httptest.NewRequest("POST", "/update", strings.NewReader(test.input))
 		w := httptest.NewRecorder()
 		srv.updateConfig(w, req)
-		if st := w.Result().StatusCode; st != test.status {
-			t.Errorf("request to /update returns a wrong status %d, wanted %d.\nData: %q", st, test.status, test.input)
+		response := w.Result()
+
+		msg, err := io.ReadAll(response.Body)
+		if err != nil {
+			panic(err)
 		}
+
+		if st := w.Result().StatusCode; st != test.status {
+			t.Errorf("request to /update returns a wrong status %d, wanted %d.\nData: %q\nMessage: %q", st, test.status, test.input, string(msg))
+		}
+		response.Body.Close()
 	}
 }
