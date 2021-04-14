@@ -1,20 +1,29 @@
 <template>
   <div class="card mt-4">
-    <!--        <h1>Details for plugin {{ $route.params.name }}</h1> -->
-    <div class="card-header">
-      {{ settings.type }}
-    </div>
-    <div class="card-body">
-      <form @submit.prevent="doSubmit">
+    <form @submit.prevent="doSubmit">
+      <!--        <h1>Details for plugin {{ $route.params.name }}</h1> -->
+      <div class="card-header">
+        <div class="d-flex">
+          <div class="p-2 flex-grow-1">{{ settings.type }}</div>
+          <button
+            v-if="!!id"
+            type="button"
+            @click="doRemove"
+            class="btn btn-link"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
         <div class="form-group form-input">
           <label for="pluginType">Type</label>
           <select
-            class="form-select mx-2"
+            class="form-select form-control"
             :value="settings.type"
-            aria-label="Default select example"
             id="pluginType"
             name="type"
-            @input="updateSettings"
+            @input="updateIntegrationType"
           >
             <option value="common">Common</option>
             <option value="email">Email</option>
@@ -26,15 +35,41 @@
             <option value="serviceNow">ServiceNow</option>
           </select>
           <small id="aHelp" class="form-text text-muted"
-            >Type of the plugin.</small
+            >The integration type</small
           >
         </div>
         <PluginProperty
           :id="'name'"
           :label="'Name'"
           :value="settings.name"
-          :name="'name'"
           :show="!isCommon"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginCheckboxProperty
+          :id="'enable'"
+          :label="'Enable plugin'"
+          :value="settings.enable"
+          :show="!isCommon"
+          :inputHandler="updateSettings"
+        >
+        </PluginCheckboxProperty>
+        <PluginProperty
+          :id="'user'"
+          :label="'User'"
+          :value="settings.user"
+          :name="'user'"
+          :show="showCredentials"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'password'"
+          :label="'Password'"
+          :inputType="'password'"
+          :value="settings.password"
+          :name="'password'"
+          :show="showCredentials"
           :inputHandler="updateSettings"
         >
         </PluginProperty>
@@ -49,19 +84,7 @@
         >
         </PluginProperty>
 
-        <div class="form-group form-check" v-show="!isCommon">
-          <input
-            type="checkbox"
-            class="form-check-input"
-            id="pluginEnable"
-            :checked="settings.enable"
-            @input="updateSettings"
-            name="enable"
-          />
-          <label class="form-check-label" for="pluginEnable"
-            >enable plugin</label
-          >
-        </div>
+        <!-- common properties end-->
         <PluginProperty
           :id="'aquaServer'"
           :label="'Aqua Server'"
@@ -102,6 +125,325 @@
           :inputHandler="updateSettings"
         >
         </PluginProperty>
+        <!-- common properties end -->
+        <!-- email custom properties start -->
+        <PluginProperty
+          :id="'host'"
+          :label="'Host'"
+          :value="settings.host"
+          :description="'Mandatory: SMTP host name (e.g. smtp.gmail.com)'"
+          :show="isEmail"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'port'"
+          :label="'Port'"
+          :value="settings.port"
+          :description="'Mandatory: SMTP server port (e.g. 587)'"
+          :show="isEmail"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'sender'"
+          :label="'Sender'"
+          :value="settings.sender"
+          :description="'The email address to use as a sender'"
+          :show="isEmail"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'recipients'"
+          :label="'Recipients'"
+          :value="settings.recipients | toString"
+          :description="'Mandatory: comma separated list of recipients'"
+          :show="isEmail"
+          :inputHandler="updateCollection"
+        >
+        </PluginProperty>
+
+        <PluginCheckboxProperty
+          :id="'useMX'"
+          :label="'Use MX'"
+          :value="settings.useMX"
+          :show="isEmail"
+          :inputHandler="updateSettings"
+        >
+        </PluginCheckboxProperty>
+
+        <!-- email custom properties end -->
+
+        <!-- jira custom properties start -->
+        <PluginProperty
+          :id="'projectKey'"
+          :label="'Project Key'"
+          :name="'project_key'"
+          :value="settings.project_key"
+          :description="'Mandatory. Specify the JIRA project key'"
+          :show="isJira"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <div class="form-group form-check" v-show="isJira">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            id="tlsVerify"
+            :checked="settings.tls_verify"
+            @input="updateSettings"
+            name="tls_verify"
+          />
+          <label class="form-check-label" for="tlsVerify">TLS verify</label>
+        </div>
+
+        <PluginProperty
+          :id="'board'"
+          :label="'Board'"
+          :value="settings.board"
+          :description="'Optional. Specify the Jira board name to open tickets on'"
+          :show="isJira"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'labels'"
+          :label="'Labels'"
+          :value="settings.labels | toString"
+          :description="'Optional, specify array of labels to add to Ticket'"
+          :show="isJira"
+          :inputHandler="updateCollection"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'issuetype'"
+          :label="'Issue Type'"
+          :value="settings.issuetype"
+          :description="'Optional. Specifty the issue type to open (Bug, Task, etc.). Default is Task'"
+          :show="isJira"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'priority'"
+          :label="'Priority'"
+          :value="settings.priority"
+          :description="'Optional. Specify the issues severity. Default is High'"
+          :show="isJira"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'assignee'"
+          :label="'Assignee'"
+          :value="settings.assignee"
+          :description="'Optional. Specify the assigned user. Default is the user that opened the ticket'"
+          :show="isJira"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <!-- jira custom properties end -->
+        <!-- serviceNow custom properties start -->
+        <PluginProperty
+          :id="'instance'"
+          :label="'Instance'"
+          :value="settings.instance"
+          :description="'Mandatory. Name of ServiceNow  or Instance'"
+          :show="isServiceNow"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'board'"
+          :label="'Board'"
+          :value="settings.board"
+          :description="'Specify the ServiceNow board name to open tickets on. Default is incident'"
+          :show="isServiceNow"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <!-- serviceNow custom properties end -->
+        <!-- splunk custom properties start -->
+        <PluginProperty
+          :id="'token'"
+          :label="'Token'"
+          :value="settings.token"
+          :description="'Mandatory. a HTTP Event Collector Token'"
+          :show="isSplunk"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'sizeLimit'"
+          :label="'Size Limit'"
+          :value="settings.SizeLimit"
+          :name="'SizeLimit'"
+          :description="'Optional. Maximum scan length, in bytes. Default: 10000'"
+          :show="isSplunk"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <!-- splunk custom properties end -->
+
+        <!-- general properties start -->
+
+        <!--TODO make policyMinVulnerability a select-->
+        <PluginProperty
+          :id="'policyMinVulnerability'"
+          :label="'Policy-Min-Vulnerability'"
+          :value="settings['Policy-Min-Vulnerability']"
+          :name="'Policy-Min-Vulnerability'"
+          :description="generalProperties['Policy-Min-Vulnerability']"
+          :show="showGeneralProperty('Policy-Min-Vulnerability')"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'policyRegistry'"
+          :label="'Policy-Registry'"
+          :value="settings['Policy-Registry'] | toString"
+          :name="'Policy-Registry'"
+          :description="generalProperties['Policy-Registry']"
+          :show="showGeneralProperty('Policy-Registry')"
+          :inputHandler="updateCollection"
+        >
+        </PluginProperty>
+        <PluginProperty
+          :id="'policyImageName'"
+          :label="'Policy-Image-Name'"
+          :value="settings['Policy-Image-Name'] | toString"
+          :name="'Policy-Image-Name'"
+          :description="generalProperties['Policy-Image-Name']"
+          :show="showGeneralProperty('Policy-Image-Name')"
+          :inputHandler="updateCollection"
+        >
+        </PluginProperty>
+
+        <PluginCheckboxProperty
+          :id="'policyOnlyFixAvailable'"
+          :label="'Policy-Only-Fix-Available'"
+          :name="'Policy-Only-Fix-Available'"
+          :value="settings['Policy-Only-Fix-Available']"
+          :show="showGeneralProperty('Policy-Only-Fix-Available')"
+          :description="generalProperties['Policy-Only-Fix-Available']"
+          :inputHandler="updateSettings"
+        >
+        </PluginCheckboxProperty>
+
+        <PluginCheckboxProperty
+          :id="'policyNonCompliant'"
+          :label="'Policy-Non-Compliant'"
+          :name="'Policy-Non-Compliant'"
+          :value="settings['Policy-Non-Compliant']"
+          :show="showGeneralProperty('Policy-Non-Compliant')"
+          :description="generalProperties['Policy-Non-Compliant']"
+          :inputHandler="updateSettings"
+        >
+        </PluginCheckboxProperty>
+
+        <PluginCheckboxProperty
+          :id="'policyShowAll'"
+          :label="'Policy-Show-All'"
+          :name="'Policy-Show-All'"
+          :value="settings['Policy-Show-All']"
+          :show="showGeneralProperty('Policy-Show-All')"
+          :description="generalProperties['Policy-Show-All']"
+          :inputHandler="updateSettings"
+        >
+        </PluginCheckboxProperty>
+
+        <PluginProperty
+          :id="'ignoreRegistry'"
+          :label="'Ignore-Registry'"
+          :value="settings['Ignore-Registry'] | toString"
+          :name="'Ignore-Registry'"
+          :description="generalProperties['Ignore-Registry']"
+          :show="showGeneralProperty('Ignore-Registry')"
+          :inputHandler="updateCollection"
+        >
+        </PluginProperty>
+
+        <PluginProperty
+          :id="'ignoreImageName'"
+          :label="'Ignore-Image-Name'"
+          :value="settings['Ignore-Image-Name'] | toString"
+          :name="'Ignore-Image-Name'"
+          :description="generalProperties['Ignore-Image-Name']"
+          :show="showGeneralProperty('Ignore-Image-Name')"
+          :inputHandler="updateCollection"
+        >
+        </PluginProperty>
+
+        <PluginProperty
+          :id="'aggregateIssuesNumber'"
+          :label="'Aggregate-Issues-Number'"
+          :value="settings['Aggregate-Issues-Number']"
+          :name="'Aggregate-Issues-Number'"
+          :description="generalProperties['Aggregate-Issues-Number']"
+          :show="showGeneralProperty('Aggregate-Issues-Number')"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+
+        <PluginProperty
+          :id="'aggregateIssuesTimeout'"
+          :label="'Aggregate-Issues-Timeout'"
+          :value="settings['Aggregate-Issues-Timeout']"
+          :name="'Aggregate-Issues-Timeout'"
+          :description="generalProperties['Aggregate-Issues-Timeout']"
+          :show="showGeneralProperty('Aggregate-Issues-Timeout')"
+          :inputHandler="updateSettings"
+        >
+        </PluginProperty>
+
+        <PluginProperty
+          :id="'policyOPA'"
+          :label="'Policy-OPA'"
+          :value="settings['Policy-OPA'] | toString"
+          :name="'Policy-OPA'"
+          :description="generalProperties['Policy-OPA']"
+          :show="showGeneralProperty('Policy-OPA')"
+          :inputHandler="updateCollection"
+        >
+        </PluginProperty>
+
+        <!--  general properties end -->
+        <div class="row form-group">
+          <div class="col-md-6">
+            <select
+              class="form-select form-control p-2 w-100"
+              :value="selectedControl"
+              id="optionalControlSelector"
+              @input="updateSelectedControl"
+            >
+              <option
+                v-for="(desc, key) in generalProperties"
+                :key="key"
+                :value="key"
+              >
+                {{ key }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <button
+              type="button"
+              @click="selectControl"
+              class="btn btn-primary"
+            >
+              Add Control
+            </button>
+          </div>
+          <div class="col-12 p-2">
+            <small
+              id="generalProperyDescription"
+              class="form-text text-muted"
+              >{{ generalProperties[selectedControl] }}</small
+            >
+          </div>
+        </div>
 
         <ul class="nav">
           <li class="nav-item">
@@ -113,13 +455,15 @@
             >
           </li>
         </ul>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 </template>
 <script>
 import { mapState } from "vuex";
 import PluginProperty from "./PluginProperty.vue";
+import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
+import generalProperties from "./general-properties";
 
 const urlDescriptionByType = {
   splunk: "Mandatory. Url of a Splunk server",
@@ -128,16 +472,21 @@ const urlDescriptionByType = {
   jira: 'Mandatory. E.g "https://johndoe.atlassian.net"',
   slack: "",
 };
-const typesWithCredentials = ["serviceNow", "jira", "email"];
+const typesWithCredentials = ["serviceNow", "jira", "email"]; //TODO add description strings
 
 export default {
   data() {
     return {
       id: "",
+      addedControls: [],
+      generalProperties,
+      selectedControl: "",
+      integrationType: "", //stored separately to track dependencies
     };
   },
   components: {
     PluginProperty,
+    PluginCheckboxProperty,
   },
   computed: {
     ...mapState({
@@ -146,23 +495,53 @@ export default {
           (item) => item.id === this.id
         );
 
-        return found.length ? { ...found[0] } : { type: "email" };
+        const result = found.length ? { ...found[0] } : { type: "email" };
+
+        this.integrationType = result.type;
+
+        return result;
       },
     }),
     showUrl() {
-      return urlDescriptionByType[this.settings.type] !== undefined;
+      return urlDescriptionByType[this.integrationType] !== undefined;
     },
     getUrlDescription() {
-      return urlDescriptionByType[this.settings.type];
+      return urlDescriptionByType[this.integrationType];
     },
     isCommon() {
-      return this.settings.type === "common";
+      return this.integrationType === "common";
+    },
+    isServiceNow() {
+      return this.integrationType === "serviceNow";
+    },
+    isSplunk() {
+      return this.integrationType === "splunk";
+    },
+    isEmail() {
+      return this.integrationType === "email";
+    },
+    isJira() {
+      return this.integrationType === "jira";
     },
     showCredentials() {
-      return typesWithCredentials.indexOf(this.settings.type) >= 0;
+      return typesWithCredentials.indexOf(this.integrationType) >= 0;
+    },
+  },
+  filters: {
+    toString(col) {
+      return col ? col.join(", ") : undefined;
     },
   },
   methods: {
+    showGeneralProperty(generalPropertyName) {
+      const hasOwnProperty = Object.prototype.hasOwnProperty.call(
+        this.settings,
+        generalPropertyName
+      );
+      return (
+        hasOwnProperty || this.addedControls.indexOf(generalPropertyName) >= 0
+      );
+    },
     doSubmit() {
       if (this.id) {
         this.$store.commit("updateSettings", {
@@ -174,11 +553,31 @@ export default {
       }
       this.$router.push({ name: "home" });
     },
+    updateIntegrationType(e) {
+      this.integrationType = e.target.value;
+      this.updateSettings(e);
+    },
     updateSettings(e) {
       const propName = e.target.attributes["name"].value;
       const inputType = e.target.attributes["type"]?.value;
       this.settings[propName] =
         inputType == "checkbox" ? e.target.checked : e.target.value;
+    },
+    updateCollection(e) {
+      const propName = e.target.attributes["name"].value;
+      const v = e.target.value.split(",").map((s) => s.trim());
+
+      this.settings[propName] = v;
+    },
+    updateSelectedControl(e) {
+      this.selectedControl = e.target.value;
+    },
+    selectControl() {
+      this.addedControls.push(this.selectedControl);
+    },
+    doRemove() {
+      this.$store.commit("removeSettings", this.id);
+      this.$router.push({ name: "home" });
     },
   },
   mounted() {
