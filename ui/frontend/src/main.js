@@ -16,9 +16,15 @@ const enrichId = entry => {
 const store = new Vuex.Store({
   state: {
     config: {
-      entries: []
+      entries: [],
+    },
+    stats : {
+      "my-jira" : 3,
+      "my-slack" : 15,
+      "ms-team" : 1,
+      "my-servicenow" : 2
     }
-  },
+},
   actions: {
     load(context) {
       api.getConfig().then((response) => {
@@ -36,7 +42,7 @@ const store = new Vuex.Store({
       }
 
       state.config = {
-        entries
+        entries,
       }
 
     },
@@ -48,6 +54,7 @@ const store = new Vuex.Store({
         }
 
       }
+      console.log(state.config.entries);
       //handle addition
       //call api to persist
 
