@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	ENV_FILELOG = "POSTEE_UI_LOGFILE"
-	ENV_CFG = "POSTEE_UI_CFG"
-	ENV_DB = "POSTEE_UI_DB"
-	ENV_WEB = "POSTEE_UI_WEB"
+	ENV_FILELOG    = "POSTEE_UI_LOGFILE"
+	ENV_CFG        = "POSTEE_UI_CFG"
+	ENV_DB         = "POSTEE_UI_DB"
+	ENV_WEB        = "POSTEE_UI_WEB"
 	ENV_UPDATE_URL = "POSTEE_UI_UPDATE_URL"
 	ENV_UPDATE_KEY = "POSTEE_UI_KEY"
-	ENV_PORT = "POSTEE_UI_PORT"
+	ENV_PORT       = "POSTEE_UI_PORT"
 
 	DEFAULT_WEB_PATH = "/uiserver/www"
 )
@@ -21,7 +21,7 @@ const (
 func main() {
 	logfile := os.Getenv(ENV_FILELOG)
 	if logfile != "" {
-		f, err := os.OpenFile(logfile, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0444)
+		f, err := os.OpenFile(logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0444)
 		if err != nil {
 			panic(err)
 		}

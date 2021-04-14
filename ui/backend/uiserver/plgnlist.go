@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (srv *uiServer) pluginList(w http.ResponseWriter, r *http.Request){
+func (srv *uiServer) pluginList(w http.ResponseWriter, r *http.Request) {
 	d, err := cfgdata.ReadAll(srv.cfgPath)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

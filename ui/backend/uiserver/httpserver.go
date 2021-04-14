@@ -8,7 +8,7 @@ import (
 
 type localWebServer struct {
 	localPath string
-	url string
+	url       string
 }
 
 func (web *localWebServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
