@@ -2,6 +2,7 @@ package alertmgr
 
 import (
 	"fmt"
+	"github.com/aquasecurity/postee/eventservice"
 	"io/ioutil"
 	"log"
 	"os"
@@ -80,11 +81,13 @@ type PluginSettings struct {
 }
 
 type AlertMgr struct {
-	mutex   sync.Mutex
-	quit    chan struct{}
-	queue   chan string
-	cfgfile string
-	plugins map[string]plugins.Plugin
+	mutexScan  sync.Mutex
+	mutexEvent sync.Mutex
+	quit       chan struct{}
+	queue      chan string
+	events     chan string
+	cfgfile    string
+	plugins    map[string]plugins.Plugin
 }
 
 var initCtx sync.Once
@@ -275,10 +278,12 @@ func buildJiraPlugin(sourceSettings *PluginSettings) *plugins.JiraAPI {
 func Instance() *AlertMgr {
 	initCtx.Do(func() {
 		alertmgrCtx = &AlertMgr{
-			mutex:   sync.Mutex{},
-			quit:    make(chan struct{}),
-			queue:   make(chan string, 1000),
-			plugins: make(map[string]plugins.Plugin),
+			mutexScan:  sync.Mutex{},
+			mutexEvent: sync.Mutex{},
+			quit:       make(chan struct{}),
+			events:     make(chan string, 1000),
+			queue:      make(chan string, 1000),
+			plugins:    make(map[string]plugins.Plugin),
 		}
 	})
 	return alertmgrCtx
@@ -304,15 +309,21 @@ func (ctx *AlertMgr) Terminate() {
 	}
 }
 
+func (ctx *AlertMgr) Event(data string) {
+	ctx.mutexEvent.Lock()
+	defer ctx.mutexEvent.Unlock()
+	ctx.events <- data
+}
+
 func (ctx *AlertMgr) Send(data string) {
-	ctx.mutex.Lock()
-	defer ctx.mutex.Unlock()
+	ctx.mutexScan.Lock()
+	defer ctx.mutexScan.Unlock()
 	ctx.queue <- data
 }
 
 func (ctx *AlertMgr) load() error {
-	ctx.mutex.Lock()
-	defer ctx.mutex.Unlock()
+	ctx.mutexScan.Lock()
+	defer ctx.mutexScan.Unlock()
 	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
 	data, err := ioutil.ReadFile(ctx.cfgfile)
 	if err != nil {
@@ -414,6 +425,9 @@ func (ctx *AlertMgr) listen() {
 		case data := <-ctx.queue:
 			service := new(scanservice.ScanService)
 			go service.ResultHandling(strings.ReplaceAll(data, "`", "'"), ctx.plugins)
+		case event := <-ctx.events:
+			handler := new(eventservice.EventService)
+			go handler.EventHandling(event)
 		}
 	}
 }
