@@ -7,7 +7,6 @@ import (
 )
 
 type uiServer struct {
-	webPath string
 	port string
 	cfgPath string
 	boltDbPath string
@@ -16,9 +15,8 @@ type uiServer struct {
 	router *mux.Router
 }
 
-func Instance(web, port, cfg, boltDb, updateUrl, updateKey string) *uiServer {
+func Instance(webLocalPath, port, cfg, boltDb, updateUrl, updateKey string) *uiServer {
 	server := &uiServer{
-		webPath: web,
 		port: port,
 		cfgPath: cfg,
 		boltDbPath: boltDb,
@@ -28,6 +26,12 @@ func Instance(web, port, cfg, boltDb, updateUrl, updateKey string) *uiServer {
 	}
 	server.router.HandleFunc("/plugins", server.pluginList).Methods("GET")
 	server.router.HandleFunc("/plugins/{plugin}", server.pluginDetails).Methods("GET", "POST", "UPDATE", "DELETE")
+
+	web := &localWebServer{
+		localPath: webLocalPath,
+		url:       "/",
+	}
+	server.router.PathPrefix("/").Handler(web)
 	return server
 }
 

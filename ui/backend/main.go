@@ -14,6 +14,8 @@ const (
 	ENV_UPDATE_URL = "POSTEE_UI_UPDATE_URL"
 	ENV_UPDATE_KEY = "POSTEE_UI_KEY"
 	ENV_PORT = "POSTEE_UI_PORT"
+
+	DEFAULT_WEB_PATH = "/uiserver/www"
 )
 
 func main() {
@@ -37,7 +39,8 @@ func main() {
 	}
 	web := os.Getenv(ENV_WEB)
 	if web == "" {
-		log.Fatalf("the path to web is empty. You have to set a path via %q environment variable.", ENV_WEB)
+		web = DEFAULT_WEB_PATH
+		log.Printf("The default path to web (%q) is using now.", web)
 	}
 	updateUrl := os.Getenv(ENV_UPDATE_URL)
 	if updateUrl == "" {
