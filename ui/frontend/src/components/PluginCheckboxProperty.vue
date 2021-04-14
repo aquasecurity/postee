@@ -1,14 +1,14 @@
 <template>
-  <div v-if="show" class="form-group form-input">
-    <label class="form-label" for="id">{{ label }}</label>
+  <div class="form-group form-check" v-if="show">
     <input
-      :type="inputType"
-      :value="value"
-      :name="name || id"
-      @input="inputHandler"
-      class="form-control"
+      type="checkbox"
+      class="form-check-input"
       :id="id"
+      :checked="value"
+      @input="inputHandler"
+      :name="name || id"
     />
+    <label class="form-check-label" :for="id">{{ label }}</label>
     <small v-show="!!description" class="form-text text-muted">{{
       description
     }}</small>
@@ -18,12 +18,8 @@
 export default {
   props: {
     name: String,
-    inputType: {
-      type: String,
-      default: "input",
-    },
     label: String,
-    value: [String, Number],
+    value: Boolean,
     id: String,
     description: String,
     show: Boolean,
