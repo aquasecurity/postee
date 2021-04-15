@@ -55,19 +55,20 @@ const store = new Vuex.Store({
 
       }
       console.log(state.config.entries);
-      //handle addition
-      //call api to persist
+      api.saveConfig(state.config.entries)
 
     },
     removeSettings(state, id) {
       const filtered = state.config.entries.filter(item => item.id != id)
       state.config.entries = [...filtered]
+      api.saveConfig(state.config.entries)
     },
     addSettings(state, settings) {
       const entries = state.config.entries
       enrichId(settings)
       entries.push(settings)
       state.config.entries = [...entries]
+      api.saveConfig(state.config.entries)
     }
   }
 })

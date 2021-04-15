@@ -237,10 +237,10 @@
         <PluginProperty
           :id="'assignee'"
           :label="'Assignee'"
-          :value="settings.assignee"
-          :description="'Optional. Specify the assigned user. Default is the user that opened the ticket'"
+          :value="settings.assignee | toString"
+          :description="jiraAssigneeDescription"
           :show="isJira"
-          :inputHandler="updateSettings"
+          :inputHandler="updateCollection"
         >
         </PluginProperty>
         <!-- jira custom properties end -->
@@ -482,6 +482,7 @@ export default {
       generalProperties,
       selectedControl: "",
       integrationType: "", //stored separately to track dependencies
+      jiraAssigneeDescription : 'Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value'
     };
   },
   components: {

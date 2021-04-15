@@ -2,10 +2,6 @@ package alertmgr
 
 import (
 	"fmt"
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/plugins"
-	"github.com/aquasecurity/postee/scanservice"
-	"github.com/aquasecurity/postee/settings"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,6 +9,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/scanservice"
+	"github.com/aquasecurity/postee/settings"
 
 	"github.com/aquasecurity/postee/utils"
 	"github.com/ghodss/yaml"
@@ -26,55 +27,55 @@ const (
 )
 
 type PluginSettings struct {
-	Name            string   `json:"name"`
-	Type            string   `json:"type"`
-	Enable          bool     `json:"enable"`
-	Url             string   `json:"url"`
-	User            string   `json:"user"`
-	Password        string   `json:"password"`
-	TlsVerify       bool     `json:"tls_verify"`
-	ProjectKey      string   `json:"project_key,omitempty" structs:"project_key,omitempty"`
-	IssueType       string   `json:"issuetype" structs:"issuetype"`
-	BoardName       string   `json:"board,omitempty" structs:"board,omitempty"`
-	Priority        string   `json:"priority,omitempty"`
-	Assignee        []string `json:"assignee,omitempty"`
-	Description     string
+	Name            string            `json:"name"`
+	Type            string            `json:"type"`
+	Enable          bool              `json:"enable,omitempty"`
+	Url             string            `json:"url,omitempty"`
+	User            string            `json:"user,omitempty"`
+	Password        string            `json:"password,omitempty"`
+	TlsVerify       bool              `json:"tls_verify,omitempty"`
+	ProjectKey      string            `json:"project_key,omitempty" structs:"project_key,omitempty"`
+	IssueType       string            `json:"issuetype,omitempty" structs:"issuetype"`
+	BoardName       string            `json:"board,omitempty" structs:"board,omitempty"`
+	Priority        string            `json:"priority,omitempty"`
+	Assignee        []string          `json:"assignee,omitempty"`
+	Description     string            `json:"-"`
 	Summary         string            `json:"summary,omitempty"`
 	FixVersions     []string          `json:"fixVersions,omitempty"`
 	AffectsVersions []string          `json:"affectsVersions,omitempty"`
 	Labels          []string          `json:"labels,omitempty"`
 	Sprint          string            `json:"sprint,omitempty"`
-	Unknowns        map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
+	Unknowns        map[string]string `json:"unknowns,omitempty" structs:"unknowns,omitempty"`
 
-	Host       string   `json:"host"`
-	Port       string   `json:"port"`
-	Recipients []string `json:"recipients"`
-	Sender     string   `json:"sender"`
-	Token      string   `json:"token"`
-	UseMX      bool     `json:"useMX"`
+	Host       string   `json:"host,omitempty"`
+	Port       string   `json:"port,omitempty"`
+	Recipients []string `json:"recipients,omitempty"`
+	Sender     string   `json:"sender,omitempty"`
+	Token      string   `json:"token,omitempty"`
+	UseMX      bool     `json:"useMX,omitempty"`
 
-	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability"`
-	PolicyRegistry         []string `json:"Policy-Registry"`
-	PolicyImageName        []string `json:"Policy-Image-Name"`
-	PolicyNonCompliant     bool     `json:"Policy-Non-Compliant"`
-	PolicyShowAll          bool     `json:"Policy-Show-All"`
+	PolicyMinVulnerability string   `json:"Policy-Min-Vulnerability,omitempty"`
+	PolicyRegistry         []string `json:"Policy-Registry,omitempty"`
+	PolicyImageName        []string `json:"Policy-Image-Name,omitempty"`
+	PolicyNonCompliant     bool     `json:"Policy-Non-Compliant,omitempty"`
+	PolicyShowAll          bool     `json:"Policy-Show-All,omitempty"`
 
-	IgnoreRegistry  []string `json:"Ignore-Registry"`
-	IgnoreImageName []string `json:"Ignore-Image-Name"`
+	IgnoreRegistry  []string `json:"Ignore-Registry,omitempty"`
+	IgnoreImageName []string `json:"Ignore-Image-Name,omitempty"`
 
-	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number"`
-	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout"`
-	InstanceName           string `json:"instance"`
-	PolicyOnlyFixAvailable bool   `json:"Policy-Only-Fix-Available"`
+	AggregateIssuesNumber  int    `json:"Aggregate-Issues-Number,omitempty"`
+	AggregateIssuesTimeout string `json:"Aggregate-Issues-Timeout,omitempty"`
+	InstanceName           string `json:"instance,omitempty"`
+	PolicyOnlyFixAvailable bool   `json:"Policy-Only-Fix-Available,omitempty"`
 
-	PolicyOPA []string `json:"Policy-OPA"`
+	PolicyOPA []string `json:"Policy-OPA,omitempty"`
 
-	AquaServer      string `json:"AquaServer"`
-	DBMaxSize       int    `json:"Max_DB_Size"`
-	DBRemoveOldData int    `json:"Delete_Old_Data"`
-	DBTestInterval  int    `json:"DbVerifyInterval"`
+	AquaServer      string `json:"AquaServer,omitempty"`
+	DBMaxSize       int    `json:"Max_DB_Size,omitempty"`
+	DBRemoveOldData int    `json:"Delete_Old_Data,omitempty"`
+	DBTestInterval  int    `json:"DbVerifyInterval,omitempty"`
 
-	SizeLimit int `json:"SizeLimit"`
+	SizeLimit int `json:"SizeLimit,omitempty"`
 }
 
 type AlertMgr struct {
