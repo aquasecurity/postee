@@ -1,9 +1,9 @@
 package regoservice
 
 import (
-"io/ioutil"
-"os"
-"testing"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 func TestOpaRego(t *testing.T) {
