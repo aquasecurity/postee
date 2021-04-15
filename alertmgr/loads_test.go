@@ -2,7 +2,9 @@ package alertmgr
 
 import (
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/eventservice"
 	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/scanservice"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -139,6 +141,17 @@ func TestLoads(t *testing.T) {
 	}
 	demoCtx.Terminate()
 	time.Sleep(200 * time.Millisecond)
+}
+
+func TestServiceGetters(t *testing.T) {
+	scanner := getScanService()
+	if _, ok := scanner.(*scanservice.ScanService); !ok {
+		t.Error("getScanService() doesn't return an instance of scanservice.ScanService")
+	}
+	events := getEventService()
+	if _, ok := events.(*eventservice.EventService); !ok {
+		t.Error("getEventService() doesn't return an instance of eventservice.EventService")
+	}
 }
 
 type demoService struct {
