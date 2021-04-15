@@ -14,12 +14,23 @@ func GetMessage(event *WebhookEvent) string {
 			IP:   event.SourceIP,
 			User: event.User,
 		})
+	default:
+		return renderDefaultTemplate(&defaultData{
+			User: event.User,
+			IP:   event.SourceIP,
+			Action: action,
+		})
 	}
-	return ""
+}
+
+func renderTemplate(name, base string, data interface{}) string {
+	t := template.Must(template.New(name).Parse(base))
+	var buffer bytes.Buffer
+	t.Execute(&buffer, data)
+	return buffer.String()
 }
 
 const loginAction = "login"
-
 const loginTemplate = `User {{ .User }} performed login from IP {{ .IP }}`
 
 type loginData struct {
@@ -28,8 +39,21 @@ type loginData struct {
 }
 
 func renderLoginTemplate(data *loginData) string {
-	t := template.Must(template.New("login").Parse(loginTemplate))
-	var buffer bytes.Buffer
-	t.Execute(&buffer, data)
-	return buffer.String()
+	return renderTemplate("loginTemplate", loginTemplate, data)
+}
+
+type defaultData struct {
+	User string
+	IP string
+	Action string
+}
+const defaultTemplate = `User {{ .User }}
+{{if .IP}}
+from IP {{ .IP}}
+{{end}}
+did {{ .Acton }}
+`
+
+func renderDefaultTemplate(data *defaultData) string {
+	return renderTemplate("defaultTemplate", defaultTemplate, data)
 }
