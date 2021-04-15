@@ -1,10 +1,12 @@
 package eventservice
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
 	"testing"
+	"text/template"
 )
 
 const correctLoginJson = `{
@@ -26,6 +28,14 @@ func TestRenderingContent(t *testing.T) {
 	if err := json.Unmarshal([]byte(correctLoginJson), correctLoginEvent); err != nil {
 		panic(err)
 	}
+	templ := template.Must(template.New("login").Parse(loginTemplate))
+	var loginDescr bytes.Buffer
+	loginDescr.WriteString("<p>")
+	templ.Execute(&loginDescr, &loginData{
+		IP:   "172.18.0.9",
+		User: "upwork",
+	})
+	loginDescr.WriteString("</p>\n")
 
 	tests := []struct {
 		data        *WebhookEvent
@@ -37,8 +47,7 @@ func TestRenderingContent(t *testing.T) {
 			correctLoginEvent,
 			new(formatting.HtmlProvider),
 			"Administration event",
-			`<p>"Login" by "upwork"</p>
-`,
+			loginDescr.String(),
 		},
 	}
 

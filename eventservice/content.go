@@ -7,7 +7,7 @@ import (
 
 func buildTitleAndDescription(provider layout.LayoutProvider, data *WebhookEvent) (title string, description string) {
 	title = fmt.Sprintf("%s event", data.Type)
-	d := fmt.Sprintf("%q by %q", data.Action, data.User)
+	d := GetMessage(data)
 	description = provider.P(d)
 	return
 }
