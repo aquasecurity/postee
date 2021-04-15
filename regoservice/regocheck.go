@@ -1,4 +1,4 @@
-package scanservice
+package regoservice
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 )
 
-func isRegoCorrect(files []string, scanResult string) (bool, error) {
+func IsRegoCorrect(files []string, scanResult string) (bool, error) {
 	ctx := context.Background()
 
 	r := rego.New(

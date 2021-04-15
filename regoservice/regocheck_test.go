@@ -1,9 +1,9 @@
-package scanservice
+package regoservice
 
 import (
-	"io/ioutil"
-	"os"
-	"testing"
+"io/ioutil"
+"os"
+"testing"
 )
 
 func TestOpaRego(t *testing.T) {
@@ -55,7 +55,7 @@ allow {
 	}
 
 	for _, test := range tests {
-		got, err := isRegoCorrect(test.files, test.scan)
+		got, err := IsRegoCorrect(test.files, test.scan)
 		if err != nil && !test.isError {
 			t.Errorf("received an undefined error: %v", err)
 			continue

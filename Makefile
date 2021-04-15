@@ -26,8 +26,8 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./alertmgr ./scanservice ./dbservice ./formatting ./data ./eventservice
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./alertmgr ./scanservice ./dbservice ./formatting ./data ./eventservice ./regoservice
 
 cover :
-	go test ./scanservice ./dbservice ./alertmgr ./formatting ./data ./eventservice -v -coverprofile=cover.out
+	go test ./scanservice ./dbservice ./alertmgr ./formatting ./data ./eventservice ./regoservice -v -coverprofile=cover.out
 	go tool cover -html=cover.out

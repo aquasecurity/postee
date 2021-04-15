@@ -6,6 +6,7 @@ import (
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/settings"
 	"log"
 	"strings"
@@ -80,7 +81,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 
 		if len(currentSettings.PolicyOPA) > 0 {
 			log.Printf("Plugin %q uses OPA policies from '%s'", currentSettings.PluginName, strings.Join(currentSettings.PolicyOPA, "','"))
-			if res, err := isRegoCorrect(currentSettings.PolicyOPA, input); err != nil {
+			if res, err := regoservice.IsRegoCorrect(currentSettings.PolicyOPA, input); err != nil {
 				log.Printf("isRegoCorrect error for %q OPA policy: %v", currentSettings.PluginName, err)
 				continue
 			} else if !res {
