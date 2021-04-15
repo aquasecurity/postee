@@ -417,17 +417,29 @@ func (ctx *AlertMgr) load() error {
 	}
 	return nil
 }
+
+type service interface {
+	ResultHandling(input string, plugins map[string]plugins.Plugin)
+}
+
+var getScanService = func() service {
+	serv := &scanservice.ScanService{}
+	return serv
+}
+var getEventService = func() service {
+	serv := &eventservice.EventService{}
+	return serv
+}
+
 func (ctx *AlertMgr) listen() {
 	for {
 		select {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			service := new(scanservice.ScanService)
-			go service.ResultHandling(strings.ReplaceAll(data, "`", "'"), ctx.plugins)
+			go getScanService().ResultHandling(strings.ReplaceAll(data, "`", "'"), ctx.plugins)
 		case event := <-ctx.events:
-			handler := new(eventservice.EventService)
-			go handler.EventHandling(event)
+			go getEventService().ResultHandling(event, ctx.plugins)
 		}
 	}
 }

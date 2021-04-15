@@ -2,8 +2,10 @@ package alertmgr
 
 import (
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/plugins"
 	"io/ioutil"
 	"os"
+	"sync"
 	"testing"
 	"time"
 )
@@ -137,4 +139,55 @@ func TestLoads(t *testing.T) {
 	}
 	demoCtx.Terminate()
 	time.Sleep(200 * time.Millisecond)
+}
+
+type demoService struct {
+	buff chan string
+}
+
+func (demo *demoService) ResultHandling(input string, plugins map[string]plugins.Plugin) {
+	demo.buff <- input
+}
+func getDemoService() *demoService {
+	return &demoService{
+		buff: make(chan string),
+	}
+}
+
+func TestSendingMessages(t *testing.T) {
+	const (
+		testData = "test data"
+	)
+
+	getEventServiceSaved := getEventService
+	getScanServiceSaved := getScanService
+	defer func() {
+		getEventService = getEventServiceSaved
+		getScanService = getScanServiceSaved
+	}()
+	dmsScan := getDemoService()
+	getScanService = func() service {
+		return dmsScan
+	}
+	dmsEvents := getDemoService()
+	getEventService = func() service {
+		return dmsEvents
+	}
+	srv := &AlertMgr{
+		mutexScan:  sync.Mutex{},
+		mutexEvent: sync.Mutex{},
+		quit:       make(chan struct{}),
+		events:     make(chan string, 1000),
+		queue:      make(chan string, 1000),
+		plugins:    make(map[string]plugins.Plugin),
+	}
+	go srv.listen()
+	srv.Send(testData)
+	if s := <-dmsScan.buff; s != testData {
+		t.Errorf("srv.Send(%q) == %q, wanted %q", testData, s, testData)
+	}
+	srv.Event(testData)
+	if s := <-dmsEvents.buff; s != testData {
+		t.Errorf("srv.Event(%q) == %q, wanted %q", testData, s, testData)
+	}
 }

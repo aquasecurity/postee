@@ -1,10 +1,13 @@
 package eventservice
 
-import "log"
+import (
+	"github.com/aquasecurity/postee/plugins"
+	"log"
+)
 
 type EventService struct {
 }
 
-func (events *EventService) EventHandling(hook string) {
-	log.Print("[EventService]", hook)
+func (events *EventService) ResultHandling(input string, plugins map[string]plugins.Plugin) {
+	log.Print("[EventService]", input)
 }
