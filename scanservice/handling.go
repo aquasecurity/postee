@@ -2,14 +2,15 @@ package scanservice
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/settings"
-	"log"
-	"strings"
-	"time"
 )
 
 type ScanService struct {
@@ -134,6 +135,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 							queue := AggregateScanAndGetQueue(nm, nil, 0, false)
 							if len(queue) > 0 {
 								send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()))
+								dbservice.RegisterPlgnInvctn(nm)
 							}
 						}
 					}
@@ -142,6 +144,7 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		}
 		if len(content) > 0 {
 			send(plugin, content)
+			dbservice.RegisterPlgnInvctn(plugin.GetSettings().PluginName)
 		}
 	}
 }

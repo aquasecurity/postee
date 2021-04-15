@@ -1,9 +1,10 @@
 package uiserver
 
 import (
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type uiServer struct {
@@ -26,7 +27,7 @@ func Instance(webLocalPath, port, cfg, boltDb, updateUrl, updateKey string) *uiS
 	}
 	server.router.HandleFunc("/update", server.updateConfig).Methods("POST")
 	server.router.HandleFunc("/plugins", server.pluginList).Methods("GET")
-	server.router.HandleFunc("/plugins/{plugin}", server.pluginDetails).Methods("GET", "POST", "UPDATE", "DELETE")
+	server.router.HandleFunc("/plugins/stats", server.plgnStats).Methods("GET")
 
 	web := &localWebServer{
 		localPath: webLocalPath,

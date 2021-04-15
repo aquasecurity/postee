@@ -14,6 +14,7 @@ export default {
   name: "App",
   mounted() {
     this.$store.dispatch("load");
+    this.$store.dispatch("loadStats");
   },
 };
 </script>

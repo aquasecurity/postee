@@ -19,16 +19,17 @@ const store = new Vuex.Store({
       entries: [],
     },
     stats : {
-      "my-jira" : 3,
-      "my-slack" : 15,
-      "ms-team" : 1,
-      "my-servicenow" : 2
     }
 },
   actions: {
     load(context) {
       api.getConfig().then((response) => {
         context.commit('load', response.data)
+      })
+    },
+    loadStats(context) {
+      api.getStats().then((response) => {
+        context.commit('loadStats', response.data)
       })
     }
 
@@ -46,6 +47,13 @@ const store = new Vuex.Store({
       }
 
     },
+    loadStats(state, payload) {
+
+      state.stats = {
+        ...payload
+      }
+
+    },
     updateSettings(state, payload) {
       const { value, id } = payload
       for (let i = 0; i < state.config.entries.length; i++) {
@@ -54,7 +62,6 @@ const store = new Vuex.Store({
         }
 
       }
-      console.log(state.config.entries);
       api.saveConfig(state.config.entries)
 
     },
