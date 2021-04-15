@@ -1,13 +1,16 @@
 package eventservice
 
-import (
-	"github.com/aquasecurity/postee/plugins"
-	"log"
-)
+type EventService struct{}
 
-type EventService struct {
-}
-
-func (events *EventService) ResultHandling(input string, plugins map[string]plugins.Plugin) {
-	log.Print("[EventService]", input)
+type WebhookEvent struct {
+	Action    string `json:"action,omitempty"`
+	Adjective string `json:"adjective,omitempty"`
+	Category  string `json:"category,omitempty"`
+	Date      uint64 `json:"date,omitempty"`
+	Id        int    `json:"id,omitempty"`
+	Result    int    `json:"result,omitempty"`
+	Time      uint64 `json:"time,omitempty"`
+	Type      string `json:"type,omitempty"`
+	User      string `json:"user,omitempty"`
+	Version   string `json:"version,omitempty"`
 }
