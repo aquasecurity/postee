@@ -6,4 +6,7 @@ require (
 	github.com/aquasecurity/postee v1.1.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/gorilla/mux v1.8.0
+	go.etcd.io/bbolt v1.3.5
 )
+
+replace github.com/aquasecurity/postee => ../../

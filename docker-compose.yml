@@ -1,0 +1,16 @@
+version: "3"
+services:
+    posteeui:
+        build:
+            context: .
+            dockerfile: Dockerfile.ui
+        ports:
+            - 8000:8000
+        volumes:
+            - /home/andrey/work/aquasecurity:/server/database
+            - /home/andrey/work/aquasecurity/postee:/config
+        environment:
+            - "POSTEE_UI_CFG=/config/cfg.yaml"
+            - "POSTEE_UI_PORT=8000"
+            - "POSTEE_UI_UPDATE_URL=http://172.18.0.1:8082"
+            - "POSTEE_UI_KEY=S3cr3t"
