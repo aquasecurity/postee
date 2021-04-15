@@ -19,7 +19,6 @@ func (events *EventService) ResultHandling(input string, plugins map[string]syst
 	}
 
 	for _, plugin := range plugins {
-		plugin.GetLayoutProvider()
 		cnt := buildMapContent(buildTitleAndDescription(plugin.GetLayoutProvider(), webhook))
 		go func(content map[string]string, plgn systemPlugins.Plugin) {
 			plgn.Send(content)
