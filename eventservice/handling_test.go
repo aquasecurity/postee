@@ -41,7 +41,7 @@ func TestHandlingResult(t *testing.T) {
 		wasSent bool
 	}{
 		{"nostring", nil, false},
-		{"No json sting", plgns, false},
+		{"No json string", plgns, false},
 		{correctLoginJson, plgns, true},
 	}
 
