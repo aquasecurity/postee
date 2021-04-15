@@ -1,10 +1,11 @@
 package webserver
 
 import (
-	"github.com/aquasecurity/postee/alertmgr"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/aquasecurity/postee/alertmgr"
 )
 
 func (web *WebServer) reload(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +19,6 @@ func (web *WebServer) reload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Reconfiguration is starting...")
+	log.Printf("----------------------Reconfiguration is starting...----------------------------")
 	alertmgr.Instance().ReloadConfig()
 }

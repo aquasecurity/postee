@@ -16,14 +16,13 @@ type uiServer struct {
 	router     *mux.Router
 }
 
-func Instance(webLocalPath, port, cfg, boltDb, updateUrl, updateKey string) *uiServer {
+func Instance(webLocalPath, port, cfg, updateUrl, updateKey string) *uiServer {
 	server := &uiServer{
-		port:       port,
-		cfgPath:    cfg,
-		boltDbPath: boltDb,
-		updateUrl:  updateUrl,
-		updateKey:  updateKey,
-		router:     mux.NewRouter().StrictSlash(true),
+		port:      port,
+		cfgPath:   cfg,
+		updateUrl: updateUrl,
+		updateKey: updateKey,
+		router:    mux.NewRouter().StrictSlash(true),
 	}
 	server.router.HandleFunc("/update", server.updateConfig).Methods("POST")
 	server.router.HandleFunc("/plugins", server.pluginList).Methods("GET")

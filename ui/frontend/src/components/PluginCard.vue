@@ -47,7 +47,6 @@ export default {
       return this.type === "common";
     },
     scanCountMessage() {
-      console.log(this.scanCount);
       return this.scanCount === undefined
         ? "No scans received"
         : [

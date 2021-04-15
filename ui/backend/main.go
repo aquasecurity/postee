@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/aquasecurity/postee/ui/backend/uiserver"
 	"log"
 	"os"
+
+	"github.com/aquasecurity/postee/ui/backend/uiserver"
 )
 
 const (
 	ENV_FILELOG    = "POSTEE_UI_LOGFILE"
 	ENV_CFG        = "POSTEE_UI_CFG"
-	ENV_DB         = "POSTEE_UI_DB"
 	ENV_WEB        = "POSTEE_UI_WEB"
 	ENV_UPDATE_URL = "POSTEE_UI_UPDATE_URL"
 	ENV_UPDATE_KEY = "POSTEE_UI_KEY"
@@ -33,10 +33,6 @@ func main() {
 	if cfg == "" {
 		log.Fatalf("cfg file name is empty. You have to set a filename via %q environment variable.", ENV_CFG)
 	}
-	db := os.Getenv(ENV_DB)
-	if db == "" {
-		log.Fatalf("the path to db is empty. You have to set a path via %q environment variable.", ENV_DB)
-	}
 	web := os.Getenv(ENV_WEB)
 	if web == "" {
 		web = DEFAULT_WEB_PATH
@@ -57,7 +53,7 @@ func main() {
 		log.Printf("WARNING! Using a default port: %s. You can change it via %q environment variable.", port, ENV_PORT)
 	}
 
-	server := uiserver.Instance(web, port, cfg, db, updateUrl, updateKey)
+	server := uiserver.Instance(web, port, cfg, updateUrl, updateKey)
 	server.Start()
 	defer server.Stop()
 }

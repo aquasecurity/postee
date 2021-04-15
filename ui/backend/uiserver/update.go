@@ -2,12 +2,14 @@ package uiserver
 
 import (
 	"encoding/json"
-	"github.com/aquasecurity/postee/alertmgr"
-	"github.com/ghodss/yaml"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/aquasecurity/postee/alertmgr"
+	"github.com/ghodss/yaml"
 )
 
 func (srv *uiServer) updateConfig(w http.ResponseWriter, r *http.Request) {
@@ -46,4 +48,24 @@ func (srv *uiServer) updateConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	os.RemoveAll(srv.cfgPath + ".copy")
+
+	err = reloadWebhookCfg(srv.updateUrl, srv.updateKey)
+
+	if err != nil {
+		log.Printf("Can not reload webhook server %v", err)
+		http.Error(w, "Can not reload webhook server", http.StatusBadRequest)
+		return
+	}
+}
+
+func reloadWebhookCfg(url string, key string) error {
+	u := fmt.Sprintf("%s/reload?key=%s", url, key)
+	log.Println(u)
+	resp, err := http.Get(u)
+	if err != nil {
+		return err
+	}
+
+	log.Println(resp.Body)
+	return nil
 }
