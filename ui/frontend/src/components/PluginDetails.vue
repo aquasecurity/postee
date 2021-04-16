@@ -1,7 +1,6 @@
 <template>
   <div class="card mt-4">
     <form @submit.prevent="doSubmit">
-      <!--        <h1>Details for plugin {{ $route.params.name }}</h1> -->
       <div class="card-header">
         <div class="d-flex">
           <div class="p-2 flex-grow-1">{{ settings.type }}</div>
@@ -42,18 +41,18 @@
           :id="'name'"
           :label="'Name'"
           :value="settings.name"
+          :errorMsg="errors['name']"
           :show="!isCommon"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(required)"
+        />
         <PluginCheckboxProperty
           :id="'enable'"
           :label="'Enable plugin'"
           :value="settings.enable"
           :show="!isCommon"
           :inputHandler="updateSettings"
-        >
-        </PluginCheckboxProperty>
+        />
         <PluginProperty
           :id="'user'"
           :label="'User'"
@@ -61,28 +60,31 @@
           :name="'user'"
           :show="showCredentials"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :errorMsg="errors['user']"
+          :validator="v(required)"
+        />
         <PluginProperty
           :id="'password'"
           :label="'Password'"
           :inputType="'password'"
+          :errorMsg="errors['password']"
           :value="settings.password"
           :name="'password'"
           :show="showCredentials"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(required)"
+        />
         <PluginProperty
           :id="'url'"
           :label="'Url'"
           :value="settings.url"
+          :errorMsg="errors['url']"
           :name="'url'"
           :description="getUrlDescription"
           :show="showUrl"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(url)"
+        />
 
         <!-- common properties end-->
         <PluginProperty
@@ -93,76 +95,82 @@
           :description="'url of Aqua Server for links. E.g. https://myserver.aquasec.com'"
           :show="isCommon"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <PluginProperty
           :id="'maxDbSize'"
           :label="'Max Db size'"
+          :inputType="'number'"
           :value="settings.Max_DB_Size"
           :name="'Max_DB_Size'"
           :description="'Max size of DB. MB. if empty then unlimited'"
           :show="isCommon"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <PluginProperty
           :id="'deleteOldData'"
           :label="'Delete old data'"
+          :inputType="'number'"
           :value="settings.Delete_Old_Data"
           :name="'Delete Old Data'"
           :description="'delete data older than N day(s).  If empty then we do not delete.'"
           :show="isCommon"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <PluginProperty
           :id="'dbVerifyInterval'"
           :label="'DB verify interval'"
+          :inputType="'number'"
           :value="settings.DbVerifyInterval"
           :name="'DbVerifyInterval'"
           :description="'hours. an Interval between tests of DB. Default: 1 hour'"
           :show="isCommon"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <!-- common properties end -->
         <!-- email custom properties start -->
         <PluginProperty
           :id="'host'"
           :label="'Host'"
+          :errorMsg="errors['host']"
           :value="settings.host"
           :description="'Mandatory: SMTP host name (e.g. smtp.gmail.com)'"
           :show="isEmail"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(required)"
+        />
         <PluginProperty
           :id="'port'"
           :label="'Port'"
+          :inputType="'number'"
+          :errorMsg="errors['port']"
           :value="settings.port"
           :description="'Mandatory: SMTP server port (e.g. 587)'"
           :show="isEmail"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(required)"
+        />
+
         <PluginProperty
           :id="'sender'"
           :label="'Sender'"
           :value="settings.sender"
           :description="'The email address to use as a sender'"
+          :errorMsg="errors['sender']"
           :show="isEmail"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(required)"
+        />
+
         <PluginProperty
           :id="'recipients'"
           :label="'Recipients'"
           :value="settings.recipients | toString"
           :description="'Mandatory: comma separated list of recipients'"
+          :errorMsg="errors['recipients']"
           :show="isEmail"
           :inputHandler="updateCollection"
-        >
-        </PluginProperty>
+          :validator="v(atLeastOneRequired)"
+        />
 
         <PluginCheckboxProperty
           :id="'useMX'"
@@ -170,9 +178,7 @@
           :value="settings.useMX"
           :show="isEmail"
           :inputHandler="updateSettings"
-        >
-        </PluginCheckboxProperty>
-
+        />
         <!-- email custom properties end -->
 
         <!-- jira custom properties start -->
@@ -181,22 +187,21 @@
           :label="'Project Key'"
           :name="'project_key'"
           :value="settings.project_key"
+          :errorMsg="errors['project_key']"
           :description="'Mandatory. Specify the JIRA project key'"
           :show="isJira"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
-        <div class="form-group form-check" v-show="isJira">
-          <input
-            type="checkbox"
-            class="form-check-input"
-            id="tlsVerify"
-            :checked="settings.tls_verify"
-            @input="updateSettings"
-            name="tls_verify"
-          />
-          <label class="form-check-label" for="tlsVerify">TLS verify</label>
-        </div>
+          :validator="v(required)"
+        />
+
+        <PluginCheckboxProperty
+          :id="'tlsVerify'"
+          :label="'TLS verify'"
+          :value="settings.tls_verify"
+          :name="'tls_verify'"
+          :show="isJira"
+          :inputHandler="updateSettings"
+        />
 
         <PluginProperty
           :id="'board'"
@@ -205,8 +210,8 @@
           :description="'Optional. Specify the Jira board name to open tickets on'"
           :show="isJira"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
+
         <PluginProperty
           :id="'labels'"
           :label="'Labels'"
@@ -214,8 +219,7 @@
           :description="'Optional, specify array of labels to add to Ticket'"
           :show="isJira"
           :inputHandler="updateCollection"
-        >
-        </PluginProperty>
+        />
         <PluginProperty
           :id="'issuetype'"
           :label="'Issue Type'"
@@ -223,8 +227,7 @@
           :description="'Optional. Specifty the issue type to open (Bug, Task, etc.). Default is Task'"
           :show="isJira"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <PluginProperty
           :id="'priority'"
           :label="'Priority'"
@@ -232,8 +235,7 @@
           :description="'Optional. Specify the issues severity. Default is High'"
           :show="isJira"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <PluginProperty
           :id="'assignee'"
           :label="'Assignee'"
@@ -241,8 +243,7 @@
           :description="jiraAssigneeDescription"
           :show="isJira"
           :inputHandler="updateCollection"
-        >
-        </PluginProperty>
+        />
         <!-- jira custom properties end -->
         <!-- serviceNow custom properties start -->
         <PluginProperty
@@ -250,10 +251,11 @@
           :label="'Instance'"
           :value="settings.instance"
           :description="'Mandatory. Name of ServiceNow  or Instance'"
+          :errorMsg="errors['instance']"
           :show="isServiceNow"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(required)"
+        />
         <PluginProperty
           :id="'board'"
           :label="'Board'"
@@ -261,19 +263,19 @@
           :description="'Specify the ServiceNow board name to open tickets on. Default is incident'"
           :show="isServiceNow"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <!-- serviceNow custom properties end -->
         <!-- splunk custom properties start -->
         <PluginProperty
           :id="'token'"
           :label="'Token'"
           :value="settings.token"
+          :errorMsg="errors['token']"
           :description="'Mandatory. a HTTP Event Collector Token'"
           :show="isSplunk"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+          :validator="v(required)"
+        />
         <PluginProperty
           :id="'sizeLimit'"
           :label="'Size Limit'"
@@ -282,8 +284,7 @@
           :description="'Optional. Maximum scan length, in bytes. Default: 10000'"
           :show="isSplunk"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
         <!-- splunk custom properties end -->
 
         <!-- general properties start -->
@@ -297,8 +298,8 @@
           :description="generalProperties['Policy-Min-Vulnerability']"
           :show="showGeneralProperty('Policy-Min-Vulnerability')"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
+
         <PluginProperty
           :id="'policyRegistry'"
           :label="'Policy-Registry'"
@@ -307,8 +308,8 @@
           :description="generalProperties['Policy-Registry']"
           :show="showGeneralProperty('Policy-Registry')"
           :inputHandler="updateCollection"
-        >
-        </PluginProperty>
+        />
+
         <PluginProperty
           :id="'policyImageName'"
           :label="'Policy-Image-Name'"
@@ -317,8 +318,7 @@
           :description="generalProperties['Policy-Image-Name']"
           :show="showGeneralProperty('Policy-Image-Name')"
           :inputHandler="updateCollection"
-        >
-        </PluginProperty>
+        />
 
         <PluginCheckboxProperty
           :id="'policyOnlyFixAvailable'"
@@ -328,8 +328,7 @@
           :show="showGeneralProperty('Policy-Only-Fix-Available')"
           :description="generalProperties['Policy-Only-Fix-Available']"
           :inputHandler="updateSettings"
-        >
-        </PluginCheckboxProperty>
+        />
 
         <PluginCheckboxProperty
           :id="'policyNonCompliant'"
@@ -339,8 +338,7 @@
           :show="showGeneralProperty('Policy-Non-Compliant')"
           :description="generalProperties['Policy-Non-Compliant']"
           :inputHandler="updateSettings"
-        >
-        </PluginCheckboxProperty>
+        />
 
         <PluginCheckboxProperty
           :id="'policyShowAll'"
@@ -350,8 +348,7 @@
           :show="showGeneralProperty('Policy-Show-All')"
           :description="generalProperties['Policy-Show-All']"
           :inputHandler="updateSettings"
-        >
-        </PluginCheckboxProperty>
+        />
 
         <PluginProperty
           :id="'ignoreRegistry'"
@@ -361,8 +358,7 @@
           :description="generalProperties['Ignore-Registry']"
           :show="showGeneralProperty('Ignore-Registry')"
           :inputHandler="updateCollection"
-        >
-        </PluginProperty>
+        />
 
         <PluginProperty
           :id="'ignoreImageName'"
@@ -379,23 +375,23 @@
           :id="'aggregateIssuesNumber'"
           :label="'Aggregate-Issues-Number'"
           :value="settings['Aggregate-Issues-Number']"
+          :inputType="'number'"
           :name="'Aggregate-Issues-Number'"
           :description="generalProperties['Aggregate-Issues-Number']"
           :show="showGeneralProperty('Aggregate-Issues-Number')"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
 
         <PluginProperty
           :id="'aggregateIssuesTimeout'"
           :label="'Aggregate-Issues-Timeout'"
+          :inputType="'number'"
           :value="settings['Aggregate-Issues-Timeout']"
           :name="'Aggregate-Issues-Timeout'"
           :description="generalProperties['Aggregate-Issues-Timeout']"
           :show="showGeneralProperty('Aggregate-Issues-Timeout')"
           :inputHandler="updateSettings"
-        >
-        </PluginProperty>
+        />
 
         <PluginProperty
           :id="'policyOPA'"
@@ -405,8 +401,7 @@
           :description="generalProperties['Policy-OPA']"
           :show="showGeneralProperty('Policy-OPA')"
           :inputHandler="updateCollection"
-        >
-        </PluginProperty>
+        />
 
         <!--  general properties end -->
         <div class="row form-group">
@@ -461,6 +456,7 @@
 </template>
 <script>
 import { mapState } from "vuex";
+import Validator from "./validator";
 import PluginProperty from "./PluginProperty.vue";
 import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
 import generalProperties from "./general-properties";
@@ -479,6 +475,8 @@ export default {
     return {
       id: "",
       addedControls: [],
+      fields: {},
+      errors: {},
       generalProperties,
       selectedControl: "",
       integrationType: "", //stored separately to track dependencies
@@ -534,6 +532,30 @@ export default {
     },
   },
   methods: {
+    url(label, value) {
+      if (!value) {
+        return `${label} is required`;
+      }
+
+      const errorMsg = `Invalid url : ${value}`
+      let url
+      
+      try {
+        url = new URL(value);
+      } catch (_) {
+        return errorMsg;
+      }
+
+      return url.protocol === "http:" || url.protocol === "https:" ? false : errorMsg;
+    },
+    required(label, value) {
+      console.log(value);
+      return !value ? `${label} is required`: false;
+    },
+    atLeastOneRequired(label, value) {
+      console.log(label, value) //TODO
+      return false
+    },
     showGeneralProperty(generalPropertyName) {
       const hasOwnProperty = Object.prototype.hasOwnProperty.call(
         this.settings,
@@ -543,7 +565,39 @@ export default {
         hasOwnProperty || this.addedControls.indexOf(generalPropertyName) >= 0
       );
     },
+    v(validationFn) {
+      return new Validator(this.fields, validationFn);
+    },
     doSubmit() {
+      const fields = this.fields;
+      let invalid = false;
+      let firstElement
+      this.errors = {}
+
+      for (const id in fields) {
+        const validator = fields[id]
+        const validationFn= validator.validationFn
+        const element = document.getElementById(id)
+        if (element) {
+          const r = validationFn(validator.label, this.settings[validator.name])
+          if (r) {
+            this.errors[validator.name] = r
+            if (firstElement === undefined) {
+              firstElement = element
+            }
+            invalid = true
+          }
+        }
+      }
+
+      
+      console.log(this.errors, firstElement);
+
+      if (invalid) {
+        firstElement.focus();
+        return
+      }
+      
       if (this.id) {
         this.$store.commit("updateSettings", {
           value: this.settings,
