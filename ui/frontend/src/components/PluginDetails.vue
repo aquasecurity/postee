@@ -460,6 +460,7 @@ import Validator from "./validator";
 import PluginProperty from "./PluginProperty.vue";
 import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
 import generalProperties from "./general-properties";
+import {ADD_SETTINGS_ACTION, UPDATE_SETTINGS_ACTION, REMOVE_SETTINGS_ACTION} from "../store/store"
 
 const urlDescriptionByType = {
   splunk: "Mandatory. Url of a Splunk server",
@@ -609,12 +610,12 @@ export default {
       }
       
       if (this.id) {
-        this.$store.commit("updateSettings", {
+        this.$store.dispatch(UPDATE_SETTINGS_ACTION, {
           value: this.settings,
           id: this.id,
         });
       } else {
-        this.$store.commit("addSettings", this.settings);
+        this.$store.dispatch(ADD_SETTINGS_ACTION, this.settings);
       }
       this.$router.push({ name: "home" });
     },
@@ -641,7 +642,7 @@ export default {
       this.addedControls.push(this.selectedControl);
     },
     doRemove() {
-      this.$store.commit("removeSettings", this.id);
+      this.$store.dispatch(REMOVE_SETTINGS_ACTION, this.id);
       this.$router.push({ name: "home" });
     },
   },
