@@ -158,7 +158,7 @@
           :errorMsg="errors['sender']"
           :show="isEmail"
           :inputHandler="updateSettings"
-          :validator="v(required)"
+          :validator="v(email)"
         />
 
         <PluginProperty
@@ -169,7 +169,7 @@
           :errorMsg="errors['recipients']"
           :show="isEmail"
           :inputHandler="updateCollection"
-          :validator="v(atLeastOneRequired)"
+          :validator="v(recipients)"
         />
 
         <PluginCheckboxProperty
@@ -548,13 +548,26 @@ export default {
 
       return url.protocol === "http:" || url.protocol === "https:" ? false : errorMsg;
     },
+    email(label, value) {
+      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      return re.test(String(value).toLowerCase())? false : `Invalid email '${value}'`
+    },
     required(label, value) {
-      console.log(value);
       return !value ? `${label} is required`: false;
     },
-    atLeastOneRequired(label, value) {
-      console.log(label, value) //TODO
-      return false
+    recipients(label, value) {
+      const hasOneElement = value && value.length && value[0]
+      if (!hasOneElement) {
+        return `At least one of ${label} is required`
+      } else {
+        for (const email of value) {
+          const v = this.email("-", email);
+          if (v) {
+            return v;
+          }
+        }
+      }
+      return  false
     },
     showGeneralProperty(generalPropertyName) {
       const hasOwnProperty = Object.prototype.hasOwnProperty.call(
@@ -589,9 +602,6 @@ export default {
           }
         }
       }
-
-      
-      console.log(this.errors, firstElement);
 
       if (invalid) {
         firstElement.focus();
