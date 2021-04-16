@@ -52,16 +52,15 @@ func TestHandlingRego(t *testing.T) {
 
 	demoPlugin := &demoEventPlugin{}
 	demoPlugin.settings = &settings.Settings{
-		PolicyOPA:               []string{demoRegoFileName},
+		PolicyOPA: []string{demoRegoFileName},
 	}
 	plgns := make(map[string]plugins.Plugin)
 	plgns["demoEventPlugin"] = demoPlugin
 	evntsrvs := &EventService{}
 
-
-	tests := []struct{
-		input string
-		isCorrect bool
+	tests := []struct {
+		input        string
+		isCorrect    bool
 		shouldRemove bool
 	}{
 		{demoRegoCorrectEvent, true, false},
@@ -76,7 +75,7 @@ func TestHandlingRego(t *testing.T) {
 		}
 		demoPlugin.resetSending()
 		evntsrvs.ResultHandling(test.input, plgns)
-		time.Sleep(200*time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		if demoPlugin.isSent() != test.isCorrect {
 			t.Errorf("evntsrvs.ResultHandling(%q) was sent: %T, wanted %T", test.input, demoPlugin.wasSend, test.isCorrect)
 		}

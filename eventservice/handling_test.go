@@ -10,11 +10,12 @@ import (
 )
 
 type demoEventPlugin struct {
-	mut sync.Mutex
-	wasSend bool
-	buff    *chan struct{}
+	mut      sync.Mutex
+	wasSend  bool
+	buff     *chan struct{}
 	settings *settings.Settings
 }
+
 func (plg *demoEventPlugin) resetSending() {
 	plg.mut.Lock()
 	defer plg.mut.Unlock()
