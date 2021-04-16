@@ -5,18 +5,34 @@ import (
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/settings"
+	"sync"
 	"testing"
 )
 
 type demoEventPlugin struct {
+	mut sync.Mutex
 	wasSend bool
 	buff    *chan struct{}
+	settings *settings.Settings
+}
+func (plg *demoEventPlugin) resetSending() {
+	plg.mut.Lock()
+	defer plg.mut.Unlock()
+	plg.wasSend = false
+}
+func (plg *demoEventPlugin) isSent() bool {
+	plg.mut.Lock()
+	defer plg.mut.Unlock()
+	return plg.wasSend
 }
 
 func (plg *demoEventPlugin) Send(map[string]string) error {
 	if plg.buff != nil {
 		*plg.buff <- struct{}{}
 	}
+	plg.mut.Lock()
+	plg.wasSend = true
+	defer plg.mut.Unlock()
 	return nil
 }
 
@@ -25,7 +41,7 @@ func (plg *demoEventPlugin) Terminate() error { return nil }
 func (plg *demoEventPlugin) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
-func (plg *demoEventPlugin) GetSettings() *settings.Settings { return nil }
+func (plg *demoEventPlugin) GetSettings() *settings.Settings { return plg.settings }
 
 func TestHandlingResult(t *testing.T) {
 	ch := make(chan struct{})
