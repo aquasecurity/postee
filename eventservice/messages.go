@@ -16,8 +16,8 @@ func GetMessage(event *WebhookEvent) string {
 		})
 	default:
 		return renderDefaultTemplate(&defaultData{
-			User: event.User,
-			IP:   event.SourceIP,
+			User:   event.User,
+			IP:     event.SourceIP,
 			Action: action,
 		})
 	}
@@ -43,10 +43,11 @@ func renderLoginTemplate(data *loginData) string {
 }
 
 type defaultData struct {
-	User string
-	IP string
+	User   string
+	IP     string
 	Action string
 }
+
 const defaultTemplate = `User {{ .User }}
 {{if .IP}}
 from IP {{ .IP}}
