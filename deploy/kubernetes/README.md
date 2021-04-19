@@ -29,7 +29,7 @@ To deploy the Postee Integration on Kubernetes do the following:
 5. Create the Postee Integration deployment and service
 
  ``` bash
- kubectl create -n aqua -f webhook.yaml
+ kubectl create -n aqua -f postee.yaml
  ```
 
 > Get the service `kubectl -n aqua get service`
