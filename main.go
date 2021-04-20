@@ -28,6 +28,7 @@ var (
 	url       = ""
 	tls       = ""
 	cfgFolder = ""
+	done      = make(chan bool, 1)
 )
 
 var rootCmd = &cobra.Command{
@@ -82,7 +83,12 @@ func main() {
 			return
 		}
 
-		go alertmgr.Instance().Start(files)
+		go func() {
+			if err := alertmgr.Instance().Start(files); err != nil {
+				log.Printf("Init Alert Manager error: %v", err)
+				done <- true
+			}
+		}()
 		defer alertmgr.Instance().Terminate()
 
 		go webserver.Instance().Start(url, tls)
@@ -95,7 +101,6 @@ func main() {
 
 func Daemonize() {
 	sigs := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
