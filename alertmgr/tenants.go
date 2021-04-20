@@ -7,4 +7,5 @@ type TenantSettings struct {
 	DBRemoveOldData int              `json:"Delete_Old_Data"`
 	DBTestInterval  int              `json:"DbVerifyInterval"`
 	Integrations    []PluginSettings `json:"Integrations"`
+	InputRules      []InputRules     `json:"Rules"`
 }

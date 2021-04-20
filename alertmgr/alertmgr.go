@@ -1,6 +1,7 @@
 package alertmgr
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/aquasecurity/postee/dbservice"
@@ -152,9 +153,22 @@ func (ctx *AlertMgr) load() error {
 		}
 		if len(ctx.plugins[name]) == 0 {
 			log.Printf("There aren't started plugins for %q (%q)", name, file)
+			continue
 		} else {
 			wasLoaded = true
 		}
+		var buff bytes.Buffer
+		for i, rule := range tenant.InputRules {
+			if i > 0 {
+				buff.WriteByte(',')
+			}
+			buff.WriteString(rule.Name)
+			buff.WriteString("(")
+			buff.WriteString(strings.Join(rule.Regos, ","))
+			buff.WriteString(")")
+		}
+
+		log.Printf("For %q will use next rules: %s", name, buff.String())
 	}
 	if !wasLoaded {
 		return errNoPlugins
