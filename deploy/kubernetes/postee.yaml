@@ -4,21 +4,21 @@ kind: Service
 metadata:
   creationTimestamp: null
   labels:
-    app: aqua-webhook
+    app: aqua-postee
   name: postee-svc
   namespace: aqua
 spec:
   ports:
-    - name: aqua-webhook-ssl
+    - name: aqua-postee-ssl
       port: 8443
       protocol: TCP
       targetPort: 8445
-    - name: aqua-webhook
+    - name: aqua-postee
       port: 8080
       protocol: TCP
       targetPort: 8082
   selector:
-    app: aqua-webhook
+    app: aqua-postee
   type: ClusterIP
 status:
   loadBalancer: {}
@@ -28,21 +28,21 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    app: aqua-webhook
+    app: aqua-postee
   name: postee
   namespace: aqua
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: aqua-webhook
+      app: aqua-postee
   strategy: {}
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: aqua-webhook
-      name: aqua-webhook
+        app: aqua-postee
+      name: aqua-postee
       namespace: aqua
     spec:
       initContainers:
@@ -51,15 +51,15 @@ spec:
           command:
             - /bin/chown
             - -R
-            - "1099"  # webhook UID
+            - "1099"  
             - /server/database
           volumeMounts:
-            - name: webhook-db
+            - name: postee-db
               mountPath: /server/database
       containers:
         - image: aquasec/postee:latest
           imagePullPolicy: Always
-          name: aqua-webhook
+          name: aqua-postee
           env:
             - name: AQUAALERT_CFG
               value: /policy/cfg.yaml
@@ -74,8 +74,8 @@ spec:
             - name: config-volume
               mountPath: /policy
             - name: rego-config
-              mountPath: /config
-            - name: webhook-db
+              mountPath: /rego
+            - name: postee-db
               mountPath: /server/database
       volumes:
         - configMap:
@@ -84,7 +84,7 @@ spec:
         - configMap:
             name: rego-config
           name: rego-config
-        - name: webhook-db
+        - name: postee-db
           emptyDir: {}
           # In case to configure PVC - OPTIONAL
           # persistentVolumeClaim:
