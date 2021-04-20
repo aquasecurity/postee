@@ -17,6 +17,7 @@
 <script>
 import PluginCard from './PluginCard.vue';
 import { mapState} from 'vuex'
+import api from '../api'
 
 export default {
     components: {
@@ -29,5 +30,28 @@ export default {
             }
         })
     },
+    mounted() {
+        if (this.$store.state.userInfo.authenticated) {
+        this.$store.dispatch("load");
+        this.$store.dispatch("loadStats");
+        } else {
+        if (this.$router.currentRoute.name!="login" ) {
+
+            api.login().then(()=> {
+            this.$store.commit("updateUserInfo", {authenticated: true});
+            this.$store.dispatch("load");
+            this.$store.dispatch("loadStats");
+
+            }).catch(err => {
+            if (err.response.status === 401) {
+                this.$router.push({ name: "login" })
+            }
+            });
+
+        }
+        }
+
+    },
+
 }
 </script>

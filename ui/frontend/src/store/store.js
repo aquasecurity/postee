@@ -10,6 +10,7 @@ Vue.use(Vuex)
 
 
 export const LOAD_ACTION = "load"
+export const LOGIN_ACTION = "login"
 export const LOAD_STATS_ACTION = "loadStats"
 export const UPDATE_SETTINGS_ACTION = "updateSettings"
 export const ADD_SETTINGS_ACTION = "addSettings"
@@ -22,9 +23,21 @@ export default new Vuex.Store({
         },
         stats: {
         },
-        error: undefined
+        error: undefined,
+        userInfo: {
+            authenticated: false
+        }
     },
     actions: {
+        [LOGIN_ACTION](context, { username, password }) {
+            api.login(username, password).then(() => {
+                context.commit('updateUserInfo', { authenticated: true })
+            }).catch(error => {
+                if (error.response.status === 401) {
+                    console.log(context);
+                }
+            })
+        },
         [LOAD_ACTION](context) {
             api.getConfig().then((response) => {
                 for (const entry of response.data) {
@@ -84,6 +97,9 @@ export default new Vuex.Store({
         },
         updateSettings(state, entries) {
             state.config.entries = [...entries]
+        },
+        updateUserInfo(state, info) {
+            state.userInfo = { ...info }
         },
         ajaxError(state, error) {
             Vue.set(state, 'error', error)

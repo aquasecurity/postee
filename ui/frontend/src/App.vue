@@ -21,13 +21,9 @@ export default {
     ...mapState({
       error(state) {
         return state.error;
-      },
+      }
     }),
-  },
-  mounted() {
-    this.$store.dispatch("load");
-    this.$store.dispatch("loadStats");
-  },
+  }
 };
 </script>
 

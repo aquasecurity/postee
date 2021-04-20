@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 )
 
 type uiServer struct {
@@ -14,6 +16,7 @@ type uiServer struct {
 	updateUrl  string
 	updateKey  string
 	router     *mux.Router
+	store      *sessions.CookieStore
 }
 
 func Instance(webLocalPath, port, cfg, updateUrl, updateKey string) *uiServer {
@@ -24,9 +27,26 @@ func Instance(webLocalPath, port, cfg, updateUrl, updateKey string) *uiServer {
 		updateKey: updateKey,
 		router:    mux.NewRouter().StrictSlash(true),
 	}
-	server.router.HandleFunc("/update", server.updateConfig).Methods("POST")
-	server.router.HandleFunc("/plugins", server.pluginList).Methods("GET")
-	server.router.HandleFunc("/plugins/stats", server.plgnStats).Methods("GET")
+	authKeyOne := securecookie.GenerateRandomKey(64)
+	encryptionKeyOne := securecookie.GenerateRandomKey(32)
+
+	server.store = sessions.NewCookieStore(
+		authKeyOne,
+		encryptionKeyOne,
+	)
+
+	server.store.Options = &sessions.Options{
+		MaxAge:   60 * 15, //15 minutes
+		HttpOnly: true,
+	}
+
+	server.router.Use(server.authenticationMiddleware)
+
+	server.router.HandleFunc("/api/login", server.login).Methods("POST")
+	server.router.HandleFunc("/api/logout", server.login).Methods("GET")
+	server.router.HandleFunc("/api/update", server.updateConfig).Methods("POST")
+	server.router.HandleFunc("/api/plugins", server.pluginList).Methods("GET")
+	server.router.HandleFunc("/api/plugins/stats", server.plgnStats).Methods("GET")
 
 	web := &localWebServer{
 		localPath: webLocalPath,
