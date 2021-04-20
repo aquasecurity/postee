@@ -4,5 +4,5 @@ type InputRules struct {
 	Name         string   `json:"name"`
 	InputType    string   `json:"type"`
 	Integrations []string `json:"integrations"`
-	Regos        []string `json:"RegoFiles"`
+	PolicyOPA    []string `json:"Policy-OPA"`
 }
