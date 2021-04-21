@@ -8,12 +8,14 @@ import (
 )
 
 const (
-	ENV_FILELOG    = "POSTEE_UI_LOGFILE"
-	ENV_CFG        = "POSTEE_UI_CFG"
-	ENV_WEB        = "POSTEE_UI_WEB"
-	ENV_UPDATE_URL = "POSTEE_UI_UPDATE_URL"
-	ENV_UPDATE_KEY = "POSTEE_UI_KEY"
-	ENV_PORT       = "POSTEE_UI_PORT"
+	ENV_FILELOG        = "POSTEE_UI_LOGFILE"
+	ENV_CFG            = "POSTEE_UI_CFG"
+	ENV_WEB            = "POSTEE_UI_WEB"
+	ENV_UPDATE_URL     = "POSTEE_UI_UPDATE_URL"
+	ENV_UPDATE_KEY     = "POSTEE_UI_KEY"
+	ENV_PORT           = "POSTEE_UI_PORT"
+	ENV_ADMIN_USER     = "POSTEE_ADMIN_USER"
+	ENV_ADMIN_PASSWORD = "POSTEE_ADMIN_PASSWORD"
 
 	DEFAULT_WEB_PATH = "/uiserver/www"
 )
@@ -53,7 +55,19 @@ func main() {
 		log.Printf("WARNING! Using a default port: %s. You can change it via %q environment variable.", port, ENV_PORT)
 	}
 
-	server := uiserver.Instance(web, port, cfg, updateUrl, updateKey)
+	admusr := os.Getenv(ENV_ADMIN_USER)
+	if admusr == "" {
+		admusr = "admin"
+		log.Printf("WARNING! Using a default admin user. You can change it via %q environment variable.", ENV_ADMIN_USER)
+	}
+
+	admpwd := os.Getenv(ENV_ADMIN_PASSWORD)
+	if admpwd == "" {
+		admpwd = "admin"
+		log.Printf("WARNING! Using a default admin password. You can change it via %q environment variable.", ENV_ADMIN_PASSWORD)
+	}
+
+	server := uiserver.Instance(web, port, cfg, updateUrl, updateKey, admusr, admpwd)
 	server.Start()
 	defer server.Stop()
 }

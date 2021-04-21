@@ -15,16 +15,20 @@ type uiServer struct {
 	boltDbPath string
 	updateUrl  string
 	updateKey  string
+	admusr     string
+	admpwd     string
 	router     *mux.Router
 	store      *sessions.CookieStore
 }
 
-func Instance(webLocalPath, port, cfg, updateUrl, updateKey string) *uiServer {
+func Instance(webLocalPath, port, cfg, updateUrl, updateKey string, admusr string, admpwd string) *uiServer {
 	server := &uiServer{
 		port:      port,
 		cfgPath:   cfg,
 		updateUrl: updateUrl,
 		updateKey: updateKey,
+		admusr:    admusr,
+		admpwd:    admpwd,
 		router:    mux.NewRouter().StrictSlash(true),
 	}
 	authKeyOne := securecookie.GenerateRandomKey(64)
@@ -43,7 +47,7 @@ func Instance(webLocalPath, port, cfg, updateUrl, updateKey string) *uiServer {
 	server.router.Use(server.authenticationMiddleware)
 
 	server.router.HandleFunc("/api/login", server.login).Methods("POST")
-	server.router.HandleFunc("/api/logout", server.login).Methods("GET")
+	server.router.HandleFunc("/api/logout", server.logout).Methods("GET")
 	server.router.HandleFunc("/api/update", server.updateConfig).Methods("POST")
 	server.router.HandleFunc("/api/plugins", server.pluginList).Methods("GET")
 	server.router.HandleFunc("/api/plugins/stats", server.plgnStats).Methods("GET")

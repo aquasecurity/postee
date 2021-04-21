@@ -19,11 +19,11 @@ func (srv *uiServer) login(w http.ResponseWriter, r *http.Request) {
 	log.Printf("session user %s\n", session.Values["user"])
 
 	if session.Values["user"] == nil {
-		log.Printf("username %s\n", r.FormValue("username"))
-		log.Printf("password %s\n", r.FormValue("password"))
+		frmusr := r.FormValue("username")
+		frmpwd := r.FormValue("password")
 
-		if r.FormValue("username") != "" { //TODO validate
-			session.Values["user"] = "admin"
+		if frmusr == srv.admusr && frmpwd == srv.admpwd {
+			session.Values["user"] = frmusr
 			err = session.Save(r, w)
 
 			if err != nil {
@@ -40,6 +40,7 @@ func (srv *uiServer) login(w http.ResponseWriter, r *http.Request) {
 
 func (srv *uiServer) logout(w http.ResponseWriter, r *http.Request) {
 	session, err := srv.store.Get(r, sessioncookiename)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -53,5 +54,4 @@ func (srv *uiServer) logout(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
 }

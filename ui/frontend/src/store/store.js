@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './../api'
+import {router} from './../main'
 
 
 const enrichId = entry => {
@@ -11,10 +12,17 @@ Vue.use(Vuex)
 
 export const LOAD_ACTION = "load"
 export const LOGIN_ACTION = "login"
+export const LOGOUT_ACTION = "logout"
 export const LOAD_STATS_ACTION = "loadStats"
 export const UPDATE_SETTINGS_ACTION = "updateSettings"
 export const ADD_SETTINGS_ACTION = "addSettings"
 export const REMOVE_SETTINGS_ACTION = "removeSettings"
+
+export const USER_INFO_MUTATION = "updateUserInfo"
+export const ERROR_MUTATION = "ajaxError"
+export const CLEAR_ERROR_MUTATION = "clearAjaxError"
+export const STATS_MUTATION = "updateStats"
+export const CONFIG_MUTATION = "updateSettings"
 
 export default new Vuex.Store({
     state: {
@@ -23,7 +31,7 @@ export default new Vuex.Store({
         },
         stats: {
         },
-        error: undefined,
+        error: {},
         userInfo: {
             authenticated: false
         }
@@ -31,11 +39,21 @@ export default new Vuex.Store({
     actions: {
         [LOGIN_ACTION](context, { username, password }) {
             api.login(username, password).then(() => {
-                context.commit('updateUserInfo', { authenticated: true })
+                context.commit(USER_INFO_MUTATION, { authenticated: true })
+                context.commit(CLEAR_ERROR_MUTATION)
+                router.push({ name: "home" });
             }).catch(error => {
                 if (error.response.status === 401) {
-                    console.log(context);
+                    context.commit(ERROR_MUTATION, "Invalid credentials")
                 }
+            })
+        },
+        [LOGOUT_ACTION](context) {
+            api.logout().then(()=>{
+                context.commit(USER_INFO_MUTATION, { authenticated: false })
+                router.push({ name: "login" });
+            }).catch(error => {
+                context.commit(ERROR_MUTATION, error.response.data)
             })
         },
         [LOAD_ACTION](context) {
@@ -43,16 +61,16 @@ export default new Vuex.Store({
                 for (const entry of response.data) {
                     enrichId(entry)
                 }
-                context.commit('updateSettings', response.data)
+                context.commit(CONFIG_MUTATION, response.data)
             }).catch((error) => {
-                context.commit('ajaxError', error.response.data)
+                context.commit(ERROR_MUTATION, error.response.data)
             })
         },
         [LOAD_STATS_ACTION](context) {
             api.getStats().then((response) => {
-                context.commit('loadStats', response.data)
+                context.commit(STATS_MUTATION, response.data)
             }).catch((error) => {
-                context.commit('ajaxError', error.response.data)
+                context.commit(ERROR_MUTATION, error.response.data)
             })
         },
         [UPDATE_SETTINGS_ACTION](context, payload) {
@@ -66,18 +84,18 @@ export default new Vuex.Store({
             }
 
             api.saveConfig(entries).then(
-                context.commit('updateSettings', entries)
+                context.commit(CONFIG_MUTATION, entries)
             ).catch((error) => {
-                context.commit('ajaxError', error.response.data)
+                context.commit(ERROR_MUTATION, error.response.data)
             })
 
         },
         [REMOVE_SETTINGS_ACTION](context, id) {
             const filtered = context.state.config.entries.filter(item => item.id != id)
             api.saveConfig(filtered).then(
-                context.commit('updateSettings', filtered)
+                context.commit(CONFIG_MUTATION, filtered)
             ).catch((error) => {
-                context.commit('ajaxError', error.response.data)
+                context.commit(ERROR_MUTATION, error.response.data)
             })
         },
         [ADD_SETTINGS_ACTION](context, settings) {
@@ -85,24 +103,27 @@ export default new Vuex.Store({
             enrichId(settings)
             entries.push(settings)
             api.saveConfig(entries).then(
-                context.commit('updateSettings', entries)
+                context.commit(CONFIG_MUTATION, entries)
             ).catch((error) => {
-                context.commit('ajaxError', error.response.data)
+                context.commit(ERROR_MUTATION, error.response.data)
             })
         }
     },
     mutations: {
-        loadStats(state, payload) {
+        [STATS_MUTATION](state, payload) {
             state.stats = { ...payload }
         },
-        updateSettings(state, entries) {
+        [CONFIG_MUTATION](state, entries) {
             state.config.entries = [...entries]
         },
-        updateUserInfo(state, info) {
+        [USER_INFO_MUTATION](state, info) {
             state.userInfo = { ...info }
         },
-        ajaxError(state, error) {
-            Vue.set(state, 'error', error)
+        [ERROR_MUTATION](state, error) {
+            state.error = { ...{ message: error } }
+        },
+        [CLEAR_ERROR_MUTATION](state) {
+            state.error = {}
         }
     }
 })

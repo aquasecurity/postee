@@ -18,6 +18,7 @@
 import PluginCard from './PluginCard.vue';
 import { mapState} from 'vuex'
 import api from '../api'
+import {LOAD_ACTION, LOAD_STATS_ACTION, USER_INFO_MUTATION} from '../store/store'
 
 export default {
     components: {
@@ -30,17 +31,21 @@ export default {
             }
         })
     },
+    methods : {
+        startLoading () {
+            this.$store.dispatch(LOAD_ACTION);
+            this.$store.dispatch(LOAD_STATS_ACTION);
+        }
+    },
     mounted() {
         if (this.$store.state.userInfo.authenticated) {
-        this.$store.dispatch("load");
-        this.$store.dispatch("loadStats");
+            this.startLoading()
         } else {
         if (this.$router.currentRoute.name!="login" ) {
 
             api.login().then(()=> {
-            this.$store.commit("updateUserInfo", {authenticated: true});
-            this.$store.dispatch("load");
-            this.$store.dispatch("loadStats");
+            this.$store.commit(USER_INFO_MUTATION, {authenticated: true});
+            this.startLoading()
 
             }).catch(err => {
             if (err.response.status === 401) {

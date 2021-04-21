@@ -5,7 +5,7 @@
     <input
       type="username"
       id="username"
-      class="form-control"
+      class="form-control mb-3"
       v-model="username"
       placeholder="Username"
       required=""
@@ -15,12 +15,13 @@
     <input
       type="password"
       id="inputPassword"
-      class="form-control"
+      class="form-control mb-3"
       v-model="password"
+      v-on:keyup.enter="doSubmit"
       placeholder="Password"
       required=""
     />
-    <div class="checkbox mb-3">
+    <div class="checkbox">
       <label> <input type="checkbox" value="remember-me" /> Remember me </label>
     </div>
     <button class="btn btn-lg btn-primary btn-block" type="submit">
@@ -52,7 +53,6 @@ export default {
         username: this.username,
         password: this.password,
       });
-      this.$router.push({ name: "home" });
     },
   },
 };

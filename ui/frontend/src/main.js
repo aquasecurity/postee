@@ -21,7 +21,6 @@ export const router = new VueRouter({
   routes, mode: 'history'
 });
 
-//Vue.config.productionTip = false
 new Vue({
   router,
   store,
