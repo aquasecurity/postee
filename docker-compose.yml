@@ -1,5 +1,18 @@
 version: "3"
 services:
+    posteewebhook:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - 8082:8082
+        volumes:
+            - /home/andrey/work/aquasecurity:/server/database
+            - /home/andrey/work/aquasecurity/postee:/config
+        environment:
+            - "AQUAALERT_CFG=/config/cfg.yaml"
+            - "AQUAALERT_DEBUG=ON"
+            - "RELOAD_KEY=S3cr3t"
     posteeui:
         build:
             context: .
@@ -12,5 +25,5 @@ services:
         environment:
             - "POSTEE_UI_CFG=/config/cfg.yaml"
             - "POSTEE_UI_PORT=8000"
-            - "POSTEE_UI_UPDATE_URL=http://172.18.0.1:8082"
+            - "POSTEE_UI_UPDATE_URL=http://posteewebhook:8082"
             - "POSTEE_UI_KEY=S3cr3t"

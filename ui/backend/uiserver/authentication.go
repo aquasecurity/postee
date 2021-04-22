@@ -1,7 +1,6 @@
 package uiserver
 
 import (
-	"log"
 	"net/http"
 )
 
@@ -13,10 +12,8 @@ func (srv *uiServer) login(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	session, err := srv.store.Get(r, sessioncookiename)
 	if err != nil {
-		log.Printf("Get session error %s\n", err)
 		session, err = srv.store.New(r, sessioncookiename)
 	}
-	log.Printf("session user %s\n", session.Values["user"])
 
 	if session.Values["user"] == nil {
 		frmusr := r.FormValue("username")
@@ -27,7 +24,6 @@ func (srv *uiServer) login(w http.ResponseWriter, r *http.Request) {
 			err = session.Save(r, w)
 
 			if err != nil {
-				log.Printf("Write session error %s\n", err)
 				http.Error(w, err.Error(), http.StatusUnauthorized)
 				return
 			}

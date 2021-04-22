@@ -26,8 +26,11 @@ import {
 export default {
   name: "App",
   watch: {
-    $route() {
+    $route(to) {
       this.$store.commit(CLEAR_ERROR_MUTATION);
+      if(to.name === 'home' && !this.$store.state.config.entries.length) {
+        this.startLoading();
+      }
     },
   },
   computed: {
