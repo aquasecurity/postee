@@ -95,6 +95,14 @@ var baseForTicker = time.Hour
 
 var osStat = os.Stat
 
+var ignoreAuthorization map[string]bool = map[string]bool{
+	"slack":   true,
+	"teams":   true,
+	"webhook": true,
+	"email":   true,
+	"splunk":  true,
+}
+
 func buildSettings(sourceSettings *PluginSettings) *settings.Settings {
 	var timeout int
 	var err error
@@ -314,14 +322,6 @@ func (ctx *AlertMgr) load() error {
 		}
 	}
 
-	ignoreAuthorization := map[string]bool{
-		"slack":   true,
-		"teams":   true,
-		"webhook": true,
-		"email":   true,
-		"splunk":  true,
-	}
-
 	for _, settings := range pluginSettings {
 		utils.Debug("%#v\n", settings)
 		if settings.Type == "common" {
@@ -357,41 +357,53 @@ func (ctx *AlertMgr) load() error {
 		}
 
 		if settings.Enable {
-			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0 && !ignoreAuthorization[settings.Type] {
-				log.Printf("User for %q is empty", settings.Name)
-				continue
+			plg := BuildAndInitPlg(&settings)
+			if plg != nil {
+				ctx.plugins[settings.Name] = plg
 			}
-			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 && !ignoreAuthorization[settings.Type] {
-				log.Printf("Password for %q is empty", settings.Name)
-				continue
-			}
-			utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
-			switch settings.Type {
-			case "jira":
-				ctx.plugins[settings.Name] = buildJiraPlugin(&settings)
-			case "email":
-				ctx.plugins[settings.Name] = buildEmailPlugin(&settings)
-			case "slack":
-				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
-			case "teams":
-				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings)
-			case "serviceNow":
-				ctx.plugins[settings.Name] = buildServiceNow(&settings)
-			case "webhook":
-				ctx.plugins[settings.Name] = buildWebhookPlugin(&settings)
-			case "splunk":
-				ctx.plugins[settings.Name] = buildSplunkPlugin(&settings)
-			default:
-				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
-					settings.Type, settings.Name)
-				continue
-			}
-			ctx.plugins[settings.Name].Init()
 		}
 	}
 	return nil
+}
+func BuildAndInitPlg(settings *PluginSettings) plugins.Plugin {
+	var plg plugins.Plugin
+
+	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
+	if len(settings.User) == 0 && !ignoreAuthorization[settings.Type] {
+		log.Printf("User for %q is empty", settings.Name)
+		return nil
+	}
+	settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
+	if len(settings.Password) == 0 && !ignoreAuthorization[settings.Type] {
+		log.Printf("Password for %q is empty", settings.Name)
+		return nil
+	}
+
+	utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
+
+	switch settings.Type {
+	case "jira":
+		plg = buildJiraPlugin(settings)
+	case "email":
+		plg = buildEmailPlugin(settings)
+	case "slack":
+		plg = buildSlackPlugin(settings)
+	case "teams":
+		plg = buildTeamsPlugin(settings)
+	case "serviceNow":
+		plg = buildServiceNow(settings)
+	case "webhook":
+		plg = buildWebhookPlugin(settings)
+	case "splunk":
+		plg = buildSplunkPlugin(settings)
+	default:
+		log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
+			settings.Type, settings.Name)
+		return nil
+	}
+	plg.Init()
+
+	return plg
 }
 
 func (ctx *AlertMgr) listen() {

@@ -52,7 +52,9 @@ export default {
       this.$store.dispatch(LOGIN_ACTION, {
         username: this.username,
         password: this.password,
-      });
+      }).then(()=>{
+        this.$router.push({ name: "home" })
+      }).catch(()=>{});
     },
   },
 };

@@ -11,6 +11,7 @@ Vue.use(Vuex)
 
 
 export const LOAD_ACTION = "load"
+export const TEST_ACTION = "test"
 export const LOGIN_ACTION = "login"
 export const LOGOUT_ACTION = "logout"
 export const LOAD_STATS_ACTION = "loadStats"
@@ -37,15 +38,32 @@ export default new Vuex.Store({
         }
     },
     actions: {
-        [LOGIN_ACTION](context, { username, password }) {
-            api.login(username, password).then(() => {
-                context.commit(USER_INFO_MUTATION, { authenticated: true })
-                context.commit(CLEAR_ERROR_MUTATION)
-                router.push({ name: "home" });
-            }).catch(error => {
-                if (error.response.status === 401) {
-                    context.commit(ERROR_MUTATION, "Invalid credentials")
-                }
+        [TEST_ACTION](context, settings) {
+            return new Promise ( (resolve, reject) => {
+                api.test(settings).then(()=>{
+                    resolve();
+                }).catch(error => {
+                    context.commit(ERROR_MUTATION, error.response.data)
+                    reject(error.response.data);
+                })
+            })
+        },
+        [LOGIN_ACTION](context, payload) {
+            const { username, password } = payload || {}
+            return new Promise ( (resolve, reject) => {
+                    api.login(username, password).then(() => {
+                        context.commit(USER_INFO_MUTATION, { authenticated: true })
+                        context.commit(CLEAR_ERROR_MUTATION)
+                        resolve()
+                }).catch(error => {
+                    if (username && password) {
+                        const errorMsg = error.response.status === 401 ? "Invalid credentials" : error.response.data;
+                        context.commit(ERROR_MUTATION, errorMsg)
+                        reject(errorMsg)
+                    } else {
+                        reject() //just checking
+                    }
+                })
             })
         },
         [LOGOUT_ACTION](context) {

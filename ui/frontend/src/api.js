@@ -11,6 +11,10 @@ export default {
         return axios.post("/api/update", settings) //TODO use same resource for both
 
     },
+    test: function (settings) {
+        return axios.post("/api/test", settings)
+
+    },
     login: function (username, password) {
         const bodyFormData = new FormData();
 

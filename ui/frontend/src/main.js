@@ -4,10 +4,12 @@ import App from './App.vue'
 import Home from './components/Home.vue'
 import LoginForm from './components/LoginForm.vue'
 import PluginDetails from './components/PluginDetails.vue'
+import { BootstrapVue } from 'bootstrap-vue'
 import store from './store/store'
-import VueCookies from 'vue-cookies'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-Vue.use(VueCookies)
+Vue.use(BootstrapVue);
 Vue.use(VueRouter);
 
 const routes = [

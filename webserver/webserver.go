@@ -31,6 +31,24 @@ func Instance() *WebServer {
 	})
 	return wsCtx
 }
+func (ctx *WebServer) withApiKey(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		correctKey := os.Getenv("RELOAD_KEY")
+
+		if len(correctKey) == 0 {
+			log.Print("reload API key is empty! You need to set an environment variable 'RELOAD_KEY'")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		if key := r.URL.Query().Get("key"); key != correctKey {
+			log.Printf("reload API received an incorrect key %q", key)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		next(w, r)
+	}
+}
 
 func (ctx *WebServer) Start(host, tlshost string) {
 	log.Printf("Starting WebServer....")
@@ -54,7 +72,9 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("POST")
-	ctx.router.HandleFunc("/reload", ctx.reload).Methods("GET")
+
+	ctx.router.HandleFunc("/test", ctx.withApiKey(ctx.testSettings)).Methods("POST")
+	ctx.router.HandleFunc("/reload", ctx.withApiKey(ctx.reload)).Methods("GET")
 
 	go func() {
 		log.Printf("Listening for HTTP on %s ", host)

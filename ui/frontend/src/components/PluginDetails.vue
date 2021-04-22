@@ -440,16 +440,14 @@
           </div>
         </div>
 
-        <ul class="nav">
-          <li class="nav-item">
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </li>
-          <li class="nav-item">
-            <router-link :to="{ name: 'home' }" class="nav-link"
+        <div class="row form-group">
+            <button type="submit" class="btn btn-primary mr-2">Submit</button>
+            <button type="button" @click="doTest" class="btn btn-outline-primary mr-2">Test config</button>
+            <b-spinner v-if="isTestingInProgress" variant="primary" label="Spinning"></b-spinner>
+            <router-link :to="{ name: 'home' }" class="nav-link pl-1"
               >Cancel</router-link
             >
-          </li>
-        </ul>
+        </div>
       </div>
     </form>
   </div>
@@ -460,7 +458,7 @@ import Validator from "./validator";
 import PluginProperty from "./PluginProperty.vue";
 import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
 import generalProperties from "./general-properties";
-import {ADD_SETTINGS_ACTION, UPDATE_SETTINGS_ACTION, REMOVE_SETTINGS_ACTION} from "../store/store"
+import {ADD_SETTINGS_ACTION, UPDATE_SETTINGS_ACTION, REMOVE_SETTINGS_ACTION, TEST_ACTION} from "../store/store"
 
 const urlDescriptionByType = {
   splunk: "Mandatory. Url of a Splunk server",
@@ -476,6 +474,7 @@ export default {
     return {
       id: "",
       addedControls: [],
+      isTestingInProgress : false,
       fields: {},
       errors: {},
       generalProperties,
@@ -533,6 +532,26 @@ export default {
     },
   },
   methods: {
+    doTest() {
+      this.isTestingInProgress = true
+      if (this.isFormValid()) {
+          this.$store.dispatch(TEST_ACTION, this.settings).then(() => {
+            this.$bvToast.toast('Integration is configured correctly', {
+              title: 'Success',
+              variant: 'success',
+              autoHideDelay: 5000
+          })
+          this.isTestingInProgress = false
+        }).catch((error) => {
+          this.$bvToast.toast(error, {
+            title: 'Connection error',
+            variant: 'danger',
+            autoHideDelay: 5000
+          });
+          this.isTestingInProgress = false
+        });
+      }
+    },
     url(label, value) {
       if (!value) {
         return `${label} is required`;
@@ -582,7 +601,7 @@ export default {
     v(validationFn) {
       return new Validator(this.fields, validationFn);
     },
-    doSubmit() {
+    isFormValid() {
       const fields = this.fields;
       let invalid = false;
       let firstElement
@@ -592,7 +611,8 @@ export default {
         const validator = fields[id]
         const validationFn= validator.validationFn
         const element = document.getElementById(id)
-        if (element) {
+
+      if (element) { //only elements in DOM are validated
           const r = validationFn(validator.label, this.settings[validator.name])
           if (r) {
             this.errors[validator.name] = r
@@ -606,9 +626,14 @@ export default {
 
       if (invalid) {
         firstElement.focus();
+      }
+
+      return !invalid
+    },
+    doSubmit() {
+      if (!this.isFormValid()) {
         return
       }
-      
       if (this.id) {
         this.$store.dispatch(UPDATE_SETTINGS_ACTION, {
           value: this.settings,

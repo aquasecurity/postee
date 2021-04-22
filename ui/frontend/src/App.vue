@@ -15,22 +15,52 @@
 
 <script>
 import { mapState } from "vuex";
-import { LOGOUT_ACTION } from "./store/store";
+import {
+  LOGIN_ACTION,
+  LOGOUT_ACTION,
+  CLEAR_ERROR_MUTATION,
+  LOAD_ACTION,
+  LOAD_STATS_ACTION
+} from "./store/store";
 
 export default {
   name: "App",
+  watch: {
+    $route() {
+      this.$store.commit(CLEAR_ERROR_MUTATION);
+    },
+  },
   computed: {
     ...mapState({
       error(state) {
         return state.error.message;
-      }
+      },
     }),
   },
-  methods : {
+  methods: {
     doLogout() {
       this.$store.dispatch(LOGOUT_ACTION);
+    },
+    startLoading() {
+      this.$store.dispatch(LOAD_ACTION);
+      this.$store.dispatch(LOAD_STATS_ACTION);
+    },
+  },
+  mounted() {
+    if (this.$store.state.userInfo.authenticated) {
+      this.startLoading();
+    } else {
+      if (this.$router.currentRoute.name != "login") {
+        this.$store.dispatch(LOGIN_ACTION).then(()=> {
+          this.startLoading();
+        }).catch(error=>{
+          if (!error) { //check failed - session is invalid
+            this.$router.push({ name: "login" })
+          }
+        })
+      }
     }
-  }
+  },
 };
 </script>
 

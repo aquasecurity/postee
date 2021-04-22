@@ -60,12 +60,13 @@ func (srv *uiServer) updateConfig(w http.ResponseWriter, r *http.Request) {
 
 func reloadWebhookCfg(url string, key string) error {
 	u := fmt.Sprintf("%s/reload?key=%s", url, key)
-	log.Println(u)
 	resp, err := http.Get(u)
+
+	defer resp.Body.Close()
+
 	if err != nil {
 		return err
 	}
 
-	log.Println(resp.Body)
 	return nil
 }
