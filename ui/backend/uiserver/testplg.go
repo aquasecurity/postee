@@ -1,4 +1,4 @@
-package webserver
+package uiserver
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/aquasecurity/postee/layout"
 )
 
-func (web *WebServer) testSettings(w http.ResponseWriter, r *http.Request) {
+func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
 	plgSettings := &alertmgr.PluginSettings{}
 
 	defer r.Body.Close()

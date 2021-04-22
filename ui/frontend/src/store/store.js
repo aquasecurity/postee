@@ -41,6 +41,7 @@ export default new Vuex.Store({
         [TEST_ACTION](context, settings) {
             return new Promise ( (resolve, reject) => {
                 api.test(settings).then(()=>{
+                    context.commit(CLEAR_ERROR_MUTATION)
                     resolve();
                 }).catch(error => {
                     context.commit(ERROR_MUTATION, error.response.data)

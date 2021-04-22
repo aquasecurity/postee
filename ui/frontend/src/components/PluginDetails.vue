@@ -546,7 +546,7 @@ export default {
           this.$bvToast.toast(error, {
             title: 'Connection error',
             variant: 'danger',
-            autoHideDelay: 5000
+            autoHideDelay: 15000
           });
           this.isTestingInProgress = false
         });

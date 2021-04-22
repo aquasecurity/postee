@@ -50,7 +50,7 @@ func Instance(webLocalPath, port, cfg, updateUrl, updateKey string, admusr strin
 	server.router.HandleFunc("/api/logout", server.logout).Methods("GET")
 	server.router.HandleFunc("/api/update", server.updateConfig).Methods("POST")
 	server.router.HandleFunc("/api/plugins", server.pluginList).Methods("GET")
-	server.router.HandleFunc("/api/test", server.testPluginConfig).Methods("POST")
+	server.router.HandleFunc("/api/test", server.testSettings).Methods("POST")
 	server.router.HandleFunc("/api/plugins/stats", server.plgnStats).Methods("GET")
 
 	web := &localWebServer{

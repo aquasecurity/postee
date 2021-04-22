@@ -73,7 +73,6 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("POST")
 
-	ctx.router.HandleFunc("/test", ctx.withApiKey(ctx.testSettings)).Methods("POST")
 	ctx.router.HandleFunc("/reload", ctx.withApiKey(ctx.reload)).Methods("GET")
 
 	go func() {
