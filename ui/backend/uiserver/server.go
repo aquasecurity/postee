@@ -13,7 +13,7 @@ type uiServer struct {
 	port       string
 	cfgPath    string
 	boltDbPath string
-	updateUrl  string
+	webhookUrl string
 	updateKey  string
 	admusr     string
 	admpwd     string
@@ -21,15 +21,14 @@ type uiServer struct {
 	store      *sessions.CookieStore
 }
 
-func Instance(webLocalPath, port, cfg, updateUrl, updateKey string, admusr string, admpwd string) *uiServer {
+func Instance(webLocalPath, port, cfg, webhookUrl, admusr string, admpwd string) *uiServer {
 	server := &uiServer{
-		port:      port,
-		cfgPath:   cfg,
-		updateUrl: updateUrl,
-		updateKey: updateKey,
-		admusr:    admusr,
-		admpwd:    admpwd,
-		router:    mux.NewRouter().StrictSlash(true),
+		port:       port,
+		cfgPath:    cfg,
+		webhookUrl: webhookUrl,
+		admusr:     admusr,
+		admpwd:     admpwd,
+		router:     mux.NewRouter().StrictSlash(true),
 	}
 	authKeyOne := securecookie.GenerateRandomKey(64)
 	encryptionKeyOne := securecookie.GenerateRandomKey(32)

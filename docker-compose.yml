@@ -12,7 +12,6 @@ services:
         environment:
             - "AQUAALERT_CFG=/config/cfg.yaml"
             - "AQUAALERT_DEBUG=ON"
-            - "RELOAD_KEY=S3cr3t"
     posteeui:
         build:
             context: .
@@ -26,7 +25,6 @@ services:
             - "POSTEE_UI_CFG=/config/cfg.yaml"
             - "POSTEE_UI_PORT=8000"
             - "POSTEE_UI_UPDATE_URL=http://posteewebhook:8082"
-            - "POSTEE_UI_KEY=S3cr3t"
 volumes:
   bolt:
   config:

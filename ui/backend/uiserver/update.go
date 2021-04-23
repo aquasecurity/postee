@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/aquasecurity/postee/alertmgr"
+	hookDbService "github.com/aquasecurity/postee/dbservice"
 	"github.com/ghodss/yaml"
 )
 
@@ -49,7 +50,15 @@ func (srv *uiServer) updateConfig(w http.ResponseWriter, r *http.Request) {
 	}
 	os.RemoveAll(srv.cfgPath + ".copy")
 
-	err = reloadWebhookCfg(srv.updateUrl, srv.updateKey)
+	apikey, err := hookDbService.GetApiKey()
+
+	if err != nil {
+		log.Printf("Can not load api key from bolt %v", err)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	err = reloadWebhookCfg(srv.webhookUrl, apikey)
 
 	if err != nil {
 		log.Printf("Can not reload webhook server %v", err)
@@ -62,11 +71,10 @@ func reloadWebhookCfg(url string, key string) error {
 	u := fmt.Sprintf("%s/reload?key=%s", url, key)
 	resp, err := http.Get(u)
 
-	defer resp.Body.Close()
-
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	return nil
 }

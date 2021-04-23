@@ -44,10 +44,6 @@ func main() {
 	if updateUrl == "" {
 		log.Printf("WARNING! Using an empty update url, UI won't restart your Postee instance with a saved configuration. You can change it via %q environment variable.", ENV_UPDATE_URL)
 	}
-	updateKey := os.Getenv(ENV_UPDATE_KEY)
-	if updateKey == "" {
-		log.Printf("WARNING! Using an empty update key. You can change it via %q environment variable.", ENV_UPDATE_KEY)
-	}
 
 	port := os.Getenv(ENV_PORT)
 	if port == "" {
@@ -67,7 +63,7 @@ func main() {
 		log.Printf("WARNING! Using a default admin password. You can change it via %q environment variable.", ENV_ADMIN_PASSWORD)
 	}
 
-	server := uiserver.Instance(web, port, cfg, updateUrl, updateKey, admusr, admpwd)
+	server := uiserver.Instance(web, port, cfg, updateUrl, admusr, admpwd)
 	server.Start()
 	defer server.Stop()
 }

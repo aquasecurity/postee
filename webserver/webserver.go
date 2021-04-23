@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/aquasecurity/postee/alertmgr"
+	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/utils"
 	"github.com/gorilla/mux"
 )
@@ -33,13 +34,13 @@ func Instance() *WebServer {
 }
 func (ctx *WebServer) withApiKey(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		correctKey := os.Getenv("RELOAD_KEY")
+		correctKey, err := dbservice.GetApiKey()
 
-		if len(correctKey) == 0 {
-			log.Print("reload API key is empty! You need to set an environment variable 'RELOAD_KEY'")
+		if err != nil || correctKey == "" {
+			log.Printf("reload API key is either empty or there is an error: %s \n", err)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
 		}
+
 		if key := r.URL.Query().Get("key"); key != correctKey {
 			log.Printf("reload API received an incorrect key %q", key)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -68,6 +69,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	if os.Getenv("AQUAALERT_KEY_PEM") != "" {
 		keyPem = os.Getenv("AQUAALERT_KEY_PEM")
 	}
+	dbservice.EnsureApiKey()
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
