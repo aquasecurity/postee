@@ -20,10 +20,15 @@ RUN mkdir /uiserver/www
 
 RUN mkdir /server
 RUN mkdir /server/database
+RUN mkdir /config
 
 COPY --from=gobuilder /webhook/ui/backend/posteeui /uiserver
 COPY --from=vuebuilder /frontend/dist /uiserver/www
 
 WORKDIR /uiserver
-
+RUN addgroup -g 1099 webhook
+RUN adduser -D -g '' -G webhook -u 1099 webhook
+RUN chown -R webhook:webhook /server
+RUN chown -R webhook:webhook /config
+USER webhook
 ENTRYPOINT ["/uiserver/posteeui"]

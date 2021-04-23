@@ -7,8 +7,8 @@ services:
         ports:
             - 8082:8082
         volumes:
-            - /home/andrey/work/aquasecurity:/server/database
-            - /home/andrey/work/aquasecurity/postee:/config
+            - bolt:/server/database
+            - config:/config
         environment:
             - "AQUAALERT_CFG=/config/cfg.yaml"
             - "AQUAALERT_DEBUG=ON"
@@ -20,10 +20,13 @@ services:
         ports:
             - 8000:8000
         volumes:
-            - /home/andrey/work/aquasecurity:/server/database
-            - /home/andrey/work/aquasecurity/postee:/config
+            - bolt:/server/database
+            - config:/config
         environment:
             - "POSTEE_UI_CFG=/config/cfg.yaml"
             - "POSTEE_UI_PORT=8000"
             - "POSTEE_UI_UPDATE_URL=http://posteewebhook:8082"
             - "POSTEE_UI_KEY=S3cr3t"
+volumes:
+  bolt:
+  config:

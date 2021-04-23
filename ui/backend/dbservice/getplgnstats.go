@@ -10,7 +10,7 @@ import (
 func GetPlgnStats() (r map[string]int, err error) {
 	r = make(map[string]int)
 
-	db, err := bolt.Open(hookDbService.DbPath, 0400, nil)
+	db, err := bolt.Open(hookDbService.DbPath, 0444, nil)
 	if err != nil {
 		return nil, err
 	}

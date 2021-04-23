@@ -10,7 +10,7 @@ func RegisterPlgnInvctn(name string) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0600, nil)
+	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		return err
 	}
