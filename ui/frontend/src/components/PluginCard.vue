@@ -50,7 +50,7 @@ export default {
       return this.scanCount === undefined
         ? "No scans received"
         : [
-            this.scanCount,
+            this.scanCount < 10000 ? this.scanCount : "9999+",
             " scan",
             this.scanCount === 1 ? "" : "s",
             " received",
