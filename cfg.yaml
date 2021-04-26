@@ -9,6 +9,9 @@ routes:
   input: |          #  REGO rules
   output: []        #  a list of integrations which will receive a scan or an audit event
   template:         #  a template for this route
+  Aggregate-Issues-Number:   #  a number of scans to aggregate into one ticket
+  Aggregate-Issues-Timeout:    #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
+  Policy-Show-All:  # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
 
 templates:
 - name: raw         #  name must be unique
@@ -28,8 +31,6 @@ outputs:
   issuetype:  # Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:   # Optional. Specify the issues severity. Default is "High"
   assignee:   # Optional. Specify the assigned user. Default is the user that opened the ticket
-  Aggregate-Issues-Number:   #  a number of scans to aggregate into one ticket
-  Aggregate-Issues-Timeout:    #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
 
 - name: my-email
   type: email
