@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func buildRoute(route *routes.InputRoutes) {
+func buildRoute(route *routes.InputRoutes) *routes.InputRoutes {
 	var timeout int
 	var err error
 
@@ -36,4 +36,5 @@ func buildRoute(route *routes.InputRoutes) {
 		}
 	}
 	route.AggregateIssuesNumber = timeout
+	return route
 }

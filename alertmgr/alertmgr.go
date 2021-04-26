@@ -40,12 +40,11 @@ type AlertMgr struct {
 	cfgfile     string
 	aquaServer  string
 	plugins     map[string]plugins.Plugin
-	inputRoutes map[string]routes.InputRoutes
+	inputRoutes map[string]*routes.InputRoutes
 }
 
 var initCtx sync.Once
 var alertmgrCtx *AlertMgr
-var aquaServer string
 var baseForTicker = time.Hour
 var ticker *time.Ticker
 
@@ -60,7 +59,7 @@ func Instance() *AlertMgr {
 			events:      make(chan string, 1000),
 			queue:       make(chan []byte, 1000),
 			plugins:     make(map[string]plugins.Plugin),
-			inputRoutes: make(map[string]routes.InputRoutes),
+			inputRoutes: make(map[string]*routes.InputRoutes),
 		}
 	})
 	return alertmgrCtx
@@ -124,8 +123,9 @@ func (ctx *AlertMgr) load() error {
 		if !strings.HasSuffix(tenant.AquaServer, "/") {
 			slash = "/"
 		}
-		aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
+		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
 	}
+
 	dbservice.DbSizeLimit = tenant.DBMaxSize
 	dbservice.DbDueDate = tenant.DBRemoveOldData
 	if tenant.DBTestInterval == 0 {
@@ -139,6 +139,10 @@ func (ctx *AlertMgr) load() error {
 				dbservice.CheckExpiredData()
 			}
 		}()
+	}
+
+	for _, r := range tenant.InputRoutes {
+		ctx.inputRoutes[r.Name] = buildRoute(&r)
 	}
 
 	for name, plugin := range ctx.plugins {
@@ -176,9 +180,9 @@ func (ctx *AlertMgr) load() error {
 			case "email":
 				ctx.plugins[settings.Name] = buildEmailPlugin(&settings)
 			case "slack":
-				ctx.plugins[settings.Name] = buildSlackPlugin(&settings, tenant.AquaServer)
+				ctx.plugins[settings.Name] = buildSlackPlugin(&settings, ctx.aquaServer)
 			case "teams":
-				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings)
+				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings, ctx.aquaServer)
 			case "serviceNow":
 				ctx.plugins[settings.Name] = buildServiceNow(&settings)
 			case "webhook":
@@ -219,7 +223,7 @@ func (ctx *AlertMgr) listen() {
 		case data := <-ctx.queue:
 			in := bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''})
 			for _, r := range ctx.inputRoutes {
-				go getScanService().ResultHandling(in, ctx.plugins, &r, &ctx.aquaServer)
+				go getScanService().ResultHandling(in, ctx.plugins, r, &ctx.aquaServer)
 			}
 			//		case event := <-ctx.events:
 			//			go getEventService().ResultHandling(event, ctx.plugins)
