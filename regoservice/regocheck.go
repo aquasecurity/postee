@@ -3,23 +3,36 @@ package regoservice
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/open-policy-agent/opa/rego"
 )
 
-func IsRegoCorrect(files []string, scanResult string) (bool, error) {
-	ctx := context.Background()
+const module = `package postee
 
-	r := rego.New(
-		rego.Query("x = data.postee.allow"),
-		rego.Load(files, nil))
+default allow = false
 
-	query, err := r.PrepareForEval(ctx)
-	if err != nil {
-		return false, err
-	}
+allow {
+%q
+}
+`
 
+func IsRegoCorrectScanResult(rule string, scanResult string) (bool, error) {
 	var input interface{}
 	if err := json.Unmarshal([]byte(scanResult), &input); err != nil {
+		return false, err
+	}
+	return IsRegoCorrectInterface(input, rule)
+}
+
+func IsRegoCorrectInterface(input interface{}, rule string) (bool, error) {
+	r := rego.New(
+		rego.Query("x = data.postee.allow"),
+		rego.Module("postee.rego", fmt.Sprintf(module, rule)),
+	)
+
+	ctx := context.Background()
+	query, err := r.PrepareForEval(ctx)
+	if err != nil {
 		return false, err
 	}
 
