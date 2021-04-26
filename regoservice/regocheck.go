@@ -12,7 +12,7 @@ const module = `package postee
 default allow = false
 
 allow {
-%q
+%s
 }
 `
 
