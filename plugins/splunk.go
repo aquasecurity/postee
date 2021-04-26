@@ -8,7 +8,6 @@ import (
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -18,28 +17,28 @@ import (
 const defaultSizeLimit = 10000
 
 type SplunkPlugin struct {
-	Url            string
-	Token          string
-	EventLimit     int
-	SplunkSettings *settings.Settings
-	splunkLayout   layout.LayoutProvider
+	Name         string
+	Url          string
+	Token        string
+	EventLimit   int
+	splunkLayout layout.LayoutProvider
 }
 
 func (splunk *SplunkPlugin) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
-	log.Printf("Starting Splunk plugin %q....", splunk.SplunkSettings.PluginName)
+	log.Printf("Starting Splunk plugin %q....", splunk.Name)
 	return nil
 }
 
 func (splunk *SplunkPlugin) Send(d map[string]string) error {
-	log.Printf("Sending a message to %q", splunk.SplunkSettings.PluginName)
+	log.Printf("Sending a message to %q", splunk.Name)
 
 	if splunk.EventLimit == 0 {
 		splunk.EventLimit = defaultSizeLimit
 	}
 	if splunk.EventLimit < defaultSizeLimit {
 		log.Printf("[WARNING] %q has a short limit %d (default %d)",
-			splunk.SplunkSettings.PluginName, splunk.EventLimit, defaultSizeLimit)
+			splunk.Name, splunk.EventLimit, defaultSizeLimit)
 	}
 
 	if !strings.HasSuffix(splunk.Url, "/") {
@@ -49,7 +48,7 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error {
 	scanInfo := new(data.ScanImageInfo)
 	err := json.Unmarshal([]byte(d["src"]), scanInfo)
 	if err != nil {
-		log.Printf("sending to %q error: %v", splunk.SplunkSettings.PluginName, err)
+		log.Printf("sending to %q error: %v", splunk.Name, err)
 		return err
 	}
 
@@ -61,7 +60,7 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error {
 	for {
 		fields, err = json.Marshal(scanInfo)
 		if err != nil {
-			log.Printf("sending to %q error: %v", splunk.SplunkSettings.PluginName, err)
+			log.Printf("sending to %q error: %v", splunk.Name, err)
 			return err
 		}
 		if len(fields) < splunk.EventLimit-constLimit {
@@ -79,7 +78,7 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error {
 			continue
 		default:
 			msg := fmt.Sprintf("Scan result for %q is large for %q , its size if %d (limit %d)",
-				scanInfo.Image, splunk.SplunkSettings.PluginName, len(fields), splunk.EventLimit)
+				scanInfo.Image, splunk.Name, len(fields), splunk.EventLimit)
 			log.Print(msg)
 			return errors.New(msg)
 		}
@@ -107,19 +106,15 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error {
 		log.Printf("Splunk sending error: failed response status %q. Body: %q", resp.Status, string(b))
 		return errors.New("failed response status for Splunk sending")
 	}
-	log.Printf("Sending a message to %q was successful!", splunk.SplunkSettings.PluginName)
+	log.Printf("Sending a message to %q was successful!", splunk.Name)
 	return nil
 }
 
 func (splunk *SplunkPlugin) Terminate() error {
-	log.Printf("Splunk plugin %q terminated", splunk.SplunkSettings.PluginName)
+	log.Printf("Splunk plugin %q terminated", splunk.Name)
 	return nil
 }
 
 func (splunk *SplunkPlugin) GetLayoutProvider() layout.LayoutProvider {
 	return splunk.splunkLayout
-}
-
-func (splunk *SplunkPlugin) GetSettings() *settings.Settings {
-	return splunk.SplunkSettings
 }

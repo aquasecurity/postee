@@ -1,10 +1,11 @@
 package alertmgr
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/eventservice"
+	"github.com/aquasecurity/postee/routes"
 	"io/ioutil"
 	"log"
 	"os"
@@ -31,13 +32,15 @@ var (
 )
 
 type AlertMgr struct {
-	mutexScan  sync.Mutex
-	mutexEvent sync.Mutex
-	quit       chan struct{}
-	queue      chan string
-	events     chan string
-	cfgfile   string
-	plugins    map[string]plugins.Plugin
+	mutexScan   sync.Mutex
+	mutexEvent  sync.Mutex
+	quit        chan struct{}
+	queue       chan []byte
+	events      chan string
+	cfgfile     string
+	aquaServer  string
+	plugins     map[string]plugins.Plugin
+	inputRoutes map[string]routes.InputRoutes
 }
 
 var initCtx sync.Once
@@ -51,12 +54,13 @@ var osStat = os.Stat
 func Instance() *AlertMgr {
 	initCtx.Do(func() {
 		alertmgrCtx = &AlertMgr{
-			mutexScan:  sync.Mutex{},
-			mutexEvent: sync.Mutex{},
-			quit:       make(chan struct{}),
-			events:     make(chan string, 1000),
-			queue:      make(chan string, 1000),
-			plugins:    make(map[string]plugins.Plugin),
+			mutexScan:   sync.Mutex{},
+			mutexEvent:  sync.Mutex{},
+			quit:        make(chan struct{}),
+			events:      make(chan string, 1000),
+			queue:       make(chan []byte, 1000),
+			plugins:     make(map[string]plugins.Plugin),
+			inputRoutes: make(map[string]routes.InputRoutes),
 		}
 	})
 	return alertmgrCtx
@@ -93,7 +97,7 @@ func (ctx *AlertMgr) Event(data string) {
 	ctx.events <- data
 }
 
-func (ctx *AlertMgr) Send(data string) {
+func (ctx *AlertMgr) Send(data []byte) {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
 	ctx.queue <- data
@@ -124,11 +128,9 @@ func (ctx *AlertMgr) load() error {
 	}
 	dbservice.DbSizeLimit = tenant.DBMaxSize
 	dbservice.DbDueDate = tenant.DBRemoveOldData
-
 	if tenant.DBTestInterval == 0 {
 		tenant.DBTestInterval = 1
 	}
-
 	if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
 		ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
 		go func() {
@@ -174,7 +176,7 @@ func (ctx *AlertMgr) load() error {
 			case "email":
 				ctx.plugins[settings.Name] = buildEmailPlugin(&settings)
 			case "slack":
-				ctx.plugins[settings.Name] = buildSlackPlugin(&settings)
+				ctx.plugins[settings.Name] = buildSlackPlugin(&settings, tenant.AquaServer)
 			case "teams":
 				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings)
 			case "serviceNow":
@@ -195,25 +197,30 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input string, plugins map[string]plugins.Plugin)
+	ResultHandling(input []byte, plugins map[string]plugins.Plugin, route *routes.InputRoutes, aquaServer *string)
 }
 
 var getScanService = func() service {
 	serv := &scanservice.ScanService{}
 	return serv
 }
+
+/*
 var getEventService = func() service {
 	serv := &eventservice.EventService{}
 	return serv
 }
-
+*/
 func (ctx *AlertMgr) listen() {
 	for {
 		select {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			go getScanService().ResultHandling(strings.ReplaceAll(data, "`", "'"), ctx.plugins )
+			in := bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''})
+			for _, r := range ctx.inputRoutes {
+				go getScanService().ResultHandling(in, ctx.plugins, &r, &ctx.aquaServer)
+			}
 			//		case event := <-ctx.events:
 			//			go getEventService().ResultHandling(event, ctx.plugins)
 		}

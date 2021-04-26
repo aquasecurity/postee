@@ -3,7 +3,6 @@ package plugins
 import (
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 	"github.com/aquasecurity/postee/utils"
 	"log"
 
@@ -15,29 +14,30 @@ const (
 )
 
 type TeamsPlugin struct {
-	teamsLayout   layout.LayoutProvider
-	TeamsSettings *settings.Settings
-	Webhook       string
+	Name        string
+	AquaServer  string
+	teamsLayout layout.LayoutProvider
+	Webhook     string
 }
 
 func (teams *TeamsPlugin) Init() error {
-	log.Printf("Starting MS Teams plugin %q....", teams.TeamsSettings.PluginName)
+	log.Printf("Starting MS Teams plugin %q....", teams.Name)
 	teams.teamsLayout = new(formatting.HtmlProvider)
 	return nil
 }
 
 func (teams *TeamsPlugin) Send(input map[string]string) error {
-	log.Printf("Sending to MS Teams via %q...", teams.TeamsSettings.PluginName)
-	utils.Debug("Title for %q: %q\n", teams.TeamsSettings.PluginName, input["title"])
-	utils.Debug("Url(s) for %q: %q\n", teams.TeamsSettings.PluginName, input["url"])
-	utils.Debug("Webhook for %q: %q\n", teams.TeamsSettings.PluginName, teams.Webhook)
+	log.Printf("Sending to MS Teams via %q...", teams.Name)
+	utils.Debug("Title for %q: %q\n", teams.Name, input["title"])
+	utils.Debug("Url(s) for %q: %q\n", teams.Name, input["url"])
+	utils.Debug("Webhook for %q: %q\n", teams.Name, teams.Webhook)
 	utils.Debug("Length of Description for %q: %d/%d\n",
-		teams.TeamsSettings.PluginName, len(input["description"]), teamsSizeLimit)
+		teams.Name, len(input["description"]), teamsSizeLimit)
 
 	var body string
 	if len(input["description"]) > teamsSizeLimit {
 		utils.Debug("MS Team plugin will send SHORT message\n")
-		body = buildShortMessage(teams.TeamsSettings.AquaServer, input["url"], teams.teamsLayout)
+		body = buildShortMessage(teams.AquaServer, input["url"], teams.teamsLayout)
 	} else {
 		utils.Debug("MS Team plugin will send LONG message\n")
 		body = input["description"]
@@ -49,19 +49,15 @@ func (teams *TeamsPlugin) Send(input map[string]string) error {
 		log.Printf("TeamsPlugin Send Error: %v", err)
 		return err
 	}
-	log.Printf("Sending to MS Teams via %q was successful!", teams.TeamsSettings.PluginName)
+	log.Printf("Sending to MS Teams via %q was successful!", teams.Name)
 	return nil
 }
 
 func (teams *TeamsPlugin) Terminate() error {
-	log.Printf("MS Teams plugin %q terminated", teams.TeamsSettings.PluginName)
+	log.Printf("MS Teams plugin %q terminated", teams.Name)
 	return nil
 }
 
 func (teams *TeamsPlugin) GetLayoutProvider() layout.LayoutProvider {
 	return teams.teamsLayout
-}
-
-func (teams *TeamsPlugin) GetSettings() *settings.Settings {
-	return teams.TeamsSettings
 }

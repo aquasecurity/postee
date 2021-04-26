@@ -3,7 +3,6 @@ package plugins
 import (
 	"fmt"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 	"log"
 	"strings"
 )
@@ -11,6 +10,13 @@ import (
 const (
 	ApplicationScopeOwner = "<%application_scope_owner%>"
 )
+
+type Plugin interface {
+	Init() error
+	Send(map[string]string) error
+	Terminate() error
+	GetLayoutProvider() layout.LayoutProvider
+}
 
 func getHandledRecipients(recipients []string, content *map[string]string, pluginName string) []string {
 	var result []string
@@ -36,12 +42,4 @@ func getAppScopeOwners(content *map[string]string) ([]string, error) {
 			ApplicationScopeOwner)
 	}
 	return strings.Split(ownersIn, ";"), nil
-}
-
-type Plugin interface {
-	Init() error
-	Send(map[string]string) error
-	Terminate() error
-	GetLayoutProvider() layout.LayoutProvider
-	GetSettings() *settings.Settings
 }

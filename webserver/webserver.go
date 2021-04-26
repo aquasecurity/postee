@@ -101,7 +101,7 @@ func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	utils.Debug("%s\n\n", string(body))
-	alertmgr.Instance().Send(string(body))
+	alertmgr.Instance().Send(body)
 	ctx.writeResponse(w, http.StatusOK, "")
 }
 
