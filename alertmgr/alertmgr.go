@@ -73,17 +73,11 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 	return nil
 }
 
-func (ctx *AlertMgr) TerminatePlugins(tenant string) {
-	for _, pl := range ctx.plugins {
-		pl.Terminate()
-	}
-}
-
 func (ctx *AlertMgr) Terminate() {
 	log.Printf("Terminating AlertMgr....")
 	close(ctx.quit)
-	for name, _ := range ctx.plugins {
-		ctx.TerminatePlugins(name)
+	for _, pl := range ctx.plugins {
+		pl.Terminate()
 	}
 	if ticker != nil {
 		ticker.Stop()
