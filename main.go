@@ -6,12 +6,10 @@ import (
 	"github.com/aquasecurity/postee/utils"
 	"github.com/aquasecurity/postee/webserver"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 	"syscall"
 )
 
@@ -20,14 +18,16 @@ const (
 	TLS        = "0.0.0.0:8445"
 	URL_USAGE  = "The socket to bind to, specified using host:port."
 	TLS_USAGE  = "The TLS socket to bind to, specified using host:port."
-	CFG_USAGE  = "The folder which contains alert configuration files."
-	CFG_FOLDER = "/config/"
+//	CFG_USAGE  = "The folder which contains alert configuration files."
+//	CFG_FOLDER = "/config/"
+	CFG_FILE  = "/config/cfg.yaml"
+	CFG_USAGE = "The alert configuration file."
 )
 
 var (
 	url       = ""
 	tls       = ""
-	cfgFolder = ""
+	cfgfile = ""
 	done      = make(chan bool, 1)
 )
 
@@ -40,22 +40,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().StringVar(&url, "url", URL, URL_USAGE)
 	rootCmd.Flags().StringVar(&tls, "tls", TLS, TLS_USAGE)
-	rootCmd.Flags().StringVar(&cfgFolder, "cfgFolder", CFG_FOLDER, CFG_USAGE)
-}
-
-func getFilesFromFolder(folder string) ([]string, error) {
-	files, err := ioutil.ReadDir(folder)
-	if err != nil {
-		return nil, err
-	}
-	names := []string{}
-	if !strings.HasSuffix(folder, "/") {
-		folder += "/"
-	}
-	for _, file := range files {
-		names = append(names, folder+file.Name())
-	}
-	return names, nil
+	rootCmd.Flags().StringVar(&cfgfile, "cfgfile", CFG_FILE, CFG_USAGE)
 }
 
 func main() {
@@ -72,23 +57,11 @@ func main() {
 			tls = os.Getenv("AQUAALERT_TLS")
 		}
 
-		cfgFolder = os.Getenv("AQUAALERT_CFG_FOLDER")
-		if cfgFolder == "" {
-			log.Printf("AQUAALERT_CFG_FOLDER environment variable is empty!")
-			return
-		}
-		files, err := getFilesFromFolder(cfgFolder)
-		if err != nil {
-			log.Printf("getFilesFromFolder(%q) error: %v", cfgFolder, err)
-			return
+		if os.Getenv("AQUAALERT_CFG") != "" {
+			cfgfile = os.Getenv("AQUAALERT_CFG")
 		}
 
-		go func() {
-			if err := alertmgr.Instance().Start(files); err != nil {
-				log.Printf("Init Alert Manager error: %v", err)
-				done <- true
-			}
-		}()
+		go alertmgr.Instance().Start(cfgfile)
 		defer alertmgr.Instance().Terminate()
 
 		go webserver.Instance().Start(url, tls)
