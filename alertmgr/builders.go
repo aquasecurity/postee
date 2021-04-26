@@ -21,10 +21,11 @@ func buildWebhookPlugin(sourceSettings *PluginSettings) *plugins.WebhookPlugin {
 	}
 }
 
-func buildTeamsPlugin(sourceSettings *PluginSettings) *plugins.TeamsPlugin {
+func buildTeamsPlugin(sourceSettings *PluginSettings, aquaServer string) *plugins.TeamsPlugin {
 	return &plugins.TeamsPlugin{
-		Name:    sourceSettings.Name,
-		Webhook: sourceSettings.Url,
+		Name:       sourceSettings.Name,
+		AquaServer: aquaServer,
+		Webhook:    sourceSettings.Url,
 	}
 }
 
