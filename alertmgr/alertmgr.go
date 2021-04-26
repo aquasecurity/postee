@@ -1,7 +1,6 @@
 package alertmgr
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"github.com/aquasecurity/postee/dbservice"
@@ -147,7 +146,7 @@ func (ctx *AlertMgr) load() error {
 			name = filepath.Base(file)
 		}
 		ctx.plugins[name] = make(map[string]plugins.Plugin)
-		if err := ctx.loadIntegrations(name, tenant.Integrations); err != nil {
+		if err := ctx.loadIntegrations(name, tenant.Outputs); err != nil {
 			log.Printf("load integration from %q error: %v", file, err)
 			continue
 		}
@@ -157,18 +156,6 @@ func (ctx *AlertMgr) load() error {
 		} else {
 			wasLoaded = true
 		}
-		var buff bytes.Buffer
-		for i, rule := range tenant.InputRules {
-			if i > 0 {
-				buff.WriteByte(',')
-			}
-			buff.WriteString(rule.Name)
-			buff.WriteString("(")
-			buff.WriteString(strings.Join(rule.Regos, ","))
-			buff.WriteString(")")
-		}
-
-		log.Printf("For %q will use next rules: %s", name, buff.String())
 	}
 	if !wasLoaded {
 		return errNoPlugins

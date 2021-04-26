@@ -4,13 +4,17 @@ Max_DB_Size: 1000     #  Max size of DB. MB. if empty then unlimited
 Delete_Old_Data: 10   #  delete data older than N day(s).  If empty then we do not delete.
 DbVerifyInterval: 1   #  hours. an Interval between tests of DB. Default: 1 hour
 
-Rules:
-  - name: rule1       #  name must be unique
-    type: scan        #  supported types: scan, audit
-    Policy-OPA: []    #  a list of files with OPA/REGO policies.
-    integrations: []  #  a list of integrations which will receive a scan or an audit event
+routes:
+- name: route1      #  name must be unique
+  input: |          #  REGO rules
+  output: []        #  a list of integrations which will receive a scan or an audit event
+  template:         #  a template for this route
 
-Integrations:
+templates:
+- name: raw         #  name must be unique
+  body: |           #  REGO rules for a template
+
+outputs:
 - name: my-jira   #  name must be unique
   type: jira   #  supported types: jira, email
   enable: true
