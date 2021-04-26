@@ -1,19 +1,21 @@
 <template>
-  <div class="card mt-4">
-    <form @submit.prevent="doSubmit">
-      <div class="card-header">
-        <div class="d-flex">
-          <div class="p-2 flex-grow-1">{{ settings.type }}</div>
+    <div>
+      <div class="row justify-content-end pb-3 pr-3">
+          <button type="submit" class="btn btn-primary mr-2" @click="doSubmit">Submit</button>
+          <button type="button" @click="doTest" class="btn btn-outline-primary mr-2">Test config</button>
+          <b-spinner v-if="isTestingInProgress" variant="primary" label="Spinning"></b-spinner>
           <button
-            v-if="!!id"
+            v-if="!!name"
             type="button"
             @click="doRemove"
-            class="btn btn-link"
+            class="btn btn-outline-primary"
           >
             Remove
           </button>
-        </div>
       </div>
+  <div class="card">
+    <form @submit.prevent="doSubmit">
+
       <div class="card-body">
         <div class="form-group form-input">
           <label for="pluginType">Type</label>
@@ -439,17 +441,9 @@
             >
           </div>
         </div>
-
-        <div class="row form-group">
-            <button type="submit" class="btn btn-primary mr-2">Submit</button>
-            <button type="button" @click="doTest" class="btn btn-outline-primary mr-2">Test config</button>
-            <b-spinner v-if="isTestingInProgress" variant="primary" label="Spinning"></b-spinner>
-            <router-link :to="{ name: 'home' }" class="nav-link pl-1"
-              >Cancel</router-link
-            >
-        </div>
       </div>
     </form>
+  </div>
   </div>
 </template>
 <script>
@@ -458,7 +452,7 @@ import Validator from "./validator";
 import PluginProperty from "./PluginProperty.vue";
 import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
 import generalProperties from "./general-properties";
-import {ADD_SETTINGS_ACTION, UPDATE_SETTINGS_ACTION, REMOVE_SETTINGS_ACTION, TEST_ACTION} from "../store/store"
+import {ADD_OUTPUT_ACTION, UPDATE_OUTPUT_ACTION, REMOVE_OUTPUT_ACTION, TEST_ACTION} from "../store/store"
 
 const urlDescriptionByType = {
   splunk: "Mandatory. Url of a Splunk server",
@@ -472,7 +466,7 @@ const typesWithCredentials = ["serviceNow", "jira", "email"]; //TODO add descrip
 export default {
   data() {
     return {
-      id: "",
+      name: "",
       addedControls: [],
       isTestingInProgress : false,
       fields: {},
@@ -490,8 +484,8 @@ export default {
   computed: {
     ...mapState({
       settings(state) {
-        const found = state.config.entries.filter(
-          (item) => item.id === this.id
+        const found = state.config.outputs.filter(
+          (item) => item.name === this.name
         );
 
         const result = found.length ? { ...found[0] } : { type: "email" };
@@ -634,13 +628,13 @@ export default {
       if (!this.isFormValid()) {
         return
       }
-      if (this.id) {
-        this.$store.dispatch(UPDATE_SETTINGS_ACTION, {
+      if (this.name) {
+        this.$store.dispatch(UPDATE_OUTPUT_ACTION, {
           value: this.settings,
-          id: this.id,
+          name: this.name,
         });
       } else {
-        this.$store.dispatch(ADD_SETTINGS_ACTION, this.settings);
+        this.$store.dispatch(ADD_OUTPUT_ACTION, this.settings);
       }
       this.$router.push({ name: "home" });
     },
@@ -667,12 +661,12 @@ export default {
       this.addedControls.push(this.selectedControl);
     },
     doRemove() {
-      this.$store.dispatch(REMOVE_SETTINGS_ACTION, this.id);
+      this.$store.dispatch(REMOVE_OUTPUT_ACTION, this.name);
       this.$router.push({ name: "home" });
     },
   },
   mounted() {
-    this.id = this.$route.params.id;
+    this.name = this.$route.params.name;
   },
 };
 </script>

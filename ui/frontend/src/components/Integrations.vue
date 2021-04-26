@@ -1,14 +1,13 @@
 <template>
 <div >
-    <div class="row justify-content-end pb-3 pt-3 pr-3">
-        <router-link :to="{name: 'add-plugin'}" class="col-3 btn btn-outline-primary">Add Integration</router-link>
+    <div class="row justify-content-end pb-3 pr-3">
+        <router-link :to="{name: 'add-plugin'}" class="btn btn-primary">Add Integration</router-link>
     </div>
     <div class="row row-cols-1 row-cols-md-3">
         <PluginCard v-for="(plugin, index) in plugins"
             :key="index"
             :type="plugin.type"
             :name="plugin.name"
-            :id="plugin.id"
             :enable="plugin.enable">
         </PluginCard>
     </div>
@@ -25,7 +24,7 @@ export default {
     computed: {
         ...mapState({
             plugins (state) {
-                return state.config.entries
+                return state.config.outputs
             }
         })
     }

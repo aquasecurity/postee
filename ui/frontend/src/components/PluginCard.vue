@@ -20,7 +20,7 @@
       </div>
       <div class="card-footer text-center">
         <router-link
-          :to="{ name: 'plugin', params: { id: id } }"
+          :to="{ name: 'plugin', params: { name: name } }"
           class="btn btn-link"
           >Edit</router-link
         >
@@ -33,7 +33,7 @@
 import { mapState } from "vuex";
 
 export default {
-  props: ["type", "name", "id", "enable"],
+  props: ["type", "name", "enable"],
   data() {
     return {};
   },

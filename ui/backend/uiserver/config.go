@@ -1,33 +1,36 @@
 package uiserver
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/aquasecurity/postee/alertmgr"
 	hookDbService "github.com/aquasecurity/postee/dbservice"
-	"github.com/ghodss/yaml"
 )
+
+func (srv *uiServer) getConfig(w http.ResponseWriter, r *http.Request) {
+	log.Printf("configured config path %s", srv.cfgPath)
+
+	d, err := ioutil.ReadFile(srv.cfgPath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/yaml")
+	w.WriteHeader(http.StatusOK)
+	w.Write(d)
+}
 
 func (srv *uiServer) updateConfig(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	inputJson, err := io.ReadAll(r.Body)
+	inputYaml, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, "Can't read JSON string", http.StatusBadRequest)
-		return
-	}
-	plugins := []alertmgr.PluginSettings{}
-	if err := json.Unmarshal(inputJson, &plugins); err != nil {
-		http.Error(w, "Can't read JSON string", http.StatusBadRequest)
-		return
-	}
-	b, err := yaml.Marshal(&plugins)
-	if err != nil {
-		http.Error(w, "Can't convert PluginSettings into yaml string", http.StatusBadRequest)
 		return
 	}
 	if err := os.Rename(srv.cfgPath, srv.cfgPath+".copy"); err != nil {
@@ -42,7 +45,7 @@ func (srv *uiServer) updateConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer f.Close()
-	_, err = f.Write(b)
+	_, err = f.Write(inputYaml)
 	if err != nil {
 		log.Printf("write file error %v", err)
 		http.Error(w, "Can't write to the config file for overwrite", http.StatusBadRequest)

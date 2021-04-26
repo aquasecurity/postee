@@ -4,9 +4,6 @@ import api from './../api'
 import {router} from './../main'
 
 
-const enrichId = entry => {
-    entry.id = btoa(entry.type + '-' + entry.name)
-}
 Vue.use(Vuex)
 
 
@@ -15,20 +12,25 @@ export const TEST_ACTION = "test"
 export const LOGIN_ACTION = "login"
 export const LOGOUT_ACTION = "logout"
 export const LOAD_STATS_ACTION = "loadStats"
+export const UPDATE_OUTPUT_ACTION = "updateOutput"
+export const UPDATE_RULE_ACTION = "updateRule"
 export const UPDATE_SETTINGS_ACTION = "updateSettings"
-export const ADD_SETTINGS_ACTION = "addSettings"
-export const REMOVE_SETTINGS_ACTION = "removeSettings"
+export const ADD_OUTPUT_ACTION = "addOutput"
+export const REMOVE_OUTPUT_ACTION = "removeOutput"
 
 export const USER_INFO_MUTATION = "updateUserInfo"
 export const ERROR_MUTATION = "ajaxError"
 export const CLEAR_ERROR_MUTATION = "clearAjaxError"
 export const STATS_MUTATION = "updateStats"
-export const CONFIG_MUTATION = "updateSettings"
+export const OUTPUTS_MUTATION = "mutateOutputs"
+export const CONFIG_MUTATION = "mutateConfig"
 
 export default new Vuex.Store({
     state: {
         config: {
-            entries: [],
+            routes: [],
+            templates: [],
+            outputs: []
         },
         stats: {
         },
@@ -44,8 +46,13 @@ export default new Vuex.Store({
                     context.commit(CLEAR_ERROR_MUTATION)
                     resolve();
                 }).catch(error => {
-                    context.commit(ERROR_MUTATION, error.response.data)
-                    reject(error.response.data);
+                    if (error.response) {
+                        context.commit(ERROR_MUTATION, error.response.data)
+                        reject(error.response.data);
+                    } else {
+                        console.error(error)
+                        reject(error);
+                    }
                 })
             })
         },
@@ -77,12 +84,13 @@ export default new Vuex.Store({
         },
         [LOAD_ACTION](context) {
             api.getConfig().then((response) => {
-                for (const entry of response.data) {
-                    enrichId(entry)
-                }
                 context.commit(CONFIG_MUTATION, response.data)
             }).catch((error) => {
-                context.commit(ERROR_MUTATION, error.response.data)
+                if (error.response) {
+                    context.commit(ERROR_MUTATION, error.response.data)
+                } else {
+                    console.error(error)
+                }
             })
         },
         [LOAD_STATS_ACTION](context) {
@@ -92,37 +100,36 @@ export default new Vuex.Store({
                 context.commit(ERROR_MUTATION, error.response.data)
             })
         },
-        [UPDATE_SETTINGS_ACTION](context, payload) {
-            const entries = context.state.config.entries;
-            const { value, id } = payload
+        [UPDATE_OUTPUT_ACTION](context, payload) {
+            const outputs = context.state.config.outputs;
+            const { value, name } = payload
 
-            for (let i = 0; i < entries.length; i++) {
-                if (entries[i].id == id) {
-                    entries.splice(i, 1, value)
+            for (let i = 0; i < outputs.length; i++) {
+                if (outputs[i].name == name) {
+                    outputs.splice(i, 1, value)
                 }
             }
 
-            api.saveConfig(entries).then(
-                context.commit(CONFIG_MUTATION, entries)
+            api.saveConfig(context.state.config).then( //entire config is saved
+                context.commit(OUTPUTS_MUTATION, outputs)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
             })
 
         },
-        [REMOVE_SETTINGS_ACTION](context, id) {
-            const filtered = context.state.config.entries.filter(item => item.id != id)
+        [REMOVE_OUTPUT_ACTION](context, name) {
+            const filtered = context.state.config.outputs.filter(item => item.name != name)
             api.saveConfig(filtered).then(
-                context.commit(CONFIG_MUTATION, filtered)
+                context.commit(OUTPUTS_MUTATION, filtered)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
             })
         },
-        [ADD_SETTINGS_ACTION](context, settings) {
-            const entries = context.state.config.entries
-            enrichId(settings)
-            entries.push(settings)
-            api.saveConfig(entries).then(
-                context.commit(CONFIG_MUTATION, entries)
+        [ADD_OUTPUT_ACTION](context, settings) {
+            const outputs = context.state.config.outputs
+            outputs.push(settings)
+            api.saveConfig(outputs).then(
+                context.commit(OUTPUTS_MUTATION, outputs)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
             })
@@ -132,8 +139,11 @@ export default new Vuex.Store({
         [STATS_MUTATION](state, payload) {
             state.stats = { ...payload }
         },
-        [CONFIG_MUTATION](state, entries) {
-            state.config.entries = [...entries]
+        [CONFIG_MUTATION](state, config) {
+            state.config = {...config}
+        },
+        [OUTPUTS_MUTATION](state, outputs) {
+            state.config.outputs = [...outputs]
         },
         [USER_INFO_MUTATION](state, info) {
             state.userInfo = { ...info }

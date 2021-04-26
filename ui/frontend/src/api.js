@@ -1,14 +1,22 @@
 import axios from "axios";
+import yaml from "js-yaml";
+
+const transformYaml = (response) => {
+    const json = yaml.load(response)
+    console.log(json)
+    return json
+}
 
 export default {
     getConfig: function () {
-        return axios.get("/api/plugins")
+        return axios.get("/api/config", {transformResponse: transformYaml})
     },
     getStats: function () {
         return axios.get("/api/plugins/stats")
     },
     saveConfig: function (settings) {
-        return axios.post("/api/update", settings) //TODO use same resource for both
+        const yamlObj = yaml.dump(settings)
+        return axios.post("/api/config", yamlObj)
 
     },
     test: function (settings) {

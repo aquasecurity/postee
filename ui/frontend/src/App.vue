@@ -1,18 +1,59 @@
 <template>
   <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand mr-auto" href="#">Postee UI</a>
-      <a class="navbar-item" @click="doLogout" href="#">Logout</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-secondary mb-3">
+      <a class="navbar-brand" href="#">Postee UI</a>
     </nav>
-    <div class="container">
-      <div v-if="error" class="alert alert-danger" role="alert">
-        {{ error }}
+
+    <div class="container-fluid">
+      <div class="row content">
+        <div v-if="!isOnLogin" class="col-sm-2">
+          <ul class="nav flex-column nav-pills">
+            <li class="nav-item">
+              <router-link
+                active-class="active"
+                :to="{ name: 'integrations' }"
+                class="nav-link"
+                >Integrations</router-link
+              >
+            </li>
+            <li class="nav-item">
+              <router-link
+                active-class="active"
+                :to="{ name: 'rules' }"
+                class="nav-link"
+                >Rules</router-link
+              >
+            </li>
+            <li class="nav-item">
+              <router-link
+                active-class="active"
+                :to="{ name: 'settings' }"
+                class="nav-link"
+                >Settings</router-link
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" @click="doLogout" href="#">Logout</a>
+            </li>
+          </ul>
+        </div>
+        <div
+          v-bind:class="[
+            { 'col-sm-12': isOnLogin },
+            { 'col-sm-9': !isOnLogin },
+          ]"
+        >
+          <div v-if="error" class="alert alert-danger" role="alert">
+            {{ error }}
+          </div>
+          <router-view></router-view>
+        </div>
       </div>
-      <router-view></router-view>
     </div>
   </div>
 </template>
-
+<style>
+</style>
 <script>
 import { mapState } from "vuex";
 import {
@@ -20,7 +61,7 @@ import {
   LOGOUT_ACTION,
   CLEAR_ERROR_MUTATION,
   LOAD_ACTION,
-  LOAD_STATS_ACTION
+  LOAD_STATS_ACTION,
 } from "./store/store";
 
 export default {
@@ -28,10 +69,16 @@ export default {
   watch: {
     $route(to) {
       this.$store.commit(CLEAR_ERROR_MUTATION);
-      if(to.name === 'home' && !this.$store.state.config.entries.length) {
+      if (to.name === "home" && !this.$store.state.config.outputs.length) {
         this.startLoading();
       }
+      this.isOnLogin = to.name === "login";
     },
+  },
+  data() {
+    return {
+      isOnLogin: false,
+    };
   },
   computed: {
     ...mapState({
@@ -53,14 +100,18 @@ export default {
     if (this.$store.state.userInfo.authenticated) {
       this.startLoading();
     } else {
-      if (this.$router.currentRoute.name != "login") {
-        this.$store.dispatch(LOGIN_ACTION).then(()=> {
-          this.startLoading();
-        }).catch(error=>{
-          if (!error) { //check failed - session is invalid
-            this.$router.push({ name: "login" })
-          }
-        })
+      if (!this.isOnLogin) {
+        this.$store
+          .dispatch(LOGIN_ACTION)
+          .then(() => {
+            this.startLoading();
+          })
+          .catch((error) => {
+            if (!error) {
+              //check failed - session is invalid
+              this.$router.push({ name: "login" });
+            }
+          });
       }
     }
   },
