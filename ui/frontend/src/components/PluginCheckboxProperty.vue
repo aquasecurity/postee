@@ -22,7 +22,10 @@ export default {
     value: Boolean,
     id: String,
     description: String,
-    show: Boolean,
+    show: {
+      type: Boolean,
+      default: true,
+    },
     inputHandler: Function,
   },
 };

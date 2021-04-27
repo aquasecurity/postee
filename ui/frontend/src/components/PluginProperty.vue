@@ -1,6 +1,6 @@
 <template>
   <div v-if="show" class="form-group form-input">
-    <label class="form-label" for="id">{{ label }}</label>
+    <label class="form-label" :for="id">{{ label }}</label>
     <input
       :type="inputType"
       :value="value"

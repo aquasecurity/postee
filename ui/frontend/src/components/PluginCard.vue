@@ -7,11 +7,6 @@
           <div class="flex-grow-1">
             <h5 class="card-title">{{ isCommon ? "Defaults" : name }}</h5>
           </div>
-          <div>
-            <span v-show="enable === true" class="badge bg-primary text-light"
-              >enabled</span
-            >
-          </div>
         </div>
 
         <h6 v-if="!isCommon" class="card-subtitle text-muted">
