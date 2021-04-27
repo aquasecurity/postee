@@ -56,7 +56,7 @@
             :value="formValues.name"
             :errorMsg="errors['name']"
             :inputHandler="updateField"
-            :validator="v(required)"
+            :validator="v(uniqueName)"
           />
           <!-- enable is not required here-->
           <PluginCheckboxProperty
@@ -392,6 +392,19 @@ export default {
       this.$store.dispatch(REMOVE_OUTPUT_ACTION, this.name);
       this.$router.push({ name: "home" });
     },
+    uniqueName(label, value) {
+      if  (!value) {
+        return `${label} is required`
+      }
+      const found = this.$store.state.config.outputs.filter(
+        (item) => item.name === value
+      );
+
+      if (found.length > 0 && found[0].name != this.name) {
+        return `${value} is not unique`
+      }
+      return false
+    }
   },
   mounted() {
     this.name = this.$route.params.name;

@@ -3,7 +3,6 @@ import yaml from "js-yaml";
 
 const transformYaml = (response) => {
     const json = yaml.load(response)
-    console.log(json)
     return json
 }
 

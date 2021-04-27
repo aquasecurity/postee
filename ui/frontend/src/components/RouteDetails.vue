@@ -23,7 +23,7 @@
             :value="formValues.name"
             :errorMsg="errors['name']"
             :inputHandler="updateField"
-            :validator="v(required)"
+            :validator="v(uniqueName)"
           />
           <div class="form-group form-input">
             <label class="form-label" for="input">REGO rule:</label>
@@ -153,6 +153,19 @@ export default {
       this.$store.dispatch(REMOVE_ROUTE_ACTION, this.name);
       this.$router.push({ name: "routes" });
     },
+    uniqueName(label, value) {
+      if  (!value) {
+        return `${label} is required`
+      }
+      const found = this.$store.state.config.routes.filter(
+        (item) => item.name === value
+      );
+
+      if (found.length > 0 && found[0].name != this.name) {
+        return `${value} is not unique`
+      }
+      return false
+    }
 
   },
   mounted() {
