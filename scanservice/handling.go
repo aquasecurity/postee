@@ -24,7 +24,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	var in interface{}
+	in := make(map[string]interface{})
 	if err := json.Unmarshal(input, &in); err != nil {
 		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
 		return
