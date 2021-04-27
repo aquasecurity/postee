@@ -38,7 +38,10 @@ export default {
     value: [String, Number],
     id: String,
     description: String,
-    show: Boolean,
+    show: {
+      type: Boolean,
+      default: true,
+    },
     inputHandler: Function,
     validator: Object,
   },

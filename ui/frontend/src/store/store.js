@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import api from './../api'
-import {router} from './../main'
+import { router } from './../main'
 
 
 Vue.use(Vuex)
@@ -22,12 +22,14 @@ export const USER_INFO_MUTATION = "updateUserInfo"
 export const ERROR_MUTATION = "ajaxError"
 export const CLEAR_ERROR_MUTATION = "clearAjaxError"
 export const STATS_MUTATION = "updateStats"
-export const OUTPUTS_MUTATION = "mutateOutputs"
 export const CONFIG_MUTATION = "mutateConfig"
+export const OUTPUTS_MUTATION = "mutateOutputs"
+export const SETTINGS_MUTATION = "mutateSettings"
 
 export default new Vuex.Store({
     state: {
         config: {
+            general: {},
             routes: [],
             templates: [],
             outputs: []
@@ -41,8 +43,8 @@ export default new Vuex.Store({
     },
     actions: {
         [TEST_ACTION](context, settings) {
-            return new Promise ( (resolve, reject) => {
-                api.test(settings).then(()=>{
+            return new Promise((resolve, reject) => {
+                api.test(settings).then(() => {
                     context.commit(CLEAR_ERROR_MUTATION)
                     resolve();
                 }).catch(error => {
@@ -58,11 +60,11 @@ export default new Vuex.Store({
         },
         [LOGIN_ACTION](context, payload) {
             const { username, password } = payload || {}
-            return new Promise ( (resolve, reject) => {
-                    api.login(username, password).then(() => {
-                        context.commit(USER_INFO_MUTATION, { authenticated: true })
-                        context.commit(CLEAR_ERROR_MUTATION)
-                        resolve()
+            return new Promise((resolve, reject) => {
+                api.login(username, password).then(() => {
+                    context.commit(USER_INFO_MUTATION, { authenticated: true })
+                    context.commit(CLEAR_ERROR_MUTATION)
+                    resolve()
                 }).catch(error => {
                     if (username && password) {
                         const errorMsg = error.response.status === 401 ? "Invalid credentials" : error.response.data;
@@ -75,7 +77,7 @@ export default new Vuex.Store({
             })
         },
         [LOGOUT_ACTION](context) {
-            api.logout().then(()=>{
+            api.logout().then(() => {
                 context.commit(USER_INFO_MUTATION, { authenticated: false })
                 router.push({ name: "login" });
             }).catch(error => {
@@ -84,7 +86,19 @@ export default new Vuex.Store({
         },
         [LOAD_ACTION](context) {
             api.getConfig().then((response) => {
-                context.commit(CONFIG_MUTATION, response.data)
+                const data = response.data
+                const config = {
+                    general: {
+                        name: data.name,
+                        AquaServer: data.AquaServer,
+                        Delete_Old_Data: data.Delete_Old_Data,
+                        DbVerifyInterval: data.DbVerifyInterval
+                    },
+                    outputs: data.outputs,
+                    rules: data.rules
+
+                }
+                context.commit(CONFIG_MUTATION, config)
             }).catch((error) => {
                 if (error.response) {
                     context.commit(ERROR_MUTATION, error.response.data)
@@ -109,14 +123,28 @@ export default new Vuex.Store({
                     outputs.splice(i, 1, value)
                 }
             }
+            const config = { ...context.state.config }
+            config.outputs = outputs
 
-            api.saveConfig(context.state.config).then( //entire config is saved
+            api.saveConfig(config).then( //entire config is saved
                 context.commit(OUTPUTS_MUTATION, outputs)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
             })
 
         },
+        [UPDATE_SETTINGS_ACTION](context, payload) {
+            const config = { ...context.state.config, ...payload }
+            config.general = undefined
+
+            api.saveConfig(config).then( //entire config is saved
+                context.commit(SETTINGS_MUTATION, payload)
+            ).catch((error) => {
+                context.commit(ERROR_MUTATION, error.response.data)
+            })
+
+        },
+
         [REMOVE_OUTPUT_ACTION](context, name) {
             const filtered = context.state.config.outputs.filter(item => item.name != name)
             api.saveConfig(filtered).then(
@@ -140,7 +168,10 @@ export default new Vuex.Store({
             state.stats = { ...payload }
         },
         [CONFIG_MUTATION](state, config) {
-            state.config = {...config}
+            state.config = { ...config }
+        },
+        [SETTINGS_MUTATION](state, config) {
+            state.config.general = { ...config }
         },
         [OUTPUTS_MUTATION](state, outputs) {
             state.config.outputs = [...outputs]

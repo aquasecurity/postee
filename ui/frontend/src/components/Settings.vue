@@ -1,3 +1,93 @@
 <template>
-    <h2> Settings </h2>
+  <div>
+    <div class="row justify-content-end pb-3 pr-3">
+      <button type="submit" class="btn btn-primary mr-2" @click="doSubmit">
+        Submit
+      </button>
+    </div>
+    <div class="card">
+      <form @submit.prevent="doSubmit">
+        <div class="card-body">
+          <PluginProperty
+            :id="'tenant'"
+            :label="'Name'"
+            :value="formValues.name"
+            :name="'name'"
+            :description="'Tenant name'"
+            :inputHandler="updateField"
+          />
+          <PluginProperty
+            :id="'aquaServer'"
+            :label="'Aqua Server'"
+            :value="formValues.AquaServer"
+            :name="'AquaServer'"
+            :description="'url of Aqua Server for links. E.g. https://myserver.aquasec.com'"
+            :inputHandler="updateField"
+          />
+          <PluginProperty
+            :id="'maxDbSize'"
+            :label="'Max Db size'"
+            :inputType="'number'"
+            :value="formValues.Max_DB_Size"
+            :name="'Max_DB_Size'"
+            :description="'Max size of DB. MB. if empty then unlimited'"
+            :inputHandler="updateField"
+          />
+          <PluginProperty
+            :id="'deleteOldData'"
+            :label="'Delete old data'"
+            :inputType="'number'"
+            :value="formValues.Delete_Old_Data"
+            :name="'Delete_Old_Data'"
+            :description="'delete data older than N day(s).  If empty then we do not delete.'"
+            :inputHandler="updateField"
+          />
+          <PluginProperty
+            :id="'dbVerifyInterval'"
+            :label="'DB verify interval'"
+            :inputType="'number'"
+            :value="formValues.DbVerifyInterval"
+            :name="'DbVerifyInterval'"
+            :description="'hours. an Interval between tests of DB. Default: 1 hour'"
+            :inputHandler="updateField"
+          />
+        </div>
+      </form>
+    </div>
+  </div>
 </template>
+<script>
+import { mapState } from "vuex";
+import {UPDATE_SETTINGS_ACTION} from "./../store/store"
+import ValidationMixin from "./validator";
+import FormFieldMixin from "./form";
+import PluginProperty from "./PluginProperty.vue";
+
+export default {
+  data() {
+    return {
+      fields: {},
+      errors: {},
+    };
+  },
+  mixins: [FormFieldMixin, ValidationMixin],
+  components: {
+    PluginProperty,
+  },
+  computed: {
+    ...mapState({
+      formValues(state) {
+        return state.config.general;
+      },
+    }),
+  },
+  methods: {
+    doSubmit() {
+        if (!this.isFormValid()) {
+            return;
+        }
+        this.$store.dispatch(UPDATE_SETTINGS_ACTION, this.formValues);
+    },
+  },
+};
+</script>
