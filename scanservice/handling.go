@@ -3,14 +3,15 @@ package scanservice
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
-	"log"
-	"strings"
 )
 
 type ScanService struct {
@@ -79,12 +80,13 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		}
 	}
 	if len(content) > 0 {
-		send(plugin, content)
+		send(plugin, name, content)
 	}
 }
 
-func send(plg plugins.Plugin, cnt map[string]string) {
+func send(plg plugins.Plugin, name *string, cnt map[string]string) {
 	go plg.Send(cnt)
+	dbservice.RegisterPlgnInvctn(*name)
 }
 
 var AggregateScanAndGetQueue = func(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {

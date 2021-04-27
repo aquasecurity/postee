@@ -3,11 +3,12 @@ package plugins
 import (
 	"bytes"
 	"encoding/json"
+	"log"
+	"strings"
+
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
-	"log"
-	"strings"
 
 	slackAPI "github.com/aquasecurity/postee/slack"
 )
@@ -70,7 +71,7 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 	if length >= slackBlockLimit {
 		message := buildShortMessage(slack.AquaServer, input["url"], slack.slackLayout)
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
-			log.Printf("Slack Sending Error: %v", err)
+			return err
 		}
 		log.Printf("Sending via Slack %q was successful!", slack.Name)
 	} else {
@@ -82,7 +83,7 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 			cutData, _ := json.Marshal(rawBlock[n : n+d])
 			cutData = cutData[1 : len(cutData)-1]
 			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
-				log.Printf("Slack Sending Error: %v", err)
+				return err
 			} else {
 				log.Printf("Sending [%d/%d part] to %q was successful!",
 					int(n/49)+1, int(length/49)+1,

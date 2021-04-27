@@ -4,14 +4,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/routes"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/routes"
 
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/scanservice"
@@ -27,15 +28,13 @@ const (
 	AnonymizeReplacement   = "<hidden>"
 )
 
-var (
-	errNoPlugins = errors.New("there aren't started plugins")
-)
-
 type AlertMgr struct {
 	mutexScan   sync.Mutex
 	mutexEvent  sync.Mutex
 	quit        chan struct{}
 	queue       chan []byte
+	ticker      *time.Ticker
+	stopTicker  chan struct{}
 	events      chan string
 	cfgfile     string
 	aquaServer  string
@@ -43,12 +42,22 @@ type AlertMgr struct {
 	inputRoutes map[string]*routes.InputRoutes
 }
 
-var initCtx sync.Once
-var alertmgrCtx *AlertMgr
-var baseForTicker = time.Hour
-var ticker *time.Ticker
+var (
+	errNoPlugins  = errors.New("there aren't started plugins")
+	initCtx       sync.Once
+	alertmgrCtx   *AlertMgr
+	baseForTicker = time.Hour
 
-var osStat = os.Stat
+	osStat = os.Stat
+
+	ignoreAuthorization map[string]bool = map[string]bool{
+		"slack":   true,
+		"teams":   true,
+		"webhook": true,
+		"email":   true,
+		"splunk":  true,
+	}
+)
 
 func Instance() *AlertMgr {
 	initCtx.Do(func() {
@@ -60,14 +69,20 @@ func Instance() *AlertMgr {
 			queue:       make(chan []byte, 1000),
 			plugins:     make(map[string]plugins.Plugin),
 			inputRoutes: make(map[string]*routes.InputRoutes),
+			stopTicker:  make(chan struct{}),
 		}
 	})
 	return alertmgrCtx
+}
+func (ctx *AlertMgr) ReloadConfig() {
+	ctx.Terminate()
+	ctx.Start(ctx.cfgfile)
 }
 
 func (ctx *AlertMgr) Start(cfgfile string) error {
 	log.Printf("Starting AlertMgr....")
 	ctx.cfgfile = cfgfile
+	ctx.plugins = map[string]plugins.Plugin{}
 	ctx.load()
 	go ctx.listen()
 	return nil
@@ -75,12 +90,12 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 
 func (ctx *AlertMgr) Terminate() {
 	log.Printf("Terminating AlertMgr....")
-	close(ctx.quit)
+
+	ctx.quit <- struct{}{}
+	ctx.stopTicker <- struct{}{}
+
 	for _, pl := range ctx.plugins {
 		pl.Terminate()
-	}
-	if ticker != nil {
-		ticker.Stop()
 	}
 }
 
@@ -126,11 +141,16 @@ func (ctx *AlertMgr) load() error {
 		tenant.DBTestInterval = 1
 	}
 	if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
-		ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
+		ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
 		go func() {
-			for range ticker.C {
-				dbservice.CheckSizeLimit()
-				dbservice.CheckExpiredData()
+			for {
+				select {
+				case <-ctx.stopTicker:
+					return
+				case <-ctx.ticker.C:
+					dbservice.CheckSizeLimit()
+					dbservice.CheckExpiredData()
+				}
 			}
 		}()
 	}
@@ -145,50 +165,15 @@ func (ctx *AlertMgr) load() error {
 			plugin.Terminate()
 		}
 	}
-	ignoreAuthorization := map[string]bool{
-		"slack":   true,
-		"teams":   true,
-		"webhook": true,
-		"email":   true,
-		"splunk":  true,
-	}
 
 	for _, settings := range tenant.Outputs {
 		utils.Debug("%#v\n", anonymizeSettings(&settings))
 
 		if settings.Enable {
-			settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-			if len(settings.User) == 0 && !ignoreAuthorization[settings.Type] {
-				log.Printf("User for %q is empty", settings.Name)
-				continue
+			plg := BuildAndInitPlg(&settings, ctx)
+			if plg != nil {
+				ctx.plugins[settings.Name] = plg
 			}
-			settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-			if len(settings.Password) == 0 && !ignoreAuthorization[settings.Type] {
-				log.Printf("Password for %q is empty", settings.Name)
-				continue
-			}
-			utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
-			switch settings.Type {
-			case "jira":
-				ctx.plugins[settings.Name] = buildJiraPlugin(&settings)
-			case "email":
-				ctx.plugins[settings.Name] = buildEmailPlugin(&settings)
-			case "slack":
-				ctx.plugins[settings.Name] = buildSlackPlugin(&settings, ctx.aquaServer)
-			case "teams":
-				ctx.plugins[settings.Name] = buildTeamsPlugin(&settings, ctx.aquaServer)
-			case "serviceNow":
-				ctx.plugins[settings.Name] = buildServiceNow(&settings)
-			case "webhook":
-				ctx.plugins[settings.Name] = buildWebhookPlugin(&settings)
-			case "splunk":
-				ctx.plugins[settings.Name] = buildSplunkPlugin(&settings)
-			default:
-				log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
-					settings.Type, settings.Name)
-				continue
-			}
-			ctx.plugins[settings.Name].Init()
 		}
 	}
 	return nil
@@ -212,6 +197,46 @@ func (ctx *AlertMgr) handle(in []byte) {
 		}
 		go getScanService().ResultHandling(in, &routeName, pl, r, &ctx.aquaServer)
 	}
+}
+func BuildAndInitPlg(settings *PluginSettings, ctx *AlertMgr) plugins.Plugin {
+	var plg plugins.Plugin
+
+	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
+	if len(settings.User) == 0 && !ignoreAuthorization[settings.Type] {
+		log.Printf("User for %q is empty", settings.Name)
+		return nil
+	}
+	settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
+	if len(settings.Password) == 0 && !ignoreAuthorization[settings.Type] {
+		log.Printf("Password for %q is empty", settings.Name)
+		return nil
+	}
+
+	utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
+
+	switch settings.Type {
+	case "jira":
+		plg = buildJiraPlugin(settings)
+	case "email":
+		plg = buildEmailPlugin(settings)
+	case "slack":
+		plg = buildSlackPlugin(settings, ctx.aquaServer)
+	case "teams":
+		plg = buildTeamsPlugin(settings, ctx.aquaServer)
+	case "serviceNow":
+		plg = buildServiceNow(settings)
+	case "webhook":
+		plg = buildWebhookPlugin(settings)
+	case "splunk":
+		plg = buildSplunkPlugin(settings)
+	default:
+		log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
+			settings.Type, settings.Name)
+		return nil
+	}
+	plg.Init()
+
+	return plg
 }
 
 func (ctx *AlertMgr) listen() {

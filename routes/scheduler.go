@@ -1,9 +1,10 @@
 package routes
 
 import (
-	"github.com/aquasecurity/postee/plugins"
 	"log"
 	"time"
+
+	"github.com/aquasecurity/postee/plugins"
 )
 
 func (route *InputRoutes) IsSchedulerRun() bool {
@@ -15,7 +16,7 @@ var getTicker = func(seconds int) *time.Ticker {
 }
 
 func (route *InputRoutes) RunScheduler(
-	fnSend func(plg plugins.Plugin, cnt map[string]string),
+	fnSend func(plg plugins.Plugin, name *string, cnt map[string]string),
 	fnAggregate func(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
 ) {
 	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.AggregateTimeoutSeconds)
@@ -34,7 +35,7 @@ func (route *InputRoutes) RunScheduler(
 				log.Printf("Scheduler triggered for %q", route.Name)
 				queue := fnAggregate(route.Name, nil, 0, false)
 				if len(queue) > 0 {
-					//					fnSend(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()))
+					//					fnSend(plg, name, buildAggregatedContent(queue, plg.GetLayoutProvider()))
 				}
 			}
 		}

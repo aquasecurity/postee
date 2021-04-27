@@ -1,0 +1,56 @@
+<template>
+  <div v-if="show" class="form-group form-input">
+    <label class="form-label" for="id">{{ label }}</label>
+    <input
+      :type="inputType"
+      :value="value"
+      :name="nameOrId"
+      @input="inputHandler"
+      class="form-control"
+      v-bind:class="{ 'is-invalid' : errorMsg }"
+      :id="id"
+    />
+    <small v-show="!!description" class="form-text text-muted">{{
+      description
+    }}</small>
+    <div class="form-text invalid-feedback">{{ errorMsg }}</div>
+  </div>
+</template>
+<script>
+export default {
+  data() {
+    return {
+    }
+  },
+  computed: {
+    nameOrId(){
+      return this.name || this.id
+    },
+  },
+  props: {
+    errorMsg : [String, Boolean],
+    name: String,
+    inputType: {
+      type: String,
+      default: "input",
+    },
+    label: String,
+    value: [String, Number],
+    id: String,
+    description: String,
+    show: {
+      type: Boolean,
+      default: true,
+    },
+    inputHandler: Function,
+    validator: Object,
+  },
+  methods : {
+  },
+  mounted()  {
+    if (this.validator) {
+      this.validator.register(this.id, this.label, this.nameOrId)
+    }
+  }
+};
+</script>
