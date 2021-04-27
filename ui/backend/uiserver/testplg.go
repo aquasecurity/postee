@@ -27,7 +27,7 @@ func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plg := alertmgr.BuildAndInitPlg(plgSettings)
+	plg := alertmgr.BuildAndInitPlg(plgSettings, "")
 
 	testPayload := make(map[string]string)
 
