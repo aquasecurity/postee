@@ -6,6 +6,10 @@ import { router } from './../main'
 
 Vue.use(Vuex)
 
+function toApiPayload(state, modification){
+    return  { ...state.config, ...state.config.general, general: undefined, ...modification, loaded: undefined}
+}
+
 
 export const LOAD_ACTION = "load"
 export const TEST_ACTION = "test"
@@ -28,6 +32,7 @@ export const CONFIG_MUTATION = "mutateConfig"
 export const ROUTES_MUTATION = "mutateRoutes"
 export const OUTPUTS_MUTATION = "mutateOutputs"
 export const SETTINGS_MUTATION = "mutateSettings"
+export const LOADED_FLAG_MUTATION = "mutateLoadedFlag"
 
 export default new Vuex.Store({
     state: {
@@ -35,7 +40,8 @@ export default new Vuex.Store({
             general: {},
             routes: [],
             templates: [],
-            outputs: []
+            outputs: [],
+            loaded: false
         },
         stats: {
         },
@@ -102,6 +108,7 @@ export default new Vuex.Store({
 
                 }
                 context.commit(CONFIG_MUTATION, config)
+                context.commit(LOADED_FLAG_MUTATION, true)
             }).catch((error) => {
                 if (error.response) {
                     context.commit(ERROR_MUTATION, error.response.data)
@@ -126,9 +133,8 @@ export default new Vuex.Store({
                     routes.splice(i, 1, value)
                 }
             }
-            const config = { ...context.state.config, routes, general : undefined }
 
-            api.saveConfig(config).then( //entire config is saved
+            api.saveConfig(toApiPayload(context.state, {routes})).then( //entire config is saved
                 context.commit(ROUTES_MUTATION, routes)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
@@ -143,9 +149,7 @@ export default new Vuex.Store({
                     outputs.splice(i, 1, value)
                 }
             }
-            const config = { ...context.state.config, outputs, general : undefined }
-
-            api.saveConfig(config).then( //entire config is saved
+            api.saveConfig(toApiPayload(context.state, {outputs})).then( //entire config is saved
                 context.commit(OUTPUTS_MUTATION, outputs)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
@@ -153,10 +157,7 @@ export default new Vuex.Store({
 
         },
         [UPDATE_SETTINGS_ACTION](context, payload) {
-            const config = { ...context.state.config, ...payload }
-            config.general = undefined
-
-            api.saveConfig(config).then( //entire config is saved
+            api.saveConfig(toApiPayload(context.state, payload)).then( //entire config is saved
                 context.commit(SETTINGS_MUTATION, payload)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
@@ -165,10 +166,9 @@ export default new Vuex.Store({
         },
 
         [REMOVE_OUTPUT_ACTION](context, name) {
-            const filtered = context.state.config.outputs.filter(item => item.name != name)
-            const config = { ...context.state.config, outputs : filtered, general : undefined }
-            api.saveConfig(config).then(
-                context.commit(OUTPUTS_MUTATION, filtered)
+            const outputs = context.state.config.outputs.filter(item => item.name != name)
+            api.saveConfig(toApiPayload(context.state, {outputs})).then(
+                context.commit(OUTPUTS_MUTATION, outputs)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
             })
@@ -176,19 +176,18 @@ export default new Vuex.Store({
         [ADD_OUTPUT_ACTION](context, settings) {
             const outputs = context.state.config.outputs
             outputs.push(settings)
-            const config = { ...context.state.config, outputs, general : undefined }
-            api.saveConfig(config).then(
+
+            api.saveConfig(toApiPayload(context.state, {outputs})).then(
                 context.commit(OUTPUTS_MUTATION, outputs)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
             })
         },
         [REMOVE_ROUTE_ACTION](context, name) {
-            const filtered = context.state.config.routes.filter(item => item.name != name)
-            const config = { ...context.state.config, routes: filtered, general : undefined }
+            const routes = context.state.config.routes.filter(item => item.name != name)
 
-            api.saveConfig(config).then(
-                context.commit(ROUTES_MUTATION, filtered)
+            api.saveConfig(toApiPayload(context.state, {routes})).then(
+                context.commit(ROUTES_MUTATION, routes)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
             })
@@ -196,8 +195,8 @@ export default new Vuex.Store({
         [ADD_ROUTE_ACTION](context, route) {
             const routes = context.state.config.routes
             routes.push(route)
-            const config = { ...context.state.config, routes, general : undefined }
-            api.saveConfig(config).then(
+
+            api.saveConfig(toApiPayload(context.state, {routes})).then(
                 context.commit(ROUTES_MUTATION, routes)
             ).catch((error) => {
                 context.commit(ERROR_MUTATION, error.response.data)
@@ -228,6 +227,9 @@ export default new Vuex.Store({
         },
         [CLEAR_ERROR_MUTATION](state) {
             state.error = {}
+        },
+        [LOADED_FLAG_MUTATION](state, loaded) {
+            Vue.set(state.config, 'loaded', loaded)
         }
     }
 })

@@ -69,15 +69,13 @@ export default {
   watch: {
     $route(to) {
       this.$store.commit(CLEAR_ERROR_MUTATION);
-      if (to.name === "home" && !this.$store.state.config.outputs.length) {
+      if (["home", "integrations"].indexOf(to.name) >= 0 && !this.$store.state.config.loaded) {
         this.startLoading();
       }
-      this.isOnLogin = to.name === "login";
     },
   },
   data() {
     return {
-      isOnLogin: false,
     };
   },
   computed: {
@@ -86,6 +84,9 @@ export default {
         return state.error.message;
       },
     }),
+    isOnLogin() {
+      return this.$route.name === 'login'
+    }
   },
   methods: {
     doLogout() {
