@@ -170,7 +170,7 @@ func (ctx *AlertMgr) load() error {
 		utils.Debug("%#v\n", anonymizeSettings(&settings))
 
 		if settings.Enable {
-			plg := BuildAndInitPlg(&settings, ctx)
+			plg := BuildAndInitPlg(&settings, ctx.aquaServer)
 			if plg != nil {
 				ctx.plugins[settings.Name] = plg
 			}
@@ -198,7 +198,7 @@ func (ctx *AlertMgr) handle(in []byte) {
 		go getScanService().ResultHandling(in, &routeName, pl, r, &ctx.aquaServer)
 	}
 }
-func BuildAndInitPlg(settings *PluginSettings, ctx *AlertMgr) plugins.Plugin {
+func BuildAndInitPlg(settings *PluginSettings, aquaServerUrl string) plugins.Plugin {
 	var plg plugins.Plugin
 
 	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
@@ -220,9 +220,9 @@ func BuildAndInitPlg(settings *PluginSettings, ctx *AlertMgr) plugins.Plugin {
 	case "email":
 		plg = buildEmailPlugin(settings)
 	case "slack":
-		plg = buildSlackPlugin(settings, ctx.aquaServer)
+		plg = buildSlackPlugin(settings, aquaServerUrl)
 	case "teams":
-		plg = buildTeamsPlugin(settings, ctx.aquaServer)
+		plg = buildTeamsPlugin(settings, aquaServerUrl)
 	case "serviceNow":
 		plg = buildServiceNow(settings)
 	case "webhook":
