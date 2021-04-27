@@ -2,13 +2,12 @@ package scanservice
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/aquasecurity/postee/templateservice"
 	"log"
 	"strings"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
@@ -20,12 +19,12 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, AquaServer *string) {
+func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *templateservice.Template, AquaServer *string) {
 	if plugin == nil {
 		return
 	}
 
-	in := make(map[string]interface{})
+	in := data.AquaInput{}
 	if err := json.Unmarshal(input, &in); err != nil {
 		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
 		return
@@ -45,6 +44,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 	}
 	log.Printf("Handling a scan result of '%s/%s'", scan.scanInfo.Registry, scan.scanInfo.Image)
 	owners := ""
+
 	if len(scan.scanInfo.ApplicationScopeOwners) > 0 {
 		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
 	}
@@ -53,7 +53,8 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
 		return
 	}
-	content := scan.getContent(plugin.GetLayoutProvider(), *AquaServer)
+
+	content := template.Render(in, plugin.GetLayoutProvider(), AquaServer)
 	content["src"] = string(input)
 	if owners != "" {
 		content["owners"] = owners
@@ -63,7 +64,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 	if route.AggregateIssuesNumber > 0 {
 		aggregated := AggregateScanAndGetQueue(*name, content, route.AggregateIssuesNumber, false)
 		if len(aggregated) > 0 {
-			content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
+			//			content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
 		} else {
 			content = nil
 		}
@@ -121,14 +122,6 @@ func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
 		}
 	}
 	return false
-}
-
-func (scan *ScanService) getContent(provider layout.LayoutProvider, server string) map[string]string {
-	url := scan.scanInfo.Registry + "/" + strings.ReplaceAll(scan.scanInfo.Image, "/", "%2F")
-	return buildMapContent(
-		fmt.Sprintf("%s vulnerability scan report", scan.scanInfo.Image),
-		layout.GenTicketDescription(provider, scan.scanInfo, scan.prevScan, server+url),
-		url)
 }
 
 func (scan *ScanService) init(data []byte) (err error) {
