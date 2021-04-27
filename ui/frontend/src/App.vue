@@ -19,9 +19,9 @@
             <li class="nav-item">
               <router-link
                 active-class="active"
-                :to="{ name: 'rules' }"
+                :to="{ name: 'routes' }"
                 class="nav-link"
-                >Rules</router-link
+                >Routes</router-link
               >
             </li>
             <li class="nav-item">

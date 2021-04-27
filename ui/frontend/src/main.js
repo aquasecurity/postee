@@ -4,7 +4,8 @@ import App from './App.vue'
 import Integrations from './components/Integrations.vue'
 import LoginForm from './components/LoginForm.vue'
 import PluginDetails from './components/PluginDetails.vue'
-import Rules from './components/Rules.vue'
+import RouteDetails from './components/RouteDetails.vue'
+import Routes from './components/Routes.vue'
 import Settings from './components/Settings.vue'
 import { BootstrapVue } from 'bootstrap-vue'
 import store from './store/store'
@@ -17,7 +18,9 @@ Vue.use(VueRouter);
 const routes = [
   { name: 'home', path: '/', redirect: '/integrations' },
   { name: 'integrations', path: '/integrations', component: Integrations },
-  { name: 'rules', path: '/rules', component: Rules },
+  { name: 'routes', path: '/routes', component: Routes },
+  { name: 'add-route', path: '/route', component: RouteDetails },
+  { name: 'route', path: '/route/:name', component: RouteDetails },
   { name: 'settings', path: '/settings', component: Settings },
   { name: 'login', path: '/login', component: LoginForm },
   { name: 'add-plugin', path: '/plugin', component: PluginDetails },

@@ -58,6 +58,7 @@
             :inputHandler="updateField"
             :validator="v(required)"
           />
+          <!-- enable is not required here-->
           <PluginCheckboxProperty
             :id="'enable'"
             :label="'Enable plugin'"
@@ -256,159 +257,6 @@
             :inputHandler="updateField"
           />
           <!-- splunk custom properties end -->
-
-          <!-- general properties start -->
-
-          <!--TODO make policyMinVulnerability a select-->
-          <PluginProperty
-            :id="'policyMinVulnerability'"
-            :label="'Policy-Min-Vulnerability'"
-            :value="formValues['Policy-Min-Vulnerability']"
-            :name="'Policy-Min-Vulnerability'"
-            :description="generalProperties['Policy-Min-Vulnerability']"
-            :show="showGeneralProperty('Policy-Min-Vulnerability')"
-            :inputHandler="updateField"
-          />
-
-          <PluginProperty
-            :id="'policyRegistry'"
-            :label="'Policy-Registry'"
-            :value="formValues['Policy-Registry'] | toString"
-            :name="'Policy-Registry'"
-            :description="generalProperties['Policy-Registry']"
-            :show="showGeneralProperty('Policy-Registry')"
-            :inputHandler="updateCollectionField"
-          />
-
-          <PluginProperty
-            :id="'policyImageName'"
-            :label="'Policy-Image-Name'"
-            :value="formValues['Policy-Image-Name'] | toString"
-            :name="'Policy-Image-Name'"
-            :description="generalProperties['Policy-Image-Name']"
-            :show="showGeneralProperty('Policy-Image-Name')"
-            :inputHandler="updateCollectionField"
-          />
-
-          <PluginCheckboxProperty
-            :id="'policyOnlyFixAvailable'"
-            :label="'Policy-Only-Fix-Available'"
-            :name="'Policy-Only-Fix-Available'"
-            :value="formValues['Policy-Only-Fix-Available']"
-            :show="showGeneralProperty('Policy-Only-Fix-Available')"
-            :description="generalProperties['Policy-Only-Fix-Available']"
-            :inputHandler="updateField"
-          />
-
-          <PluginCheckboxProperty
-            :id="'policyNonCompliant'"
-            :label="'Policy-Non-Compliant'"
-            :name="'Policy-Non-Compliant'"
-            :value="formValues['Policy-Non-Compliant']"
-            :show="showGeneralProperty('Policy-Non-Compliant')"
-            :description="generalProperties['Policy-Non-Compliant']"
-            :inputHandler="updateField"
-          />
-
-          <PluginCheckboxProperty
-            :id="'policyShowAll'"
-            :label="'Policy-Show-All'"
-            :name="'Policy-Show-All'"
-            :value="formValues['Policy-Show-All']"
-            :show="showGeneralProperty('Policy-Show-All')"
-            :description="generalProperties['Policy-Show-All']"
-            :inputHandler="updateField"
-          />
-
-          <PluginProperty
-            :id="'ignoreRegistry'"
-            :label="'Ignore-Registry'"
-            :value="formValues['Ignore-Registry'] | toString"
-            :name="'Ignore-Registry'"
-            :description="generalProperties['Ignore-Registry']"
-            :show="showGeneralProperty('Ignore-Registry')"
-            :inputHandler="updateCollectionField"
-          />
-
-          <PluginProperty
-            :id="'ignoreImageName'"
-            :label="'Ignore-Image-Name'"
-            :value="formValues['Ignore-Image-Name'] | toString"
-            :name="'Ignore-Image-Name'"
-            :description="generalProperties['Ignore-Image-Name']"
-            :show="showGeneralProperty('Ignore-Image-Name')"
-            :inputHandler="updateCollectionField"
-          >
-          </PluginProperty>
-
-          <PluginProperty
-            :id="'aggregateIssuesNumber'"
-            :label="'Aggregate-Issues-Number'"
-            :value="formValues['Aggregate-Issues-Number']"
-            :inputType="'number'"
-            :name="'Aggregate-Issues-Number'"
-            :description="generalProperties['Aggregate-Issues-Number']"
-            :show="showGeneralProperty('Aggregate-Issues-Number')"
-            :inputHandler="updateField"
-          />
-
-          <PluginProperty
-            :id="'aggregateIssuesTimeout'"
-            :label="'Aggregate-Issues-Timeout'"
-            :inputType="'number'"
-            :value="formValues['Aggregate-Issues-Timeout']"
-            :name="'Aggregate-Issues-Timeout'"
-            :description="generalProperties['Aggregate-Issues-Timeout']"
-            :show="showGeneralProperty('Aggregate-Issues-Timeout')"
-            :inputHandler="updateField"
-          />
-
-          <PluginProperty
-            :id="'policyOPA'"
-            :label="'Policy-OPA'"
-            :value="formValues['Policy-OPA'] | toString"
-            :name="'Policy-OPA'"
-            :description="generalProperties['Policy-OPA']"
-            :show="showGeneralProperty('Policy-OPA')"
-            :inputHandler="updateCollectionField"
-          />
-
-          <!--  general properties end -->
-          <div class="row form-group">
-            <div class="col-md-6">
-              <select
-                class="form-select form-control p-2 w-100"
-                :value="selectedControl"
-                id="optionalControlSelector"
-                @input="updateSelectedControl"
-              >
-                <option
-                  v-for="(desc, key) in generalProperties"
-                  :key="key"
-                  :value="key"
-                >
-                  {{ key }}
-                </option>
-              </select>
-            </div>
-
-            <div class="col-md-6">
-              <button
-                type="button"
-                @click="selectControl"
-                class="btn btn-primary"
-              >
-                Add Control
-              </button>
-            </div>
-            <div class="col-12 p-2">
-              <small
-                id="generalProperyDescription"
-                class="form-text text-muted"
-                >{{ generalProperties[selectedControl] }}</small
-              >
-            </div>
-          </div>
         </div>
       </form>
     </div>
@@ -420,7 +268,6 @@ import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
 import PluginProperty from "./PluginProperty.vue";
 import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
-import generalProperties from "./general-properties";
 import {
   ADD_OUTPUT_ACTION,
   UPDATE_OUTPUT_ACTION,
@@ -445,8 +292,6 @@ export default {
       isTestingInProgress: false,
       fields: {}, //required for mixins
       errors: {}, //required for mixins
-      generalProperties,
-      selectedControl: "",
       integrationType: "", //stored separately to track dependencies
       jiraAssigneeDescription:
         'Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value',
@@ -525,15 +370,6 @@ export default {
           this.isTestingInProgress = false;
         });
     },
-    showGeneralProperty(generalPropertyName) {
-      const hasOwnProperty = Object.prototype.hasOwnProperty.call(
-        this.formValues,
-        generalPropertyName
-      );
-      return (
-        hasOwnProperty || this.addedControls.indexOf(generalPropertyName) >= 0
-      );
-    },
     doSubmit() {
       if (!this.isFormValid()) {
         return;
@@ -551,12 +387,6 @@ export default {
     updateIntegrationType(e) {
       this.integrationType = e.target.value;
       this.updateField(e);
-    },
-    updateSelectedControl(e) {
-      this.selectedControl = e.target.value;
-    },
-    selectControl() {
-      this.addedControls.push(this.selectedControl);
     },
     doRemove() {
       this.$store.dispatch(REMOVE_OUTPUT_ACTION, this.name);
