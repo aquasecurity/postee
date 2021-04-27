@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/regoservice"
 )
 
-func (t *Template) Render(source []byte, input data.AquaInput, provider layout.LayoutProvider, server *string) (map[string]string, error) {
+func (t *Template) Render(source []byte, input data.AquaInput, provider layout.LayoutProvider, rules *string, server *string) (map[string]string, error) {
 	scan := &data.ScanImageInfo{}
 	prev := &data.ScanImageInfo{}
 	if input["image"] != nil {
@@ -15,5 +16,8 @@ func (t *Template) Render(source []byte, input data.AquaInput, provider layout.L
 			return nil, err
 		}
 	}
+
+	regoservice.BuildRegoTemplate(input, rules)
+
 	return getContent(scan, prev, provider, server), nil
 }
