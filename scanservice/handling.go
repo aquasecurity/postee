@@ -54,7 +54,11 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	content := template.Render(in, plugin.GetLayoutProvider(), AquaServer)
+	content, err := template.Render(input, in, plugin.GetLayoutProvider(), AquaServer)
+	if err != nil {
+		log.Printf("Template rendering error for %q: %v", name, err)
+		return
+	}
 	content["src"] = string(input)
 	if owners != "" {
 		content["owners"] = owners
