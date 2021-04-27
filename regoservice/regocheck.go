@@ -2,7 +2,6 @@ package regoservice
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/open-policy-agent/opa/rego"
 )
@@ -15,14 +14,6 @@ allow {
 %s
 }
 `
-
-func IsRegoCorrectScanResult(rule string, scanResult string) (bool, error) {
-	var input interface{}
-	if err := json.Unmarshal([]byte(scanResult), &input); err != nil {
-		return false, err
-	}
-	return IsRegoCorrectInterface(input, rule)
-}
 
 func IsRegoCorrectInterface(input interface{}, rule string) (bool, error) {
 	r := rego.New(

@@ -1,9 +1,20 @@
-package scanservice
+package templateservice
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/layout"
+	"strings"
 )
+
+func getContent(scan, prev *data.ScanImageInfo, provider layout.LayoutProvider, server *string) map[string]string {
+	url := scan.Registry + "/" + strings.ReplaceAll(scan.Image, "/", "%2F")
+	return buildMapContent(
+		fmt.Sprintf("%s vulnerability scan report", scan.Image),
+		layout.GenTicketDescription(provider, scan, prev, *server+url),
+		url)
+}
 
 func buildMapContent(title, description, url string) map[string]string {
 	content := make(map[string]string)

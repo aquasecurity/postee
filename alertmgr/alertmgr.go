@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/aquasecurity/postee/templateservice"
 	"io/ioutil"
 	"log"
 	"os"
@@ -40,6 +41,7 @@ type AlertMgr struct {
 	aquaServer  string
 	plugins     map[string]plugins.Plugin
 	inputRoutes map[string]*routes.InputRoutes
+	templates   map[string]*templateservice.Template
 }
 
 var (
@@ -69,6 +71,7 @@ func Instance() *AlertMgr {
 			queue:       make(chan []byte, 1000),
 			plugins:     make(map[string]plugins.Plugin),
 			inputRoutes: make(map[string]*routes.InputRoutes),
+			templates:   make(map[string]*templateservice.Template),
 			stopTicker:  make(chan struct{}),
 		}
 	})
@@ -158,6 +161,9 @@ func (ctx *AlertMgr) load() error {
 	for _, r := range tenant.InputRoutes {
 		ctx.inputRoutes[r.Name] = buildRoute(&r)
 	}
+	for _, t := range tenant.Templates {
+		ctx.templates[t.Name] = &t
+	}
 
 	for name, plugin := range ctx.plugins {
 		if plugin != nil {
@@ -180,7 +186,7 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, aquaServer *string)
+	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *templateservice.Template, aquaServer *string)
 }
 
 var getScanService = func() service {
@@ -195,7 +201,14 @@ func (ctx *AlertMgr) handle(in []byte) {
 			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, r.Output)
 			continue
 		}
-		go getScanService().ResultHandling(in, &routeName, pl, r, &ctx.aquaServer)
+		tmpl, ok := ctx.templates[r.Template]
+		if !ok {
+			log.Printf("route %q contains a template %q, which is undefined.",
+				routeName, r.Template)
+			continue
+		}
+
+		go getScanService().ResultHandling(in, &routeName, pl, r, tmpl, &ctx.aquaServer)
 	}
 }
 func BuildAndInitPlg(settings *PluginSettings, aquaServerUrl string) plugins.Plugin {
