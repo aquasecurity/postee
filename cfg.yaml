@@ -6,8 +6,8 @@ DbVerifyInterval: 1   #  hours. an Interval between tests of DB. Default: 1 hour
 
 routes:
 - name: route1      #  name must be unique
-  input: |          #  REGO rules
-  output: []        #  a list of integrations which will receive a scan or an audit event
+  input: contains(input.image, "alpine")          #  REGO rules
+  output:           #  an integration output which will receive a scan or an audit event
   template:         #  a template for this route
   Aggregate-Issues-Number:   #  a number of scans to aggregate into one ticket
   Aggregate-Issues-Timeout:    #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)

@@ -1,11 +1,13 @@
 package scanservice
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
 	"log"
 	"strings"
@@ -17,7 +19,25 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, plugins map[string]plugins.Plugin, route *routes.InputRoutes, AquaServer *string) {
+func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, AquaServer *string) {
+	if plugin == nil {
+		return
+	}
+
+	var in interface{}
+	if err := json.Unmarshal(input, &in); err != nil {
+		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
+		return
+	}
+
+	if ok, err := regoservice.IsRegoCorrectInterface(in, route.Input); err != nil {
+		prnInputLogs("IsRegoCorrectInterface error for %q: %v", input)
+		return
+	} else if !ok {
+		prnInputLogs("Input %q... doesn't match a REGO rule: %q", input, route.Input)
+		return
+	}
+
 	if err := scan.init(input); err != nil {
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
@@ -28,45 +48,38 @@ func (scan *ScanService) ResultHandling(input []byte, plugins map[string]plugins
 		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
 	}
 
-	for name, plugin := range plugins {
-		if plugin == nil {
-			continue
-		}
+	if !scan.isNew && !route.PolicyShowAll {
+		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
+		return
+	}
+	content := scan.getContent(plugin.GetLayoutProvider(), *AquaServer)
+	content["src"] = string(input)
+	if owners != "" {
+		content["owners"] = owners
+	}
 
-		if !scan.isNew && !route.PolicyShowAll {
-			log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
-			continue
+	wasHandled := false
+	if route.AggregateIssuesNumber > 0 {
+		aggregated := AggregateScanAndGetQueue(*name, content, route.AggregateIssuesNumber, false)
+		if len(aggregated) > 0 {
+			content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
+		} else {
+			content = nil
 		}
+		wasHandled = true
+	}
 
-		content := scan.getContent(plugin.GetLayoutProvider(), *AquaServer)
-		content["src"] = string(input)
-		if owners != "" {
-			content["owners"] = owners
+	if route.AggregateTimeoutSeconds > 0 {
+		if !wasHandled {
+			AggregateScanAndGetQueue(*name, content, 0, true)
+			content = nil
 		}
-
-		wasHandled := false
-		if route.AggregateIssuesNumber > 0 {
-			aggregated := AggregateScanAndGetQueue(name, content, route.AggregateIssuesNumber, false)
-			if len(aggregated) > 0 {
-				content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
-			} else {
-				content = nil
-			}
-			wasHandled = true
+		if !route.IsSchedulerRun() {
+			route.RunScheduler(send, AggregateScanAndGetQueue)
 		}
-
-		if route.AggregateTimeoutSeconds > 0 {
-			if !wasHandled {
-				AggregateScanAndGetQueue(name, content, 0, true)
-				content = nil
-			}
-			if !route.IsSchedulerRun() {
-				route.RunScheduler(send, AggregateScanAndGetQueue)
-			}
-		}
-		if len(content) > 0 {
-			send(plugin, content)
-		}
+	}
+	if len(content) > 0 {
+		send(plugin, content)
 	}
 }
 
@@ -135,4 +148,13 @@ func (scan *ScanService) init(data []byte) (err error) {
 		return err
 	}
 	return nil
+}
+
+func parseImageInfo(source []byte) (*data.ScanImageInfo, error) {
+	scanInfo := new(data.ScanImageInfo)
+	err := json.Unmarshal(source, scanInfo)
+	if err != nil {
+		return nil, err
+	}
+	return scanInfo, nil
 }

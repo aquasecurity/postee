@@ -195,7 +195,7 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, plugins map[string]plugins.Plugin, route *routes.InputRoutes, aquaServer *string)
+	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, aquaServer *string)
 }
 
 var getScanService = func() service {
@@ -203,24 +203,24 @@ var getScanService = func() service {
 	return serv
 }
 
-/*
-var getEventService = func() service {
-	serv := &eventservice.EventService{}
-	return serv
+func (ctx *AlertMgr) handle(in []byte) {
+	for routeName, r := range ctx.inputRoutes {
+		pl, ok := ctx.plugins[r.Output]
+		if !ok {
+			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, r.Output)
+			continue
+		}
+		go getScanService().ResultHandling(in, &routeName, pl, r, &ctx.aquaServer)
+	}
 }
-*/
+
 func (ctx *AlertMgr) listen() {
 	for {
 		select {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			in := bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''})
-			for _, r := range ctx.inputRoutes {
-				go getScanService().ResultHandling(in, ctx.plugins, r, &ctx.aquaServer)
-			}
-			//		case event := <-ctx.events:
-			//			go getEventService().ResultHandling(event, ctx.plugins)
+			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
 		}
 	}
 }
