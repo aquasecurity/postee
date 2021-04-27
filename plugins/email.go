@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 	"log"
 	"net"
 	"net/smtp"
@@ -17,22 +16,18 @@ var (
 )
 
 type EmailPlugin struct {
-	User          string
-	Password      string
-	Host          string
-	Port          string
-	Sender        string
-	Recipients    []string
-	UseMX         bool
-	EmailSettings *settings.Settings
-}
-
-func (email *EmailPlugin) GetSettings() *settings.Settings {
-	return email.EmailSettings
+	Name       string
+	User       string
+	Password   string
+	Host       string
+	Port       string
+	Sender     string
+	Recipients []string
+	UseMX      bool
 }
 
 func (email *EmailPlugin) Init() error {
-	log.Printf("Starting Email plugin %q...", email.EmailSettings.PluginName)
+	log.Printf("Starting Email plugin %q...", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
@@ -51,7 +46,7 @@ func (email *EmailPlugin) GetLayoutProvider() layout.LayoutProvider {
 func (email *EmailPlugin) Send(content map[string]string) error {
 	subject := content["title"]
 	body := content["description"]
-	recipients := getHandledRecipients(email.Recipients, &content, email.EmailSettings.PluginName)
+	recipients := getHandledRecipients(email.Recipients, &content, email.Name)
 	if len(recipients) == 0 {
 		return errThereIsNoRecipient
 	}

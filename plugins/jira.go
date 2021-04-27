@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -19,37 +18,26 @@ import (
 )
 
 type JiraAPI struct {
-	Enable bool
-
-	Url       string
-	User      string
-	Password  string
-	TlsVerify bool
-
-	Issuetype  string
-	ProjectKey string
-
-	Priority    string
-	Assignee    []string
-	Description string
-	Summary     string
-	SprintName  string
-	SprintId    int
-
+	Name            string
+	Url             string
+	User            string
+	Password        string
+	TlsVerify       bool
+	Issuetype       string
+	ProjectKey      string
+	Priority        string
+	Assignee        []string
+	Description     string
+	Summary         string
+	SprintName      string
+	SprintId        int
 	FixVersions     []string
 	AffectsVersions []string
 	Labels          []string
-
-	Unknowns  map[string]string
-	BoardName string
-	boardId   int
-	boardType string
-
-	JiraSettings *settings.Settings
-}
-
-func (ctx *JiraAPI) GetSettings() *settings.Settings {
-	return ctx.JiraSettings
+	Unknowns        map[string]string
+	BoardName       string
+	boardId         int
+	boardType       string
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
@@ -113,7 +101,7 @@ func (ctx *JiraAPI) Init() error {
 	}
 	ctx.fetchBoardId(ctx.BoardName)
 
-	log.Printf("Starting Jira plugin %q....", ctx.JiraSettings.PluginName)
+	log.Printf("Starting Jira plugin %q....", ctx.Name)
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}
@@ -168,7 +156,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	assignee := ctx.User
 	if len(ctx.Assignee) > 0 {
-		assignees := getHandledRecipients(ctx.Assignee, &content, ctx.JiraSettings.PluginName)
+		assignees := getHandledRecipients(ctx.Assignee, &content, ctx.Name)
 		if len(assignees) > 0 {
 			assignee = assignees[0]
 		}

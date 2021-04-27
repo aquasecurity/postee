@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,13 +11,13 @@ import (
 )
 
 type WebhookPlugin struct {
-	Url             string
-	WebhookSettings *settings.Settings
+	Name string
+	Url  string
 }
 
 func (webhook *WebhookPlugin) Init() error {
 	log.Printf("Starting Webhook plugin %q, for sending to %q",
-		webhook.WebhookSettings.PluginName, webhook.Url)
+		webhook.Name, webhook.Url)
 	return nil
 }
 
@@ -33,7 +32,7 @@ func (webhook *WebhookPlugin) Send(content map[string]string) error {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("Sending %q Error: %v", webhook.WebhookSettings.PluginName, err)
+		log.Printf("Sending %q Error: %v", webhook.Name, err)
 		return err
 	}
 
@@ -42,21 +41,17 @@ func (webhook *WebhookPlugin) Send(content map[string]string) error {
 		log.Printf(msg, resp.StatusCode, body)
 		return fmt.Errorf(msg, resp.StatusCode, body)
 	}
-	log.Printf("Sending Webhook to %q was successful!", webhook.WebhookSettings.PluginName)
+	log.Printf("Sending Webhook to %q was successful!", webhook.Name)
 	return nil
 }
 
 func (webhook *WebhookPlugin) Terminate() error {
-	log.Printf("Webhook plugin %q terminated.", webhook.WebhookSettings.PluginName)
+	log.Printf("Webhook plugin %q terminated.", webhook.Name)
 	return nil
 }
 
 func (webhook *WebhookPlugin) GetLayoutProvider() layout.LayoutProvider {
-	// Todo: This is MOCK. Because Formatting isn't need for Webook ))
+	// Todo: This is MOCK. Because Formatting isn't need for Webhook
 	// todo: The App should work with `return nil`
 	return new(formatting.HtmlProvider)
-}
-
-func (webhook *WebhookPlugin) GetSettings() *settings.Settings {
-	return webhook.WebhookSettings
 }

@@ -1,16 +1,17 @@
 package scanservice
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
-	"github.com/aquasecurity/postee/settings"
+	"github.com/aquasecurity/postee/regoservice"
+	"github.com/aquasecurity/postee/routes"
 )
 
 type ScanService struct {
@@ -19,7 +20,25 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins.Plugin) {
+func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, AquaServer *string) {
+	if plugin == nil {
+		return
+	}
+
+	var in interface{}
+	if err := json.Unmarshal(input, &in); err != nil {
+		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
+		return
+	}
+
+	if ok, err := regoservice.IsRegoCorrectInterface(in, route.Input); err != nil {
+		prnInputLogs("IsRegoCorrectInterface error for %q: %v", input)
+		return
+	} else if !ok {
+		prnInputLogs("Input %q... doesn't match a REGO rule: %q", input, route.Input)
+		return
+	}
+
 	if err := scan.init(input); err != nil {
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
@@ -30,146 +49,44 @@ func (scan *ScanService) ResultHandling(input string, plugins map[string]plugins
 		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
 	}
 
-	for name, plugin := range plugins {
-		if plugin == nil {
-			continue
-		}
-		currentSettings := plugin.GetSettings()
-		if currentSettings == nil {
-			currentSettings = settings.GetDefaultSettings()
-		}
-		if !scan.isNew && !currentSettings.PolicyShowAll {
-			log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
-			continue
-		}
+	if !scan.isNew && !route.PolicyShowAll {
+		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
+		return
+	}
+	content := scan.getContent(plugin.GetLayoutProvider(), *AquaServer)
+	content["src"] = string(input)
+	if owners != "" {
+		content["owners"] = owners
+	}
 
-		if len(currentSettings.PolicyMinVulnerability) > 0 && !scan.checkVulnerabilitiesLevel(currentSettings.PolicyMinVulnerability) {
-			log.Printf("ScanService: Scan %q contains only low-level vulnerabilities. Min level for %q is %q.\n",
-				scan.scanInfo.GetUniqueId(), name, currentSettings.PolicyMinVulnerability)
-			continue
+	wasHandled := false
+	if route.AggregateIssuesNumber > 0 {
+		aggregated := AggregateScanAndGetQueue(*name, content, route.AggregateIssuesNumber, false)
+		if len(aggregated) > 0 {
+			content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
+		} else {
+			content = nil
 		}
+		wasHandled = true
+	}
 
-		if len(currentSettings.IgnoreRegistry) > 0 && compliesPolicies(currentSettings.IgnoreRegistry, scan.scanInfo.Registry) {
-			log.Printf("ScanService: Registry %q was ignored by currentSettings for %q.\n", scan.scanInfo.Registry, name)
-			continue
+	if route.AggregateTimeoutSeconds > 0 {
+		if !wasHandled {
+			AggregateScanAndGetQueue(*name, content, 0, true)
+			content = nil
 		}
-
-		if len(currentSettings.IgnoreImageName) > 0 && compliesPolicies(currentSettings.IgnoreImageName, scan.scanInfo.Image) {
-			log.Printf("ScanService: Image %q was ignored by currentSettings for %q.\n", scan.scanInfo.Image, name)
-			continue
+		if !route.IsSchedulerRun() {
+			route.RunScheduler(send, AggregateScanAndGetQueue)
 		}
-
-		if len(currentSettings.PolicyImageName) > 0 && !compliesPolicies(currentSettings.PolicyImageName, scan.scanInfo.Image) {
-			log.Printf("ScanService: Image %q wasn't allowed (missed) by currentSettings for %q.\n", scan.scanInfo.Image, name)
-			continue
-		}
-
-		if len(currentSettings.PolicyRegistry) > 0 && !compliesPolicies(currentSettings.PolicyRegistry, scan.scanInfo.Registry) {
-			log.Printf("ScanService: Registry %q wasn't allowed by currentSettings for %q.\n", scan.scanInfo.Registry, name)
-			continue
-		}
-
-		if currentSettings.PolicyNonCompliant && !scan.scanInfo.Disallowed {
-			log.Printf("This scan %q isn't Disallowed and will not sent by currentSettings for %q.\n", scan.scanInfo.GetUniqueId(), name)
-			continue
-		}
-
-		if currentSettings.PolicyOnlyFixAvailable && !scan.checkFixVersions() {
-			log.Printf("This scan %q doesn't contain vulnerabilities which have a fix version. Settings for %q.\n", scan.scanInfo.GetUniqueId(), name)
-			continue
-		}
-
-		if len(currentSettings.PolicyOPA) > 0 {
-			log.Printf("Plugin %q uses OPA policies from '%s'", currentSettings.PluginName, strings.Join(currentSettings.PolicyOPA, "','"))
-			if res, err := isRegoCorrect(currentSettings.PolicyOPA, input); err != nil {
-				log.Printf("isRegoCorrect error for %q OPA policy: %v", currentSettings.PluginName, err)
-				continue
-			} else if !res {
-				log.Printf("Scan result for %q doesn't match OPA/REGO rules for %q",
-					scan.scanInfo.Image, currentSettings.PluginName)
-				continue
-			}
-		}
-
-		server := ""
-		if plSettings := plugin.GetSettings(); plSettings != nil {
-			server = plugin.GetSettings().AquaServer
-		}
-		content := scan.getContent(plugin.GetLayoutProvider(), server)
-		content["src"] = input
-		if owners != "" {
-			content["owners"] = owners
-		}
-
-		wasHandled := false
-		if currentSettings.AggregateIssuesNumber > 0 {
-			aggregated := AggregateScanAndGetQueue(name, content, currentSettings.AggregateIssuesNumber, false)
-			if len(aggregated) > 0 {
-				content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
-			} else {
-				content = nil
-			}
-			wasHandled = true
-		}
-
-		if currentSettings.AggregateTimeoutSeconds > 0 {
-			if !wasHandled {
-				AggregateScanAndGetQueue(name, content, 0, true)
-				content = nil
-			}
-			if currentSettings.IsScheduleRun == nil {
-				plg := plugin
-				ticker := getTicker(plg.GetSettings().AggregateTimeoutSeconds)
-				currentSettings.IsScheduleRun = make(chan struct{})
-				log.Printf("Scheduler is activated for %q(%q). Period: %d sec",
-					name, plg.GetSettings().PluginName, plg.GetSettings().AggregateTimeoutSeconds)
-				go func(nm string, done chan struct{}, currentTicker *time.Ticker) {
-					for {
-						select {
-						case <-done:
-							currentTicker.Stop()
-							log.Printf("Scheduler for %q was stopped", nm)
-							return
-						case <-currentTicker.C:
-							log.Printf("Scheduler triggered for %q", nm)
-							queue := AggregateScanAndGetQueue(nm, nil, 0, false)
-							if len(queue) > 0 {
-								send(plg, buildAggregatedContent(queue, plg.GetLayoutProvider()))
-								dbservice.RegisterPlgnInvctn(nm)
-							}
-						}
-					}
-				}(name, currentSettings.IsScheduleRun, ticker)
-			}
-		}
-		if len(content) > 0 {
-			send(plugin, content)
-			dbservice.RegisterPlgnInvctn(plugin.GetSettings().PluginName)
-		}
+	}
+	if len(content) > 0 {
+		send(plugin, name, content)
 	}
 }
 
-func schedulersStop(plugins map[string]plugins.Plugin) {
-	for _, plugin := range plugins {
-		if plugin == nil {
-			continue
-		}
-		sets := plugin.GetSettings()
-		if sets == nil {
-			continue
-		}
-		if sets.IsScheduleRun != nil {
-			close(sets.IsScheduleRun)
-		}
-	}
-}
-
-func send(plg plugins.Plugin, cnt map[string]string) {
+func send(plg plugins.Plugin, name *string, cnt map[string]string) {
 	go plg.Send(cnt)
-}
-
-var getTicker = func(seconds int) *time.Ticker {
-	return time.NewTicker(time.Duration(seconds) * time.Second)
+	dbservice.RegisterPlgnInvctn(*name)
 }
 
 var AggregateScanAndGetQueue = func(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
@@ -214,8 +131,8 @@ func (scan *ScanService) getContent(provider layout.LayoutProvider, server strin
 		url)
 }
 
-func (scan *ScanService) init(data string) (err error) {
-	scan.scanInfo, err = parseImageInfo([]byte(data))
+func (scan *ScanService) init(data []byte) (err error) {
+	scan.scanInfo, err = parseImageInfo(data)
 	if err != nil {
 		return err
 	}
@@ -233,4 +150,13 @@ func (scan *ScanService) init(data string) (err error) {
 		return err
 	}
 	return nil
+}
+
+func parseImageInfo(source []byte) (*data.ScanImageInfo, error) {
+	scanInfo := new(data.ScanImageInfo)
+	err := json.Unmarshal(source, scanInfo)
+	if err != nil {
+		return nil, err
+	}
+	return scanInfo, nil
 }

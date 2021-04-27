@@ -9,7 +9,6 @@ import (
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 
 	slackAPI "github.com/aquasecurity/postee/slack"
 )
@@ -19,14 +18,15 @@ const (
 )
 
 type SlackPlugin struct {
-	Url           string
-	SlackSettings *settings.Settings
-	slackLayout   layout.LayoutProvider
+	Name        string
+	AquaServer  string
+	Url         string
+	slackLayout layout.LayoutProvider
 }
 
 func (slack *SlackPlugin) Init() error {
 	slack.slackLayout = new(formatting.SlackMrkdwnProvider)
-	log.Printf("Starting Slack plugin %q....", slack.SlackSettings.PluginName)
+	log.Printf("Starting Slack plugin %q....", slack.Name)
 	return nil
 }
 
@@ -50,7 +50,7 @@ func buildSlackBlock(title string, data []byte) []byte {
 }
 
 func (slack *SlackPlugin) Send(input map[string]string) error {
-	log.Printf("Sending via Slack %q", slack.SlackSettings.PluginName)
+	log.Printf("Sending via Slack %q", slack.Name)
 	title := clearSlackText(slack.slackLayout.TitleH2(input["title"]))
 	var body string
 	if strings.HasSuffix(input["description"], ",") {
@@ -69,11 +69,11 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 	length := len(rawBlock)
 
 	if length >= slackBlockLimit {
-		message := buildShortMessage(slack.SlackSettings.AquaServer, input["url"], slack.slackLayout)
+		message := buildShortMessage(slack.AquaServer, input["url"], slack.slackLayout)
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
 			return err
 		}
-		log.Printf("Sending via Slack %q was successful!", slack.SlackSettings.PluginName)
+		log.Printf("Sending via Slack %q was successful!", slack.Name)
 	} else {
 		for n := 0; n < length; {
 			d := length - n
@@ -87,7 +87,7 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 			} else {
 				log.Printf("Sending [%d/%d part] to %q was successful!",
 					int(n/49)+1, int(length/49)+1,
-					slack.SlackSettings.PluginName)
+					slack.Name)
 			}
 			n += d
 		}
@@ -96,14 +96,10 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 }
 
 func (slack *SlackPlugin) Terminate() error {
-	log.Printf("Slack plugin %q terminated", slack.SlackSettings.PluginName)
+	log.Printf("Slack plugin %q terminated", slack.Name)
 	return nil
 }
 
 func (slack *SlackPlugin) GetLayoutProvider() layout.LayoutProvider {
 	return slack.slackLayout
-}
-
-func (slack *SlackPlugin) GetSettings() *settings.Settings {
-	return slack.SlackSettings
 }

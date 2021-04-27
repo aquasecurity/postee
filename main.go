@@ -18,6 +18,8 @@ const (
 	TLS       = "0.0.0.0:8445"
 	URL_USAGE = "The socket to bind to, specified using host:port."
 	TLS_USAGE = "The TLS socket to bind to, specified using host:port."
+	//	CFG_USAGE  = "The folder which contains alert configuration files."
+	//	CFG_FOLDER = "/config/"
 	CFG_FILE  = "/config/cfg.yaml"
 	CFG_USAGE = "The alert configuration file."
 )
@@ -26,6 +28,7 @@ var (
 	url     = ""
 	tls     = ""
 	cfgfile = ""
+	done    = make(chan bool, 1)
 )
 
 var rootCmd = &cobra.Command{
@@ -71,7 +74,6 @@ func main() {
 
 func Daemonize() {
 	sigs := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
