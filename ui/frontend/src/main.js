@@ -9,12 +9,13 @@ import Routes from './components/Routes.vue'
 import TemplateDetails from './components/TemplateDetails.vue'
 import Templates from './components/Templates.vue'
 import Settings from './components/Settings.vue'
-import { BootstrapVue } from 'bootstrap-vue'
+import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import store from './store/store'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 
 Vue.use(BootstrapVue);
+Vue.use(BootstrapVueIcons);
 Vue.use(VueRouter);
 
 const routes = [

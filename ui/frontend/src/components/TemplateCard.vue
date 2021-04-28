@@ -1,7 +1,9 @@
 <template>
   <div class="col mb-4">
     <div class="card text-left">
-      <div class="card-header">---</div>
+      <div class="card-header">
+        <b-icon-braces></b-icon-braces>
+      </div>
       <div class="card-body">
         <div class="d-flex align-items-center">
           <div class="flex-grow-1">
