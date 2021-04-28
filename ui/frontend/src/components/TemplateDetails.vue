@@ -12,7 +12,6 @@
       >
         Remove
       </button>
-
     </div>
     <div class="card">
       <form @submit.prevent="doSubmit">
@@ -28,21 +27,18 @@
           <div class="form-group form-input">
             <label class="form-label" for="input">REGO template:</label>
 
-            <!-- TODO add code mirror support -->
-            <textarea
+            <codemirror
               :value="formValues.body"
+              :options="cmOptions"
               id="body"
-              placeholder="add REGO template"
               name="body"
-              @input="updateField"
-              class="form-control"
-              rows="3"
-              v-bind:class="{ 'is-invalid': errors.input }"
-            ></textarea>
+              @input="updateBody"
+            >
+            </codemirror>
+
             <small class="form-text text-muted">
               REGO template to render received events
             </small>
-            <div class="form-text invalid-feedback">{{ errors.input }}</div>
           </div>
         </div>
       </form>
@@ -55,6 +51,10 @@ import { mapState } from "vuex";
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
 import PluginProperty from "./PluginProperty.vue";
+import { codemirror } from "vue-codemirror";
+
+import "codemirror-rego/mode";
+import "codemirror/lib/codemirror.css";
 
 export default {
   data() {
@@ -62,11 +62,18 @@ export default {
       fields: {},
       errors: {},
       name: "",
+      cmOptions: {
+        tabSize: 4,
+        mode: "rego",
+        lineNumbers: true,
+        line: true,
+      },
     };
   },
   mixins: [FormFieldMixin, ValidationMixin],
   components: {
-    PluginProperty
+    PluginProperty,
+    codemirror,
   },
   computed: {
     ...mapState({
@@ -79,7 +86,7 @@ export default {
         const result = found.length ? { ...found[0] } : {};
 
         return result;
-      }
+      },
     }),
   },
   methods: {
@@ -97,26 +104,27 @@ export default {
         this.$store.dispatch("templates/add", this.formValues);
       }
       this.$router.push({ name: "templates" });
-
     },
     doRemove() {
       this.$store.dispatch("templates/remove", this.name);
       this.$router.push({ name: "templates" });
     },
+    updateBody(v) {
+      this.formValues.body = v;
+    },
     uniqueName(label, value) {
-      if  (!value) {
-        return `${label} is required`
+      if (!value) {
+        return `${label} is required`;
       }
       const found = this.$store.state.templates.all.filter(
         (item) => item.name === value
       );
 
       if (found.length > 0 && found[0].name != this.name) {
-        return `${value} is not unique`
+        return `${value} is not unique`;
       }
-      return false
-    }
-
+      return false;
+    },
   },
   mounted() {
     this.name = this.$route.params.name;
