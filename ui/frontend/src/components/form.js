@@ -4,8 +4,22 @@ export default {
         updateField(e) {
             const propName = e.target.attributes["name"].value;
             const inputType = e.target.attributes["type"]?.value;
-            this.formValues[propName] =
-                inputType == "checkbox" ? e.target.checked : e.target.value;
+            let v
+            switch(inputType) {
+                case "checkbox": {
+                    v = e.target.checked
+                    break;
+                }
+                case "number": {
+                    v = Number(e.target.value)
+                    break;
+                }
+                default: {
+                    v = e.target.value
+                }
+
+            }
+            this.formValues[propName] = v;
         },
         updateCollectionField(e) {
             const propName = e.target.attributes["name"].value;

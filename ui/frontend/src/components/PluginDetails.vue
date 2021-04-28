@@ -251,6 +251,7 @@
             :id="'sizeLimit'"
             :label="'Size Limit'"
             :value="formValues.SizeLimit"
+            inputType="number"
             :name="'SizeLimit'"
             :description="'Optional. Maximum scan length, in bytes. Default: 10000'"
             :show="isSplunk"
@@ -268,12 +269,6 @@ import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
 import PluginProperty from "./PluginProperty.vue";
 import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
-import {
-  ADD_OUTPUT_ACTION,
-  UPDATE_OUTPUT_ACTION,
-  REMOVE_OUTPUT_ACTION,
-  TEST_ACTION,
-} from "../store/store";
 
 const urlDescriptionByType = {
   splunk: "Mandatory. Url of a Splunk server",
@@ -305,7 +300,7 @@ export default {
   computed: {
     ...mapState({
       formValues(state) { //required for mixins
-        const found = state.config.outputs.filter(
+        const found = state.outputs.all.filter(
           (item) => item.name === this.name
         );
 
@@ -352,7 +347,7 @@ export default {
       }
 
       this.$store
-        .dispatch(TEST_ACTION, this.formValues)
+        .dispatch("outputs/test", this.formValues)
         .then(() => {
           this.$bvToast.toast("Integration is configured correctly", {
             title: "Success",
@@ -375,12 +370,12 @@ export default {
         return;
       }
       if (this.name) {
-        this.$store.dispatch(UPDATE_OUTPUT_ACTION, {
+        this.$store.dispatch("outputs/update", {
           value: this.formValues,
           name: this.name,
         });
       } else {
-        this.$store.dispatch(ADD_OUTPUT_ACTION, this.formValues);
+        this.$store.dispatch("outputs/add", this.formValues);
       }
       this.$router.push({ name: "home" });
     },
@@ -389,14 +384,14 @@ export default {
       this.updateField(e);
     },
     doRemove() {
-      this.$store.dispatch(REMOVE_OUTPUT_ACTION, this.name);
+      this.$store.dispatch("outputs/remove", this.name);
       this.$router.push({ name: "home" });
     },
     uniqueName(label, value) {
       if  (!value) {
         return `${label} is required`
       }
-      const found = this.$store.state.config.outputs.filter(
+      const found = this.$store.state.outputs.all.filter(
         (item) => item.name === value
       );
 

@@ -24,7 +24,7 @@ export default {
     computed: {
         ...mapState({
             plugins (state) {
-                return state.config.outputs
+                return state.outputs.all
             }
         })
     }

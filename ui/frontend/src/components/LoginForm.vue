@@ -38,7 +38,6 @@
 }
 </style>
 <script>
-import { LOGIN_ACTION } from "../store/store";
 
 export default {
   data() {
@@ -49,7 +48,7 @@ export default {
   },
   methods: {
     doSubmit() {
-      this.$store.dispatch(LOGIN_ACTION, {
+      this.$store.dispatch("account/login", {
         username: this.username,
         password: this.password,
       }).then(()=>{

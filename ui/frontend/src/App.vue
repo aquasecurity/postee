@@ -56,20 +56,13 @@
 </style>
 <script>
 import { mapState } from "vuex";
-import {
-  LOGIN_ACTION,
-  LOGOUT_ACTION,
-  CLEAR_ERROR_MUTATION,
-  LOAD_ACTION,
-  LOAD_STATS_ACTION,
-} from "./store/store";
 
 export default {
   name: "App",
   watch: {
     $route(to) {
-      this.$store.commit(CLEAR_ERROR_MUTATION);
-      if (["home", "integrations"].indexOf(to.name) >= 0 && !this.$store.state.config.loaded) {
+      this.$store.commit("error/clear");
+      if (["home", "integrations"].indexOf(to.name) >= 0 && !this.$store.state.flags.all.loaded) {
         this.startLoading();
       }
     },
@@ -90,20 +83,20 @@ export default {
   },
   methods: {
     doLogout() {
-      this.$store.dispatch(LOGOUT_ACTION);
+      this.$store.dispatch("account/logout");
     },
     startLoading() {
-      this.$store.dispatch(LOAD_ACTION);
-      this.$store.dispatch(LOAD_STATS_ACTION);
+      this.$store.dispatch("load");
+      this.$store.dispatch("stats/load");
     },
   },
   mounted() {
-    if (this.$store.state.userInfo.authenticated) {
+    if (this.$store.state.account.authenticated) {
       this.startLoading();
     } else {
       if (!this.isOnLogin) {
         this.$store
-          .dispatch(LOGIN_ACTION)
+          .dispatch("account/login")
           .then(() => {
             this.startLoading();
           })

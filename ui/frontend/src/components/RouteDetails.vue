@@ -92,7 +92,6 @@
 
 <script>
 import { mapState } from "vuex";
-import { UPDATE_ROUTE_ACTION, ADD_ROUTE_ACTION, REMOVE_ROUTE_ACTION } from "./../store/store";
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
 import PluginProperty from "./PluginProperty.vue";
@@ -115,7 +114,7 @@ export default {
     ...mapState({
       formValues(state) {
         //required for mixins
-        const found = state.config.routes.filter(
+        const found = state.routes.all.filter(
           (item) => item.name === this.name
         );
 
@@ -128,7 +127,7 @@ export default {
         return result;
       },
       availableOutputs(state) {
-        return state.config.outputs.map((item) => item.name);
+        return state.outputs.all.map((item) => item.name);
       },
     }),
   },
@@ -139,25 +138,25 @@ export default {
       }
 
       if (this.name) {
-        this.$store.dispatch(UPDATE_ROUTE_ACTION, {
+        this.$store.dispatch("routes/update", {
           value: this.formValues,
           name: this.name,
         });
       } else {
-        this.$store.dispatch(ADD_ROUTE_ACTION, this.formValues);
+        this.$store.dispatch("routes/add", this.formValues);
       }
       this.$router.push({ name: "routes" });
 
     },
     doRemove() {
-      this.$store.dispatch(REMOVE_ROUTE_ACTION, this.name);
+      this.$store.dispatch("routes/remove", this.name);
       this.$router.push({ name: "routes" });
     },
     uniqueName(label, value) {
       if  (!value) {
         return `${label} is required`
       }
-      const found = this.$store.state.config.routes.filter(
+      const found = this.$store.state.routes.all.filter(
         (item) => item.name === value
       );
 

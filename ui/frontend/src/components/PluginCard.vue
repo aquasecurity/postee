@@ -35,7 +35,7 @@ export default {
   computed: {
     ...mapState({
       scanCount(state) {
-        return state.stats[this.name];
+        return state.stats.all[this.name];
       },
     }),
     isCommon() {

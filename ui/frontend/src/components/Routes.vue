@@ -24,7 +24,7 @@ export default {
     computed: {
         ...mapState({
             routes (state) {
-                return state.config.routes
+                return state.routes.all
             }
         })
     }

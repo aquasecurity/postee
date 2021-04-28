@@ -8,7 +8,7 @@ const transformYaml = (response) => {
 
 export default {
     getConfig: function () {
-        return axios.get("/api/config", {transformResponse: transformYaml})
+        return axios.get("/api/config", { transformResponse: transformYaml })
     },
     getStats: function () {
         return axios.get("/api/plugins/stats")
@@ -33,5 +33,14 @@ export default {
     },
     logout: function () {
         return axios.get("/api/logout")
+    },
+    toApiPayload: function (context, modification) {
+        const rootState = context.rootGetters.getAppState
+        return {
+            outputs: rootState.outputs.all,
+            routes: rootState.routes.all,
+            ...rootState.settings.all,
+            ...modification
+        }
     }
 }

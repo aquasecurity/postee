@@ -43,12 +43,12 @@
             :inputHandler="updateField"
           />
           <PluginProperty
-            :id="'dbVerifyInterval'"
-            :label="'DB verify interval'"
-            :inputType="'number'"
+            id="dbVerifyInterval"
+            label="DB verify interval"
+            inputType="number"
             :value="formValues.DbVerifyInterval"
-            :name="'DbVerifyInterval'"
-            :description="'hours. an Interval between tests of DB. Default: 1 hour'"
+            name="DbVerifyInterval"
+            description="hours. an Interval between tests of DB. Default: 1 hour"
             :inputHandler="updateField"
           />
         </div>
@@ -58,7 +58,6 @@
 </template>
 <script>
 import { mapState } from "vuex";
-import {UPDATE_SETTINGS_ACTION} from "./../store/store"
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
 import PluginProperty from "./PluginProperty.vue";
@@ -77,7 +76,7 @@ export default {
   computed: {
     ...mapState({
       formValues(state) {
-        return state.config.general;
+        return state.settings.all;
       },
     }),
   },
@@ -86,7 +85,7 @@ export default {
         if (!this.isFormValid()) {
             return;
         }
-        this.$store.dispatch(UPDATE_SETTINGS_ACTION, this.formValues);
+        this.$store.dispatch("settings/update", this.formValues);
     },
   },
 };
