@@ -27,6 +27,14 @@
             <li class="nav-item">
               <router-link
                 active-class="active"
+                :to="{ name: 'templates' }"
+                class="nav-link"
+                >Templates</router-link
+              >
+            </li>
+            <li class="nav-item">
+              <router-link
+                active-class="active"
                 :to="{ name: 'settings' }"
                 class="nav-link"
                 >Settings</router-link

@@ -39,6 +39,7 @@ export default {
         return {
             outputs: rootState.outputs.all,
             routes: rootState.routes.all,
+            templates: rootState.templates.all,
             ...rootState.settings.all,
             ...modification
         }

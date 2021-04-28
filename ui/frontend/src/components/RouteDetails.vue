@@ -57,6 +57,18 @@
             </small>
           </b-form-group>
 
+          <b-form-group label="Selected templates">
+            <b-form-checkbox-group
+              id="template"
+              v-model="formValues.template"
+              :options="availableTemplates"
+              name="template"
+            ></b-form-checkbox-group>
+            <small class="form-text text-muted">
+              Select templates to render events
+            </small>
+          </b-form-group>
+
           <PluginProperty
             :id="'aggregateIssuesNumber'"
             :label="'Aggregate-Issues-Number'"
@@ -123,11 +135,17 @@ export default {
         if(!result.output) {
             result.output = []
         }
+        if(!result.template) {
+            result.template = []
+        }
 
         return result;
       },
       availableOutputs(state) {
         return state.outputs.all.map((item) => item.name);
+      },
+      availableTemplates(state) {
+        return state.templates.all.map((item) => item.name);
       },
     }),
   },

@@ -6,6 +6,8 @@ import LoginForm from './components/LoginForm.vue'
 import PluginDetails from './components/PluginDetails.vue'
 import RouteDetails from './components/RouteDetails.vue'
 import Routes from './components/Routes.vue'
+import TemplateDetails from './components/TemplateDetails.vue'
+import Templates from './components/Templates.vue'
 import Settings from './components/Settings.vue'
 import { BootstrapVue } from 'bootstrap-vue'
 import store from './store/store'
@@ -24,7 +26,11 @@ const routes = [
   { name: 'settings', path: '/settings', component: Settings },
   { name: 'login', path: '/login', component: LoginForm },
   { name: 'add-plugin', path: '/plugin', component: PluginDetails },
-  { name: 'plugin', path: '/plugin/:name', component: PluginDetails }
+  { name: 'plugin', path: '/plugin/:name', component: PluginDetails },
+
+  { name: 'templates', path: '/templates', component: Templates },
+  { name: 'add-template', path: '/template', component: TemplateDetails },
+  { name: 'template', path: '/template/:name', component: TemplateDetails }
 ];
 
 export const router = new VueRouter({

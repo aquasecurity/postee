@@ -9,6 +9,7 @@ import stats from './modules/stats.js'
 import routes from './modules/routes.js'
 import settings from './modules/settings.js'
 import flags from './modules/flags.js'
+import templates from './modules/templates.js'
 
 Vue.use(Vuex)
 
@@ -20,7 +21,8 @@ export default new Vuex.Store({
         stats,
         routes,
         settings,
-        flags
+        flags,
+        templates
     },
     getters: {
         getAppState(state) {
@@ -40,6 +42,7 @@ export default new Vuex.Store({
                 }
                 data.outputs && context.commit("outputs/set", data.outputs)
                 data.routes && context.commit("routes/set", data.routes)
+                data.templates && context.commit("templates/set", data.templates)
                 context.commit("settings/set", settings)
                 context.commit("flags/set", { loaded: true })
             }).catch((error) => {
