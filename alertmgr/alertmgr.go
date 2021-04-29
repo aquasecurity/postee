@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/aquasecurity/postee/templateservice"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aquasecurity/postee/templateservice"
 
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/routes"
@@ -18,7 +18,6 @@ import (
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/scanservice"
 	"github.com/aquasecurity/postee/utils"
-	"github.com/ghodss/yaml"
 )
 
 const (
@@ -118,15 +117,9 @@ func (ctx *AlertMgr) load() error {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
 	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
-	data, err := ioutil.ReadFile(ctx.cfgfile)
+	tenant, err := Parsev2cfg(ctx.cfgfile)
+
 	if err != nil {
-		log.Printf("Failed to open file %s, %s", ctx.cfgfile, err)
-		return err
-	}
-	tenant := &TenantSettings{}
-	err = yaml.Unmarshal(data, tenant)
-	if err != nil {
-		log.Printf("Failed yaml.Unmarshal, %s", err)
 		return err
 	}
 

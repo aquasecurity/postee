@@ -8,11 +8,20 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aquasecurity/postee/alertmgr"
 	hookDbService "github.com/aquasecurity/postee/dbservice"
 )
 
 func (srv *uiServer) getConfig(w http.ResponseWriter, r *http.Request) {
 	log.Printf("configured config path %s", srv.cfgPath)
+
+	_, err := alertmgr.Parsev2cfg(srv.cfgPath)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(fmt.Sprintf("Invalid config file format: %s", err.Error())))
+		return
+	}
 
 	d, err := ioutil.ReadFile(srv.cfgPath)
 	if err != nil {

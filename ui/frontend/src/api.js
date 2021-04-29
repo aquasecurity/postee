@@ -2,8 +2,12 @@ import axios from "axios";
 import yaml from "js-yaml";
 
 const transformYaml = (response) => {
-    const json = yaml.load(response)
-    return json
+    try {
+        const json = yaml.load(response)
+        return json
+    } catch(e) {
+        return response //this way text errors are handled
+    }
 }
 
 export default {
