@@ -189,19 +189,25 @@ var getScanService = func() service {
 
 func (ctx *AlertMgr) handle(in []byte) {
 	for routeName, r := range ctx.inputRoutes {
-		pl, ok := ctx.plugins[r.Output]
-		if !ok {
-			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, r.Output)
+		if len(r.Outputs) == 0 {
+			log.Printf("route %q has no outputs", routeName)
 			continue
 		}
-		tmpl, ok := ctx.templates[r.Template]
-		if !ok {
-			log.Printf("route %q contains a template %q, which is undefined.",
-				routeName, r.Template)
-			continue
-		}
+		for _, outputName := range r.Outputs {
+			pl, ok := ctx.plugins[outputName]
+			if !ok {
+				log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
+				continue
+			}
+			tmpl, ok := ctx.templates[r.Template]
+			if !ok {
+				log.Printf("route %q contains a template %q, which is undefined.",
+					routeName, r.Template)
+				continue
+			}
 
-		go getScanService().ResultHandling(in, &routeName, pl, r, tmpl, &ctx.aquaServer)
+			go getScanService().ResultHandling(in, &routeName, pl, r, tmpl, &ctx.aquaServer)
+		}
 	}
 }
 func BuildAndInitPlg(settings *PluginSettings, aquaServerUrl string) plugins.Plugin {

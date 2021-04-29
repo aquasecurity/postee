@@ -42,10 +42,10 @@
 
           <b-form-group label="Selected outputs">
             <b-form-checkbox-group
-              id="output"
-              v-model="formValues.output"
+              id="outputs"
+              v-model="formValues.outputs"
               :options="availableOutputs"
-              name="output"
+              name="outputs"
             ></b-form-checkbox-group>
             <small class="form-text text-muted">
               Select outputs to route events to
