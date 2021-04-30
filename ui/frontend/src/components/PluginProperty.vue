@@ -1,13 +1,13 @@
 <template>
-  <div v-if="show" class="form-group form-input">
-    <label class="form-label" :for="id">{{ label }}</label>
+  <div v-if="show" class="form-group form-input" v-bind:class="{ 'row pr-3' : inline }">
+    <label v-bind:class="{ 'col-form-label col-sm-2': inline, 'form-label': !inline }" :for="id">{{ label }}</label>
     <input
       :type="inputType"
       :value="value"
       :name="nameOrId"
       @input="inputHandler"
       class="form-control"
-      v-bind:class="{ 'is-invalid' : errorMsg }"
+      v-bind:class="{ 'is-invalid' : errorMsg , 'col-sm-10' : inline }"
       :id="id"
     />
     <small v-show="!!description" class="form-text text-muted">{{
@@ -41,6 +41,10 @@ export default {
     show: {
       type: Boolean,
       default: true,
+    },
+    inline:{
+      type: Boolean,
+      default: false,
     },
     inputHandler: Function,
     validator: Object,
