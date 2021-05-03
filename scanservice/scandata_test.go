@@ -2,7 +2,6 @@ package scanservice
 
 import (
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/settings"
 	"sync"
 	"testing"
 )
@@ -23,7 +22,6 @@ type DemoPlugin struct {
 	Sent bool
 	name string
 	lay  layout.LayoutProvider
-	sets *settings.Settings
 	t    *testing.T
 }
 
@@ -40,7 +38,4 @@ func (plg *DemoPlugin) Send(data map[string]string) error {
 func (plg *DemoPlugin) Terminate() error { return nil }
 func (plg *DemoPlugin) GetLayoutProvider() layout.LayoutProvider {
 	return plg.lay
-}
-func (plg *DemoPlugin) GetSettings() *settings.Settings {
-	return plg.sets
 }

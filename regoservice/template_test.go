@@ -10,7 +10,7 @@ const (
 )
 
 func TestTemplateRender(t *testing.T) {
-//	result:=sprintf("%v", data.scan_started)
+	//	result:=sprintf("%v", data.scan_started)
 	rule := `package postee
 	template = res {
 	    img_msg := sprintf("Image name: %s", [input.image])

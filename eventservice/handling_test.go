@@ -4,7 +4,6 @@ import (
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
-	"github.com/aquasecurity/postee/settings"
 	"sync"
 	"testing"
 )
@@ -13,7 +12,6 @@ type demoEventPlugin struct {
 	mut      sync.Mutex
 	wasSend  bool
 	buff     *chan struct{}
-	settings *settings.Settings
 }
 
 func (plg *demoEventPlugin) resetSending() {
@@ -42,7 +40,6 @@ func (plg *demoEventPlugin) Terminate() error { return nil }
 func (plg *demoEventPlugin) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
-func (plg *demoEventPlugin) GetSettings() *settings.Settings { return plg.settings }
 
 func TestHandlingResult(t *testing.T) {
 	ch := make(chan struct{})

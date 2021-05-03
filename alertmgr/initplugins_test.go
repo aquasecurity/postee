@@ -27,14 +27,14 @@ func TestBuildSlackPlugin(t *testing.T) {
 				Url:    "https://hooks.slack.com/services/TT/BBB/WWWW",
 			},
 			plugins.SlackPlugin{
-				Url:           "https://hooks.slack.com/services/TT/BBB/WWWW",
-				SlackSettings: nil,
+				Url:  "https://hooks.slack.com/services/TT/BBB/WWWW",
+				Name: "my-slack",
 			},
 		},
 	}
 
 	for _, test := range tests {
-		r := buildSlackPlugin(&test.pluginSettings)
+		r := buildSlackPlugin(&test.pluginSettings, "aqua.demo")
 		if r.Url != test.slack.Url {
 			t.Errorf("Wrong url for Slack plugin\nWaited: %q\nResult: %q", test.slack.Url, r.Url)
 		}

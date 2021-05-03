@@ -34,20 +34,6 @@ func TestAnonymizeSettings(t *testing.T) {
 		&PluginSettings{
 			Url: "<hidden>",
 		},
-	}, {
-		&PluginSettings{
-			PolicyShowAll: false,
-		},
-		&PluginSettings{
-			PolicyShowAll: false,
-		},
-	}, {
-		&PluginSettings{
-			PolicyRegistry: []string{"alpine", "Docker image", "Docker hub"},
-		},
-		&PluginSettings{
-			PolicyRegistry: []string{"alpine", "Docker image", "Docker hub"},
-		},
 	},
 	}
 
@@ -58,15 +44,6 @@ func TestAnonymizeSettings(t *testing.T) {
 		}
 		if anonymized.User != test.expected.User {
 			t.Errorf("Settings anonymization is incorrect: expected User %s, got %s", test.expected.User, anonymized.User)
-		}
-		for i := 0; i < len(test.expected.PolicyRegistry); i++ {
-			if anonymized.PolicyRegistry[i] != test.expected.PolicyRegistry[i] {
-				t.Errorf("Settings anonymization is incorrect: expected PolicyRegistry %s, got %s", test.expected.PolicyRegistry[i], anonymized.PolicyRegistry[i])
-			}
-
-		}
-		if anonymized.PolicyShowAll != test.expected.PolicyShowAll {
-			t.Errorf("Settings anonymization is incorrect: expected PolicyShowAll %t, got %t", test.expected.PolicyShowAll, anonymized.PolicyShowAll)
 		}
 		if anonymized.Password != test.expected.Password {
 			t.Errorf("Settings anonymization is incorrect: expected Password %s, got %s", test.expected.Password, anonymized.Password)

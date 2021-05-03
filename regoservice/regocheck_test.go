@@ -1,67 +1,44 @@
 package regoservice
 
 import (
-	"io/ioutil"
-	"os"
+	"encoding/json"
 	"testing"
 )
 
 func TestOpaRego(t *testing.T) {
-	realFile := "opa.rego"
-	rego := `package postee
-default allow = false
-allow {
-    contains(input.image, "alpine")
-}`
-
-	if err := ioutil.WriteFile(realFile, []byte(rego), 0666); err != nil {
-		t.Errorf("Can't create a demo file (%q) with rego policy: %v", realFile, err)
-		return
-	}
-	defer os.RemoveAll(realFile)
-
-	wrongfile := "wrongfile"
-	norego := "just info"
-	if err := ioutil.WriteFile(wrongfile, []byte(norego), 0666); err != nil {
-		t.Errorf("Can't create a demo file (%q) with rego policy: %v", realFile, err)
-		return
-	}
-	defer os.RemoveAll(wrongfile)
-
-	regoWithoutPackage := `package exaplle
-`
-	withoutPackage := "wrongfile"
-	if err := ioutil.WriteFile(withoutPackage, []byte(regoWithoutPackage), 0666); err != nil {
-		t.Errorf("Can't create a demo file (%q) with rego policy: %v", realFile, err)
-		return
-	}
-	defer os.RemoveAll(withoutPackage)
+	rego := `contains(input.image, "alpine")`
+	regoWithoutPackage := ``
 
 	scanResult := `{"image":"alpine:26"}`
 	scanNoJson := "simple text"
 	scanWithoutResult := `{"image":"1science:latest"}`
 
 	tests := []struct {
-		files   []string
+		rules   string
 		scan    string
 		result  bool
 		isError bool
 	}{
-		{[]string{realFile}, scanResult, true, false},
-		{[]string{wrongfile}, scanResult, false, true},
-		{[]string{realFile}, scanNoJson, false, true},
-		{[]string{realFile}, scanWithoutResult, false, false},
-		{[]string{withoutPackage}, scanResult, false, false},
+		{rego, scanResult, true, false},
+		{rego, scanNoJson, false, true},
+		{rego, scanWithoutResult, false, false},
+		{regoWithoutPackage, scanResult, false, true},
 	}
 
 	for _, test := range tests {
-		got, err := IsRegoCorrectInterface(test.files, test.scan)
+		intr := map[string]interface{} {}
+		if err := json.Unmarshal([]byte(test.scan), &intr); err != nil && !test.isError {
+			t.Errorf("json.Unmarshal(%q) error: %v", test.scan, err)
+			continue
+		}
+
+		got, err := IsRegoCorrectInterface(intr, test.rules)
 		if err != nil && !test.isError {
 			t.Errorf("received an undefined error: %v", err)
 			continue
 		}
 		if got != test.result {
-			t.Errorf("isRegoCorrect(%v, %q) == %T, wanted %T", test.files, test.scan, got, test.result)
+			t.Errorf("isRegoCorrect(%q, %q) == %t, wanted %t", test.scan, test.rules, got, test.result)
 		}
 	}
 }
