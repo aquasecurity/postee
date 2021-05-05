@@ -9,9 +9,9 @@ import (
 )
 
 type demoEventPlugin struct {
-	mut      sync.Mutex
-	wasSend  bool
-	buff     *chan struct{}
+	mut     sync.Mutex
+	wasSend bool
+	buff    *chan struct{}
 }
 
 func (plg *demoEventPlugin) resetSending() {

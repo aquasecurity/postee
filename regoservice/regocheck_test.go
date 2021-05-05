@@ -26,7 +26,7 @@ func TestOpaRego(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		intr := map[string]interface{} {}
+		intr := map[string]interface{}{}
 		if err := json.Unmarshal([]byte(test.scan), &intr); err != nil && !test.isError {
 			t.Errorf("json.Unmarshal(%q) error: %v", test.scan, err)
 			continue

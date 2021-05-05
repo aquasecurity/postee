@@ -54,24 +54,24 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 	}()
 	dbservice.DbPath = "test_webhooks.db"
 
-/*
-	demoEmailPlg := DemoEmailPlugin{
-		emailCounts: 0,
-	}
+	/*
+		demoEmailPlg := DemoEmailPlugin{
+			emailCounts: 0,
+		}
 
-	plugins := map[string]plugins.Plugin{
-		"email": &demoEmailPlg,
-	}
+		plugins := map[string]plugins.Plugin{
+			"email": &demoEmailPlg,
+		}
 
-	scans := []string{mockScan1, mockScan2, mockScan3, mockScan4}
+		scans := []string{mockScan1, mockScan2, mockScan3, mockScan4}
 
-	demoEmailPlg.wg = &sync.WaitGroup{}
-	demoEmailPlg.wg.Add(1)
-	for _, scan := range scans {
-		srv := new(ScanService)
-		srv.ResultHandling(scan, plugins)
-	}
-	demoEmailPlg.wg.Wait()
+		demoEmailPlg.wg = &sync.WaitGroup{}
+		demoEmailPlg.wg.Add(1)
+		for _, scan := range scans {
+			srv := new(ScanService)
+			srv.ResultHandling(scan, plugins)
+		}
+		demoEmailPlg.wg.Wait()
 
- */
+	*/
 }
