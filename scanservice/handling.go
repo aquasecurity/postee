@@ -54,11 +54,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	content, err := template.Render(input, in, plugin.GetLayoutProvider(), &template.Body, AquaServer)
-	if err != nil {
-		log.Printf("Template rendering error for %q: %v", *name, err)
-		return
-	}
+	content := getContent(scan.scanInfo, scan.prevScan, plugin.GetLayoutProvider(), AquaServer)
 	content["src"] = string(input)
 	if owners != "" {
 		content["owners"] = owners
@@ -68,7 +64,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 	if route.AggregateIssuesNumber > 0 {
 		aggregated := AggregateScanAndGetQueue(*name, content, route.AggregateIssuesNumber, false)
 		if len(aggregated) > 0 {
-			//			content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
+			content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
 		} else {
 			content = nil
 		}

@@ -1,4 +1,4 @@
-package templateservice
+package scanservice
 
 import (
 	"bytes"
