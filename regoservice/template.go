@@ -19,6 +19,9 @@ func BuildRegoTemplate(input map[string]interface{}, rule *string) ([]byte, erro
 		rego.Query("data.postee.template"),
 		rego.Module("template.rego", *rule),
 	).PrepareForEval(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	rs, err := r.Eval(ctx, rego.EvalInput(input))
 	if err != nil {

@@ -2,6 +2,7 @@ package scanservice
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 
@@ -23,7 +24,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	in := data.AquaInput{}
+	in := map[string]interface{}{}
 	if err := json.Unmarshal(input, &in); err != nil {
 		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
 		return
@@ -53,7 +54,14 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	content := getContent(scan.scanInfo, scan.prevScan, plugin.GetLayoutProvider(), AquaServer)
+	title := fmt.Sprintf("%s vulnerability scan report", in["image"])
+	description,err := regoservice.BuildRegoTemplate(in, template)
+	if err != nil {
+		log.Printf("BuildRegoTemplate error: %v", err)
+		return
+	}
+
+	content := buildMapContent(title, string(description), *AquaServer)
 	content["src"] = string(input)
 	if owners != "" {
 		content["owners"] = owners
