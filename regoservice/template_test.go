@@ -482,6 +482,7 @@ const (
 func TestTemplateRender(t *testing.T) {
 	//	result:=sprintf("%v", data.scan_started)
 	rule := `package postee
+
 	duplicate(a, b, col) = a {col == 1}
 	duplicate(a, b, col) = b {col == 2}
 	
@@ -538,8 +539,8 @@ func TestTemplateRender(t *testing.T) {
 						item.vulnerabilities[_].aqua_severity == severity
 						col:=numbers.range(1, 2)[_]
 						r := duplicate(
-							{"type": "markdown", "text": vlnname},
-							{"type": "markdown", "text": concat("/", [resource.name, resource.version, fxvrsn])},
+							{"type": "mrkdwn", "text": vlnname},
+							{"type": "mrkdwn", "text": concat("/", [resource.name, resource.version, fxvrsn])},
 							col
 						)
 				  ]
@@ -556,11 +557,6 @@ func TestTemplateRender(t *testing.T) {
 				r := item.vulnerabilities[_]
 			  ]
 	}
-	
-	# Object comprehension example
-	#severity_stats:= {severities[i]: cnt |
-	#	cnt:= count(by_severity(severities[i]))
-	#}
 	check_failed(item) = false {
 	not item.failed
 	}
@@ -568,29 +564,35 @@ func TestTemplateRender(t *testing.T) {
 	 item.failed
 	}
 	
-	template = res {
+	slack = res {
 		severities := ["critical", "high", "medium", "low", "negligible"]
+	
+		checks_performed:= [check |
+						item := input.image_assurance_results.checks_performed[i]
+						col:=numbers.range(1, 2)[_]
+						check:= duplicate(
+							{"type": "mrkdwn", "text": sprintf("%d %s*", [i+1, item.control])},
+							{"type": "mrkdwn", "text": concat(" / ", [item.policy_name, 
+							by_flag(
+								"FAIL",
+								"PASS",
+								check_failed(item)
+							)])},
+							col
+						)
+						
+		]
 		
 		severity_stats:= [gr | 
 				severity := severities[_]
 				col:=numbers.range(1, 2)[_]
 				gr:= duplicate(
-					{"type": "markdown", "text": sprintf("*%s*", [upper(severity)])},
-					{"type": "markdown", "text": sprintf("*%d*", [count(by_severity(severity))])},
+					{"type": "mrkdwn", "text": sprintf("*%s*", [upper(severity)])},
+					{"type": "mrkdwn", "text": sprintf("*%d*", [count(by_severity(severity))])},
 					col
 				)
 		]
 		
-		checks_performed:= [check |
-						item := input.image_assurance_results.checks_performed[i]
-						col:=numbers.range(1, 2)[_]
-						check:= duplicate(
-							{"type": "markdown", "text": sprintf("%d %s*", [i+1, item.control])},
-							{"type": "markdown", "text": concat(" / ", [item.policy_name, check_failed(item)])},
-							col
-						)
-						
-		]
 	
 		headers := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}}, 
 					{"type":"section","text":{"type":"mrkdwn","text":sprintf("Registry: %s", [input.registry])}},
@@ -649,8 +651,7 @@ func TestTemplateRender(t *testing.T) {
 		
 		res:= array.concat(headers, all_vln4)
 		
-	} 
-	`
+	}`
 	input := []byte(src)
 	in := make(map[string]interface{})
 
