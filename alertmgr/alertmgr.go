@@ -151,7 +151,7 @@ func (ctx *AlertMgr) load() error {
 		ctx.inputRoutes[r.Name] = buildRoute(&tenant.InputRoutes[i])
 	}
 	for i, t := range tenant.Templates {
-		ctx.templates[t.Name] = &tenant.Templates[i].Name
+		ctx.templates[t.Name] = &tenant.Templates[i].Body
 	}
 
 	for name, plugin := range ctx.plugins {
