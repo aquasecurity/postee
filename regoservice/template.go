@@ -16,7 +16,7 @@ func BuildRegoTemplate(input map[string]interface{}, rule *string) ([]byte, erro
 	utils.Debug("Template Rules: %q", *rule)
 	ctx := context.Background()
 	r, err := rego.New(
-		rego.Query("data.postee.template"),
+		rego.Query("data.postee.result"),
 		rego.Module("template.rego", *rule),
 	).PrepareForEval(ctx)
 	if err != nil {
