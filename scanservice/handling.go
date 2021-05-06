@@ -2,7 +2,6 @@ package scanservice
 
 import (
 	"encoding/json"
-	"github.com/aquasecurity/postee/templateservice"
 	"log"
 	"strings"
 
@@ -19,7 +18,7 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *templateservice.Template, AquaServer *string) {
+func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *string, AquaServer *string) {
 	if plugin == nil {
 		return
 	}

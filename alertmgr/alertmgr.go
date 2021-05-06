@@ -9,12 +9,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/aquasecurity/postee/templateservice"
-
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/routes"
-
 	"github.com/aquasecurity/postee/plugins"
 	"github.com/aquasecurity/postee/scanservice"
 	"github.com/aquasecurity/postee/utils"
@@ -40,7 +36,7 @@ type AlertMgr struct {
 	aquaServer  string
 	plugins     map[string]plugins.Plugin
 	inputRoutes map[string]*routes.InputRoutes
-	templates   map[string]*templateservice.Template
+	templates   map[string]*string
 }
 
 var (
@@ -51,7 +47,7 @@ var (
 
 	osStat = os.Stat
 
-	ignoreAuthorization map[string]bool = map[string]bool{
+	ignoreAuthorization = map[string]bool{
 		"slack":   true,
 		"teams":   true,
 		"webhook": true,
@@ -70,7 +66,7 @@ func Instance() *AlertMgr {
 			queue:       make(chan []byte, 1000),
 			plugins:     make(map[string]plugins.Plugin),
 			inputRoutes: make(map[string]*routes.InputRoutes),
-			templates:   make(map[string]*templateservice.Template),
+			templates:   make(map[string]*string),
 			stopTicker:  make(chan struct{}),
 		}
 	})
@@ -155,7 +151,7 @@ func (ctx *AlertMgr) load() error {
 		ctx.inputRoutes[r.Name] = buildRoute(&tenant.InputRoutes[i])
 	}
 	for i, t := range tenant.Templates {
-		ctx.templates[t.Name] = &tenant.Templates[i]
+		ctx.templates[t.Name] = &tenant.Templates[i].Name
 	}
 
 	for name, plugin := range ctx.plugins {
@@ -179,7 +175,7 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *templateservice.Template, aquaServer *string)
+	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *string, aquaServer *string)
 }
 
 var getScanService = func() service {

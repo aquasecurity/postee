@@ -1,4 +1,4 @@
-package templateservice
+package alertmgr
 
 type Template struct {
 	Name string `json:"name"`
