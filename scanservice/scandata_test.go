@@ -15,6 +15,9 @@ var (
 	scan2 = map[string]string{"title": "title2", "description": "<p>description2</p>\n", "url": "url2"}
 	scan3 = map[string]string{"title": "title3", "description": "<p>description3</p>\n", "url": "url3"}
 	scan4 = map[string]string{"title": "title4", "description": "<p>description4</p>\n", "url": "url4"}
+
+	scanWithOwners1 = map[string]string{"title": "title1", "description": "<p>description1</p>\n", "url": "url1", "owners":"owner1@mail.com"}
+	scanWithOwners2 = map[string]string{"title": "title2", "description": "<p>description2</p>\n", "url": "url2", "owners":"owner2@mail.com"}
 )
 
 type DemoPlugin struct {

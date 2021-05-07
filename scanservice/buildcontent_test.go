@@ -17,14 +17,19 @@ func TestBuildAggregatedContent(t *testing.T) {
 <p>description2</p>
 `
 	wantTitle := "Vulnerability scan report"
+	wantOwners := "owner1@mail.com;owner2@mail.com"
 
-	result := buildAggregatedContent([]map[string]string{scan1, scan2}, lay)
+	result := buildAggregatedContent([]map[string]string{scanWithOwners1, scanWithOwners2}, lay)
 	if !strings.HasPrefix(result["title"], wantTitle) {
 		t.Errorf("Wrong Title don't contain names\nResult: %q\nWaited: %q", result["title"], wantTitle)
 	}
 
 	if result["description"] != wantBody {
 		t.Errorf("Wrong Description\nResult: %q\nWaited: %q", result["description"], wantBody)
+	}
+
+	if result["owners"] != wantOwners {
+		t.Errorf("Wrong Application Scope Owner for Aggregated content\nResult: %q\nWaited: %q", result["owners"], wantOwners)
 	}
 }
 

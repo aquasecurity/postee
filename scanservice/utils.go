@@ -3,6 +3,7 @@ package scanservice
 import (
 	"bytes"
 	"github.com/aquasecurity/postee/layout"
+	"strings"
 )
 
 func buildMapContent(title, description, url string) map[string]string {
@@ -16,6 +17,7 @@ func buildMapContent(title, description, url string) map[string]string {
 func buildAggregatedContent(scans []map[string]string, layoutProvider layout.LayoutProvider) map[string]string {
 	var descr bytes.Buffer
 	var urls bytes.Buffer
+	owners := []string{}
 	for _, scan := range scans {
 		descr.WriteString(layoutProvider.TitleH1(scan["title"]))
 		descr.WriteString(scan["description"])
@@ -23,7 +25,14 @@ func buildAggregatedContent(scans []map[string]string, layoutProvider layout.Lay
 			urls.WriteByte('\n')
 		}
 		urls.WriteString(scan["url"])
+		if len(scan["owners"]) > 0 {
+			owners = append(owners, scan["owners"])
+		}
 	}
 	title := "Vulnerability scan report"
-	return buildMapContent(title, descr.String(), urls.String())
+	r := buildMapContent(title, descr.String(), urls.String())
+	if len(owners) > 0 {
+		r["owners"] = strings.Join(owners, ";")
+	}
+	return r
 }
