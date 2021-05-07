@@ -68,26 +68,30 @@
             >
           </div>
 
-
-          <PluginProperty
-            :id="'aggregateIssuesNumber'"
-            :label="'Aggregate-Issues-Number'"
-            :value="formValues['Aggregate-Issues-Number']"
-            :inputType="'number'"
-            :name="'Aggregate-Issues-Number'"
-            description="Optional: Aggregate multiple scans into one ticket/message	Numeric number. Default is 1"
-            :inputHandler="updateField"
-          />
-
-          <PluginProperty
-            :id="'aggregateIssuesTimeout'"
-            :label="'Aggregate-Issues-Timeout'"
-            :inputType="'number'"
-            :value="formValues['Aggregate-Issues-Timeout']"
-            :name="'Aggregate-Issues-Timeout'"
-            description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
-            :inputHandler="updateField"
-          />
+          <div class="row">
+            <div class="col">
+              <PluginProperty
+                :id="'aggregateIssuesNumber'"
+                :label="'Aggregate-Issues-Number'"
+                :value="formValues['Aggregate-Issues-Number']"
+                :inputType="'number'"
+                :name="'Aggregate-Issues-Number'"
+                description="Optional: Aggregate multiple scans into one ticket/message	Numeric number. Default is 1"
+                :inputHandler="updateField"
+              />
+            </div>
+            <div class="col">
+              <PluginProperty
+                :id="'aggregateIssuesTimeout'"
+                :label="'Aggregate-Issues-Timeout'"
+                :inputType="'number'"
+                :value="formValues['Aggregate-Issues-Timeout']"
+                :name="'Aggregate-Issues-Timeout'"
+                description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
+                :inputHandler="updateField"
+              />
+            </div>
+          </div>
           <PluginCheckboxProperty
             :id="'policyShowAll'"
             :label="'Policy-Show-All'"
