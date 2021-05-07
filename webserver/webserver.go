@@ -72,7 +72,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	dbservice.EnsureApiKey()
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
-	ctx.router.HandleFunc("/audit", ctx.sessionHandler(ctx.auditHandler)).Methods("POST")
+	ctx.router.HandleFunc("/tenant/{route}", ctx.sessionHandler(ctx.tenantHandler)).Methods("POST")
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("POST")
 
@@ -97,20 +97,6 @@ func (ctx *WebServer) sessionHandler(f func(http.ResponseWriter, *http.Request))
 	return func(w http.ResponseWriter, r *http.Request) {
 		f(w, r)
 	}
-}
-
-func (ctx *WebServer) auditHandler(w http.ResponseWriter, r *http.Request) {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Printf("Failed ioutil.ReadAll: %s\n", err)
-		ctx.writeResponseError(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	defer r.Body.Close()
-	utils.Debug("[audit api] %s\n\n", string(body))
-	alertmgr.Instance().Event(string(body))
-	ctx.writeResponse(w, http.StatusOK, "")
 }
 
 func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {

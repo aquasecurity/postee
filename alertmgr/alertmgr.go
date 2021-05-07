@@ -103,6 +103,12 @@ func (ctx *AlertMgr) Event(data string) {
 	ctx.events <- data
 }
 
+func (ctx *AlertMgr) SendByRoute(route string, payload []byte) {
+	ctx.mutexScan.Lock()
+	defer ctx.mutexScan.Unlock()
+	ctx.handleRoute(route, payload)
+}
+
 func (ctx *AlertMgr) Send(data []byte) {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
@@ -183,27 +189,35 @@ var getScanService = func() service {
 	return serv
 }
 
-func (ctx *AlertMgr) handle(in []byte) {
-	for routeName, r := range ctx.inputRoutes {
-		if len(r.Outputs) == 0 {
-			log.Printf("route %q has no outputs", routeName)
+func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
+	r, ok := ctx.inputRoutes[routeName]
+	if !ok || r == nil {
+		log.Printf("There isn't route %q", routeName)
+		return
+	}
+	if len(r.Outputs) == 0 {
+		log.Printf("route %q has no outputs", routeName)
+		return
+	}
+	for _, outputName := range r.Outputs {
+		pl, ok := ctx.plugins[outputName]
+		if !ok {
+			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
 			continue
 		}
-		for _, outputName := range r.Outputs {
-			pl, ok := ctx.plugins[outputName]
-			if !ok {
-				log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
-				continue
-			}
-			tmpl, ok := ctx.templates[r.Template]
-			if !ok {
-				log.Printf("route %q contains a template %q, which is undefined.",
-					routeName, r.Template)
-				continue
-			}
-
-			go getScanService().ResultHandling(in, &routeName, pl, r, tmpl, &ctx.aquaServer)
+		tmpl, ok := ctx.templates[r.Template]
+		if !ok {
+			log.Printf("route %q contains a template %q, which is undefined.",
+				routeName, r.Template)
+			continue
 		}
+		go getScanService().ResultHandling(in, &routeName, pl, r, tmpl, &ctx.aquaServer)
+	}
+}
+
+func (ctx *AlertMgr) handle(in []byte) {
+	for routeName := range ctx.inputRoutes {
+		ctx.handleRoute(routeName, in)
 	}
 }
 func BuildAndInitPlg(settings *PluginSettings, aquaServerUrl string) plugins.Plugin {
