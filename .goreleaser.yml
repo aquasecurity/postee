@@ -11,7 +11,7 @@ before:
 builds:
   - id: postee
     dir: .
-    main: ./src/webhooksrv/webhooksrv.go
+    main: ./main.go
     binary: postee
     goos:
       - darwin
