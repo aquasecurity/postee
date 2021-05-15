@@ -12,7 +12,7 @@ var (
 	errNoResults = errors.New("there isn't result")
 )
 
-func BuildRegoTemplate(input map[string]interface{}, rule *string) ([]byte, error) {
+func BuildRegoTemplate(input map[string]interface{}, rule *string) (*string, error) {
 	utils.Debug("Template Rules: %q", *rule)
 	ctx := context.Background()
 	r, err := rego.New(
@@ -31,9 +31,15 @@ func BuildRegoTemplate(input map[string]interface{}, rule *string) ([]byte, erro
 	if len(rs) == 0 || len(rs[0].Expressions) == 0 {
 		return nil, errNoResults
 	}
+
+	str, ok := rs[0].Expressions[0].Value.(string)
+	if ok {
+		return &str, nil
+	}
 	val, err := json.Marshal(rs[0].Expressions[0].Value)
 	if err != nil {
 		return nil, err
 	}
-	return val, nil
+	str = string(val)
+	return &str, nil
 }

@@ -61,7 +61,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	content := buildMapContent(title, string(description), *AquaServer)
+	content := buildMapContent(title, *description, *AquaServer)
 	content["src"] = string(input)
 	if owners != "" {
 		content["owners"] = owners
