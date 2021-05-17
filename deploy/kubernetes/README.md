@@ -14,12 +14,6 @@ To deploy the Postee Integration on Kubernetes do the following:
 
 3. OPTIONAL. Create a PersistentVolume to hold the Postee Integration database (BoltDB file)
 
- ``` bash
- kubectl create -n aqua -f pv.yaml
- kubectl create -n aqua -f pvc.yaml
- ```
-> Edit the comments in the deployment to use the volume with PVC.
-
 4. Create a ConfigMap that will hold rego files
 
 ``` bash

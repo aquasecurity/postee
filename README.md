@@ -57,8 +57,8 @@ For more information see "Aggregate-Issues-Number" and "Aggregate-Issues-Timeout
 Clone this project: 
 ```bash
 git clone git@github.com:aquasecurity/postee.git
-make all
-./bin/webhooksrv
+make build
+./bin/postee
 ```
 
 ### Docker

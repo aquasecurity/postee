@@ -77,6 +77,11 @@ spec:
               mountPath: /rego
             - name: postee-db
               mountPath: /server/database
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8082
+            initialDelaySeconds: 30
       volumes:
         - configMap:
             name: postee-config
@@ -85,7 +90,4 @@ spec:
             name: rego-config
           name: rego-config
         - name: postee-db
-          emptyDir: {}
-          # In case to configure PVC - OPTIONAL
-          # persistentVolumeClaim:
-          #   claimName: postee-pvc
+          emptyDir: {} # For persistence storage use PVC and PV
