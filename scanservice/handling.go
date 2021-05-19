@@ -19,7 +19,7 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *string, AquaServer *string) {
+func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, inpteval data.Inpteval, AquaServer *string) {
 	if plugin == nil {
 		return
 	}
@@ -55,13 +55,13 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 	}
 
 	title := fmt.Sprintf("%s vulnerability scan report", in["image"])
-	description,err := regoservice.BuildRegoTemplate(in, template)
+	description, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
-		log.Printf("BuildRegoTemplate error: %v", err)
+		log.Printf("Error while evaluation input: %v", err)
 		return
 	}
 
-	content := buildMapContent(title, *description, *AquaServer)
+	content := buildMapContent(title, description, *AquaServer) //TODO pass pointer to description
 	content["src"] = string(input)
 	if owners != "" {
 		content["owners"] = owners

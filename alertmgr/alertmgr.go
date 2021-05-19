@@ -9,9 +9,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/routes"
+	"github.com/aquasecurity/postee/layout"
 	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/regoservice"
+	"github.com/aquasecurity/postee/routes"
 	"github.com/aquasecurity/postee/scanservice"
 	"github.com/aquasecurity/postee/utils"
 )
@@ -36,7 +40,7 @@ type AlertMgr struct {
 	aquaServer  string
 	plugins     map[string]plugins.Plugin
 	inputRoutes map[string]*routes.InputRoutes
-	templates   map[string]*string
+	templates   map[string]data.Inpteval
 }
 
 var (
@@ -66,7 +70,7 @@ func Instance() *AlertMgr {
 			queue:       make(chan []byte, 1000),
 			plugins:     make(map[string]plugins.Plugin),
 			inputRoutes: make(map[string]*routes.InputRoutes),
-			templates:   make(map[string]*string),
+			templates:   make(map[string]data.Inpteval),
 			stopTicker:  make(chan struct{}),
 		}
 	})
@@ -81,7 +85,11 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 	log.Printf("Starting AlertMgr....")
 	ctx.cfgfile = cfgfile
 	ctx.plugins = map[string]plugins.Plugin{}
-	ctx.load()
+	err := ctx.load()
+	if err != nil {
+		log.Printf("Unable initialize alert manager %v", err)
+		return nil
+	}
 	go ctx.listen()
 	return nil
 }
@@ -154,10 +162,38 @@ func (ctx *AlertMgr) load() error {
 	}
 
 	for i, r := range tenant.InputRoutes {
+		log.Printf("Configuring route %s \n", r.Name)
 		ctx.inputRoutes[r.Name] = buildRoute(&tenant.InputRoutes[i])
 	}
-	for i, t := range tenant.Templates {
-		ctx.templates[t.Name] = &tenant.Templates[i].Body
+	for _, t := range tenant.Templates {
+		template := &t
+		log.Printf("Configuring template %s \n", template.Name)
+
+		if template.LegacyScanRenderer != "" {
+			inpteval, err := layout.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
+			if err != nil {
+				return err
+			}
+			ctx.templates[t.Name] = inpteval
+			log.Printf("Configured with legacy renderer %s \n", template.LegacyScanRenderer)
+		}
+
+		if template.RegoPackage != "" {
+			inpteval, err := regoservice.BuildBundledRegoEvaluator(template.RegoPackage)
+			if err != nil {
+				return err
+			}
+			ctx.templates[t.Name] = inpteval
+			log.Printf("Configured with Rego package %s\n", template.RegoPackage)
+		}
+		if template.Body != "" {
+			inpteval, err := regoservice.BuildExternalRegoEvaluator(&template.Body)
+			if err != nil {
+				return err
+			}
+			ctx.templates[t.Name] = inpteval
+		}
+		//TODO url
 	}
 
 	for name, plugin := range ctx.plugins {
@@ -173,6 +209,7 @@ func (ctx *AlertMgr) load() error {
 		if settings.Enable {
 			plg := BuildAndInitPlg(&settings, ctx.aquaServer)
 			if plg != nil {
+				log.Printf("Integration %s is configured", settings.Name)
 				ctx.plugins[settings.Name] = plg
 			}
 		}
@@ -181,7 +218,7 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, template *string, aquaServer *string)
+	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, inpteval data.Inpteval, aquaServer *string)
 }
 
 var getScanService = func() service {
@@ -211,6 +248,7 @@ func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
 				routeName, r.Template)
 			continue
 		}
+		log.Printf("route %q is associated with template %q", routeName, r.Template)
 		go getScanService().ResultHandling(in, &routeName, pl, r, tmpl, &ctx.aquaServer)
 	}
 }
