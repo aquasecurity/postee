@@ -72,7 +72,10 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		AggregateScanAndGetQueue(*name, content, 0, true)
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
+			log.Printf("about to schedule %s\n", *name)
 			route.RunScheduler(send, AggregateScanAndGetQueue, inpteval, name, plugin)
+		} else {
+			log.Printf("%s is already scheduled\n", *name)
 		}
 	} else {
 		send(plugin, name, content)

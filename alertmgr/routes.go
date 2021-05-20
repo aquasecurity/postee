@@ -1,10 +1,11 @@
 package alertmgr
 
 import (
-	"github.com/aquasecurity/postee/routes"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/aquasecurity/postee/routes"
 )
 
 func buildRoute(route *routes.InputRoutes) *routes.InputRoutes {
@@ -35,6 +36,6 @@ func buildRoute(route *routes.InputRoutes) *routes.InputRoutes {
 				route.Name, route.AggregateIssuesTimeout)
 		}
 	}
-	route.AggregateIssuesNumber = timeout
+	route.AggregateTimeoutSeconds = timeout
 	return route
 }
