@@ -148,6 +148,7 @@ vln_list(severity) = vlnrb {
               ]
 }
 ###########################################################################################################
+title = sprintf("%s vulnerability scan report", [input.image])
 
 result = msg {
 

@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/plugins"
 )
 
@@ -18,6 +19,9 @@ var getTicker = func(seconds int) *time.Ticker {
 func (route *InputRoutes) RunScheduler(
 	fnSend func(plg plugins.Plugin, name *string, cnt map[string]string),
 	fnAggregate func(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
+	inpteval data.Inpteval,
+	name *string,
+	plugin plugins.Plugin,
 ) {
 	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.AggregateTimeoutSeconds)
 
@@ -35,14 +39,14 @@ func (route *InputRoutes) RunScheduler(
 				log.Printf("Scheduler triggered for %q", route.Name)
 				queue := fnAggregate(route.Name, nil, 0, false)
 				if len(queue) > 0 {
-					//					fnSend(plg, name, buildAggregatedContent(queue, plg.GetLayoutProvider()))
+					fnSend(plugin, &route.Name, inpteval.BuildAggregatedContent(queue))
 				}
 			}
 		}
 	}(route.scheduling, ticker)
 }
 
-func (route *InputRoutes) StopScheduler() {
+func (route *InputRoutes) StopScheduler() { //TODO scheduler should be stopped somewhere
 	if route.scheduling != nil {
 		close(route.scheduling)
 	}

@@ -73,6 +73,7 @@ vln_list(severity) = l {
 }
 
 ###########################################################################################################
+title = sprintf("%s vulnerability scan report", [input.image]) # title is string
 
 result = res {
 	severities := ["critical", "high", "medium", "low", "negligible"]

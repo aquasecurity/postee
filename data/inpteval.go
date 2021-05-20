@@ -1,5 +1,7 @@
 package data
 
 type Inpteval interface {
-	Eval(in map[string]interface{}, serverUrl string) (string, error)
+	Eval(in map[string]interface{}, serverUrl string) (map[string]string, error)
+	BuildAggregatedContent(items []map[string]string) map[string]string
+	IsAggregationSupported() bool
 }

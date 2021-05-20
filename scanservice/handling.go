@@ -2,7 +2,6 @@ package scanservice
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"strings"
 
@@ -54,41 +53,30 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	title := fmt.Sprintf("%s vulnerability scan report", in["image"])
-	description, err := inpteval.Eval(in, *AquaServer)
+	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
 		log.Printf("Error while evaluation input: %v", err)
 		return
 	}
 
-	content := buildMapContent(title, description, *AquaServer) //TODO pass pointer to description
-	content["src"] = string(input)
 	if owners != "" {
 		content["owners"] = owners
 	}
 
-	wasHandled := false
-	if route.AggregateIssuesNumber > 0 {
+	if route.AggregateIssuesNumber > 0 && inpteval.IsAggregationSupported() {
 		aggregated := AggregateScanAndGetQueue(*name, content, route.AggregateIssuesNumber, false)
 		if len(aggregated) > 0 {
-			content = buildAggregatedContent(aggregated, plugin.GetLayoutProvider())
-		} else {
-			content = nil
+			content = inpteval.BuildAggregatedContent(aggregated)
 		}
-		wasHandled = true
-	}
+	} else if route.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
+		AggregateScanAndGetQueue(*name, content, 0, true)
 
-	if route.AggregateTimeoutSeconds > 0 {
-		if !wasHandled {
-			AggregateScanAndGetQueue(*name, content, 0, true)
-			content = nil
+		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
+			route.RunScheduler(send, AggregateScanAndGetQueue, inpteval, name, plugin)
 		}
-		if !route.IsSchedulerRun() {
-			route.RunScheduler(send, AggregateScanAndGetQueue)
-		}
-	}
-	if len(content) > 0 {
+	} else {
 		send(plugin, name, content)
+
 	}
 }
 

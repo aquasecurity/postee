@@ -1,8 +1,10 @@
 package layout
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
@@ -12,12 +14,43 @@ type legacyScnEvaluator struct {
 	layoutProvider LayoutProvider
 }
 
-func (legacyScnEvaluator *legacyScnEvaluator) Eval(in map[string]interface{}, serverUrl string) (string, error) {
+func (legacyScnEvaluator *legacyScnEvaluator) Eval(in map[string]interface{}, serverUrl string) (map[string]string, error) {
 	scan, err := toScanImage(in)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl), nil
+	title := fmt.Sprintf("%s vulnerability scan report", in["image"])
+
+	return map[string]string{
+
+		"title":       title,
+		"description": GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl),
+		"url":         serverUrl,
+	}, nil
+}
+func (legacyScnEvaluator *legacyScnEvaluator) IsAggregationSupported() bool {
+	return true
+}
+
+func (legacyScnEvaluator *legacyScnEvaluator) BuildAggregatedContent(scans []map[string]string) map[string]string {
+	var descr bytes.Buffer
+	var urls bytes.Buffer
+	for _, scan := range scans {
+		descr.WriteString(legacyScnEvaluator.layoutProvider.TitleH1(scan["title"]))
+		descr.WriteString(scan["description"])
+		if urls.Len() > 0 {
+			urls.WriteByte('\n')
+		}
+		urls.WriteString(scan["url"])
+	}
+	title := "Vulnerability scan report"
+
+	return map[string]string{
+		"title":       title,
+		"description": descr.String(),
+		"url":         urls.String(), //TODO this is strange ...
+	}
+
 }
 
 func toScanImage(in map[string]interface{}) (*data.ScanImageInfo, error) {
