@@ -44,6 +44,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 	log.Printf("Handling a scan result of '%s/%s'", scan.scanInfo.Registry, scan.scanInfo.Image)
 	owners := ""
 
+	//TODO move logic below somewhere close to Jira plugin implementation
 	if len(scan.scanInfo.ApplicationScopeOwners) > 0 {
 		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
 	}

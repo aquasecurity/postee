@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -87,8 +90,7 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 	ctx.plugins = map[string]plugins.Plugin{}
 	err := ctx.load()
 	if err != nil {
-		log.Printf("Unable initialize alert manager %v", err)
-		return nil
+		return err
 	}
 	go ctx.listen()
 	return nil
@@ -187,13 +189,41 @@ func (ctx *AlertMgr) load() error {
 			log.Printf("Configured with Rego package %s\n", template.RegoPackage)
 		}
 		if template.Body != "" {
-			inpteval, err := regoservice.BuildExternalRegoEvaluator(&template.Body)
+			inpteval, err := regoservice.BuildExternalRegoEvaluator("inline.rego", template.Body)
 			if err != nil {
 				return err
 			}
 			ctx.templates[t.Name] = inpteval
 		}
-		//TODO url
+		if template.Url != "" {
+			log.Printf("Configured with url: %s\n", template.Url)
+
+			r, err := http.NewRequest("GET", template.Url, nil)
+			if err != nil {
+				return err
+			}
+			resp, err := http.DefaultClient.Do(r)
+			if err != nil {
+				return err
+			}
+
+			if resp.StatusCode > 399 {
+				return errors.New(fmt.Sprintf("can not connect to %s, response status is %d", template.Url, resp.StatusCode))
+			}
+
+			b, err := ioutil.ReadAll(resp.Body)
+			defer resp.Body.Close()
+			if err != nil {
+				return err
+			}
+			inpteval, err := regoservice.BuildExternalRegoEvaluator(path.Base(r.URL.Path), string(b))
+
+			if err != nil {
+				return err
+			}
+
+			ctx.templates[t.Name] = inpteval
+		}
 	}
 
 	for name, plugin := range ctx.plugins {

@@ -5,13 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/open-policy-agent/opa/rego"
 )
 
 type regoEvaluator struct {
-	prepQuery *rego.PreparedEvalQuery
+	prepQuery        *rego.PreparedEvalQuery
+	isPackageDefined bool
 }
 
 func (regoEvaluator *regoEvaluator) IsAggregationSupported() bool {
@@ -30,7 +32,15 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		return nil, errors.New("no results") //TODO error definition
 	}
 
-	expr := rs[0].Expressions[0].Value //TODO external modules require some logic to get actual result
+	var expr interface{}
+	if regoEvaluator.isPackageDefined {
+		expr = rs[0].Expressions[0].Value
+	} else {
+		expr = getFirstElement(rs[0].Expressions[0].Value.(map[string]interface{}))
+		if expr == nil {
+			return nil, errors.New("invalid rego template structure")
+		}
+	}
 
 	data := expr.(map[string]interface{})
 
@@ -51,6 +61,23 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 	}, nil
 
 }
+
+func getFirstElement(context map[string]interface{}) interface{} {
+	for key, v := range context {
+		log.Printf("checking: %s ...\n", key)
+		childCtx, ok := v.(map[string]interface{})
+		if !ok {
+			return nil
+		}
+		if childCtx["result"] != nil {
+			return v
+		} else {
+			return getFirstElement(childCtx)
+		}
+	}
+	return nil
+}
+
 func asStringOrJson(expr interface{}) (string, error) {
 	switch v := expr.(type) {
 	case string:
@@ -85,9 +112,25 @@ func BuildBundledRegoEvaluator(rego_package string) (data.Inpteval, error) {
 	}
 
 	return &regoEvaluator{
-		prepQuery: &r,
+		prepQuery:        &r,
+		isPackageDefined: true,
 	}, nil
 }
-func BuildExternalRegoEvaluator(body *string) (data.Inpteval, error) {
-	return nil, errors.New("not implemented") //TODO implement
+func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, error) {
+	ctx := context.Background()
+
+	r, err := rego.New(
+		rego.Query("data"),
+		rego.Load([]string{"./rego-templates/common"}, nil), //only common modules
+		rego.Module(filename, body),
+	).PrepareForEval(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &regoEvaluator{
+		prepQuery:        &r,
+		isPackageDefined: false,
+	}, nil
 }

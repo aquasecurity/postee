@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/aquasecurity/postee/alertmgr"
-	"github.com/aquasecurity/postee/utils"
-	"github.com/aquasecurity/postee/webserver"
-	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
+
+	"github.com/aquasecurity/postee/alertmgr"
+	"github.com/aquasecurity/postee/utils"
+	"github.com/aquasecurity/postee/webserver"
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -61,7 +62,12 @@ func main() {
 			cfgfile = os.Getenv("AQUAALERT_CFG")
 		}
 
-		go alertmgr.Instance().Start(cfgfile)
+		err := alertmgr.Instance().Start(cfgfile)
+		if err != nil {
+			log.Printf("Can't start alert manager %v", err)
+			return
+		}
+
 		defer alertmgr.Instance().Terminate()
 
 		go webserver.Instance().Start(url, tls)
