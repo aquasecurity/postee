@@ -18,4 +18,14 @@ by_flag(a, b, flag) = a {
 by_flag(a, b, flag) = b {
 	flag = false
 }
-
+flat_array(a) = o {
+	o:=[item |
+    	item:=a[_][_]
+    ]
+}
+with_default(obj, prop, default_value) = default_value{
+ not obj[prop]
+}
+with_default(obj, prop, default_value) = obj[prop]{
+ obj[prop]
+}

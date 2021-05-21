@@ -3,6 +3,7 @@ package regoservice
 import (
 	"context"
 	"fmt"
+
 	"github.com/open-policy-agent/opa/rego"
 )
 
@@ -16,6 +17,11 @@ allow {
 `
 
 func IsRegoCorrectInterface(input interface{}, rule string) (bool, error) {
+
+	if rule == "" {
+		return true, nil //no rule defined - any input allowed
+	}
+
 	r := rego.New(
 		rego.Query("x = data.postee.allow"),
 		rego.Module("postee.rego", fmt.Sprintf(module, rule)),

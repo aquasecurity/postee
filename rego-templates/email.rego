@@ -149,6 +149,8 @@ vln_list(severity) = vlnrb {
 }
 ###########################################################################################################
 title = sprintf("%s vulnerability scan report", [input.image])
+href := sprintf("%s%s/%s", [input.postee.AquaServer, urlquery.encode(input.registry), urlquery.encode(input.image)])
+text := sprintf("%s%s/%s", [input.postee.AquaServer, input.registry, input.image])
 
 result = msg {
 
@@ -179,7 +181,7 @@ result = msg {
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
 
-    concat("/", [input.registry, input.image]), #src for link
-    concat("/", [input.registry, input.image]) #title for link
+    href, #src for link
+    text #title for link
     ])
 }

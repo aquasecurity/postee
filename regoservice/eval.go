@@ -42,6 +42,8 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		}
 	}
 
+	fmt.Printf("%v\n", expr)
+
 	data := expr.(map[string]interface{})
 
 	title, err := asStringOrJson(data["title"])
@@ -89,7 +91,7 @@ func asStringOrJson(expr interface{}) (string, error) {
 		}
 		return string(val), nil
 	default:
-		return "", errors.New("Unknow result") //TODO error definition
+		return "", errors.New("Unknown result") //TODO error definition
 	}
 
 }

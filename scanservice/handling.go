@@ -53,6 +53,11 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
 		return
 	}
+	posteeOpts := map[string]string{
+		"AquaServer": *AquaServer,
+	}
+
+	in["postee"] = posteeOpts
 
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
