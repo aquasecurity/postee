@@ -59,6 +59,9 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 		body = input["description"]
 	}
 	body = clearSlackText(body)
+	if !strings.HasPrefix(body, "[") {
+		body = "[" + body + "]"
+	}
 	rawBlock := make([]data.SlackBlock, 0)
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
@@ -83,7 +86,7 @@ func (slack *SlackPlugin) Send(input map[string]string) error {
 			cutData, _ := json.Marshal(rawBlock[n : n+d])
 			cutData = cutData[1 : len(cutData)-1]
 			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
-					log.Printf("Sending to %q was finished with error: %v", slack.Name, err)
+				log.Printf("Sending to %q was finished with error: %v", slack.Name, err)
 				return err
 			} else {
 				log.Printf("Sending [%d/%d part] to %q was successful!",

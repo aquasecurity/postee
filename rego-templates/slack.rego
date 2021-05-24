@@ -16,28 +16,24 @@ check_failed(item) = true {
 }
 ###########################################################################################################
 
-########################## slice has some custom logic linked with vulnerabilities#########################
-
-
-render_sections(vlnrb, severity) = a { 
-    count(vlnrb) > 0 # only if some vulnerabilities are found
+# render_sections split collection of cells provided to chunks of 5 rows each and wraps every chunk with section element
+render_sections(rows, caption) = a { 
+    count(rows) > 0 # only if some vulnerabilities are found
     a:=flat_array([ s |
         # code below converts 2 dimension array like [[row1, row2, ... row5], ....]
         group_size := 10 #it's 5 but every row is represented by 2 items
-        # TODO extract code to slice function
-        num_chunks := ceil(count(vlnrb) / group_size) - 1
+        num_chunks := ceil(count(rows) / group_size) - 1
         indices := { b | b := numbers.range(0, num_chunks)[_] * group_size }
-    	fields:=[array.slice(vlnrb, i, i + group_size) | i := indices[_]][_]
+    	fields:=[array.slice(rows, i, i + group_size) | i := indices[_]][_]
 
         # builds markdown section based on slice
-	    list_caption := sprintf("*%s severity vulnerabilities*", [severity])  #TODO make first char uppercase
 
         s := [
         	{
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": list_caption
+                    "text": caption
                 }
             },
             {
@@ -48,8 +44,8 @@ render_sections(vlnrb, severity) = a {
         ]
 	])
 }
-render_sections(vlnrb, severity) = [] { #if no vulnerabilities were detected return nothing
-    count(vlnrb) == 0
+render_sections(rows, caption) = [] { #do not render section if provided collection is empty
+    count(rows) == 0
 }
 ###########################################################################################################
 
@@ -73,8 +69,37 @@ vln_list(severity) = l {
                     ]
 
               ]
+    caption := sprintf("*%s severity vulnerabilities*", [severity])  #TODO make first char uppercase
+    
+
+    headers := [
+        {"type": "mrkdwn", "text": "*Vulnerability ID*"},
+        {"type": "mrkdwn", "text": "*Resource name / Installed version / Fix version*"}
+    ]
+    rows := array.concat(headers, flat_array(vlnrb))
+
     # split rows and wrap slices with markdown section
-    l := render_sections(flat_array(vlnrb), severity)
+    l := render_sections(rows, caption)
+}
+malware_list := l {
+	mlwr := [r |
+    				item := input.malware[i]
+
+                    r := [
+                    	{"type": "mrkdwn", "text": sprintf("%d %s", [i+1, item.malware])},
+                    	{"type": "mrkdwn", "text": concat("/", [item.hash, item.path])}
+                    ]
+
+              ]
+
+    headers := [
+        {"type": "mrkdwn", "text": "*# Malware*"},
+        {"type": "mrkdwn", "text": "*Hash / Path*"}
+    ]
+    rows := array.concat(headers, flat_array(mlwr))
+
+    # split rows and wrap slices with markdown section
+    l := render_sections(rows, "Malware")
 }
 
 ###########################################################################################################
@@ -86,7 +111,7 @@ result = res {
 	checks_performed:= flat_array([check |
                     item := input.image_assurance_results.checks_performed[i]
                     check:= [
-                        {"type": "mrkdwn", "text": sprintf("%d %s*", [i+1, item.control])},
+                        {"type": "mrkdwn", "text": sprintf("%d %s", [i+1, item.control])},
                         {"type": "mrkdwn", "text": concat(" / ", [item.policy_name, by_flag("FAIL", "PASS", check_failed(item))])}
                     ]
 
@@ -170,6 +195,7 @@ result = res {
         vln_list("medium"),
         vln_list("low"),
         vln_list("negligible"),
+        malware_list,
         footers
     ])
 
