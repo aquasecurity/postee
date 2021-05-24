@@ -23,7 +23,7 @@ render_sections(vlnrb, severity) = a {
     count(vlnrb) > 0 # only if some vulnerabilities are found
     a:=flat_array([ s |
         # code below converts 2 dimension array like [[row1, row2, ... row5], ....]
-        group_size := 5
+        group_size := 10 #it's 5 but every row is represented by 2 items
         # TODO extract code to slice function
         num_chunks := ceil(count(vlnrb) / group_size) - 1
         indices := { b | b := numbers.range(0, num_chunks)[_] * group_size }
