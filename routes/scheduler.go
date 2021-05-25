@@ -39,7 +39,11 @@ func (route *InputRoutes) RunScheduler(
 				log.Printf("Scheduler triggered for %q", route.Name)
 				queue := fnAggregate(route.Name, nil, 0, false)
 				if len(queue) > 0 {
-					fnSend(plugin, &route.Name, inpteval.BuildAggregatedContent(queue))
+					aggregated, err := inpteval.BuildAggregatedContent(queue)
+					if err != nil {
+						log.Printf("Unable to build aggregated contents %v\n", err)
+					}
+					fnSend(plugin, &route.Name, aggregated)
 				}
 			}
 		}

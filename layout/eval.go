@@ -32,7 +32,7 @@ func (legacyScnEvaluator *legacyScnEvaluator) IsAggregationSupported() bool {
 	return true
 }
 
-func (legacyScnEvaluator *legacyScnEvaluator) BuildAggregatedContent(scans []map[string]string) map[string]string {
+func (legacyScnEvaluator *legacyScnEvaluator) BuildAggregatedContent(scans []map[string]string) (map[string]string, error) {
 	var descr bytes.Buffer
 	var urls bytes.Buffer
 	for _, scan := range scans {
@@ -49,7 +49,7 @@ func (legacyScnEvaluator *legacyScnEvaluator) BuildAggregatedContent(scans []map
 		"title":       title,
 		"description": descr.String(),
 		"url":         urls.String(), //TODO this is strange ...
-	}
+	}, nil
 
 }
 

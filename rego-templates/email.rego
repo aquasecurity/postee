@@ -152,6 +152,7 @@ title = sprintf("%s vulnerability scan report", [input.image])
 href := sprintf("%s%s/%s", [input.postee.AquaServer, urlquery.encode(input.registry), urlquery.encode(input.image)])
 text := sprintf("%s%s/%s", [input.postee.AquaServer, input.registry, input.image])
 
+aggregation_pkg := "postee.html.scan.aggregation"
 result = msg {
 
     msg := sprintf(tpl, [
@@ -173,7 +174,7 @@ result = msg {
      input.scan_options.scan_sensitive_data #reflects current logic
 	),
     render_table([], severities_stats),
-    render_table(["Control","Policy Name", "Status"], assurance_controls),
+    render_table(["#","Control","Policy Name", "Status"], assurance_controls),
 
     render_vlnrb("Critical", vln_list("critical")),
     render_vlnrb("High", vln_list("high")),

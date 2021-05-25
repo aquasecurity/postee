@@ -11,13 +11,20 @@ import (
 	"github.com/open-policy-agent/opa/rego"
 )
 
+const (
+	result_prop          = "result"
+	title_prop           = "title"
+	aggregation_pkg_prop = "aggregation_pkg"
+)
+
 type regoEvaluator struct {
 	prepQuery        *rego.PreparedEvalQuery
+	aggrQuery        *rego.PreparedEvalQuery
 	isPackageDefined bool
 }
 
 func (regoEvaluator *regoEvaluator) IsAggregationSupported() bool {
-	return false //TODO actual implementation (which depends on template configuration)
+	return regoEvaluator.aggrQuery != nil
 }
 
 func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl string) (map[string]string, error) {
@@ -36,22 +43,21 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 	if regoEvaluator.isPackageDefined {
 		expr = rs[0].Expressions[0].Value
 	} else {
-		expr = getFirstElement(rs[0].Expressions[0].Value.(map[string]interface{}))
+		expr = getFirstElement(rs[0].Expressions[0].Value.(map[string]interface{}), result_prop)
 		if expr == nil {
 			return nil, errors.New("invalid rego template structure")
 		}
 	}
 
-	fmt.Printf("%v\n", expr)
-
 	data := expr.(map[string]interface{})
 
-	title, err := asStringOrJson(data["title"])
+	title, err := asStringOrJson(data[title_prop])
 	if err != nil {
 		return nil, err
 	}
 
-	description, err := asStringOrJson(data["result"])
+	description, err := asStringOrJson(data[result_prop])
+
 	if err != nil {
 		return nil, err
 	}
@@ -64,17 +70,17 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 
 }
 
-func getFirstElement(context map[string]interface{}) interface{} {
+func getFirstElement(context map[string]interface{}, key string) interface{} {
 	for key, v := range context {
 		log.Printf("checking: %s ...\n", key)
 		childCtx, ok := v.(map[string]interface{})
 		if !ok {
 			return nil
 		}
-		if childCtx["result"] != nil {
+		if childCtx[key] != nil {
 			return v
 		} else {
-			return getFirstElement(childCtx)
+			return getFirstElement(childCtx, key)
 		}
 	}
 	return nil
@@ -95,12 +101,79 @@ func asStringOrJson(expr interface{}) (string, error) {
 	}
 
 }
-func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]string) map[string]string {
-	//TODO implement BuildAggregatedContent with Rego
-	return nil
+func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]string) (map[string]string, error) {
+	aggregatedJson := make([]map[string]interface{}, len(scans), len(scans))
+
+	for _, scan := range scans {
+		desc := scan["description"]
+		var in []map[string]interface{}
+
+		item := make(map[string]interface{})
+
+		if err := json.Unmarshal([]byte(desc), &in); err != nil {
+			item["description"] = desc //description is not json, so it's passed as string
+		} else {
+			item["description"] = in
+		}
+
+		item["title"] = scan["title"]
+
+		aggregatedJson = append(aggregatedJson, item)
+	}
+
+	ctx := context.Background()
+	rs, err := regoEvaluator.aggrQuery.Eval(ctx, rego.EvalInput(aggregatedJson))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rs) == 0 || len(rs[0].Expressions) == 0 {
+		return nil, errors.New("no results") //TODO error definition
+	}
+
+	expr := rs[0].Expressions[0].Value
+
+	data := expr.(map[string]interface{})
+
+	title, err := asStringOrJson(data[title_prop])
+
+	if err != nil {
+		return nil, err
+	}
+
+	description, err := asStringOrJson(data[result_prop])
+
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{
+		"title":       title,
+		"description": description,
+	}, nil
 }
 
 func BuildBundledRegoEvaluator(rego_package string) (data.Inpteval, error) {
+	r, err := buildBundledRegoForPackage(rego_package)
+
+	if err != nil {
+		return nil, err
+	}
+
+	aggrQuery, err := buildAggregatedRego(r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &regoEvaluator{
+		prepQuery:        r,
+		isPackageDefined: true,
+		aggrQuery:        aggrQuery,
+	}, nil
+}
+func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, error) {
 	ctx := context.Background()
 	query := fmt.Sprintf("data.%s", rego_package)
 
@@ -113,11 +186,33 @@ func BuildBundledRegoEvaluator(rego_package string) (data.Inpteval, error) {
 		return nil, err
 	}
 
-	return &regoEvaluator{
-		prepQuery:        &r,
-		isPackageDefined: true,
-	}, nil
+	return &r, nil
 }
+func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery, error) {
+	ctx := context.Background()
+
+	//execute query with empty input and check if aggregation package is defined
+	rs, err := query.Eval(ctx, rego.EvalInput(make(map[string]interface{})))
+
+	expr := rs[0].Expressions[0].Value.(map[string]interface{})
+
+	aggregation_pkg_val := expr[aggregation_pkg_prop]
+
+	var aggrQuery *rego.PreparedEvalQuery
+
+	if aggregation_pkg_val != nil {
+		aggregation_pkg := aggregation_pkg_val.(string)
+		aggrQuery, err = buildBundledRegoForPackage(aggregation_pkg)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		//it's ok skip aggregation package - no aggregation features will be available
+		log.Printf("No aggregation package configured!!!")
+	}
+	return aggrQuery, nil
+}
+
 func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, error) {
 	ctx := context.Background()
 
@@ -131,8 +226,15 @@ func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, er
 		return nil, err
 	}
 
+	aggrQuery, err := buildAggregatedRego(&r)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &regoEvaluator{
 		prepQuery:        &r,
 		isPackageDefined: false,
+		aggrQuery:        aggrQuery,
 	}, nil
 }

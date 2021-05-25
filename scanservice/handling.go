@@ -72,7 +72,12 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 	if route.AggregateIssuesNumber > 0 && inpteval.IsAggregationSupported() {
 		aggregated := AggregateScanAndGetQueue(*name, content, route.AggregateIssuesNumber, false)
 		if len(aggregated) > 0 {
-			content = inpteval.BuildAggregatedContent(aggregated)
+			content, err = inpteval.BuildAggregatedContent(aggregated)
+			if err != nil {
+				log.Printf("Error while building aggregated content: %v", err)
+				return
+			}
+			send(plugin, name, content)
 		}
 	} else if route.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
 		AggregateScanAndGetQueue(*name, content, 0, true)

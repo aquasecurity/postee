@@ -105,6 +105,8 @@ malware_list := l {
 ###########################################################################################################
 title = sprintf("%s vulnerability scan report", [input.image]) # title is string
 
+aggregation_pkg := "postee.slack.scan.aggregation"
+
 result = res {
 	severities := ["critical", "high", "medium", "low", "negligible"]
 
