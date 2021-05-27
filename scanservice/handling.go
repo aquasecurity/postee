@@ -61,7 +61,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
-		log.Printf("Error while evaluation input: %v", err)
+		log.Printf("Error while evaluating input: %v", err)
 		return
 	}
 
