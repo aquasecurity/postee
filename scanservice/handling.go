@@ -41,15 +41,14 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
 	}
-	log.Printf("Handling a scan result of '%s/%s'", scan.scanInfo.Registry, scan.scanInfo.Image)
-	owners := ""
 
 	//TODO move logic below somewhere close to Jira plugin implementation
+	owners := ""
 	if len(scan.scanInfo.ApplicationScopeOwners) > 0 {
 		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
 	}
 
-	if !scan.isNew && !route.PolicyShowAll {
+	if scan.scanInfo.HasId() && !scan.isNew && !route.PolicyShowAll {
 		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
 		return
 	}
@@ -110,27 +109,6 @@ var AggregateScanAndGetQueue = func(pluginName string, currentContent map[string
 		return nil
 	}
 	return aggregatedScans
-}
-
-func (scan *ScanService) checkFixVersions() bool {
-	for _, r := range scan.scanInfo.Resources {
-		for _, v := range r.Vulnerabilities {
-			if len(v.FixVersion) > 0 {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func (scan *ScanService) checkVulnerabilitiesLevel(minLevel string) bool {
-	vulns := [...]int{scan.scanInfo.Negligible, scan.scanInfo.Low, scan.scanInfo.Medium, scan.scanInfo.High, scan.scanInfo.Critical}
-	for i := SeverityIndexes[strings.ToLower(minLevel)]; i < len(vulns); i++ {
-		if vulns[i] > 0 {
-			return true
-		}
-	}
-	return false
 }
 
 func (scan *ScanService) init(data []byte) (err error) {
