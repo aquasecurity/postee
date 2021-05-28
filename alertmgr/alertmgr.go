@@ -42,7 +42,7 @@ type AlertMgr struct {
 	cfgfile     string
 	aquaServer  string
 	outputs     map[string]outputs.Output
-	inputRoutes map[string]*routes.InputRoutes
+	inputRoutes map[string]*routes.InputRoute
 	templates   map[string]data.Inpteval
 }
 
@@ -72,7 +72,7 @@ func Instance() *AlertMgr {
 			events:      make(chan string, 1000),
 			queue:       make(chan []byte, 1000),
 			outputs:     make(map[string]outputs.Output),
-			inputRoutes: make(map[string]*routes.InputRoutes),
+			inputRoutes: make(map[string]*routes.InputRoute),
 			templates:   make(map[string]data.Inpteval),
 			stopTicker:  make(chan struct{}),
 		}
@@ -248,7 +248,7 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoutes, inpteval data.Inpteval, aquaServer *string)
+	ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
 }
 
 var getScanService = func() service {

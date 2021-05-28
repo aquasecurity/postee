@@ -8,7 +8,7 @@ import (
 	"github.com/aquasecurity/postee/outputs"
 )
 
-func (route *InputRoutes) IsSchedulerRun() bool {
+func (route *InputRoute) IsSchedulerRun() bool {
 	return route.scheduling != nil
 }
 
@@ -16,16 +16,16 @@ var getTicker = func(seconds int) *time.Ticker {
 	return time.NewTicker(time.Duration(seconds) * time.Second)
 }
 
-func (route *InputRoutes) RunScheduler(
+func (route *InputRoute) RunScheduler(
 	fnSend func(plg outputs.Output, name *string, cnt map[string]string),
 	fnAggregate func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
 	inpteval data.Inpteval,
 	name *string,
 	output outputs.Output,
 ) {
-	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.AggregateTimeoutSeconds)
+	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.Plugins.AggregateTimeoutSeconds)
 
-	ticker := getTicker(route.AggregateTimeoutSeconds)
+	ticker := getTicker(route.Plugins.AggregateTimeoutSeconds)
 	route.scheduling = make(chan struct{})
 
 	go func(done chan struct{}, currentTicker *time.Ticker) {
@@ -50,7 +50,7 @@ func (route *InputRoutes) RunScheduler(
 	}(route.scheduling, ticker)
 }
 
-func (route *InputRoutes) StopScheduler() { //TODO scheduler should be stopped somewhere
+func (route *InputRoute) StopScheduler() { //TODO scheduler should be stopped somewhere
 	if route.scheduling != nil {
 		close(route.scheduling)
 	}

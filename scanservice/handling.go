@@ -18,7 +18,7 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoutes, inpteval data.Inpteval, AquaServer *string) {
+func (scan *ScanService) ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
 	if output == nil {
 		return
 	}
@@ -48,7 +48,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, output outpu
 		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
 	}
 
-	if scan.scanInfo.HasId() && !scan.isNew && !route.PolicyShowAll {
+	if scan.scanInfo.HasId() && !scan.isNew && !route.Plugins.PolicyShowAll {
 		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
 		return
 	}
@@ -68,8 +68,8 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, output outpu
 		content["owners"] = owners
 	}
 
-	if route.AggregateIssuesNumber > 0 && inpteval.IsAggregationSupported() {
-		aggregated := AggregateScanAndGetQueue(*name, content, route.AggregateIssuesNumber, false)
+	if route.Plugins.AggregateIssuesNumber > 0 && inpteval.IsAggregationSupported() {
+		aggregated := AggregateScanAndGetQueue(*name, content, route.Plugins.AggregateIssuesNumber, false)
 		if len(aggregated) > 0 {
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
@@ -78,7 +78,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, output outpu
 			}
 			send(output, name, content)
 		}
-	} else if route.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
+	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
 		AggregateScanAndGetQueue(*name, content, 0, true)
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
