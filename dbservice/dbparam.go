@@ -9,7 +9,7 @@ var (
 	dbBucketName            = "WebhookBucket"
 	dbBucketAggregator      = "WebhookAggregator"
 	dbBucketExpiryDates     = "WebookExpiryDates"
-	DbBucketPluginScanStats = "WebhookPluginScanStats"
+	DbBucketOutputScanStats = "WebhookPluginScanStats"
 	DbBucketSharedConfig    = "WebhookSharedConfig"
 
 	DbSizeLimit = 0

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/outputs"
 )
 
 func (route *InputRoutes) IsSchedulerRun() bool {
@@ -17,11 +17,11 @@ var getTicker = func(seconds int) *time.Ticker {
 }
 
 func (route *InputRoutes) RunScheduler(
-	fnSend func(plg plugins.Plugin, name *string, cnt map[string]string),
-	fnAggregate func(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
+	fnSend func(plg outputs.Output, name *string, cnt map[string]string),
+	fnAggregate func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
 	inpteval data.Inpteval,
 	name *string,
-	plugin plugins.Plugin,
+	output outputs.Output,
 ) {
 	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.AggregateTimeoutSeconds)
 
@@ -43,7 +43,7 @@ func (route *InputRoutes) RunScheduler(
 					if err != nil {
 						log.Printf("Unable to build aggregated contents %v\n", err)
 					}
-					fnSend(plugin, &route.Name, aggregated)
+					fnSend(output, &route.Name, aggregated)
 				}
 			}
 		}

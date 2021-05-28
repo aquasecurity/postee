@@ -1,14 +1,15 @@
 package scanservice
 
 import (
-	"github.com/aquasecurity/postee/layout"
 	"sync"
 	"testing"
+
+	"github.com/aquasecurity/postee/layout"
 )
 
 var (
-	plugin1 = "jira"
-	plugin2 = "email"
+	output1 = "jira"
+	output2 = "email"
 
 	scan1 = map[string]string{"title": "title1", "description": "<p>description1</p>\n", "url": "url1"}
 	scan2 = map[string]string{"title": "title2", "description": "<p>description2</p>\n", "url": "url2"}
@@ -16,7 +17,7 @@ var (
 	scan4 = map[string]string{"title": "title4", "description": "<p>description4</p>\n", "url": "url4"}
 )
 
-type DemoPlugin struct {
+type DemoOutput struct {
 	wg   sync.WaitGroup
 	mu   sync.Mutex
 	Sent bool
@@ -25,8 +26,8 @@ type DemoPlugin struct {
 	t    *testing.T
 }
 
-func (plg *DemoPlugin) Init() error { return nil }
-func (plg *DemoPlugin) Send(data map[string]string) error {
+func (plg *DemoOutput) Init() error { return nil }
+func (plg *DemoOutput) Send(data map[string]string) error {
 	plg.mu.Lock()
 	plg.Sent = true
 	plg.mu.Unlock()
@@ -35,7 +36,7 @@ func (plg *DemoPlugin) Send(data map[string]string) error {
 	return nil
 }
 
-func (plg *DemoPlugin) Terminate() error { return nil }
-func (plg *DemoPlugin) GetLayoutProvider() layout.LayoutProvider {
+func (plg *DemoOutput) Terminate() error { return nil }
+func (plg *DemoOutput) GetLayoutProvider() layout.LayoutProvider {
 	return plg.lay
 }

@@ -1,22 +1,23 @@
-package plugins
+package outputs
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/layout"
 )
 
 const defaultSizeLimit = 10000
 
-type SplunkPlugin struct {
+type SplunkOutput struct {
 	Name         string
 	Url          string
 	Token        string
@@ -24,13 +25,13 @@ type SplunkPlugin struct {
 	splunkLayout layout.LayoutProvider
 }
 
-func (splunk *SplunkPlugin) Init() error {
+func (splunk *SplunkOutput) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
-	log.Printf("Starting Splunk plugin %q....", splunk.Name)
+	log.Printf("Starting Splunk output %q....", splunk.Name)
 	return nil
 }
 
-func (splunk *SplunkPlugin) Send(d map[string]string) error {
+func (splunk *SplunkOutput) Send(d map[string]string) error {
 	log.Printf("Sending a message to %q", splunk.Name)
 
 	if splunk.EventLimit == 0 {
@@ -110,11 +111,11 @@ func (splunk *SplunkPlugin) Send(d map[string]string) error {
 	return nil
 }
 
-func (splunk *SplunkPlugin) Terminate() error {
-	log.Printf("Splunk plugin %q terminated", splunk.Name)
+func (splunk *SplunkOutput) Terminate() error {
+	log.Printf("Splunk output %q terminated", splunk.Name)
 	return nil
 }
 
-func (splunk *SplunkPlugin) GetLayoutProvider() layout.LayoutProvider {
+func (splunk *SplunkOutput) GetLayoutProvider() layout.LayoutProvider {
 	return splunk.splunkLayout
 }

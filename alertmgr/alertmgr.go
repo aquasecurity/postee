@@ -16,7 +16,7 @@ import (
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
 	"github.com/aquasecurity/postee/scanservice"
@@ -41,13 +41,13 @@ type AlertMgr struct {
 	events      chan string
 	cfgfile     string
 	aquaServer  string
-	plugins     map[string]plugins.Plugin
+	outputs     map[string]outputs.Output
 	inputRoutes map[string]*routes.InputRoutes
 	templates   map[string]data.Inpteval
 }
 
 var (
-	errNoPlugins  = errors.New("there aren't started plugins")
+	errNoOutputs  = errors.New("there aren't started outputs")
 	initCtx       sync.Once
 	alertmgrCtx   *AlertMgr
 	baseForTicker = time.Hour
@@ -71,7 +71,7 @@ func Instance() *AlertMgr {
 			quit:        make(chan struct{}),
 			events:      make(chan string, 1000),
 			queue:       make(chan []byte, 1000),
-			plugins:     make(map[string]plugins.Plugin),
+			outputs:     make(map[string]outputs.Output),
 			inputRoutes: make(map[string]*routes.InputRoutes),
 			templates:   make(map[string]data.Inpteval),
 			stopTicker:  make(chan struct{}),
@@ -87,7 +87,7 @@ func (ctx *AlertMgr) ReloadConfig() {
 func (ctx *AlertMgr) Start(cfgfile string) error {
 	log.Printf("Starting AlertMgr....")
 	ctx.cfgfile = cfgfile
-	ctx.plugins = map[string]plugins.Plugin{}
+	ctx.outputs = map[string]outputs.Output{}
 	err := ctx.load()
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func (ctx *AlertMgr) Terminate() {
 	ctx.quit <- struct{}{}
 	ctx.stopTicker <- struct{}{}
 
-	for _, pl := range ctx.plugins {
+	for _, pl := range ctx.outputs {
 		pl.Terminate()
 	}
 }
@@ -226,10 +226,10 @@ func (ctx *AlertMgr) load() error {
 		}
 	}
 
-	for name, plugin := range ctx.plugins {
-		if plugin != nil {
-			ctx.plugins[name] = nil
-			plugin.Terminate()
+	for name, output := range ctx.outputs {
+		if output != nil {
+			ctx.outputs[name] = nil
+			output.Terminate()
 		}
 	}
 
@@ -237,10 +237,10 @@ func (ctx *AlertMgr) load() error {
 		utils.Debug("%#v\n", anonymizeSettings(&settings))
 
 		if settings.Enable {
-			plg := BuildAndInitPlg(&settings, ctx.aquaServer)
+			plg := BuildAndInitOtpt(&settings, ctx.aquaServer)
 			if plg != nil {
 				log.Printf("Integration %s is configured", settings.Name)
-				ctx.plugins[settings.Name] = plg
+				ctx.outputs[settings.Name] = plg
 			}
 		}
 	}
@@ -248,7 +248,7 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, inpteval data.Inpteval, aquaServer *string)
+	ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoutes, inpteval data.Inpteval, aquaServer *string)
 }
 
 var getScanService = func() service {
@@ -267,7 +267,7 @@ func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
 		return
 	}
 	for _, outputName := range r.Outputs {
-		pl, ok := ctx.plugins[outputName]
+		pl, ok := ctx.outputs[outputName]
 		if !ok {
 			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
 			continue
@@ -288,8 +288,8 @@ func (ctx *AlertMgr) handle(in []byte) {
 		ctx.handleRoute(routeName, in)
 	}
 }
-func BuildAndInitPlg(settings *PluginSettings, aquaServerUrl string) plugins.Plugin {
-	var plg plugins.Plugin
+func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Output {
+	var plg outputs.Output
 
 	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
 	if len(settings.User) == 0 && !ignoreAuthorization[settings.Type] {
@@ -302,25 +302,25 @@ func BuildAndInitPlg(settings *PluginSettings, aquaServerUrl string) plugins.Plu
 		return nil
 	}
 
-	utils.Debug("Starting Plugin %q: %q\n", settings.Type, settings.Name)
+	utils.Debug("Starting Output %q: %q\n", settings.Type, settings.Name)
 
 	switch settings.Type {
 	case "jira":
-		plg = buildJiraPlugin(settings)
+		plg = buildJiraOutput(settings)
 	case "email":
-		plg = buildEmailPlugin(settings)
+		plg = buildEmailOutput(settings)
 	case "slack":
-		plg = buildSlackPlugin(settings, aquaServerUrl)
+		plg = buildSlackOutput(settings, aquaServerUrl)
 	case "teams":
-		plg = buildTeamsPlugin(settings, aquaServerUrl)
+		plg = buildTeamsOutput(settings, aquaServerUrl)
 	case "serviceNow":
 		plg = buildServiceNow(settings)
 	case "webhook":
-		plg = buildWebhookPlugin(settings)
+		plg = buildWebhookOutput(settings)
 	case "splunk":
-		plg = buildSplunkPlugin(settings)
+		plg = buildSplunkOutput(settings)
 	default:
-		log.Printf("Plugin type %q is undefined or empty. Plugin name is %q.",
+		log.Printf("Output type %q is undefined or empty. Output name is %q.",
 			settings.Type, settings.Name)
 		return nil
 	}

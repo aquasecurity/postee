@@ -12,7 +12,7 @@ import (
 )
 
 func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
-	plgSettings := &alertmgr.PluginSettings{}
+	plgSettings := &alertmgr.OutputSettings{}
 
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
@@ -27,7 +27,7 @@ func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plg := alertmgr.BuildAndInitPlg(plgSettings, "")
+	plg := alertmgr.BuildAndInitOtpt(plgSettings, "")
 
 	testPayload := make(map[string]string)
 

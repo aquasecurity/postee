@@ -1,9 +1,10 @@
 package scanservice
 
 import (
-	"github.com/aquasecurity/postee/dbservice"
 	"os"
 	"testing"
+
+	"github.com/aquasecurity/postee/dbservice"
 )
 
 func TestApplicationScopeOwner(t *testing.T) {
@@ -21,7 +22,7 @@ func TestApplicationScopeOwner(t *testing.T) {
 			panic(err)
 		}
 
-		email := &MockPlugin{
+		email := &MockOutput{
 			sender: func(data map[string]string) error {
 				emails := strings.Split(data["owners"], ";")
 				count := len(AshexPokemongoResult.ApplicationScopeOwners)
@@ -42,10 +43,10 @@ func TestApplicationScopeOwner(t *testing.T) {
 			},
 		}
 		/*
-		_ := map[string]plugins.Plugin{
+		_ := map[string]outputs.Output{
 			"email": email,
 		}
-		srv.ResultHandling(string(b), plugins)
+		srv.ResultHandling(string(b), outputs)
 
 	*/
 }

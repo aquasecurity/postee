@@ -9,7 +9,7 @@ type TenantSettings struct {
 	DBMaxSize       int                  `json:"Max_DB_Size,omitempty"`
 	DBRemoveOldData int                  `json:"Delete_Old_Data,omitempty"`
 	DBTestInterval  int                  `json:"DbVerifyInterval,omitempty"`
-	Outputs         []PluginSettings     `json:"outputs"`
+	Outputs         []OutputSettings     `json:"outputs"`
 	InputRoutes     []routes.InputRoutes `json:"routes"`
 	Templates       []Template           `json:"templates"`
 }

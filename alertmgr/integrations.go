@@ -1,6 +1,6 @@
 package alertmgr
 
-type PluginSettings struct {
+type OutputSettings struct {
 	Name            string            `json:"name,omitempty"`
 	Type            string            `json:"type,omitempty"`
 	Enable          bool              `json:"enable,omitempty"`

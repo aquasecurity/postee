@@ -2,7 +2,7 @@ package alertmgr
 
 import "reflect"
 
-func anonymizeSettings(settings *PluginSettings) *PluginSettings {
+func anonymizeSettings(settings *OutputSettings) *OutputSettings {
 	fieldsToAnonymize := [...]string{
 		"User",
 		"Password",

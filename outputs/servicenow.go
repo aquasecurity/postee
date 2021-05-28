@@ -1,14 +1,15 @@
-package plugins
+package outputs
 
 import (
 	"encoding/json"
+	"log"
+
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
 	servicenow "github.com/aquasecurity/postee/servicenow"
-	"log"
 )
 
-type ServiceNowPlugin struct {
+type ServiceNowOutput struct {
 	Name           string
 	User           string
 	Password       string
@@ -17,14 +18,14 @@ type ServiceNowPlugin struct {
 	layoutProvider layout.LayoutProvider
 }
 
-func (sn *ServiceNowPlugin) Init() error {
-	log.Printf("Starting ServiceNow plugin %q....", sn.Name)
+func (sn *ServiceNowOutput) Init() error {
+	log.Printf("Starting ServiceNow output %q....", sn.Name)
 	log.Printf("Your ServiceNow Table is %q on '%s.%s'", sn.Table, sn.Instance, servicenow.BaseServer)
 	sn.layoutProvider = new(formatting.HtmlProvider)
 	return nil
 }
 
-func (sn *ServiceNowPlugin) Send(content map[string]string) error {
+func (sn *ServiceNowOutput) Send(content map[string]string) error {
 	log.Printf("Sending via ServiceNow %q", sn.Name)
 	d := &servicenow.ServiceNowData{
 		ShortDescription: content["title"],
@@ -44,11 +45,11 @@ func (sn *ServiceNowPlugin) Send(content map[string]string) error {
 	return nil
 }
 
-func (sn *ServiceNowPlugin) Terminate() error {
-	log.Printf("ServiceNow plugin %q terminated", sn.Name)
+func (sn *ServiceNowOutput) Terminate() error {
+	log.Printf("ServiceNow output %q terminated", sn.Name)
 	return nil
 }
 
-func (sn *ServiceNowPlugin) GetLayoutProvider() layout.LayoutProvider {
+func (sn *ServiceNowOutput) GetLayoutProvider() layout.LayoutProvider {
 	return sn.layoutProvider
 }

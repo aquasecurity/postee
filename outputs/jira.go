@@ -1,14 +1,15 @@
-package plugins
+package outputs
 
 import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
 	"io/ioutil"
 	"log"
 	"strconv"
+
+	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/layout"
 
 	"net/http"
 	"os"
@@ -91,7 +92,7 @@ func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
 }
 
 func (ctx *JiraAPI) Terminate() error {
-	log.Printf("Jira plugin terminated\n")
+	log.Printf("Jira output terminated\n")
 	return nil
 }
 
@@ -101,7 +102,7 @@ func (ctx *JiraAPI) Init() error {
 	}
 	ctx.fetchBoardId(ctx.BoardName)
 
-	log.Printf("Starting Jira plugin %q....", ctx.Name)
+	log.Printf("Starting Jira output %q....", ctx.Name)
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}

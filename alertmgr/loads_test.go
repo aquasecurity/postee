@@ -1,13 +1,14 @@
 package alertmgr
 
 import (
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/plugins"
-	"github.com/aquasecurity/postee/scanservice"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/outputs"
+	"github.com/aquasecurity/postee/scanservice"
 )
 
 func TestLoads(t *testing.T) {
@@ -77,14 +78,14 @@ outputs:
 	demoCtx.Terminate()
 
 	/*
-		pluginsNumber := 10
-		if len(demoCtx.plugins) != pluginsNumber {
-			t.Errorf("There are stopped plugins\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
+		outputsNumber := 10
+		if len(demoCtx.outputs) != outputsNumber {
+			t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", outputsNumber, len(demoCtx.outputs))
 		}
 
-		_, ok := demoCtx.plugins["ms-team"]
+		_, ok := demoCtx.outputs["ms-team"]
 		if !ok {
-			t.Errorf("'ms-team' plugin didn't start!")
+			t.Errorf("'ms-team' output didn't start!")
 		}
 
 		/*
@@ -95,12 +96,12 @@ outputs:
 
 	*/
 	/*
-		if _, ok := demoCtx.plugins["my-servicenow"]; !ok {
-			t.Errorf("Plugin 'my-servicenow' didn't run!")
+		if _, ok := demoCtx.outputs["my-servicenow"]; !ok {
+			t.Errorf("Output 'my-servicenow' didn't run!")
 		}
 		demoCtx.ReloadConfig()
-		if len(demoCtx.plugins) != pluginsNumber {
-			t.Errorf("There are stopped plugins after ReloadConfig\nWaited: %d\nResult: %d", pluginsNumber, len(demoCtx.plugins))
+		if len(demoCtx.outputs) != outputsNumber {
+			t.Errorf("There are stopped outputs after ReloadConfig\nWaited: %d\nResult: %d", outputsNumber, len(demoCtx.outputs))
 		}
 		demoCtx.Terminate()
 		time.Sleep(200 * time.Millisecond)
@@ -118,7 +119,7 @@ type demoService struct {
 	buff chan string
 }
 
-func (demo *demoService) ResultHandling(input string, plugins map[string]plugins.Plugin) {
+func (demo *demoService) ResultHandling(input string, outputs map[string]outputs.Output) {
 	demo.buff <- input
 }
 func getDemoService() *demoService {
@@ -153,7 +154,7 @@ func TestSendingMessages(t *testing.T) {
 		quit:       make(chan struct{}),
 		events:     make(chan string, 1000),
 		queue:      make(chan string, 1000),
-		plugins:    make(map[string]plugins.Plugin),
+		outputs:    make(map[string]outputs.Output),
 	}
 	go srv.listen()
 	srv.Send(testData)

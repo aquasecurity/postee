@@ -1,27 +1,28 @@
-package plugins
+package outputs
 
 import (
 	"fmt"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/layout"
 )
 
-type WebhookPlugin struct {
+type WebhookOutput struct {
 	Name string
 	Url  string
 }
 
-func (webhook *WebhookPlugin) Init() error {
-	log.Printf("Starting Webhook plugin %q, for sending to %q",
+func (webhook *WebhookOutput) Init() error {
+	log.Printf("Starting Webhook output %q, for sending to %q",
 		webhook.Name, webhook.Url)
 	return nil
 }
 
-func (webhook *WebhookPlugin) Send(content map[string]string) error {
+func (webhook *WebhookOutput) Send(content map[string]string) error {
 	log.Printf("Sending webhook to %q", webhook.Url)
 	data := content["src"]
 	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
@@ -45,12 +46,12 @@ func (webhook *WebhookPlugin) Send(content map[string]string) error {
 	return nil
 }
 
-func (webhook *WebhookPlugin) Terminate() error {
-	log.Printf("Webhook plugin %q terminated.", webhook.Name)
+func (webhook *WebhookOutput) Terminate() error {
+	log.Printf("Webhook output %q terminated.", webhook.Name)
 	return nil
 }
 
-func (webhook *WebhookPlugin) GetLayoutProvider() layout.LayoutProvider {
+func (webhook *WebhookOutput) GetLayoutProvider() layout.LayoutProvider {
 	// Todo: This is MOCK. Because Formatting isn't need for Webhook
 	// todo: The App should work with `return nil`
 	return new(formatting.HtmlProvider)

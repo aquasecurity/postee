@@ -1,21 +1,22 @@
-package plugins
+package outputs
 
 import (
 	"errors"
 	"fmt"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
 	"log"
 	"net"
 	"net/smtp"
 	"strings"
+
+	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/layout"
 )
 
 var (
 	errThereIsNoRecipient = errors.New("there is no recipient")
 )
 
-type EmailPlugin struct {
+type EmailOutput struct {
 	Name       string
 	User       string
 	Password   string
@@ -26,24 +27,24 @@ type EmailPlugin struct {
 	UseMX      bool
 }
 
-func (email *EmailPlugin) Init() error {
-	log.Printf("Starting Email plugin %q...", email.Name)
+func (email *EmailOutput) Init() error {
+	log.Printf("Starting Email output %q...", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
 	return nil
 }
 
-func (email *EmailPlugin) Terminate() error {
-	log.Printf("Email plugin terminated\n")
+func (email *EmailOutput) Terminate() error {
+	log.Printf("Email output terminated\n")
 	return nil
 }
 
-func (email *EmailPlugin) GetLayoutProvider() layout.LayoutProvider {
+func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
 
-func (email *EmailPlugin) Send(content map[string]string) error {
+func (email *EmailOutput) Send(content map[string]string) error {
 	subject := content["title"]
 	body := content["description"]
 	recipients := getHandledRecipients(email.Recipients, &content, email.Name)

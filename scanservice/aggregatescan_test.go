@@ -1,12 +1,13 @@
 package scanservice
 
 import (
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
 	"os"
 	"sync"
 	"testing"
+
+	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/layout"
 )
 
 var (
@@ -17,21 +18,21 @@ var (
 	mockScan5 = `{"image":"Demo mock image5","registry":"registry5","vulnerability_summary":{"critical":1,"high":2,"medium":3,"low":4,"negligible":5},"image_assurance_results":{"disallowed":true}}`
 )
 
-type DemoEmailPlugin struct {
+type DemoEmailOutput struct {
 	wg          *sync.WaitGroup
 	mu          sync.Mutex
 	emailCounts int
 }
 
-func (plg *DemoEmailPlugin) getEmailsCount() int {
+func (plg *DemoEmailOutput) getEmailsCount() int {
 	plg.mu.Lock()
 	e := plg.emailCounts
 	plg.mu.Unlock()
 	return e
 }
 
-func (plg *DemoEmailPlugin) Init() error { return nil }
-func (plg *DemoEmailPlugin) Send(data map[string]string) error {
+func (plg *DemoEmailOutput) Init() error { return nil }
+func (plg *DemoEmailOutput) Send(data map[string]string) error {
 	plg.mu.Lock()
 	plg.emailCounts++
 	plg.mu.Unlock()
@@ -41,8 +42,8 @@ func (plg *DemoEmailPlugin) Send(data map[string]string) error {
 	return nil
 }
 
-func (plg *DemoEmailPlugin) Terminate() error { return nil }
-func (plg *DemoEmailPlugin) GetLayoutProvider() layout.LayoutProvider {
+func (plg *DemoEmailOutput) Terminate() error { return nil }
+func (plg *DemoEmailOutput) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
 
@@ -55,11 +56,11 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 	dbservice.DbPath = "test_webhooks.db"
 
 	/*
-		demoEmailPlg := DemoEmailPlugin{
+		demoEmailPlg := DemoEmailOutput{
 			emailCounts: 0,
 		}
 
-		plugins := map[string]plugins.Plugin{
+		outputs := map[string]outputs.Output{
 			"email": &demoEmailPlg,
 		}
 
@@ -69,7 +70,7 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 		demoEmailPlg.wg.Add(1)
 		for _, scan := range scans {
 			srv := new(ScanService)
-			srv.ResultHandling(scan, plugins)
+			srv.ResultHandling(scan, outputs)
 		}
 		demoEmailPlg.wg.Wait()
 

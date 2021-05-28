@@ -1,8 +1,9 @@
 package alertmgr
 
 import (
-	"github.com/aquasecurity/postee/plugins"
 	"testing"
+
+	"github.com/aquasecurity/postee/outputs"
 )
 
 var (
@@ -14,19 +15,19 @@ var (
 `
 )
 
-func TestBuildSlackPlugin(t *testing.T) {
+func TestBuildSlackOutput(t *testing.T) {
 	tests := []struct {
-		pluginSettings PluginSettings
-		slack          plugins.SlackPlugin
+		outputSettings OutputSettings
+		slack          outputs.SlackOutput
 	}{
 		{
-			PluginSettings{
+			OutputSettings{
 				Name:   "my-slack",
 				Type:   "slack",
 				Enable: true,
 				Url:    "https://hooks.slack.com/services/TT/BBB/WWWW",
 			},
-			plugins.SlackPlugin{
+			outputs.SlackOutput{
 				Url:  "https://hooks.slack.com/services/TT/BBB/WWWW",
 				Name: "my-slack",
 			},
@@ -34,20 +35,20 @@ func TestBuildSlackPlugin(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := buildSlackPlugin(&test.pluginSettings, "aqua.demo")
+		r := buildSlackOutput(&test.outputSettings, "aqua.demo")
 		if r.Url != test.slack.Url {
-			t.Errorf("Wrong url for Slack plugin\nWaited: %q\nResult: %q", test.slack.Url, r.Url)
+			t.Errorf("Wrong url for Slack output\nWaited: %q\nResult: %q", test.slack.Url, r.Url)
 		}
 	}
 }
 
-func TestBuildEmailPlugin(t *testing.T) {
+func TestBuildEmailOutput(t *testing.T) {
 	tests := []struct {
-		pluginSettings PluginSettings
-		email          plugins.EmailPlugin
+		outputSettings OutputSettings
+		email          outputs.EmailOutput
 	}{
 		{
-			PluginSettings{
+			OutputSettings{
 				User:       "EmailUser",
 				Password:   "pAsSw0rD",
 				Host:       "smtp.gmail.com",
@@ -55,7 +56,7 @@ func TestBuildEmailPlugin(t *testing.T) {
 				Sender:     "google@gmail.com",
 				Recipients: []string{"r1@gmail.com"},
 			},
-			plugins.EmailPlugin{
+			outputs.EmailOutput{
 				User:       "EmailUser",
 				Password:   "pAsSw0rD",
 				Host:       "smtp.gmail.com",
@@ -67,7 +68,7 @@ func TestBuildEmailPlugin(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := buildEmailPlugin(&test.pluginSettings)
+		r := buildEmailOutput(&test.outputSettings)
 		if r.User != test.email.User {
 			t.Errorf("Wrong setting of User:\nWaited: %q\nResult: %q", test.email.User, r.User)
 		}
@@ -96,13 +97,13 @@ func TestBuildEmailPlugin(t *testing.T) {
 	}
 }
 
-func TestBuildJiraPlugin(t *testing.T) {
+func TestBuildJiraOutput(t *testing.T) {
 	tests := []struct {
-		pluginSettings PluginSettings
-		jira           plugins.JiraAPI
+		outputSettings OutputSettings
+		jira           outputs.JiraAPI
 	}{
 		{
-			pluginSettings: PluginSettings{
+			outputSettings: OutputSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Password:   "admin",
@@ -111,7 +112,7 @@ func TestBuildJiraPlugin(t *testing.T) {
 				Priority:   "Priority",
 				Assignee:   []string{"Assignee"},
 			},
-			jira: plugins.JiraAPI{
+			jira: outputs.JiraAPI{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Password:   "admin",
@@ -122,7 +123,7 @@ func TestBuildJiraPlugin(t *testing.T) {
 			},
 		},
 		{
-			pluginSettings: PluginSettings{
+			outputSettings: OutputSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Password:   "admin",
@@ -130,7 +131,7 @@ func TestBuildJiraPlugin(t *testing.T) {
 				IssueType:  "",
 				Priority:   "",
 			},
-			jira: plugins.JiraAPI{
+			jira: outputs.JiraAPI{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Password:   "admin",
@@ -143,7 +144,7 @@ func TestBuildJiraPlugin(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r := buildJiraPlugin(&test.pluginSettings)
+		r := buildJiraOutput(&test.outputSettings)
 		if r.Url != test.jira.Url {
 			t.Errorf("Wrong URL:\nWaited: %q\nResult: %q", test.jira.Url, r.Url)
 		}

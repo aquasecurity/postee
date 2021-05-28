@@ -7,7 +7,7 @@ import (
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/plugins"
+	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
 )
@@ -18,8 +18,8 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugins.Plugin, route *routes.InputRoutes, inpteval data.Inpteval, AquaServer *string) {
-	if plugin == nil {
+func (scan *ScanService) ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoutes, inpteval data.Inpteval, AquaServer *string) {
+	if output == nil {
 		return
 	}
 
@@ -42,7 +42,7 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 		return
 	}
 
-	//TODO move logic below somewhere close to Jira plugin implementation
+	//TODO move logic below somewhere close to Jira output implementation
 	owners := ""
 	if len(scan.scanInfo.ApplicationScopeOwners) > 0 {
 		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
@@ -76,36 +76,36 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, plugin plugi
 				log.Printf("Error while building aggregated content: %v", err)
 				return
 			}
-			send(plugin, name, content)
+			send(output, name, content)
 		}
 	} else if route.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
 		AggregateScanAndGetQueue(*name, content, 0, true)
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
 			log.Printf("about to schedule %s\n", *name)
-			route.RunScheduler(send, AggregateScanAndGetQueue, inpteval, name, plugin)
+			route.RunScheduler(send, AggregateScanAndGetQueue, inpteval, name, output)
 		} else {
 			log.Printf("%s is already scheduled\n", *name)
 		}
 	} else {
-		send(plugin, name, content)
+		send(output, name, content)
 
 	}
 }
 
-func send(plg plugins.Plugin, name *string, cnt map[string]string) {
-	go plg.Send(cnt)
+func send(otpt outputs.Output, name *string, cnt map[string]string) {
+	go otpt.Send(cnt)
 	dbservice.RegisterPlgnInvctn(*name)
 }
 
-var AggregateScanAndGetQueue = func(pluginName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
-	aggregatedScans, err := dbservice.AggregateScans(pluginName, currentContent, counts, ignoreLength)
+var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
+	aggregatedScans, err := dbservice.AggregateScans(outputName, currentContent, counts, ignoreLength)
 	if err != nil {
 		log.Printf("AggregateScans Error: %v", err)
 		return aggregatedScans
 	}
 	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
-		log.Printf("New scan was added to the queue of %q without sending.", pluginName)
+		log.Printf("New scan was added to the queue of %q without sending.", outputName)
 		return nil
 	}
 	return aggregatedScans

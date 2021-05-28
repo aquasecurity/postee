@@ -1,9 +1,10 @@
-package plugins
+package outputs
 
 import (
 	"bytes"
-	"github.com/aquasecurity/postee/layout"
 	"strings"
+
+	"github.com/aquasecurity/postee/layout"
 )
 
 func buildShortMessage(server, urls string, provider layout.LayoutProvider) string {

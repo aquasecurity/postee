@@ -1,12 +1,13 @@
 package alertmgr
 
 import (
-	"github.com/aquasecurity/postee/plugins"
 	"strings"
+
+	"github.com/aquasecurity/postee/outputs"
 )
 
-func buildSplunkPlugin(sourceSettings *PluginSettings) *plugins.SplunkPlugin {
-	return &plugins.SplunkPlugin{
+func buildSplunkOutput(sourceSettings *OutputSettings) *outputs.SplunkOutput {
+	return &outputs.SplunkOutput{
 		Name:       sourceSettings.Name,
 		Url:        sourceSettings.Url,
 		Token:      sourceSettings.Token,
@@ -14,23 +15,23 @@ func buildSplunkPlugin(sourceSettings *PluginSettings) *plugins.SplunkPlugin {
 	}
 }
 
-func buildWebhookPlugin(sourceSettings *PluginSettings) *plugins.WebhookPlugin {
-	return &plugins.WebhookPlugin{
+func buildWebhookOutput(sourceSettings *OutputSettings) *outputs.WebhookOutput {
+	return &outputs.WebhookOutput{
 		Name: sourceSettings.Name,
 		Url:  sourceSettings.Url,
 	}
 }
 
-func buildTeamsPlugin(sourceSettings *PluginSettings, aquaServer string) *plugins.TeamsPlugin {
-	return &plugins.TeamsPlugin{
+func buildTeamsOutput(sourceSettings *OutputSettings, aquaServer string) *outputs.TeamsOutput {
+	return &outputs.TeamsOutput{
 		Name:       sourceSettings.Name,
 		AquaServer: aquaServer,
 		Webhook:    sourceSettings.Url,
 	}
 }
 
-func buildServiceNow(sourceSettings *PluginSettings) *plugins.ServiceNowPlugin {
-	serviceNow := &plugins.ServiceNowPlugin{
+func buildServiceNow(sourceSettings *OutputSettings) *outputs.ServiceNowOutput {
+	serviceNow := &outputs.ServiceNowOutput{
 		Name:     sourceSettings.Name,
 		User:     sourceSettings.User,
 		Password: sourceSettings.Password,
@@ -43,16 +44,16 @@ func buildServiceNow(sourceSettings *PluginSettings) *plugins.ServiceNowPlugin {
 	return serviceNow
 }
 
-func buildSlackPlugin(sourceSettings *PluginSettings, aqua string) *plugins.SlackPlugin {
-	return &plugins.SlackPlugin{
+func buildSlackOutput(sourceSettings *OutputSettings, aqua string) *outputs.SlackOutput {
+	return &outputs.SlackOutput{
 		Name:       sourceSettings.Name,
 		AquaServer: aqua,
 		Url:        sourceSettings.Url,
 	}
 }
 
-func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
-	return &plugins.EmailPlugin{
+func buildEmailOutput(sourceSettings *OutputSettings) *outputs.EmailOutput {
+	return &outputs.EmailOutput{
 		Name:       sourceSettings.Name,
 		User:       sourceSettings.User,
 		Password:   sourceSettings.Password,
@@ -64,8 +65,8 @@ func buildEmailPlugin(sourceSettings *PluginSettings) *plugins.EmailPlugin {
 	}
 }
 
-func buildJiraPlugin(sourceSettings *PluginSettings) *plugins.JiraAPI {
-	jiraApi := &plugins.JiraAPI{
+func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
+	jiraApi := &outputs.JiraAPI{
 		Name:            sourceSettings.Name,
 		Url:             sourceSettings.Url,
 		User:            sourceSettings.User,

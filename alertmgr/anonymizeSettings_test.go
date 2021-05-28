@@ -4,34 +4,34 @@ import "testing"
 
 func TestAnonymizeSettings(t *testing.T) {
 	tests := []struct {
-		original *PluginSettings
-		expected *PluginSettings
+		original *OutputSettings
+		expected *OutputSettings
 	}{{
-		&PluginSettings{
+		&OutputSettings{
 			User: "admin",
 		},
-		&PluginSettings{
+		&OutputSettings{
 			User: "<hidden>",
 		},
 	}, {
-		&PluginSettings{
+		&OutputSettings{
 			User: "",
 		},
-		&PluginSettings{
+		&OutputSettings{
 			User: "",
 		},
 	}, {
-		&PluginSettings{
+		&OutputSettings{
 			Password: "secret",
 		},
-		&PluginSettings{
+		&OutputSettings{
 			Password: "<hidden>",
 		},
 	}, {
-		&PluginSettings{
+		&OutputSettings{
 			Url: "http://localhost",
 		},
-		&PluginSettings{
+		&OutputSettings{
 			Url: "<hidden>",
 		},
 	},

@@ -17,9 +17,9 @@ func RegisterPlgnInvctn(name string) error {
 	defer db.Close()
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DbBucketPluginScanStats))
+		bucket := tx.Bucket([]byte(DbBucketOutputScanStats))
 		if bucket == nil {
-			bucket, err = tx.CreateBucket([]byte(DbBucketPluginScanStats))
+			bucket, err = tx.CreateBucket([]byte(DbBucketOutputScanStats))
 
 			if err != nil {
 				return err

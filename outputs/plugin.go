@@ -1,30 +1,31 @@
-package plugins
+package outputs
 
 import (
 	"fmt"
-	"github.com/aquasecurity/postee/layout"
 	"log"
 	"strings"
+
+	"github.com/aquasecurity/postee/layout"
 )
 
 const (
 	ApplicationScopeOwner = "<%application_scope_owner%>"
 )
 
-type Plugin interface {
+type Output interface {
 	Init() error
 	Send(map[string]string) error
 	Terminate() error
 	GetLayoutProvider() layout.LayoutProvider
 }
 
-func getHandledRecipients(recipients []string, content *map[string]string, pluginName string) []string {
+func getHandledRecipients(recipients []string, content *map[string]string, outputName string) []string {
 	var result []string
 	for _, r := range recipients {
 		if r == ApplicationScopeOwner {
 			owners, err := getAppScopeOwners(content)
 			if err != nil {
-				log.Printf("get application scope owners error for %q: %v", pluginName, err)
+				log.Printf("get application scope owners error for %q: %v", outputName, err)
 				continue
 			}
 			result = append(result, owners...)

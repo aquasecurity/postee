@@ -6,22 +6,22 @@ import (
 
 func TestSchedulersStop(t *testing.T) {
 	/*
-		demoPlugins := make(map[string]plugins.Plugin)
-		demoPlugins["pl0"] = nil
-		hook := &plugins.WebhookPlugin{
+		demoOutputs := make(map[string]outputs.Output)
+		demoOutputs["pl0"] = nil
+		hook := &outputs.WebhookOutput{
 			Url:             "",
 			WebhookSettings: nil,
 		}
-		demoPlugins["pl1"] = hook
+		demoOutputs["pl1"] = hook
 
-		hook2 := &plugins.WebhookPlugin{
+		hook2 := &outputs.WebhookOutput{
 			Url: "",
 			WebhookSettings: &settings.Settings{
 				IsScheduleRun: make(chan struct{}),
 			},
 		}
-		demoPlugins["pl2"] = hook2
-		schedulersStop(demoPlugins)
+		demoOutputs["pl2"] = hook2
+		schedulersStop(demoOutputs)
 		if _, ok := <-hook2.GetSettings().IsScheduleRun; ok {
 			t.Error("schedulersStop didn't stop the scheduler!")
 		}
