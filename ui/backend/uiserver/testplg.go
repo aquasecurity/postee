@@ -18,12 +18,12 @@ func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
-		http.Error(w, "Can't read JSON string", http.StatusBadRequest)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
 	if err := json.Unmarshal(body, plgSettings); err != nil {
-		http.Error(w, "Can't read JSON string", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Can't read JSON string %s", err), http.StatusBadRequest)
 		return
 	}
 

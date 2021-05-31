@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/smtp"
+	"strconv"
 	"strings"
 
 	"github.com/aquasecurity/postee/formatting"
@@ -21,7 +22,7 @@ type EmailOutput struct {
 	User       string
 	Password   string
 	Host       string
-	Port       string
+	Port       int
 	Sender     string
 	Recipients []string
 	UseMX      bool
@@ -65,7 +66,7 @@ func (email *EmailOutput) Send(content map[string]string) error {
 		strings.Join(recipients, ","), email.Sender, subject, body)
 
 	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
-	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.Sender, recipients, []byte(msg))
+	err := smtp.SendMail(email.Host+":"+strconv.Itoa(email.Port), auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
 		log.Println("SendMail Error:", err)
 		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)

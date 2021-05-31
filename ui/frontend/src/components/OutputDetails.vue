@@ -458,11 +458,11 @@ export default {
   },
   methods: {
     doTest() {
-      this.isTestingInProgress = true;
-
       if (!this.isFormValid()) {
         return;
       }
+
+      this.isTestingInProgress = true;
 
       this.$store
         .dispatch("outputs/test", this.formValues)
