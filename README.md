@@ -211,7 +211,7 @@ Policy-Show-All | Optional: trigger the integration for all scan results. If set
 Ignore-Registry | Optional: comma separated list of registries that will be ignored by the integration
 Ignore-Image-Name |  Optional: list of comma separated images that will be ignored by the integration
 Aggregate-Issues-Number | Optional: Aggregate multiple scans into one ticket/message | Numeric number. Default is 1
-Aggregate-Issues-Timeout| Optional: Aggregate multiple scans over period of time into one ticket/message | Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)
+Aggregate-Issues-Timeout| Optional: Aggregate multiple scans over period of time into one ticket/message | Xs (X number of seconds), Xm (X number of minutes), Xh (X number of hours)
 Policy-OPA | Optional: a list of files with OPA/REGO policies. Input string will be matched against the REGO policies and message will be handled only if there is a positive match. For example, a policy will match against vulnerabilities that are medium and above [Sample](deploy/rego/policy.rego) | ["<path to rego policy file>"].
 
 A sample of a REGO policy file:
