@@ -15,7 +15,7 @@ export default {
         return axios.get("/api/config", { transformResponse: transformYaml })
     },
     getStats: function () {
-        return axios.get("/api/plugins/stats")
+        return axios.get("/api/outputs/stats")
     },
     saveConfig: function (settings) {
         const yamlObj = yaml.dump(settings)

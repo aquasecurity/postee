@@ -25,20 +25,61 @@
             :validator="v(uniqueName)"
           />
           <div class="form-group form-input">
-            <label class="form-label" for="input">REGO template:</label>
+            <b-tabs content-class="mt-3">
+              <b-tab title="Inline" :active="!!formValues.regopackage">
+                <label class="form-label" for="input">REGO template:</label>
+                <codemirror
+                  :value="formValues.body"
+                  :options="cmOptions"
+                  id="body"
+                  name="body"
+                  @input="updateBody"
+                >
+                </codemirror>
+                <small class="form-text text-muted">
+                  REGO template to render received events
+                </small>
+              </b-tab>
+              <b-tab title="Package" :active="!!formValues.regopackage">
+                <PluginProperty
+                  id="regopackage"
+                  label="Package"
+                  :value="formValues.regopackage"
+                  description="Rego package with template"
+                  :inputHandler="updateTemplateSource"
+                />
+              </b-tab>
+              <b-tab title="Url" :active="!!formValues.url">
+                <PluginProperty
+                  id="url"
+                  label="Url"
+                  :value="formValues.url"
+                  description="Url to load rego from"
+                  :inputHandler="updateTemplateSource"
+                />
+              </b-tab>
+              <b-tab title="Legacy" :active="!!formValues.legacyScanRenderer">
+                <div class="form-group form-input">
+                  <label for="legacyScanRenderer">Legacy</label>
+                  <select
+                    class="form-select form-control"
+                    :value="formValues.legacyScanRenderer"
+                    id="legacyScanRenderer"
+                    name="legacyScanRenderer"
+                    @input="updateTemplateSource"
+                  >
+                    <option value="html">Html</option>
+                    <option value="slack">Slack</option>
+                    <option value="jira">Jira</option>
+                  </select>
+                  <small id="aHelp" class="form-text text-muted"
+                    >Use Postee v1 renderers</small
+                  >
+                </div>
+              </b-tab>
+            </b-tabs>
 
-            <codemirror
-              :value="formValues.body"
-              :options="cmOptions"
-              id="body"
-              name="body"
-              @input="updateBody"
-            >
-            </codemirror>
 
-            <small class="form-text text-muted">
-              REGO template to render received events
-            </small>
           </div>
         </div>
       </form>
@@ -111,6 +152,20 @@ export default {
     },
     updateBody(v) {
       this.formValues.body = v;
+      this.formValues.regopackage = undefined
+      this.formValues.url = undefined
+      this.formValues.legacyScanRenderer = undefined
+    },
+    updateTemplateSource(e) {
+      const srcProperties = ["regopackage", "url", "legacyScanRenderer"] //body is not cleared
+      const v = e.target.value;
+      const propName = e.target.attributes["name"].value;
+
+      this.formValues[propName] = v;
+
+      srcProperties.filter(item=>item!=propName).forEach((idx, item)=>{
+          this.formValues[item]=undefined
+      })
     },
     uniqueName(label, value) {
       if (!value) {

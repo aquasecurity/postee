@@ -188,13 +188,6 @@ func (ctx *AlertMgr) load() error {
 			ctx.templates[t.Name] = inpteval
 			log.Printf("Configured with Rego package %s\n", template.RegoPackage)
 		}
-		if template.Body != "" {
-			inpteval, err := regoservice.BuildExternalRegoEvaluator("inline.rego", template.Body)
-			if err != nil {
-				return err
-			}
-			ctx.templates[t.Name] = inpteval
-		}
 		if template.Url != "" {
 			log.Printf("Configured with url: %s\n", template.Url)
 
@@ -222,6 +215,14 @@ func (ctx *AlertMgr) load() error {
 				return err
 			}
 
+			ctx.templates[t.Name] = inpteval
+		}
+		//body goes last to provide an option to keep body in config but not use it
+		if template.Body != "" {
+			inpteval, err := regoservice.BuildExternalRegoEvaluator("inline.rego", template.Body)
+			if err != nil {
+				return err
+			}
 			ctx.templates[t.Name] = inpteval
 		}
 	}
