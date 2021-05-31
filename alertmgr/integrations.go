@@ -20,7 +20,7 @@ type OutputSettings struct {
 	Sprint          string            `json:"sprint,omitempty"`
 	Unknowns        map[string]string `json:"unknowns" structs:"unknowns,omitempty"`
 	Host            string            `json:"host,omitempty"`
-	Port            string            `json:"port,omitempty"`
+	Port            int               `json:"port,omitempty"`
 	Recipients      []string          `json:"recipients,omitempty"`
 	Sender          string            `json:"sender,omitempty"`
 	Token           string            `json:"token,omitempty"`
