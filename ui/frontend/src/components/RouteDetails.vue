@@ -16,7 +16,7 @@
     <div class="card">
       <form @submit.prevent="doSubmit">
         <div class="card-body">
-          <PluginProperty
+          <PropertyField
             :id="'name'"
             :label="'Name'"
             :value="formValues.name"
@@ -54,11 +54,11 @@
 
 
           <div class="form-group form-input">
-            <label for="pluginType">Template</label>
+            <label for="template">Template</label>
             <select
               class="form-select form-control"
               v-model="formValues.template"
-              id="pluginType"
+              id="template"
               name="template"
             >
               <option v-for="template in availableTemplates" v-bind:key="template" :value="template">{{template}}</option>
@@ -70,7 +70,7 @@
 
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 :id="'aggregateIssuesNumber'"
                 :label="'Aggregate-Issues-Number'"
                 :value="formValues['Aggregate-Issues-Number']"
@@ -81,7 +81,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 :id="'aggregateIssuesTimeout'"
                 :label="'Aggregate-Issues-Timeout'"
                 :inputType="'number'"
@@ -92,12 +92,12 @@
               />
             </div>
           </div>
-          <PluginCheckboxProperty
+          <CheckboxPropertyField
             :id="'policyShowAll'"
             :label="'Policy-Show-All'"
             :name="'Policy-Show-All'"
             :value="formValues['Policy-Show-All']"
-            description="Optional: trigger the integration for all scan results. If set to true, integration will be triggered even for old scan results. Default value: false"
+            description="Optional: trigger the output for all scan results. If set to true, output will be triggered even for old scan results. Default value: false"
             :inputHandler="updateField"
           />
         </div>
@@ -110,8 +110,8 @@
 import { mapState } from "vuex";
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
-import PluginProperty from "./PluginProperty.vue";
-import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
+import PropertyField from "./PropertyField.vue";
+import CheckboxPropertyField from "./CheckboxPropertyField.vue";
 
 import { codemirror } from "vue-codemirror";
 
@@ -134,8 +134,8 @@ export default {
   },
   mixins: [FormFieldMixin, ValidationMixin],
   components: {
-    PluginProperty,
-    PluginCheckboxProperty,
+    PropertyField,
+    CheckboxPropertyField,
     codemirror,
   },
   computed: {

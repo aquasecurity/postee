@@ -1,29 +1,29 @@
 <template>
 <div >
     <div class="row justify-content-end pb-3 pr-3">
-        <router-link :to="{name: 'add-plugin'}" class="btn btn-primary">Add Integration</router-link>
+        <router-link :to="{name: 'add-output'}" class="btn btn-primary">Add Output</router-link>
     </div>
     <div class="row row-cols-1 row-cols-md-3">
-        <PluginCard v-for="(plugin, index) in plugins"
+        <OutputCard v-for="(output, index) in outputs"
             :key="index"
-            :type="plugin.type"
-            :name="plugin.name"
-            :enable="plugin.enable">
-        </PluginCard>
+            :type="output.type"
+            :name="output.name"
+            :enable="output.enable">
+        </OutputCard>
     </div>
 </div>
 </template>
 <script>
-import PluginCard from './PluginCard.vue';
+import OutputCard from './OutputCard.vue';
 import { mapState} from 'vuex'
 
 export default {
     components: {
-        PluginCard
+        OutputCard
     },
     computed: {
         ...mapState({
-            plugins (state) {
+            outputs (state) {
                 return state.outputs.all
             }
         })

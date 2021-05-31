@@ -16,7 +16,7 @@
     <div class="card">
       <form @submit.prevent="doSubmit">
         <div class="card-body">
-          <PluginProperty
+          <PropertyField
             :id="'name'"
             :label="'Name'"
             :value="formValues.name"
@@ -41,7 +41,7 @@
                 </small>
               </b-tab>
               <b-tab title="Package" :active="!!formValues.regopackage">
-                <PluginProperty
+                <PropertyField
                   id="regopackage"
                   label="Package"
                   :value="formValues.regopackage"
@@ -50,7 +50,7 @@
                 />
               </b-tab>
               <b-tab title="Url" :active="!!formValues.url">
-                <PluginProperty
+                <PropertyField
                   id="url"
                   label="Url"
                   :value="formValues.url"
@@ -91,7 +91,7 @@
 import { mapState } from "vuex";
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
-import PluginProperty from "./PluginProperty.vue";
+import PropertyField from "./PropertyField.vue";
 import { codemirror } from "vue-codemirror";
 
 import "codemirror-rego/mode";
@@ -113,7 +113,7 @@ export default {
   },
   mixins: [FormFieldMixin, ValidationMixin],
   components: {
-    PluginProperty,
+    PropertyField,
     codemirror,
   },
   computed: {

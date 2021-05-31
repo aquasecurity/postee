@@ -8,7 +8,7 @@
     <div class="card">
       <form @submit.prevent="doSubmit">
         <div class="card-body">
-          <PluginProperty
+          <PropertyField
             :id="'tenant'"
             :label="'Name'"
             :value="formValues.name"
@@ -16,7 +16,7 @@
             :description="'Tenant name'"
             :inputHandler="updateField"
           />
-          <PluginProperty
+          <PropertyField
             :id="'aquaServer'"
             :label="'Aqua Server'"
             :value="formValues.AquaServer"
@@ -24,7 +24,7 @@
             :description="'url of Aqua Server for links. E.g. https://myserver.aquasec.com'"
             :inputHandler="updateField"
           />
-          <PluginProperty
+          <PropertyField
             :id="'maxDbSize'"
             :label="'Max Db size'"
             :inputType="'number'"
@@ -33,7 +33,7 @@
             :description="'Max size of DB. MB. if empty then unlimited'"
             :inputHandler="updateField"
           />
-          <PluginProperty
+          <PropertyField
             :id="'deleteOldData'"
             :label="'Delete old data'"
             :inputType="'number'"
@@ -42,7 +42,7 @@
             :description="'delete data older than N day(s).  If empty then we do not delete.'"
             :inputHandler="updateField"
           />
-          <PluginProperty
+          <PropertyField
             id="dbVerifyInterval"
             label="DB verify interval"
             inputType="number"
@@ -60,7 +60,7 @@
 import { mapState } from "vuex";
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
-import PluginProperty from "./PluginProperty.vue";
+import PropertyField from "./PropertyField.vue";
 
 export default {
   data() {
@@ -71,7 +71,7 @@ export default {
   },
   mixins: [FormFieldMixin, ValidationMixin],
   components: {
-    PluginProperty,
+    PropertyField,
   },
   computed: {
     ...mapState({

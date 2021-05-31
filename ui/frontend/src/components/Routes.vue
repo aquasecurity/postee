@@ -4,7 +4,7 @@
         <router-link :to="{name: 'add-route'}" class="btn btn-primary">Add Route</router-link>
     </div>
     <div class="row row-cols-1 row-cols-md-3">
-        <RouteCard v-for="(route, index) in routes" :key="'route-' + index" :name="route.name" :integrationCnt="integrationCnt(route.output)"/>
+        <RouteCard v-for="(route, index) in routes" :key="'route-' + index" :name="route.name" :outputCnt="outputCnt(route.output)"/>
     </div>
 </div>
 </template>
@@ -17,7 +17,7 @@ export default {
         RouteCard
     },
     methods: {
-        integrationCnt(outputs) {
+        outputCnt(outputs) {
             return outputs?outputs.length: 0
         }
     },

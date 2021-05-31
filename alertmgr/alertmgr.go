@@ -240,7 +240,7 @@ func (ctx *AlertMgr) load() error {
 		if settings.Enable {
 			plg := BuildAndInitOtpt(&settings, ctx.aquaServer)
 			if plg != nil {
-				log.Printf("Integration %s is configured", settings.Name)
+				log.Printf("Output %s is configured", settings.Name)
 				ctx.outputs[settings.Name] = plg
 			}
 		}

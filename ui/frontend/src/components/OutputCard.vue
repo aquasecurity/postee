@@ -18,7 +18,7 @@
       </div>
       <div class="card-footer text-center">
         <router-link
-          :to="{ name: 'plugin', params: { name: name } }"
+          :to="{ name: 'output', params: { name: name } }"
           class="btn btn-link"
           >Edit</router-link
         >

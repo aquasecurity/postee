@@ -12,7 +12,7 @@
         </div>
 
         <h6 class="card-subtitle text-muted">
-          {{ integrationCnt }} integrations configured
+          {{ outputCnt }} outputs configured
         </h6>
       </div>
       <div class="card-footer text-center">
@@ -29,7 +29,7 @@
 <script>
 
 export default {
-  props: ["name", "integrationCnt"],
+  props: ["name", "outputCnt"],
   data() {
     return {};
   }

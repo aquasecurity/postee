@@ -32,13 +32,13 @@
           <div class="row">
             <div class="col">
               <div class="form-group form-input">
-                <label for="pluginType">Type</label>
+                <label for="outputType">Type</label>
                 <select
                   class="form-select form-control"
                   :value="formValues.type"
-                  id="pluginType"
+                  id="outputType"
                   name="type"
-                  @input="updateIntegrationType"
+                  @input="updateOutputType"
                 >
                   <option value="email">Email</option>
                   <option value="jira">Jira</option>
@@ -49,12 +49,12 @@
                   <option value="serviceNow">ServiceNow</option>
                 </select>
                 <small id="aHelp" class="form-text text-muted"
-                  >The integration type</small
+                  >The output type</small
                 >
               </div>
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="name"
                 label="Name"
                 :value="formValues.name"
@@ -65,15 +65,15 @@
             </div>
           </div>
           <!-- enable is not required here-->
-          <PluginCheckboxProperty
+          <CheckboxPropertyField
             id="enable"
-            label="Enable plugin"
+            label="Enable output"
             :value="formValues.enable"
             :inputHandler="updateField"
           />
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="user"
                 label="User"
                 :value="formValues.user"
@@ -85,7 +85,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="password"
                 label="Password"
                 inputType="password"
@@ -98,7 +98,7 @@
               />
             </div>
           </div>
-          <PluginProperty
+          <PropertyField
             id="url"
             label="Url"
             :value="formValues.url"
@@ -113,7 +113,7 @@
           <!-- email custom properties start -->
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="host"
                 label="Host"
                 :errorMsg="errors['host']"
@@ -125,7 +125,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="port"
                 label="Port"
                 inputType="number"
@@ -141,7 +141,7 @@
 
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="sender"
                 label="Sender"
                 :value="formValues.sender"
@@ -153,7 +153,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="recipients"
                 label="Recipients"
                 :value="formValues.recipients | toString"
@@ -166,7 +166,7 @@
             </div>
           </div>
 
-          <PluginCheckboxProperty
+          <CheckboxPropertyField
             id="useMX"
             label="Use MX"
             :value="formValues.useMX"
@@ -178,7 +178,7 @@
           <!-- jira custom properties start -->
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="projectKey"
                 label="Project Key"
                 name="project_key"
@@ -191,7 +191,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="board"
                 label="Board"
                 :value="formValues.board"
@@ -202,7 +202,7 @@
             </div>
           </div>
 
-          <PluginCheckboxProperty
+          <CheckboxPropertyField
             id="tlsVerify"
             label="TLS verify"
             :value="formValues.tls_verify"
@@ -214,7 +214,7 @@
 
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="fixVersions"
                 label="Fix Versions"
                 :value="formValues.fixVersions | toString"
@@ -224,7 +224,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="affectsVersions"
                 label="Affects Versions"
                 :value="formValues.affectsVersions | toString"
@@ -235,7 +235,7 @@
             </div>
           </div>
 
-          <PluginProperty
+          <PropertyField
             id="labels"
             label="Labels"
             :value="formValues.labels | toString"
@@ -246,7 +246,7 @@
 
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="issuetype"
                 label="Issue Type"
                 :value="formValues.issuetype"
@@ -256,7 +256,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="priority"
                 label="Priority"
                 :value="formValues.priority"
@@ -268,7 +268,7 @@
           </div>
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="assignee"
                 label="Assignee"
                 :value="formValues.assignee | toString"
@@ -278,7 +278,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="sprint"
                 label="Sprint"
                 :value="formValues.sprint"
@@ -322,7 +322,7 @@
           <!-- serviceNow custom properties start -->
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="instance"
                 label="Instance"
                 :value="formValues.instance"
@@ -334,7 +334,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="board"
                 label="Board"
                 :value="formValues.board"
@@ -348,7 +348,7 @@
           <!-- splunk custom properties start -->
           <div class="row">
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="token"
                 label="Token"
                 :value="formValues.token"
@@ -360,7 +360,7 @@
               />
             </div>
             <div class="col">
-              <PluginProperty
+              <PropertyField
                 id="sizeLimit"
                 label="Size Limit"
                 :value="formValues.SizeLimit"
@@ -383,8 +383,8 @@
 import { mapState } from "vuex";
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
-import PluginProperty from "./PluginProperty.vue";
-import PluginCheckboxProperty from "./PluginCheckboxProperty.vue";
+import PropertyField from "./PropertyField.vue";
+import CheckboxPropertyField from "./CheckboxPropertyField.vue";
 
 const urlDescriptionByType = {
   splunk: "Mandatory. Url of a Splunk server",
@@ -404,15 +404,15 @@ export default {
       isTestingInProgress: false,
       fields: {}, //required for mixins
       errors: {}, //required for mixins
-      integrationType: "", //stored separately to track dependencies
+      outputType: "", //stored separately to track dependencies
       jiraAssigneeDescription:
         'Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value',
     };
   },
   mixins: [FormFieldMixin, ValidationMixin],
   components: {
-    PluginProperty,
-    PluginCheckboxProperty,
+    PropertyField,
+    CheckboxPropertyField,
   },
   computed: {
     ...mapState({
@@ -423,32 +423,32 @@ export default {
 
         const result = found.length ? { ...found[0] } : { type: "email" };
 
-        this.integrationType = result.type;
+        this.outputType = result.type;
         this.unknowns = {...result.unknowns}
 
         return result;
       },
     }),
     showUrl() {
-      return urlDescriptionByType[this.integrationType] !== undefined;
+      return urlDescriptionByType[this.outputType] !== undefined;
     },
     getUrlDescription() {
-      return urlDescriptionByType[this.integrationType];
+      return urlDescriptionByType[this.outputType];
     },
     isServiceNow() {
-      return this.integrationType === "serviceNow";
+      return this.outputType === "serviceNow";
     },
     isSplunk() {
-      return this.integrationType === "splunk";
+      return this.outputType === "splunk";
     },
     isEmail() {
-      return this.integrationType === "email";
+      return this.outputType === "email";
     },
     isJira() {
-      return this.integrationType === "jira";
+      return this.outputType === "jira";
     },
     showCredentials() {
-      return typesWithCredentials.indexOf(this.integrationType) >= 0;
+      return typesWithCredentials.indexOf(this.outputType) >= 0;
     },
   },
   filters: {
@@ -467,7 +467,7 @@ export default {
       this.$store
         .dispatch("outputs/test", this.formValues)
         .then(() => {
-          this.$bvToast.toast("Integration is configured correctly", {
+          this.$bvToast.toast("Output is configured correctly", {
             title: "Success",
             variant: "success",
             autoHideDelay: 5000,
@@ -501,8 +501,8 @@ export default {
       }
       this.$router.push({ name: "home" });
     },
-    updateIntegrationType(e) {
-      this.integrationType = e.target.value;
+    updateOutputType(e) {
+      this.outputType = e.target.value;
       this.updateField(e);
     },
     doRemove() {

@@ -40,7 +40,7 @@ func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		//TODO provide method to write error response as JSON
-		http.Error(w, fmt.Sprintf("Can't test integration: %s \n", err), http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("Can't test output: %s \n", err), http.StatusBadRequest)
 		return
 	}
 
