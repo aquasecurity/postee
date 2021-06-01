@@ -13,9 +13,8 @@ export default {
     {
         url(label, value) {
             if (!value) {
-                return `${label} is required`;
+                return false
             }
-
             const errorMsg = `Invalid url : ${value}`
             let url
 

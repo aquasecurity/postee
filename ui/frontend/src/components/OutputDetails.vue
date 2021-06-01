@@ -107,7 +107,7 @@
             :description="getUrlDescription"
             :show="showUrl"
             :inputHandler="updateField"
-            :validator="v(url)"
+            :validator="v([url, required])"
           />
 
           <!-- email custom properties start -->

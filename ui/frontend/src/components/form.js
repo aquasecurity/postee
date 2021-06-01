@@ -33,21 +33,25 @@ export default {
 
             for (const id in this.fields) {
                 const validator = this.fields[id];
-                const validationFn = validator.validationFn;
+                const fieldValidations = Array.isArray(validator.validationFn)?validator.validationFn:[validator.validationFn];
                 const element = document.getElementById(id);
 
-                if (element) {
-                    //only elements in DOM are validated
-                    const r = validationFn(
-                        validator.label,
-                        this.formValues[validator.name]
-                    );
-                    if (r) {
-                        this.errors[validator.name] = r;
-                        if (firstElement === undefined) {
-                            firstElement = element;
+                if (element) { //only elements in DOM are validated
+                    /*validator functions can be combined using AND*/
+                    fieldValidations.find(vfn=>{
+                        const r = vfn(
+                            validator.label,
+                            this.formValues[validator.name]
+                        );
+                        if (r) {
+                            this.errors[validator.name] = r;
+                            if (firstElement === undefined) {
+                                firstElement = element;
+                            }
+                            return true
                         }
-                    }
+                     })
+
                 }
             }
 

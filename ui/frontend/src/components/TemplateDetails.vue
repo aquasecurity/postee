@@ -26,7 +26,7 @@
           />
           <div class="form-group form-input">
             <b-tabs content-class="mt-3">
-              <b-tab title="Inline" :active="!!formValues.regopackage">
+              <b-tab title="Inline" :active="!!formValues.body">
                 <label class="form-label" for="input">REGO template:</label>
                 <codemirror
                   :value="formValues.body"
@@ -56,6 +56,8 @@
                   :value="formValues.url"
                   description="Url to load rego from"
                   :inputHandler="updateTemplateSource"
+                  :validator="v(url, true)"
+                  :errorMsg="errors['url']"
                 />
               </b-tab>
               <b-tab title="Legacy" :active="!!formValues.legacyScanRenderer">
@@ -163,7 +165,7 @@ export default {
 
       this.formValues[propName] = v;
 
-      srcProperties.filter(item=>item!=propName).forEach((idx, item)=>{
+      srcProperties.filter(item=>item!=propName).forEach((item)=>{
           this.formValues[item]=undefined
       })
     },
