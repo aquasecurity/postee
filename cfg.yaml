@@ -9,15 +9,17 @@ routes:
   input: contains(input.image, "alpine")          #  REGO rules
   outputs: [my-slack]  #  an integration output which will receive a scan or an audit event
   template: slack-template   #  a template for this route
-  Aggregate-Issues-Number:   #  a number of scans to aggregate into one ticket
-  Aggregate-Issues-Timeout:    #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
-  Policy-Show-All: true # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
+  plugins:
+   Aggregate-Issues-Number:   #  a number of scans to aggregate into one ticket
+   Aggregate-Issues-Timeout:    #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
+   Policy-Show-All: true # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
 - name: route2      #  name must be unique
   outputs: [my-email]  #  an integration output which will receive a scan or an audit event
   template: rego-email   #  a template for this route
-  Aggregate-Issues-Number:   #  a number of scans to aggregate into one ticket
-  Aggregate-Issues-Timeout:  #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
-  Policy-Show-All: true # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
+  plugins:
+   Aggregate-Issues-Number:   #  a number of scans to aggregate into one ticket
+   Aggregate-Issues-Timeout:  #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
+   Policy-Show-All: true # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
 
 templates:
 - name: slack-template         #  name must be unique
