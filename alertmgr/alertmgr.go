@@ -124,6 +124,65 @@ func (ctx *AlertMgr) Send(data []byte) {
 	defer ctx.mutexScan.Unlock()
 	ctx.queue <- data
 }
+func (ctx *AlertMgr) initTemplate(template *Template) error {
+	log.Printf("Configuring template %s \n", template.Name)
+
+	if template.LegacyScanRenderer != "" {
+		inpteval, err := layout.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
+		if err != nil {
+			return err
+		}
+		ctx.templates[template.Name] = inpteval
+		log.Printf("Configured with legacy renderer %s \n", template.LegacyScanRenderer)
+	}
+
+	if template.RegoPackage != "" {
+		inpteval, err := regoservice.BuildBundledRegoEvaluator(template.RegoPackage)
+		if err != nil {
+			return err
+		}
+		ctx.templates[template.Name] = inpteval
+		log.Printf("Configured with Rego package %s\n", template.RegoPackage)
+	}
+	if template.Url != "" {
+		log.Printf("Configured with url: %s\n", template.Url)
+
+		r, err := http.NewRequest("GET", template.Url, nil)
+		if err != nil {
+			return err
+		}
+		resp, err := http.DefaultClient.Do(r)
+		if err != nil {
+			return err
+		}
+
+		if resp.StatusCode > 399 {
+			return errors.New(fmt.Sprintf("can not connect to %s, response status is %d", template.Url, resp.StatusCode))
+		}
+
+		b, err := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		if err != nil {
+			return err
+		}
+		inpteval, err := regoservice.BuildExternalRegoEvaluator(path.Base(r.URL.Path), string(b))
+
+		if err != nil {
+			return err
+		}
+
+		ctx.templates[template.Name] = inpteval
+	}
+	//body goes last to provide an option to keep body in config but not use it
+	if template.Body != "" {
+		inpteval, err := regoservice.BuildExternalRegoEvaluator("inline.rego", template.Body)
+		if err != nil {
+			return err
+		}
+		ctx.templates[template.Name] = inpteval
+	}
+	return nil
+}
 
 func (ctx *AlertMgr) load() error {
 	ctx.mutexScan.Lock()
@@ -168,62 +227,9 @@ func (ctx *AlertMgr) load() error {
 		ctx.inputRoutes[r.Name] = buildRoute(&tenant.InputRoutes[i])
 	}
 	for _, t := range tenant.Templates {
-		template := &t
-		log.Printf("Configuring template %s \n", template.Name)
-
-		if template.LegacyScanRenderer != "" {
-			inpteval, err := layout.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
-			if err != nil {
-				return err
-			}
-			ctx.templates[t.Name] = inpteval
-			log.Printf("Configured with legacy renderer %s \n", template.LegacyScanRenderer)
-		}
-
-		if template.RegoPackage != "" {
-			inpteval, err := regoservice.BuildBundledRegoEvaluator(template.RegoPackage)
-			if err != nil {
-				return err
-			}
-			ctx.templates[t.Name] = inpteval
-			log.Printf("Configured with Rego package %s\n", template.RegoPackage)
-		}
-		if template.Url != "" {
-			log.Printf("Configured with url: %s\n", template.Url)
-
-			r, err := http.NewRequest("GET", template.Url, nil)
-			if err != nil {
-				return err
-			}
-			resp, err := http.DefaultClient.Do(r)
-			if err != nil {
-				return err
-			}
-
-			if resp.StatusCode > 399 {
-				return errors.New(fmt.Sprintf("can not connect to %s, response status is %d", template.Url, resp.StatusCode))
-			}
-
-			b, err := ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
-			if err != nil {
-				return err
-			}
-			inpteval, err := regoservice.BuildExternalRegoEvaluator(path.Base(r.URL.Path), string(b))
-
-			if err != nil {
-				return err
-			}
-
-			ctx.templates[t.Name] = inpteval
-		}
-		//body goes last to provide an option to keep body in config but not use it
-		if template.Body != "" {
-			inpteval, err := regoservice.BuildExternalRegoEvaluator("inline.rego", template.Body)
-			if err != nil {
-				return err
-			}
-			ctx.templates[t.Name] = inpteval
+		err := ctx.initTemplate(&t)
+		if err != nil {
+			log.Printf("Can not initialize template %s: %v \n", t.Name, err)
 		}
 	}
 
@@ -275,7 +281,7 @@ func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
 		}
 		tmpl, ok := ctx.templates[r.Template]
 		if !ok {
-			log.Printf("route %q contains a template %q, which is undefined.",
+			log.Printf("route %q contains reference to undefined or misconfigured template %q.",
 				routeName, r.Template)
 			continue
 		}
