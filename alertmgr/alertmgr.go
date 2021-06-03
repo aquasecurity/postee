@@ -15,7 +15,7 @@ import (
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
@@ -33,12 +33,10 @@ const (
 
 type AlertMgr struct {
 	mutexScan   sync.Mutex
-	mutexEvent  sync.Mutex
 	quit        chan struct{}
 	queue       chan []byte
 	ticker      *time.Ticker
 	stopTicker  chan struct{}
-	events      chan string
 	cfgfile     string
 	aquaServer  string
 	outputs     map[string]outputs.Output
@@ -67,9 +65,7 @@ func Instance() *AlertMgr {
 	initCtx.Do(func() {
 		alertmgrCtx = &AlertMgr{
 			mutexScan:   sync.Mutex{},
-			mutexEvent:  sync.Mutex{},
 			quit:        make(chan struct{}),
-			events:      make(chan string, 1000),
 			queue:       make(chan []byte, 1000),
 			outputs:     make(map[string]outputs.Output),
 			inputRoutes: make(map[string]*routes.InputRoute),
@@ -98,6 +94,7 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 
 func (ctx *AlertMgr) Terminate() {
 	log.Printf("Terminating AlertMgr....")
+	//TODO AlertMgr terminates incorrectly if it is not initialized properly
 
 	ctx.quit <- struct{}{}
 	ctx.stopTicker <- struct{}{}
@@ -105,12 +102,6 @@ func (ctx *AlertMgr) Terminate() {
 	for _, pl := range ctx.outputs {
 		pl.Terminate()
 	}
-}
-
-func (ctx *AlertMgr) Event(data string) {
-	ctx.mutexEvent.Lock()
-	defer ctx.mutexEvent.Unlock()
-	ctx.events <- data
 }
 
 func (ctx *AlertMgr) SendByRoute(route string, payload []byte) {
@@ -128,7 +119,7 @@ func (ctx *AlertMgr) initTemplate(template *Template) error {
 	log.Printf("Configuring template %s \n", template.Name)
 
 	if template.LegacyScanRenderer != "" {
-		inpteval, err := layout.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
+		inpteval, err := formatting.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
 		if err != nil {
 			return err
 		}
@@ -255,7 +246,7 @@ func (ctx *AlertMgr) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	ResultHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
 }
 
 var getScanService = func() service {
@@ -286,7 +277,7 @@ func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
 			continue
 		}
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
-		go getScanService().ResultHandling(in, &routeName, pl, r, tmpl, &ctx.aquaServer)
+		go getScanService().ResultHandling(in, pl, r, tmpl, &ctx.aquaServer)
 	}
 }
 

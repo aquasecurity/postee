@@ -1,4 +1,4 @@
-package layout
+package formatting
 
 import (
 	"bytes"
@@ -7,11 +7,11 @@ import (
 	"fmt"
 
 	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/layout"
 )
 
 type legacyScnEvaluator struct {
-	layoutProvider LayoutProvider
+	layoutProvider layout.LayoutProvider
 }
 
 func (legacyScnEvaluator *legacyScnEvaluator) Eval(in map[string]interface{}, serverUrl string) (map[string]string, error) {
@@ -24,7 +24,7 @@ func (legacyScnEvaluator *legacyScnEvaluator) Eval(in map[string]interface{}, se
 	return map[string]string{
 
 		"title":       title,
-		"description": GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl),
+		"description": layout.GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl),
 		"url":         serverUrl,
 	}, nil
 }
@@ -72,15 +72,15 @@ func BuildLegacyScnEvaluator(layoutType string) (data.Inpteval, error) {
 	switch layoutType {
 	case "slack":
 		return &legacyScnEvaluator{
-			layoutProvider: &formatting.SlackMrkdwnProvider{},
+			layoutProvider: &SlackMrkdwnProvider{},
 		}, nil
 	case "html":
 		return &legacyScnEvaluator{
-			layoutProvider: &formatting.HtmlProvider{},
+			layoutProvider: &HtmlProvider{},
 		}, nil
 	case "jira":
 		return &legacyScnEvaluator{
-			layoutProvider: &formatting.JiraLayoutProvider{},
+			layoutProvider: &JiraLayoutProvider{},
 		}, nil
 	default:
 		return nil, errors.New("unknown layout type")

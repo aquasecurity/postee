@@ -18,7 +18,7 @@ type ScanService struct {
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, name *string, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
+func (scan *ScanService) ResultHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
 	if output == nil {
 		return
 	}
@@ -69,26 +69,26 @@ func (scan *ScanService) ResultHandling(input []byte, name *string, output outpu
 	}
 
 	if route.Plugins.AggregateIssuesNumber > 0 && inpteval.IsAggregationSupported() {
-		aggregated := AggregateScanAndGetQueue(*name, content, route.Plugins.AggregateIssuesNumber, false)
+		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateIssuesNumber, false)
 		if len(aggregated) > 0 {
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
 				log.Printf("Error while building aggregated content: %v", err)
 				return
 			}
-			send(output, name, content)
+			send(output, &route.Name, content)
 		}
 	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
-		AggregateScanAndGetQueue(*name, content, 0, true)
+		AggregateScanAndGetQueue(route.Name, content, 0, true)
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
-			log.Printf("about to schedule %s\n", *name)
-			route.RunScheduler(send, AggregateScanAndGetQueue, inpteval, name, output)
+			log.Printf("about to schedule %s\n", route.Name)
+			route.RunScheduler(send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
 		} else {
-			log.Printf("%s is already scheduled\n", *name)
+			log.Printf("%s is already scheduled\n", route.Name)
 		}
 	} else {
-		send(output, name, content)
+		send(output, &route.Name, content)
 
 	}
 }
