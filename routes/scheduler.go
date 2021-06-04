@@ -15,8 +15,8 @@ func (route *InputRoute) IsSchedulerRun() bool {
 var getTicker = func(seconds int) *time.Ticker {
 	return time.NewTicker(time.Duration(seconds) * time.Second)
 }
-
-func (route *InputRoute) RunScheduler(
+var RunScheduler = func(
+	route *InputRoute,
 	fnSend func(plg outputs.Output, name *string, cnt map[string]string),
 	fnAggregate func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
 	inpteval data.Inpteval,
@@ -26,7 +26,7 @@ func (route *InputRoute) RunScheduler(
 	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.Plugins.AggregateTimeoutSeconds)
 
 	ticker := getTicker(route.Plugins.AggregateTimeoutSeconds)
-	route.scheduling = make(chan struct{})
+	route.StartScheduler()
 
 	go func(done chan struct{}, currentTicker *time.Ticker) {
 		for {
@@ -48,6 +48,10 @@ func (route *InputRoute) RunScheduler(
 			}
 		}
 	}(route.scheduling, ticker)
+}
+
+func (route *InputRoute) StartScheduler() { //TODO scheduler should be stopped somewhere
+	route.scheduling = make(chan struct{})
 }
 
 func (route *InputRoute) StopScheduler() { //TODO scheduler should be stopped somewhere

@@ -83,7 +83,7 @@ func (scan *ScanService) ResultHandling(input []byte, output outputs.Output, rou
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
 			log.Printf("about to schedule %s\n", route.Name)
-			route.RunScheduler(send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
+			routes.RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
 		} else {
 			log.Printf("%s is already scheduled\n", route.Name)
 		}
