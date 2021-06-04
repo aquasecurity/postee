@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/layout"
@@ -35,6 +36,7 @@ func (legacyScnEvaluator *legacyScnEvaluator) IsAggregationSupported() bool {
 func (legacyScnEvaluator *legacyScnEvaluator) BuildAggregatedContent(scans []map[string]string) (map[string]string, error) {
 	var descr bytes.Buffer
 	var urls bytes.Buffer
+	owners := []string{}
 	for _, scan := range scans {
 		descr.WriteString(legacyScnEvaluator.layoutProvider.TitleH1(scan["title"]))
 		descr.WriteString(scan["description"])
@@ -42,15 +44,22 @@ func (legacyScnEvaluator *legacyScnEvaluator) BuildAggregatedContent(scans []map
 			urls.WriteByte('\n')
 		}
 		urls.WriteString(scan["url"])
+		if len(scan["owners"]) > 0 {
+			owners = append(owners, scan["owners"])
+		}
 	}
 	title := "Vulnerability scan report"
 
-	return map[string]string{
+	r := map[string]string{
 		"title":       title,
 		"description": descr.String(),
 		"url":         urls.String(), //TODO this is strange ...
-	}, nil
+	}
 
+	if len(owners) > 0 {
+		r["owners"] = strings.Join(owners, ";")
+	}
+	return r, nil
 }
 
 func toScanImage(in map[string]interface{}) (*data.ScanImageInfo, error) {

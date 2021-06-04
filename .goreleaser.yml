@@ -3,16 +3,15 @@ release:
   draft: false
   prerelease: auto
 env:
-  - GO111MODULE=off
+  - GO111MODULE=on
   - CGO_ENABLED=0
-  - GOPATH=/home/runner/work/postee/postee/
 before:
   hooks:
     - make all
 builds:
   - id: postee
     dir: .
-    main: ./src/webhooksrv/webhooksrv.go
+    main: ./main.go
     binary: postee
     goos:
       - darwin

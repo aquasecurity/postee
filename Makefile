@@ -3,7 +3,6 @@
 
 # Active module mode, as we use Go modules to manage dependencies
 export GO111MODULE=on
-GOPATH=$(shell go env GOPATH)
 
 GO_FMT=gofmt
 

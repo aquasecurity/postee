@@ -29,9 +29,13 @@
 
 ## Abstract
 
-A simple container for enhancing the available outputs for Aqua Security.
-Postee can send a message to variety of target systems one a new image vulnerability is discovered.
-The supported systems are: JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow.
+Postee is a simple application that receives JSON messages from one hand, and delivers them (after reformatting) to different collaboration systems, like: JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow.
+
+Postee is exteremly useful for sending vulnerability scan results, reported by Aqua Security product, to collaboration systems.
+It has some special logic that can prevent sending same message twice! 
+For example - in case vulnerability for certain image was already reported, Postee can suppress new messages for same image vulnerabilities and only send messages with new vulnerabilities.
+To setup Postee with Aqua Security vulnerability scanning follow [this](#configure-the-aqua-server-with-webhook-integration).
+
 
 ## Features
 Some features that Postee provides:
@@ -53,8 +57,8 @@ For more information see "Aggregate-Issues-Number" and "Aggregate-Issues-Timeout
 Clone this project: 
 ```bash
 git clone git@github.com:aquasecurity/postee.git
-make all
-./bin/webhooksrv
+make build
+./bin/postee
 ```
 
 ### Docker
