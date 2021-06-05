@@ -53,7 +53,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
-	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("POST")
+	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("GET")
 
 	go func() {
 		log.Printf("Listening for HTTP on %s ", host)
@@ -91,11 +91,11 @@ func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ctx *WebServer) pingHandler(w http.ResponseWriter, r *http.Request) {
-	ctx.writeResponse(w, http.StatusOK, "")
+	ctx.writeResponse(w, http.StatusOK, "Postee alive!")
 }
 
 func (ctx *WebServer) writeResponse(w http.ResponseWriter, httpStatus int, v interface{}) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(httpStatus)
 	if v != nil {
 		result, _ := json.Marshal(v)
