@@ -23,7 +23,7 @@ func (route *InputRoute) StartScheduler() {
 	route.Scheduling = make(chan struct{})
 }
 
-func (route *InputRoute) StopScheduler() { //TODO scheduler should be stopped somewhere
+func (route *InputRoute) StopScheduler() {
 	if route.Scheduling != nil {
 		close(route.Scheduling)
 	}

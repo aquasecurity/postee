@@ -20,11 +20,11 @@ func TestSheduler(t *testing.T) {
 	}
 	demoAggregate := func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
 		return []map[string]string{
-			map[string]string{
+			{
 				"title":       "title1",
 				"description": "description1",
 			},
-			map[string]string{
+			{
 				"title":       "title2",
 				"description": "description2",
 			},
