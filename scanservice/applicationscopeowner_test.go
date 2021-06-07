@@ -1,14 +1,23 @@
 package scanservice
 
-/*
 import (
-	"encoding/json"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/outputs"
+	"github.com/aquasecurity/postee/routes"
+)
+
+var (
+	scnWithOwners = `{
+		"image":"Demo mock image1",
+		"registry":"registry1",
+		"vulnerability_summary":{"critical":0,"high":1,"medium":3,"low":4,"negligible":5},
+		"image_assurance_results":{"disallowed":true},
+		"application_scope_owners": ["recipient1@aquasec.com", "recipient1@aquasec.com"]
+	}`
 )
 
 func TestApplicationScopeOwner(t *testing.T) {
@@ -18,36 +27,40 @@ func TestApplicationScopeOwner(t *testing.T) {
 		dbservice.DbPath = dbPathReal
 	}()
 	dbservice.DbPath = "test_webhooks.db"
+
+	demoEmailOutput := &DemoEmailOutput{
+		emailCounts: 0,
+	}
+
+	srvUrl := ""
+	demoRoute := &routes.InputRoute{}
+
+	demoRoute.Name = "demo-route"
+	demoRoute.Plugins.PolicyShowAll = true
+
+	demoInptEval := &DemoInptEval{}
+
+	demoEmailOutput.wg = &sync.WaitGroup{}
+	demoEmailOutput.wg.Add(1)
+
 	srv := new(ScanService)
+	srv.ResultHandling([]byte(scnWithOwners), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 
-	b, err := json.Marshal(AshexPokemongoResult)
-	if err != nil {
-		panic(err)
-	}
+	demoEmailOutput.wg.Wait()
 
-	email := &MockOutput{
-		sender: func(data map[string]string) error {
-			emails := strings.Split(data["owners"], ";")
-			count := len(AshexPokemongoResult.ApplicationScopeOwners)
-			if l := len(emails); l != count {
-				t.Errorf("failed emails number! waited %d, got: %d", count, l)
-				return nil
-			}
-			m := make(map[string]bool)
-			for _, e := range emails {
-				m[e] = true
-			}
-			for _, e := range AshexPokemongoResult.ApplicationScopeOwners {
-				if !m[e] {
-					t.Errorf("can't find %q in result %v", e, emails)
-				}
-			}
-			return nil
-		},
+	if len(demoEmailOutput.payloads) != 1 {
+		t.Errorf("Output Send method isn't called as expected! Number of invocation expected %d, got: %d", 1, len(demoEmailOutput.payloads))
 	}
-	_ := map[string]outputs.Output{
-		"email": email,
-	}
-	srv.ResultHandling(string(b), outputs)
+	sent := demoEmailOutput.payloads[0]
 
-}*/
+	ownersStr, ok := sent["owners"]
+	if !ok {
+		t.Errorf("Owners key is missed from output payload")
+	}
+	owners := strings.Split(ownersStr, ";")
+	for _, own := range owners {
+		if own != "recipient1@aquasec.com" && own != "recipient2@aquasec.com" {
+			t.Errorf("Unexpected owner value: %s", own)
+		}
+	}
+}

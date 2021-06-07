@@ -32,7 +32,7 @@ func TestOpaRego(t *testing.T) {
 			continue
 		}
 
-		got, err := IsRegoCorrectInterface(intr, test.rules)
+		got, err := DoesMatchRegoCriteria(intr, test.rules)
 		if err != nil && !test.shouldTriggerError {
 			t.Errorf("received an unexpected error: %v", err)
 			continue

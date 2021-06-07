@@ -1,12 +1,13 @@
 package scanservice
 
 import (
-	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/layout"
 )
 
 var (

@@ -29,7 +29,7 @@ func (scan *ScanService) ResultHandling(input []byte, output outputs.Output, rou
 		return
 	}
 
-	if ok, err := regoservice.IsRegoCorrectInterface(in, route.Input); err != nil {
+	if ok, err := regoservice.DoesMatchRegoCriteria(in, route.Input); err != nil {
 		prnInputLogs("IsRegoCorrectInterface error for %q: %v", input)
 		return
 	} else if !ok {

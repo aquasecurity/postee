@@ -3,7 +3,7 @@ package scanservice
 import "log"
 
 func prnInputLogs(msg string, input []byte, v ...interface{}) {
-	maxLen := 20
+	maxLen := 100
 	if l := len(input); l < maxLen {
 		maxLen = l
 	}

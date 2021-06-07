@@ -16,7 +16,7 @@ allow {
 }
 `
 
-func IsRegoCorrectInterface(input interface{}, rule string) (bool, error) {
+func DoesMatchRegoCriteria(input interface{}, rule string) (bool, error) {
 
 	if rule == "" {
 		return true, nil //no rule defined - any input allowed
