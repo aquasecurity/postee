@@ -17,6 +17,10 @@ const (
 	aggregation_pkg_prop = "aggregation_pkg"
 )
 
+var (
+	buildinRegoTemplates = []string{"./rego-templates"}
+)
+
 type regoEvaluator struct {
 	prepQuery        *rego.PreparedEvalQuery
 	aggrQuery        *rego.PreparedEvalQuery
@@ -179,7 +183,7 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 
 	r, err := rego.New(
 		rego.Query(query),
-		rego.Load([]string{"./rego-templates"}, nil),
+		rego.Load(buildinRegoTemplates, nil),
 	).PrepareForEval(ctx)
 
 	if err != nil {
