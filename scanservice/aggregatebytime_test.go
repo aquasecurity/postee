@@ -15,14 +15,14 @@ func TestAggregateByTimeout(t *testing.T) {
 	const aggregationSeconds = 3
 
 	dbPathReal := dbservice.DbPath
-	savedRunScheduler := routes.RunScheduler
+	savedRunScheduler := RunScheduler
 	schedulerInvctCnt := 0
 	defer func() {
 		os.Remove(dbservice.DbPath)
 		dbservice.DbPath = dbPathReal
-		routes.RunScheduler = savedRunScheduler
+		RunScheduler = savedRunScheduler
 	}()
-	routes.RunScheduler = func(
+	RunScheduler = func(
 		route *routes.InputRoute,
 		fnSend func(plg outputs.Output, name *string, cnt map[string]string),
 		fnAggregate func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,

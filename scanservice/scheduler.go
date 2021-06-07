@@ -1,4 +1,4 @@
-package routes
+package scanservice
 
 import (
 	"log"
@@ -6,17 +6,14 @@ import (
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/outputs"
+	"github.com/aquasecurity/postee/routes"
 )
-
-func (route *InputRoute) IsSchedulerRun() bool {
-	return route.scheduling != nil
-}
 
 var getTicker = func(seconds int) *time.Ticker {
 	return time.NewTicker(time.Duration(seconds) * time.Second)
 }
 var RunScheduler = func(
-	route *InputRoute,
+	route *routes.InputRoute,
 	fnSend func(plg outputs.Output, name *string, cnt map[string]string),
 	fnAggregate func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
 	inpteval data.Inpteval,
@@ -47,15 +44,5 @@ var RunScheduler = func(
 				}
 			}
 		}
-	}(route.scheduling, ticker)
-}
-
-func (route *InputRoute) StartScheduler() { //TODO scheduler should be stopped somewhere
-	route.scheduling = make(chan struct{})
-}
-
-func (route *InputRoute) StopScheduler() { //TODO scheduler should be stopped somewhere
-	if route.scheduling != nil {
-		close(route.scheduling)
-	}
+	}(route.Scheduling, ticker) //it has to be public to be used here.
 }

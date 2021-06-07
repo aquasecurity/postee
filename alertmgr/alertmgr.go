@@ -102,6 +102,11 @@ func (ctx *AlertMgr) Terminate() {
 	for _, pl := range ctx.outputs {
 		pl.Terminate()
 	}
+
+	for _, route := range ctx.inputRoutes {
+		route.StopScheduler()
+	}
+
 }
 
 func (ctx *AlertMgr) SendByRoute(route string, payload []byte) {
