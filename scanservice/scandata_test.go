@@ -1,5 +1,7 @@
 package scanservice
 
+/*
+TODO figure out where code below should be used
 import (
 	"sync"
 	"testing"
@@ -43,3 +45,4 @@ func (plg *DemoOutput) Terminate() error { return nil }
 func (plg *DemoOutput) GetLayoutProvider() layout.LayoutProvider {
 	return plg.lay
 }
+*/

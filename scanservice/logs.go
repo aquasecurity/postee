@@ -2,10 +2,16 @@ package scanservice
 
 import "log"
 
-func prnInputLogs(msg string, input []byte, v ...interface{}) {
-	maxLen := 100
-	if l := len(input); l < maxLen {
-		maxLen = l
+func prnInputLogs(msg string, v ...interface{}) {
+	for idx, e := range v {
+		b, ok := e.([]byte)
+		if ok {
+			maxLen := 20
+			if l := len(b); l < maxLen {
+				maxLen = l
+				v[idx] = string(b[:maxLen])
+			}
+		}
 	}
-	log.Printf(msg, string(input[:maxLen]), v)
+	log.Printf(msg, v...)
 }

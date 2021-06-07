@@ -9,6 +9,17 @@ import (
 	"github.com/aquasecurity/postee/routes"
 )
 
+var (
+	badRego = `
+	default input = false
+	
+	hello {
+		m := input.message
+		m == "world"
+	}	
+`
+)
+
 func TestRegoCriteria(t *testing.T) {
 	tests := []struct {
 		input        string
@@ -30,8 +41,14 @@ func TestRegoCriteria(t *testing.T) {
 		},
 		{
 			input:        mockScan2,
-			caseDesc:     "not matching rule",
+			caseDesc:     "Not matching rule",
 			regoCriteria: `contains(input.image, "image1")`,
+			shouldPass:   false,
+		},
+		{
+			input:        mockScan1,
+			caseDesc:     "Invalid rule",
+			regoCriteria: badRego,
 			shouldPass:   false,
 		},
 	}

@@ -30,10 +30,10 @@ func (scan *ScanService) ResultHandling(input []byte, output outputs.Output, rou
 	}
 
 	if ok, err := regoservice.DoesMatchRegoCriteria(in, route.Input); err != nil {
-		prnInputLogs("IsRegoCorrectInterface error for %q: %v", input)
+		prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", route.Input, err, input)
 		return
 	} else if !ok {
-		prnInputLogs("Input %q... doesn't match a REGO rule: %q", input, route.Input)
+		prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, route.Input)
 		return
 	}
 
