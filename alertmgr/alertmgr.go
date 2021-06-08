@@ -147,7 +147,8 @@ func (ctx *AlertMgr) initTemplate(template *Template) error {
 		if err != nil {
 			return err
 		}
-		resp, err := http.DefaultClient.Do(r)
+		httpClient := getHttpClient()
+		resp, err := httpClient.Do(r)
 		if err != nil {
 			return err
 		}
@@ -229,13 +230,6 @@ func (ctx *AlertMgr) load() error {
 		}
 	}
 
-	for name, output := range ctx.outputs {
-		if output != nil {
-			ctx.outputs[name] = nil
-			output.Terminate()
-		}
-	}
-
 	for _, settings := range tenant.Outputs {
 		utils.Debug("%#v\n", anonymizeSettings(&settings))
 
@@ -257,6 +251,9 @@ type service interface {
 var getScanService = func() service {
 	serv := &scanservice.ScanService{}
 	return serv
+}
+var getHttpClient = func() *http.Client {
+	return http.DefaultClient
 }
 
 func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
