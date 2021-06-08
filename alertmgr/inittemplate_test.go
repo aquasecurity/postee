@@ -56,10 +56,10 @@ func TestInitTemplate(t *testing.T) {
 		},
 		{
 			template: &Template{
-				Name:        "build-in",
+				Name:        "built-in",
 				RegoPackage: "postee.slack",
 			},
-			caseDesc:    "Build-in rego package",
+			caseDesc:    "Built-in rego package",
 			expectedCls: "*regoservice.regoEvaluator",
 		},
 		{
