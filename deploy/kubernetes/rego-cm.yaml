@@ -1,0 +1,19 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: rego-config
+data:
+  image.rego: |-
+    package postee
+    default allow = false
+    allow {
+        contains(input.image, "alpine")
+    }
+  policy.rego: |-
+    package postee
+    # This policy will match against vulnerabilities that are medium and above
+    default allow = false
+    allow {
+    input.vulnerability_summary.medium>0
+    }
+    
