@@ -19,6 +19,7 @@ const (
 
 var (
 	buildinRegoTemplates = []string{"./rego-templates"}
+	commonRegoTemplates  = []string{"./rego-templates/common"}
 )
 
 type regoEvaluator struct {
@@ -75,7 +76,7 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 }
 
 func getFirstElement(context map[string]interface{}, key string) interface{} {
-	for key, v := range context {
+	for _, v := range context {
 		log.Printf("checking: %s ...\n", key)
 		childCtx, ok := v.(map[string]interface{})
 		if !ok {
@@ -84,7 +85,10 @@ func getFirstElement(context map[string]interface{}, key string) interface{} {
 		if childCtx[key] != nil {
 			return v
 		} else {
-			return getFirstElement(childCtx, key)
+			found := getFirstElement(childCtx, key)
+			if found != nil {
+				return found
+			}
 		}
 	}
 	return nil
@@ -222,7 +226,7 @@ func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, er
 
 	r, err := rego.New(
 		rego.Query("data"),
-		rego.Load([]string{"./rego-templates/common"}, nil), //only common modules
+		rego.Load(commonRegoTemplates, nil), //only common modules
 		rego.Module(filename, body),
 	).PrepareForEval(ctx)
 
