@@ -76,6 +76,7 @@ func Instance() *AlertMgr {
 	return alertmgrCtx
 }
 func (ctx *AlertMgr) ReloadConfig() {
+	//TODO we probably want new instance here
 	ctx.Terminate()
 	ctx.Start(ctx.cfgfile)
 }
@@ -95,16 +96,21 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 func (ctx *AlertMgr) Terminate() {
 	log.Printf("Terminating AlertMgr....")
 	//TODO AlertMgr terminates incorrectly if it is not initialized properly
-
-	ctx.quit <- struct{}{}
-	ctx.stopTicker <- struct{}{}
-
 	for _, pl := range ctx.outputs {
 		pl.Terminate()
 	}
+	log.Printf("Outputs terminated")
 
 	for _, route := range ctx.inputRoutes {
 		route.StopScheduler()
+	}
+	log.Printf("Route schedulers stopped")
+
+	ctx.quit <- struct{}{}
+	log.Printf("quit notified")
+	if ctx.ticker != nil {
+		ctx.stopTicker <- struct{}{}
+		log.Printf("stopTicker notified")
 	}
 
 }
@@ -115,11 +121,6 @@ func (ctx *AlertMgr) SendByRoute(route string, payload []byte) {
 	ctx.handleRoute(route, payload)
 }
 
-func (ctx *AlertMgr) Send(data []byte) {
-	ctx.mutexScan.Lock()
-	defer ctx.mutexScan.Unlock()
-	ctx.queue <- data
-}
 func (ctx *AlertMgr) initTemplate(template *Template) error {
 	log.Printf("Configuring template %s \n", template.Name)
 
@@ -220,8 +221,7 @@ func (ctx *AlertMgr) load() error {
 	}
 
 	for i, r := range tenant.InputRoutes {
-		log.Printf("Configuring route %s \n", r.Name)
-		ctx.inputRoutes[r.Name] = buildRoute(&tenant.InputRoutes[i])
+		ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(&tenant.InputRoutes[i])
 	}
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)

@@ -1,18 +1,21 @@
 package alertmgr
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
 
 func TestBuildAndInitOtpt(t *testing.T) {
 	tests := []struct {
-		outputSettings OutputSettings
-		expctdProps    map[string]interface{}
-		//TODO introduce shouldFail and check for nil
-		//TODO check expected output class
+		caseDesc            string
+		outputSettings      OutputSettings
+		expctdProps         map[string]interface{}
+		shouldFail          bool
+		expectedOutputClass string
 	}{
 		{
+			"Simple Slack",
 			OutputSettings{
 				Name:   "my-slack",
 				Type:   "slack",
@@ -23,8 +26,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Url":  "https://hooks.slack.com/services/TT/BBB/WWWW",
 				"Name": "my-slack",
 			},
+			false,
+			"*outputs.SlackOutput",
 		},
 		{
+			"Simple Email output",
 			OutputSettings{
 				User:       "EmailUser",
 				Password:   "pAsSw0rD",
@@ -43,8 +49,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Sender":     "google@gmail.com",
 				"Recipients": []string{"r1@gmail.com"},
 			},
+			false,
+			"*outputs.EmailOutput",
 		},
 		{
+			"Simple Jira output",
 			OutputSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
@@ -65,8 +74,57 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Priority":   "Priority",
 				"Assignee":   []string{"Assignee"},
 			},
+			false,
+			"*outputs.JiraAPI",
 		},
 		{
+			"Jira output without credentials",
+			OutputSettings{
+				Url:        "localhost:2990",
+				Name:       "my-jira",
+				Type:       "jira",
+				ProjectKey: "PK",
+				IssueType:  "IssueType",
+				Priority:   "Priority",
+				Assignee:   []string{"Assignee"},
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
+		},
+		{
+			"Jira output without password",
+			OutputSettings{
+				Url:        "localhost:2990",
+				User:       "admin",
+				Name:       "my-jira",
+				Type:       "jira",
+				ProjectKey: "PK",
+				IssueType:  "IssueType",
+				Priority:   "Priority",
+				Assignee:   []string{"Assignee"},
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
+		},
+		{
+			"Jira output with missed type",
+			OutputSettings{
+				Url:        "localhost:2990",
+				User:       "admin",
+				Name:       "my-jira",
+				ProjectKey: "PK",
+				IssueType:  "IssueType",
+				Priority:   "Priority",
+				Assignee:   []string{"Assignee"},
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
+		},
+		{
+			"Jira Output with some default values",
 			OutputSettings{
 				Url:        "localhost:2990",
 				Name:       "my-jira-with-defaults",
@@ -86,8 +144,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Priority":   PriorityDefault,
 				"Assignee":   []string{"admin"},
 			},
+			false,
+			"*outputs.JiraAPI",
 		},
 		{
+			"Simple webhook output",
 			OutputSettings{
 				Url:  "http://localhost:8080",
 				Name: "my-webhook",
@@ -96,8 +157,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			map[string]interface{}{
 				"Url": "http://localhost:8080",
 			},
+			false,
+			"*outputs.WebhookOutput",
 		},
 		{
+			"Simple ServiceNow output",
 			OutputSettings{
 				Name:         "my-servicenow",
 				Type:         "serviceNow",
@@ -112,8 +176,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Instance": "dev108148",
 				"Table":    "incindent",
 			},
+			false,
+			"*outputs.ServiceNowOutput",
 		},
 		{
+			"Simple Teams output",
 			OutputSettings{
 				Url:  "https://outlook.office.com/webhook/ABCD",
 				Name: "my-teams",
@@ -122,10 +189,21 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			map[string]interface{}{
 				"Webhook": "https://outlook.office.com/webhook/ABCD",
 			},
+			false,
+			"*outputs.TeamsOutput",
 		},
 	}
 	for _, test := range tests {
 		o := BuildAndInitOtpt(&test.outputSettings, "")
+		if test.shouldFail && o != nil {
+			t.Fatalf("No output expected for %s test case", test.caseDesc)
+		} else if !test.shouldFail && o == nil {
+			t.Fatalf("Not expected output returned for %s test case", test.caseDesc)
+		}
+		actualOutputCls := fmt.Sprintf("%T", o)
+		if actualOutputCls != test.expectedOutputClass {
+			t.Errorf("[%s] Incorrect output type, expected %s, got %s", test.caseDesc, test.expectedOutputClass, actualOutputCls)
+		}
 
 		for key, prop := range test.expctdProps {
 			t.Logf("key %s\n", key)

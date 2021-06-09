@@ -1,13 +1,18 @@
 package alertmgr
 
 import (
+	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/outputs"
+	"github.com/aquasecurity/postee/routes"
 	"github.com/aquasecurity/postee/scanservice"
 )
 
@@ -63,19 +68,54 @@ outputs:
 type ctxWrapper struct {
 	instance           *AlertMgr
 	savedBaseForTicker time.Duration
+	savedGetService    func() service
 	savedDBPath        string
 	cfgPath            string
+	defaultRegoFolder  string
+	commonRegoFolder   string
+	buff               chan invctn
+}
+type invctn struct {
+	outputCls   string
+	templateCls string
+	routeName   string
+}
+
+func (ctx *ctxWrapper) ResultHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
+	i := invctn{
+		fmt.Sprintf("%T", output),
+		fmt.Sprintf("%T", inpteval),
+		route.Name,
+	}
+	ctx.buff <- i
 }
 
 func (ctxWrapper *ctxWrapper) setup(cfg string) {
 	ctxWrapper.savedDBPath = dbservice.DbPath
 	ctxWrapper.savedBaseForTicker = baseForTicker
 	ctxWrapper.cfgPath = "cfg_test.yaml"
+	ctxWrapper.savedGetService = getScanService
+	ctxWrapper.buff = make(chan invctn)
+	initCtx = sync.Once{}
 
 	dbservice.DbPath = "test_webhooks.db"
 	baseForTicker = time.Microsecond
+	ctxWrapper.defaultRegoFolder = "rego-templates"
+	ctxWrapper.commonRegoFolder = ctxWrapper.defaultRegoFolder + "/common"
+	err := os.Mkdir(ctxWrapper.defaultRegoFolder, 0777)
+	if err != nil {
+		log.Printf("Can't create %s %v", ctxWrapper.defaultRegoFolder, err)
+	}
+	err = os.Mkdir(ctxWrapper.commonRegoFolder, 0777)
+	if err != nil {
+		log.Printf("Can't create %s %v", ctxWrapper.defaultRegoFolder, err)
+	}
 
-	ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfgData), 0644)
+	getScanService = func() service {
+		return ctxWrapper
+	}
+
+	ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
 	ctxWrapper.instance = Instance()
 }
 
@@ -85,7 +125,12 @@ func (ctxWrapper *ctxWrapper) teardown() {
 	baseForTicker = ctxWrapper.savedBaseForTicker
 	os.Remove(ctxWrapper.cfgPath)
 	os.Remove(dbservice.DbPath)
+	os.Remove(ctxWrapper.commonRegoFolder)
+	os.Remove(ctxWrapper.defaultRegoFolder)
+
 	dbservice.ChangeDbPath(ctxWrapper.savedDBPath)
+	getScanService = ctxWrapper.savedGetService
+	close(ctxWrapper.buff)
 }
 
 func TestLoads(t *testing.T) {
@@ -163,44 +208,3 @@ func TestServiceGetters(t *testing.T) {
 		t.Error("getScanService() doesn't return an instance of scanservice.ScanService")
 	}
 }
-
-type demoService struct {
-	buff chan string
-}
-
-func (demo *demoService) ResultHandling(input string, outputs map[string]outputs.Output) {
-	demo.buff <- input
-}
-func getDemoService() *demoService {
-	return &demoService{
-		buff: make(chan string),
-	}
-}
-
-/*
-func TestSendingMessages(t *testing.T) {
-	const (
-		testData = "test data"
-	)
-
-	getScanServiceSaved := getScanService
-	defer func() {
-		getScanService = getScanServiceSaved
-	}()
-	dmsScan := getDemoService()
-	getScanService = func() service {
-		return dmsScan
-	}
-	srv := &AlertMgr{
-		mutexScan: sync.Mutex{},
-		quit:      make(chan struct{}),
-		queue:     make(chan []byte, 1000),
-		outputs:   make(map[string]outputs.Output),
-	}
-	go srv.listen()
-	srv.Send([]byte(testData))
-	if s := <-dmsScan.buff; s != testData {
-		t.Errorf("srv.Send(%q) == %q, wanted %q", testData, s, testData)
-	}
-}
-*/

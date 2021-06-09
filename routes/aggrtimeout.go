@@ -1,14 +1,12 @@
-package alertmgr
+package routes
 
 import (
 	"log"
 	"strconv"
 	"strings"
-
-	"github.com/aquasecurity/postee/routes"
 )
 
-func buildRoute(route *routes.InputRoute) *routes.InputRoute {
+func ConfigureAggrTimeout(route *InputRoute) *InputRoute {
 	var timeout int
 	var err error
 
