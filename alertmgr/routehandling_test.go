@@ -71,12 +71,31 @@ func TestHandling(t *testing.T) {
 
 		wrap.instance.handle([]byte(payload))
 		//TODO handle the case when it's invoked less than expected
+		/*
+			func TestWithTimeOut(t *testing.T) {
+			  timeout := time.After(3 * time.Second)
+			  done := make(chan bool)
+
+			  go func() {
+
+			    // do your testing here
+			    testTheActualTest(t)
+
+			    done <- true
+			  }()
+
+			  select {
+			    case <-timeout:
+			      t.Fatal("test didn't finish in time")
+			    case <-done:
+			  }
+			}*/
 		for i := 0; i < len(test.expctdInvctns); i++ {
 			r := <-wrap.buff
 			actualInvctCnt++
 			found := false
-			for _, expct := range test.expctdInvctns {
-				if r == expct {
+			for _, expect := range test.expctdInvctns {
+				if r == expect {
 					found = true
 					break
 				}
