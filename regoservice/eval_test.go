@@ -21,6 +21,23 @@ result:={
 	"assignee": input.user
 }
 `
+	regoNumber = `
+package rego1
+title:="Audit event received"
+result:=5
+`
+
+	regoWithoutResult = `
+package rego1
+ttle:="Audit event received"
+`
+	regoWithoutAnyExpression = `
+package rego1
+`
+	invalidRego = `
+package rego1
+default input = false
+`
 
 	regoHtmlWithComplexPackage = `
 package postee.rego1
@@ -48,6 +65,7 @@ func TestEval(t *testing.T) {
 		input          *string
 		regoPackage    string
 		expectedValues map[string]string
+		shouldEvalFail bool
 	}{
 		{
 			regoRule:    &regoHtml,
@@ -79,15 +97,46 @@ func TestEval(t *testing.T) {
 				"description": `{"assignee":"demo"}`,
 			},
 		},
-		//TODO more cases: invalid rego, no result defined
+		{
+			regoRule:       &regoWithoutResult,
+			caseDesc:       "Rego without result expression",
+			input:          &input,
+			regoPackage:    "rego1",
+			expectedValues: map[string]string{},
+			shouldEvalFail: true,
+		},
+		{
+			regoRule:       &regoWithoutAnyExpression,
+			caseDesc:       "Rego without any expression",
+			input:          &input,
+			regoPackage:    "rego1",
+			expectedValues: map[string]string{},
+			shouldEvalFail: true,
+		},
+		{
+			regoRule:       &invalidRego,
+			caseDesc:       "Invalid Rego",
+			input:          &input,
+			regoPackage:    "rego1",
+			expectedValues: map[string]string{},
+			shouldEvalFail: true,
+		},
+		{
+			regoRule:       &regoNumber,
+			caseDesc:       "Rego returned number",
+			input:          &input,
+			regoPackage:    "rego1",
+			expectedValues: map[string]string{},
+			shouldEvalFail: true,
+		},
 	}
 	for _, test := range tests {
-		evaluateBuildinRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues)
-		evaluateExternalRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues)
+		evaluateBuildinRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues, test.shouldEvalFail)
+		evaluateExternalRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues, test.shouldEvalFail)
 	}
 }
 
-func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string) {
+func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string, shouldEvalFail bool) {
 	buildinRegoTemplatesSaved := buildinRegoTemplates
 	testRego := "rego1.rego"
 	buildinRegoTemplates = []string{testRego}
@@ -100,15 +149,14 @@ func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input 
 	}()
 	demo, err := BuildBundledRegoEvaluator(regoPackage)
 	if err != nil {
-		t.Errorf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
-		return
+		t.Fatalf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
 	}
 	if demo.IsAggregationSupported() {
 		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
 	}
 	r, err := demo.Eval(parseJson(input), "")
-	if err != nil {
-		t.Errorf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
+	if err != nil && shouldEvalFail {
+		t.Fatalf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
 	}
 
 	for key, expected := range expectedValues {
@@ -118,7 +166,7 @@ func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input 
 
 	}
 }
-func evaluateExternalRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string) {
+func evaluateExternalRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string, shouldEvalFail bool) {
 	commonRegoTemplatesSaved := commonRegoTemplates
 	testRego := "rego1.rego"
 	commonRegoFilename := "common.rego"
@@ -133,15 +181,14 @@ func evaluateExternalRego(t *testing.T, caseDesc string, regoRule *string, input
 
 	demo, err := BuildExternalRegoEvaluator(testRego, *regoRule)
 	if err != nil {
-		t.Errorf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
-		return
+		t.Fatalf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
 	}
 	if demo.IsAggregationSupported() {
 		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
 	}
 	r, err := demo.Eval(parseJson(input), "")
-	if err != nil {
-		t.Errorf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
+	if err != nil && !shouldEvalFail {
+		t.Fatalf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
 	}
 
 	for key, expected := range expectedValues {
