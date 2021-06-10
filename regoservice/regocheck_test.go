@@ -8,6 +8,7 @@ import (
 func TestOpaRego(t *testing.T) {
 	rego := `contains(input.image, "alpine")`
 	incorrectRego := `default input = false`
+	emptyRego := ""
 
 	scanResult := `{"image":"alpine:26"}`
 	scanNoJson := "simple text"
@@ -23,6 +24,7 @@ func TestOpaRego(t *testing.T) {
 		{rego, scanNoJson, false, true},
 		{rego, scanWithoutResult, false, false},
 		{incorrectRego, scanResult, false, true},
+		{emptyRego, scanResult, true, false},
 	}
 
 	for _, test := range tests {

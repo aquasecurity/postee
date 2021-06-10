@@ -79,7 +79,7 @@ func TestEval(t *testing.T) {
 				"description": `{"assignee":"demo"}`,
 			},
 		},
-		//TODO more cases: invalid rego
+		//TODO more cases: invalid rego, no result defined
 	}
 	for _, test := range tests {
 		evaluateBuildinRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues)

@@ -98,16 +98,13 @@ func asStringOrJson(expr interface{}) (string, error) {
 	switch v := expr.(type) {
 	case string:
 		return v, nil
-	case interface{}:
+	default:
 		val, err := json.Marshal(expr)
 		if err != nil {
 			return "", err
 		}
 		return string(val), nil
-	default:
-		return "", errors.New("Unknown result") //TODO error definition
 	}
-
 }
 func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]string) (map[string]string, error) {
 	aggregatedJson := make([]map[string]interface{}, len(scans), len(scans))
