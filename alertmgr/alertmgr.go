@@ -76,7 +76,6 @@ func Instance() *AlertMgr {
 	return alertmgrCtx
 }
 func (ctx *AlertMgr) ReloadConfig() {
-	//TODO we probably want new instance here
 	ctx.Terminate()
 	ctx.Start(ctx.cfgfile)
 }
@@ -95,7 +94,10 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 
 func (ctx *AlertMgr) Terminate() {
 	log.Printf("Terminating AlertMgr....")
+	initCtx = sync.Once{} //next start should use new instance
+
 	//TODO AlertMgr terminates incorrectly if it is not initialized properly
+
 	for _, pl := range ctx.outputs {
 		pl.Terminate()
 	}

@@ -1,20 +1,17 @@
 package alertmgr
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 var (
-	config1 string = `
+	singleRoute string = `
 Name: tenant
 
 routes:
 - name: route1
   outputs: ["my-slack"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
-
-- name: route2
-  outputs: ["my-slack2"]
   template: raw
   plugins:
    Policy-Show-All: true
@@ -29,8 +26,133 @@ outputs:
 - name: my-slack
   type: slack
   enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/XYZ
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+	twoRoutes string = `
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+- name: route2
+  outputs: ["my-slack"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+
+	twoOutputs string = `
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack", "my-slack2"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/XXX
 - name: my-slack2
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+	noOutputs string = `
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack3"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input`
+	noTemplates string = `
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack", "my-slack2"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/XXX
+- name: my-slack2
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+	invalidTemplate string = `
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack"]
+  template: rawx
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+	invalidOutput string = `
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["x-slack"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input
+
+outputs:
+- name: my-slack
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
@@ -45,8 +167,17 @@ func TestHandling(t *testing.T) {
 		expctdInvctns []invctn
 	}{
 		{
-			"basic config",
-			config1,
+			"Single Route",
+			singleRoute,
+			[]invctn{
+				{
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+				},
+			},
+		},
+		{
+			"2 Routes",
+			twoRoutes,
 			[]invctn{
 				{
 					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
@@ -56,58 +187,91 @@ func TestHandling(t *testing.T) {
 				},
 			},
 		},
+		{
+			"2 Outputs per single route",
+			twoOutputs,
+			[]invctn{
+				{
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+				},
+				{
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+				},
+			},
+		},
+		{
+			"No Output Outputs configured",
+			noOutputs,
+			[]invctn{},
+		},
+		{
+			"No Template configured",
+			noTemplates,
+			[]invctn{},
+		},
+		{
+			"Invalid Output reference",
+			invalidOutput,
+			[]invctn{},
+		},
+		{
+			"Invalid Template reference",
+			invalidTemplate,
+			[]invctn{},
+		},
 	}
-	actualInvctCnt := 0
 	for _, test := range tests {
-		wrap := ctxWrapper{}
-		wrap.setup(test.cfg)
+		runTestRouteHandlingCase(t, test.caseDesc, test.cfg, test.expctdInvctns)
+	}
+}
+func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfg string, expctdInvctns []invctn) {
+	actualInvctCnt := 0
+	t.Logf("Case: %s\n", caseDesc)
+	wrap := ctxWrapper{}
+	wrap.setup(cfg)
 
-		defer wrap.teardown()
+	defer wrap.teardown()
 
-		err := wrap.instance.Start(wrap.cfgPath)
-		if err != nil {
-			t.Fatalf("[%s] Unexpected error %v", test.caseDesc, err)
-		}
+	err := wrap.instance.Start(wrap.cfgPath)
+	if err != nil {
+		t.Fatalf("[%s] Unexpected error %v", caseDesc, err)
+	}
 
-		wrap.instance.handle([]byte(payload))
-		//TODO handle the case when it's invoked less than expected
-		/*
-			func TestWithTimeOut(t *testing.T) {
-			  timeout := time.After(3 * time.Second)
-			  done := make(chan bool)
-
-			  go func() {
-
-			    // do your testing here
-			    testTheActualTest(t)
-
-			    done <- true
-			  }()
-
-			  select {
-			    case <-timeout:
-			      t.Fatal("test didn't finish in time")
-			    case <-done:
-			  }
-			}*/
-		for i := 0; i < len(test.expctdInvctns); i++ {
-			r := <-wrap.buff
+	wrap.instance.handle([]byte(payload))
+	timeoutDuration := 3 * time.Second
+	if len(expctdInvctns) == 0 {
+		timeoutDuration = time.Second
+	}
+	timeout := time.After(timeoutDuration)
+	for {
+		select {
+		case <-timeout:
+			if len(expctdInvctns) > 0 {
+				t.Fatal("test didn't finish in time")
+			}
+			return
+		case r := <-wrap.buff:
+			t.Logf("[%s] received invocation (%s, %s, %s)", caseDesc, r.routeName, r.outputCls, r.templateCls)
 			actualInvctCnt++
 			found := false
-			for _, expect := range test.expctdInvctns {
+			for _, expect := range expctdInvctns {
 				if r == expect {
 					found = true
 					break
 				}
 			}
-			if !found && len(test.expctdInvctns) > 0 {
-				t.Errorf("[%s] Unexpected invocation (%s, %s, %s)", test.caseDesc, r.routeName, r.outputCls, r.templateCls)
+			if actualInvctCnt == len(expctdInvctns) {
+				return //everything is ok, exiting
+			}
+			if !found && len(expctdInvctns) > 0 {
+				t.Errorf("[%s] Unexpected invocation (%s, %s, %s)", caseDesc, r.routeName, r.outputCls, r.templateCls)
+				return
+			}
+			if actualInvctCnt > len(expctdInvctns) {
+				t.Errorf("[%s] Service should be called %d times but called %d times", caseDesc, len(expctdInvctns), actualInvctCnt)
+				return
 			}
 		}
-		if actualInvctCnt != len(test.expctdInvctns) {
-			t.Errorf("[%s] Service should be called %d times but called %d times", test.caseDesc, len(test.expctdInvctns), actualInvctCnt)
-		}
-
 	}
 
 }

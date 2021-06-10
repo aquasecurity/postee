@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -96,7 +95,6 @@ func (ctxWrapper *ctxWrapper) setup(cfg string) {
 	ctxWrapper.cfgPath = "cfg_test.yaml"
 	ctxWrapper.savedGetService = getScanService
 	ctxWrapper.buff = make(chan invctn)
-	initCtx = sync.Once{}
 
 	dbservice.DbPath = "test_webhooks.db"
 	baseForTicker = time.Microsecond
