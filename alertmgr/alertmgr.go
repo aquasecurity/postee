@@ -123,6 +123,12 @@ func (ctx *AlertMgr) SendByRoute(route string, payload []byte) {
 	ctx.handleRoute(route, payload)
 }
 
+func (ctx *AlertMgr) Send(data []byte) {
+	ctx.mutexScan.Lock()
+	defer ctx.mutexScan.Unlock()
+	ctx.queue <- data
+}
+
 func (ctx *AlertMgr) initTemplate(template *Template) error {
 	log.Printf("Configuring template %s \n", template.Name)
 
