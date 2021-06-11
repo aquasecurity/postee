@@ -52,12 +52,9 @@ var (
 
 	osStat = os.Stat
 
-	ignoreAuthorization = map[string]bool{
-		"slack":   true,
-		"teams":   true,
-		"webhook": true,
-		"email":   true,
-		"splunk":  true,
+	requireAuthorization = map[string]bool{
+		"servicenow": true,
+		"jira":       true,
 	}
 )
 
@@ -117,15 +114,7 @@ func (ctx *AlertMgr) Terminate() {
 
 }
 
-func (ctx *AlertMgr) SendByRoute(route string, payload []byte) {
-	ctx.mutexScan.Lock()
-	defer ctx.mutexScan.Unlock()
-	ctx.handleRoute(route, payload)
-}
-
 func (ctx *AlertMgr) Send(data []byte) {
-	ctx.mutexScan.Lock()
-	defer ctx.mutexScan.Unlock()
 	ctx.queue <- data
 }
 
@@ -264,7 +253,7 @@ var getHttpClient = func() *http.Client {
 	return http.DefaultClient
 }
 
-func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
+func (ctx *AlertMgr) HandleRoute(routeName string, in []byte) {
 	r, ok := ctx.inputRoutes[routeName]
 	if !ok || r == nil {
 		log.Printf("There isn't route %q", routeName)
@@ -293,19 +282,19 @@ func (ctx *AlertMgr) handleRoute(routeName string, in []byte) {
 
 func (ctx *AlertMgr) handle(in []byte) {
 	for routeName := range ctx.inputRoutes {
-		ctx.handleRoute(routeName, in)
+		ctx.HandleRoute(routeName, in)
 	}
 }
 func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Output {
 	var plg outputs.Output
 
 	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
-	if len(settings.User) == 0 && !ignoreAuthorization[settings.Type] {
+	if len(settings.User) == 0 && requireAuthorization[settings.Type] {
 		log.Printf("User for %q is empty", settings.Name)
 		return nil
 	}
 	settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
-	if len(settings.Password) == 0 && !ignoreAuthorization[settings.Type] {
+	if len(settings.Password) == 0 && requireAuthorization[settings.Type] {
 		log.Printf("Password for %q is empty", settings.Name)
 		return nil
 	}

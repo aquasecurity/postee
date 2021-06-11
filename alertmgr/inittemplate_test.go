@@ -2,6 +2,7 @@ package alertmgr
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -42,9 +43,10 @@ func TestInitTemplate(t *testing.T) {
 	}()
 
 	tests := []struct {
-		template    *Template
-		caseDesc    string
-		expectedCls string
+		template          *Template
+		caseDesc          string
+		expectedCls       string
+		shouldReturnError bool
 	}{
 		{
 			template: &Template{
@@ -72,6 +74,24 @@ func TestInitTemplate(t *testing.T) {
 		},
 		{
 			template: &Template{
+				Name: "not-found",
+				Url:  "http://localhost/wrong.rego",
+			},
+			caseDesc:          "Loading rego from not existing url",
+			expectedCls:       "*regoservice.regoEvaluator",
+			shouldReturnError: true,
+		},
+		{
+			template: &Template{
+				Name: "from-invalid-url",
+				Url:  "invalid-url",
+			},
+			caseDesc:          "Loading rego from invalid url",
+			expectedCls:       "*regoservice.regoEvaluator",
+			shouldReturnError: true,
+		},
+		{
+			template: &Template{
 				Name: "inline",
 				Body: "package postee.inline",
 			},
@@ -80,16 +100,23 @@ func TestInitTemplate(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		doInitTemplate(t, test.caseDesc, test.template, test.expectedCls)
+		doInitTemplate(t, test.caseDesc, test.template, test.expectedCls, test.shouldReturnError)
 	}
 
 }
-func doInitTemplate(t *testing.T, caseDesc string, template *Template, expectedCls string) {
+func doInitTemplate(t *testing.T, caseDesc string, template *Template, expectedCls string, shouldReturnError bool) {
 	demoCtx := Instance()
 	err := demoCtx.initTemplate(template)
-	if err != nil {
+	if err != nil && !shouldReturnError {
 		t.Fatalf("[%s] Unexpected error: %v", caseDesc, err)
 	}
+	if err == nil && shouldReturnError {
+		t.Fatalf("Test case [%s] should return an error", caseDesc)
+	}
+	if shouldReturnError {
+		return
+	}
+
 	initialized, ok := demoCtx.templates[template.Name]
 	if !ok {
 		t.Fatalf("[%s] template %s is not initialized", caseDesc, template.Name)
@@ -98,7 +125,6 @@ func doInitTemplate(t *testing.T, caseDesc string, template *Template, expectedC
 	if actualCls != expectedCls {
 		t.Errorf("[%s] Unexpected type of input evaluator. Expected %s, got %s \n", caseDesc, expectedCls, actualCls)
 	}
-	//TODO call initialized.Eval() to distinguish evaluators received
 }
 
 //stuff for mocking http requests goes below
@@ -108,11 +134,11 @@ func getMockedHttpClient() *http.Client {
 }
 
 // RoundTripFunc
-type RoundTripFunc func(req *http.Request) *http.Response
+type RoundTripFunc func(req *http.Request) (*http.Response, error)
 
 // RoundTrip
 func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) { //this is kind of wrapper where original function is used in interface implementation
-	return f(req), nil
+	return f(req)
 }
 
 //NewTestClient returns *http.Client with Transport replaced to avoid making real calls
@@ -121,8 +147,16 @@ func NewTestClient(fn RoundTripFunc) *http.Client {
 		Transport: RoundTripFunc(fn),
 	}
 }
-func responseWithRego(req *http.Request) *http.Response {
-	return newTestResponse(200, "package custom1")
+func responseWithRego(req *http.Request) (*http.Response, error) {
+	if req.URL.String() == "http://localhost/wrong.rego" {
+		fmt.Printf("response status is %d\n", 404)
+		return newTestResponse(404, "<html>not found</html>"), nil
+	} else if req.URL.String() == "invalid-url" {
+		return nil, errors.New("invalid url")
+	} else {
+		fmt.Printf("response status is %d\n", 200)
+		return newTestResponse(200, "package custom1"), nil
+	}
 }
 
 func newTestResponse(status int, response string) *http.Response {
