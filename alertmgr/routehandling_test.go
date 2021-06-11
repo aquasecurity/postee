@@ -27,6 +27,26 @@ outputs:
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+	noAssociatedOutput string = `
+Name: tenant
+
+routes:
+- name: route1
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
 	twoRoutes string = `
 Name: tenant
 
@@ -219,6 +239,11 @@ func TestHandling(t *testing.T) {
 			invalidTemplate,
 			[]invctn{},
 		},
+		{
+			"No outputs associated with route",
+			noAssociatedOutput,
+			[]invctn{},
+		},
 	}
 	for _, test := range tests {
 		runTestRouteHandlingCase(t, test.caseDesc, test.cfg, test.expctdInvctns)
@@ -274,4 +299,61 @@ func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfg string, expctdI
 		}
 	}
 
+}
+func TestInvalidRouteName(t *testing.T) {
+	expctdInvctns := 0
+	actualInvctCnt := 0
+	wrap := ctxWrapper{}
+	wrap.setup(singleRoute)
+
+	defer wrap.teardown()
+
+	err := wrap.instance.Start(wrap.cfgPath)
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+
+	wrap.instance.HandleRoute("not-exist", []byte(payload))
+	timeout := time.After(1 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			return
+		case <-wrap.buff:
+			actualInvctCnt++
+			if actualInvctCnt > expctdInvctns {
+				t.Errorf("Service shouldn't be called if invalid route is specified")
+				return
+			}
+		}
+	}
+
+}
+func TestSend(t *testing.T) {
+	expctdInvctns := 1
+	actualInvctCnt := 0
+	wrap := ctxWrapper{}
+	wrap.setup(singleRoute)
+
+	defer wrap.teardown()
+
+	err := wrap.instance.Start(wrap.cfgPath)
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+
+	wrap.instance.Send([]byte(payload))
+	timeout := time.After(1 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			return
+		case <-wrap.buff:
+			actualInvctCnt++
+			if actualInvctCnt != expctdInvctns {
+				t.Errorf("Service shouldn't be called once")
+				return
+			}
+		}
+	}
 }
