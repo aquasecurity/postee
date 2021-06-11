@@ -164,3 +164,26 @@ func TestAggrEvalError(t *testing.T) {
 		t.Errorf("Output shouldn't be called when evaluation is failed")
 	}
 }
+func TestEmptyInput(t *testing.T) {
+	dbPathReal := dbservice.DbPath
+	defer func() {
+		os.Remove(dbservice.DbPath)
+		dbservice.DbPath = dbPathReal
+	}()
+	dbservice.DbPath = "test_webhooks.db"
+
+	srvUrl := ""
+
+	demoRoute := &routes.InputRoute{}
+
+	demoRoute.Name = "demo-route"
+
+	demoInptEval := &DemoInptEval{}
+
+	srv := new(ScanService)
+	srv.ResultHandling([]byte("{}"), nil, demoRoute, demoInptEval, &srvUrl)
+
+	if demoInptEval.renderCnt != 0 {
+		t.Errorf("Eval() shouldn't be called if no output is passed to ResultHandling()")
+	}
+}

@@ -136,17 +136,34 @@ func Equal(A, B *data.ScanImageInfo) bool {
 
 func TestParseImageInfo(t *testing.T) {
 	var tests = []struct {
-		input  []byte
-		result *data.ScanImageInfo
+		input             []byte
+		result            *data.ScanImageInfo
+		shouldReturnError bool
 	}{
-		{AlpineImageSource, &AlpineImageResult},
+		{
+			input:  AlpineImageSource,
+			result: &AlpineImageResult,
+		},
+		{
+			input:             []byte(invalidJson),
+			shouldReturnError: true,
+		},
 	}
 
 	for _, test := range tests {
 		got, err := parseImageInfo(test.input)
-		if err != nil {
+		if err != nil && !test.shouldReturnError {
 			t.Errorf("Can't parse next sequence: %s\nError: %s", string(test.input), err.Error())
 		}
+
+		if err == nil && test.shouldReturnError {
+			t.Errorf("Error is expected for the input: %s\n", string(test.input))
+		}
+
+		if test.shouldReturnError {
+			continue
+		}
+
 		if !Equal(test.result, got) {
 			t.Errorf("\nInput: %s\nResult: %v\nWaiting: %v", string(test.input), got, test.result)
 		}

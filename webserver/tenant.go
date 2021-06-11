@@ -1,16 +1,17 @@
 package webserver
 
 import (
-	"github.com/aquasecurity/postee/alertmgr"
-	"github.com/aquasecurity/postee/utils"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/aquasecurity/postee/alertmgr"
+	"github.com/aquasecurity/postee/utils"
+	"github.com/gorilla/mux"
 )
 
 func (ctx *WebServer) tenantHandler(w http.ResponseWriter, r *http.Request) {
-	route,ok := mux.Vars(r)["route"]
+	route, ok := mux.Vars(r)["route"]
 	if !ok || len(route) == 0 {
 		log.Printf("Failed route: %q", route)
 		ctx.writeResponse(w, http.StatusBadRequest, "failed route")
@@ -26,6 +27,6 @@ func (ctx *WebServer) tenantHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	utils.Debug("%s\n\n", string(body))
-	alertmgr.Instance().SendByRoute(route, body)
+	alertmgr.Instance().HandleRoute(route, body)
 	ctx.writeResponse(w, http.StatusOK, "")
 }
