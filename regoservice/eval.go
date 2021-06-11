@@ -56,12 +56,12 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 
 	data := expr.(map[string]interface{})
 
-	title, err := asStringOrJson(data[title_prop])
+	title, err := asStringOrJson(data, title_prop)
 	if err != nil {
 		return nil, err
 	}
 
-	description, err := asStringOrJson(data[result_prop])
+	description, err := asStringOrJson(data, result_prop)
 
 	if err != nil {
 		return nil, err
@@ -94,7 +94,12 @@ func getFirstElement(context map[string]interface{}, key string) interface{} {
 	return nil
 }
 
-func asStringOrJson(expr interface{}) (string, error) {
+func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
+	expr, ok := data[prop]
+	if !ok {
+		return "", errors.New(fmt.Sprintf("property %s is not found", prop))
+	}
+	fmt.Printf("value: %q", expr)
 	switch v := expr.(type) {
 	case string:
 		return v, nil
@@ -141,13 +146,13 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 
 	data := expr.(map[string]interface{})
 
-	title, err := asStringOrJson(data[title_prop])
+	title, err := asStringOrJson(data, title_prop)
 
 	if err != nil {
 		return nil, err
 	}
 
-	description, err := asStringOrJson(data[result_prop])
+	description, err := asStringOrJson(data, result_prop)
 
 	if err != nil {
 		return nil, err
@@ -198,6 +203,10 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 
 	//execute query with empty input and check if aggregation package is defined
 	rs, err := query.Eval(ctx, rego.EvalInput(make(map[string]interface{})))
+
+	if len(rs) == 0 || len(rs[0].Expressions) == 0 {
+		return nil, errors.New("no results") //TODO error definition
+	}
 
 	expr := rs[0].Expressions[0].Value.(map[string]interface{})
 
