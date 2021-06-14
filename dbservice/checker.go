@@ -14,9 +14,10 @@ func CheckSizeLimit() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	dbPath := GetAbsDbPath(DbPath)
+	db, err := bolt.Open(dbPath, 0666, nil)
 	if err != nil {
-		log.Println("CheckSizeLimit: Can't open db:", DbPath)
+		log.Println("CheckSizeLimit: Can't open db:", dbPath)
 		return
 	}
 	defer db.Close()
@@ -48,9 +49,10 @@ func CheckExpiredData() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	dbPath := GetAbsDbPath(DbPath)
+	db, err := bolt.Open(dbPath, 0666, nil)
 	if err != nil {
-		log.Println("CheckExpiredData: Can't open db:", DbPath)
+		log.Println("CheckExpiredData: Can't open db:", dbPath)
 		return
 	}
 	defer db.Close()

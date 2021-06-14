@@ -18,7 +18,7 @@ func HandleCurrentInfo(scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, e
 		prevId = data.BuildUniqueId(scanInfo.PreviousDigest, scanInfo.Image, scanInfo.Registry)
 	}
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(GetAbsDbPath(DbPath), 0666, nil)
 	if err != nil {
 		return nil, false, err
 	}
