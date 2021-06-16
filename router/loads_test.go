@@ -1,4 +1,4 @@
-package alertmgr
+package router
 
 import (
 	"fmt"
@@ -65,7 +65,7 @@ outputs:
 )
 
 type ctxWrapper struct {
-	instance           *AlertMgr
+	instance           *Router
 	savedBaseForTicker time.Duration
 	savedGetService    func() service
 	savedDBPath        string

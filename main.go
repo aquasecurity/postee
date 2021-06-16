@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/aquasecurity/postee/alertmgr"
+	"github.com/aquasecurity/postee/router"
 	"github.com/aquasecurity/postee/utils"
 	"github.com/aquasecurity/postee/webserver"
 	"github.com/spf13/cobra"
@@ -62,13 +62,13 @@ func main() {
 			cfgfile = os.Getenv("AQUAALERT_CFG")
 		}
 
-		err := alertmgr.Instance().Start(cfgfile)
+		err := router.Instance().Start(cfgfile)
 		if err != nil {
 			log.Printf("Can't start alert manager %v", err)
 			return
 		}
 
-		defer alertmgr.Instance().Terminate()
+		defer router.Instance().Terminate()
 
 		go webserver.Instance().Start(url, tls)
 		defer webserver.Instance().Terminate()

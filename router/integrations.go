@@ -1,4 +1,4 @@
-package alertmgr
+package router
 
 type OutputSettings struct {
 	Name            string            `json:"name,omitempty"`

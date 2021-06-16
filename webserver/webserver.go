@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/aquasecurity/postee/alertmgr"
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/router"
 	"github.com/aquasecurity/postee/utils"
 	"github.com/gorilla/mux"
 )
@@ -109,7 +109,7 @@ func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	utils.Debug("%s\n\n", string(body))
-	alertmgr.Instance().Send(body)
+	router.Instance().Send(body)
 	ctx.writeResponse(w, http.StatusOK, "")
 }
 

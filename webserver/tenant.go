@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aquasecurity/postee/alertmgr"
+	"github.com/aquasecurity/postee/router"
 	"github.com/aquasecurity/postee/utils"
 	"github.com/gorilla/mux"
 )
@@ -27,6 +27,6 @@ func (ctx *WebServer) tenantHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	utils.Debug("%s\n\n", string(body))
-	alertmgr.Instance().HandleRoute(route, body)
+	router.Instance().HandleRoute(route, body)
 	ctx.writeResponse(w, http.StatusOK, "")
 }

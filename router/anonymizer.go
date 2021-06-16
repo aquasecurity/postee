@@ -1,4 +1,4 @@
-package alertmgr
+package router
 
 import "reflect"
 

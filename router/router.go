@@ -1,4 +1,4 @@
-package alertmgr
+package router
 
 import (
 	"bytes"
@@ -31,7 +31,7 @@ const (
 	AnonymizeReplacement   = "<hidden>"
 )
 
-type AlertMgr struct {
+type Router struct {
 	mutexScan   sync.Mutex
 	quit        chan struct{}
 	queue       chan []byte
@@ -47,7 +47,7 @@ type AlertMgr struct {
 var (
 	errNoOutputs  = errors.New("there aren't started outputs")
 	initCtx       sync.Once
-	alertmgrCtx   *AlertMgr
+	alertmgrCtx   *Router
 	baseForTicker = time.Hour
 
 	osStat = os.Stat
@@ -58,9 +58,9 @@ var (
 	}
 )
 
-func Instance() *AlertMgr {
+func Instance() *Router {
 	initCtx.Do(func() {
-		alertmgrCtx = &AlertMgr{
+		alertmgrCtx = &Router{
 			mutexScan:   sync.Mutex{},
 			quit:        make(chan struct{}),
 			queue:       make(chan []byte, 1000),
@@ -72,12 +72,12 @@ func Instance() *AlertMgr {
 	})
 	return alertmgrCtx
 }
-func (ctx *AlertMgr) ReloadConfig() {
+func (ctx *Router) ReloadConfig() {
 	ctx.Terminate()
 	ctx.Start(ctx.cfgfile)
 }
 
-func (ctx *AlertMgr) Start(cfgfile string) error {
+func (ctx *Router) Start(cfgfile string) error {
 	log.Printf("Starting AlertMgr....")
 	ctx.cfgfile = cfgfile
 	ctx.outputs = map[string]outputs.Output{}
@@ -89,7 +89,7 @@ func (ctx *AlertMgr) Start(cfgfile string) error {
 	return nil
 }
 
-func (ctx *AlertMgr) Terminate() {
+func (ctx *Router) Terminate() {
 	log.Printf("Terminating AlertMgr....")
 	initCtx = sync.Once{} //next start should use new instance
 
@@ -114,11 +114,11 @@ func (ctx *AlertMgr) Terminate() {
 
 }
 
-func (ctx *AlertMgr) Send(data []byte) {
+func (ctx *Router) Send(data []byte) {
 	ctx.queue <- data
 }
 
-func (ctx *AlertMgr) initTemplate(template *Template) error {
+func (ctx *Router) initTemplate(template *Template) error {
 	log.Printf("Configuring template %s \n", template.Name)
 
 	if template.LegacyScanRenderer != "" {
@@ -179,7 +179,7 @@ func (ctx *AlertMgr) initTemplate(template *Template) error {
 	return nil
 }
 
-func (ctx *AlertMgr) load() error {
+func (ctx *Router) load() error {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
 	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
@@ -253,7 +253,7 @@ var getHttpClient = func() *http.Client {
 	return http.DefaultClient
 }
 
-func (ctx *AlertMgr) HandleRoute(routeName string, in []byte) {
+func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	r, ok := ctx.inputRoutes[routeName]
 	if !ok || r == nil {
 		log.Printf("There isn't route %q", routeName)
@@ -280,7 +280,7 @@ func (ctx *AlertMgr) HandleRoute(routeName string, in []byte) {
 	}
 }
 
-func (ctx *AlertMgr) handle(in []byte) {
+func (ctx *Router) handle(in []byte) {
 	for routeName := range ctx.inputRoutes {
 		ctx.HandleRoute(routeName, in)
 	}
@@ -326,7 +326,7 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	return plg
 }
 
-func (ctx *AlertMgr) listen() {
+func (ctx *Router) listen() {
 	for {
 		select {
 		case <-ctx.quit:
