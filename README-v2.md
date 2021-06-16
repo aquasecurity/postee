@@ -35,11 +35,12 @@ Image rescans: When an image is rescanned, the integration will not send a messa
 Aggregation policy: You can aggregate multiple scan results in a single ticket/message. This is useful if you would like to get a digest on daily/weekly basis.
 See Route plugins for more details
 
-#### Message routing
-TODO add something here
+#### Input message workflow
+Interaction of Postee v2 modules.
+![Postee v2 scheme](/postee-v2-scheme.png)
 
 #### Rego Templates
-[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define template. Message payload is referenced as input when template is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
+[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define template. Message payload is referenced as `input` when template is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
 Key | Description |Type
 --- | --- 
 result | message body| Can be either string or json
