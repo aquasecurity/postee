@@ -1,4 +1,4 @@
-package scanservice
+package msgservice
 
 import (
 	"errors"
@@ -88,8 +88,8 @@ func validateInputValue(t *testing.T, caseDesc string, input []byte, shouldPass 
 	demoEmailOutput.wg = &sync.WaitGroup{}
 	demoEmailOutput.wg.Add(expected)
 
-	srv := new(ScanService)
-	srv.ResultHandling([]byte(input), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	srv := new(MsgService)
+	srv.MsgHandling([]byte(input), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 
 	demoEmailOutput.wg.Wait()
 
@@ -121,8 +121,8 @@ func TestEvalError(t *testing.T) {
 		expectedError: evalError,
 	}
 
-	srv := new(ScanService)
-	srv.ResultHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	srv := new(MsgService)
+	srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 
 	if demoEmailOutput.getEmailsCount() > 0 {
 		t.Errorf("Output shouldn't be called when evaluation is failed")
@@ -156,8 +156,8 @@ func TestAggrEvalError(t *testing.T) {
 	}
 
 	for i := 0; i < 2; i++ {
-		srv := new(ScanService)
-		srv.ResultHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv := new(MsgService)
+		srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	if demoEmailOutput.getEmailsCount() > 0 {
@@ -180,8 +180,8 @@ func TestEmptyInput(t *testing.T) {
 
 	demoInptEval := &DemoInptEval{}
 
-	srv := new(ScanService)
-	srv.ResultHandling([]byte("{}"), nil, demoRoute, demoInptEval, &srvUrl)
+	srv := new(MsgService)
+	srv.MsgHandling([]byte("{}"), nil, demoRoute, demoInptEval, &srvUrl)
 
 	if demoInptEval.renderCnt != 0 {
 		t.Errorf("Eval() shouldn't be called if no output is passed to ResultHandling()")

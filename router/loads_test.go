@@ -10,9 +10,9 @@ import (
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/msgservice"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/routes"
-	"github.com/aquasecurity/postee/scanservice"
 )
 
 var (
@@ -80,7 +80,7 @@ type invctn struct {
 	routeName   string
 }
 
-func (ctx *ctxWrapper) ResultHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
+func (ctx *ctxWrapper) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
 	i := invctn{
 		fmt.Sprintf("%T", output),
 		fmt.Sprintf("%T", inpteval),
@@ -202,7 +202,7 @@ func TestReload(t *testing.T) {
 
 func TestServiceGetters(t *testing.T) {
 	scanner := getScanService()
-	if _, ok := scanner.(*scanservice.ScanService); !ok {
+	if _, ok := scanner.(*msgservice.MsgService); !ok {
 		t.Error("getScanService() doesn't return an instance of scanservice.ScanService")
 	}
 }

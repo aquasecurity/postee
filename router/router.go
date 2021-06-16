@@ -16,10 +16,10 @@ import (
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/msgservice"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
-	"github.com/aquasecurity/postee/scanservice"
 	"github.com/aquasecurity/postee/utils"
 )
 
@@ -242,11 +242,11 @@ func (ctx *Router) load() error {
 }
 
 type service interface {
-	ResultHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
 }
 
 var getScanService = func() service {
-	serv := &scanservice.ScanService{}
+	serv := &msgservice.MsgService{}
 	return serv
 }
 var getHttpClient = func() *http.Client {
@@ -276,7 +276,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 			continue
 		}
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
-		go getScanService().ResultHandling(in, pl, r, tmpl, &ctx.aquaServer)
+		go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
 	}
 }
 

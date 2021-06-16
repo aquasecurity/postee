@@ -1,4 +1,4 @@
-package scanservice
+package msgservice
 
 import (
 	"log"
@@ -52,10 +52,10 @@ func TestAggregateByTimeout(t *testing.T) {
 
 	srvUrl := ""
 
-	srv1 := new(ScanService)
-	srv1.ResultHandling([]byte(mockScan1), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.ResultHandling([]byte(mockScan2), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.ResultHandling([]byte(mockScan3), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1 := new(MsgService)
+	srv1.MsgHandling([]byte(mockScan1), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling([]byte(mockScan2), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling([]byte(mockScan3), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
 
 	expectedSchedulerInvctCnt := 1
 

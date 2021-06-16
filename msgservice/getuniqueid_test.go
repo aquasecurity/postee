@@ -1,4 +1,4 @@
-package scanservice
+package msgservice
 
 import (
 	"os"
@@ -115,8 +115,8 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bo
 	demoEmailOutput.wg.Add(expected)
 
 	for _, inp := range inputs {
-		srv := new(ScanService)
-		srv.ResultHandling([]byte(inp), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv := new(MsgService)
+		srv.MsgHandling([]byte(inp), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	demoEmailOutput.wg.Wait()

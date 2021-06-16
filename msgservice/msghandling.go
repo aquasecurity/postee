@@ -1,4 +1,4 @@
-package scanservice
+package msgservice
 
 import (
 	"encoding/json"
@@ -12,13 +12,13 @@ import (
 	"github.com/aquasecurity/postee/routes"
 )
 
-type ScanService struct {
+type MsgService struct {
 	scanInfo *data.ScanImageInfo
 	prevScan *data.ScanImageInfo
 	isNew    bool
 }
 
-func (scan *ScanService) ResultHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
+func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
 	if output == nil {
 		return
 	}
@@ -111,7 +111,7 @@ var AggregateScanAndGetQueue = func(outputName string, currentContent map[string
 	return aggregatedScans
 }
 
-func (scan *ScanService) init(data []byte) (err error) {
+func (scan *MsgService) init(data []byte) (err error) {
 	scan.scanInfo, err = parseImageInfo(data)
 	if err != nil {
 		return err

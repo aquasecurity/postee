@@ -1,4 +1,4 @@
-package scanservice
+package msgservice
 
 import (
 	"os"
@@ -85,8 +85,8 @@ func validateRegoInput(t *testing.T, caseDesc string, input string, regoCriteria
 	demoEmailOutput.wg = &sync.WaitGroup{}
 	demoEmailOutput.wg.Add(expected)
 
-	srv := new(ScanService)
-	srv.ResultHandling([]byte(input), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	srv := new(MsgService)
+	srv.MsgHandling([]byte(input), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 
 	demoEmailOutput.wg.Wait()
 

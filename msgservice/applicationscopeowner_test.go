@@ -1,4 +1,4 @@
-package scanservice
+package msgservice
 
 import (
 	"os"
@@ -43,8 +43,8 @@ func TestApplicationScopeOwner(t *testing.T) {
 	demoEmailOutput.wg = &sync.WaitGroup{}
 	demoEmailOutput.wg.Add(1)
 
-	srv := new(ScanService)
-	srv.ResultHandling([]byte(scnWithOwners), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	srv := new(MsgService)
+	srv.MsgHandling([]byte(scnWithOwners), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 
 	demoEmailOutput.wg.Wait()
 

@@ -1,4 +1,4 @@
-package scanservice
+package msgservice
 
 import (
 	"os"
@@ -36,8 +36,8 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 	demoEmailOutput.wg.Add(1)
 
 	for _, scan := range scans {
-		srv := new(ScanService)
-		srv.ResultHandling([]byte(scan), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv := new(MsgService)
+		srv.MsgHandling([]byte(scan), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	demoEmailOutput.wg.Wait()
