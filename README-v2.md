@@ -39,7 +39,7 @@ See Route plugins for more details
 TODO add something here
 
 #### Rego Templates
-[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define template. Message payload is referenced as input when tempate is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
+[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define template. Message payload is referenced as input when template is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
 Key | Description |Type
 --- | --- 
 result | message body| Can be either string or json
