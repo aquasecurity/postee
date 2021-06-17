@@ -42,9 +42,9 @@
               </b-tab>
               <b-tab title="Package" :active="!!formValues.regopackage">
                 <PropertyField
-                  id="regopackage"
+                  id="rego-package"
                   label="Package"
-                  :value="formValues.regopackage"
+                  :value="formValues['rego-package']"
                   description="Rego package with template"
                   :inputHandler="updateTemplateSource"
                 />
@@ -65,9 +65,9 @@
                   <label for="legacyScanRenderer">Legacy</label>
                   <select
                     class="form-select form-control"
-                    :value="formValues.legacyScanRenderer"
+                    :value="formValues['legacy-scan-renderer']"
                     id="legacyScanRenderer"
-                    name="legacyScanRenderer"
+                    name="legacy-scan-renderer"
                     @input="updateTemplateSource"
                   >
                     <option value="html">Html</option>

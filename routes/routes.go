@@ -10,9 +10,9 @@ type InputRoute struct {
 }
 
 type Plugins struct {
-	AggregateIssuesNumber   int    `json:"Aggregate-Issues-Number"`
-	AggregateIssuesTimeout  string `json:"Aggregate-Issues-Timeout"`
-	PolicyShowAll           bool   `json:"Policy-Show-All"`
+	AggregateIssuesNumber   int    `json:"aggregate-issues-number"`
+	AggregateIssuesTimeout  string `json:"aggregate-issues-timeout"`
+	PolicyShowAll           bool   `json:"policy-show-all"`
 	AggregateTimeoutSeconds int
 }
 

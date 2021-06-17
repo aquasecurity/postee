@@ -167,9 +167,9 @@
           </div>
 
           <CheckboxPropertyField
-            id="useMX"
+            id="use-mx"
             label="Use MX"
-            :value="formValues.useMX"
+            :value="formValues['use-mx']"
             :show="isEmail"
             :inputHandler="updateField"
           />
@@ -181,9 +181,9 @@
               <PropertyField
                 id="projectKey"
                 label="Project Key"
-                name="project_key"
-                :value="formValues.project_key"
-                :errorMsg="errors['project_key']"
+                name="project-key"
+                :value="formValues['project-key']"
+                :errorMsg="errors['project-key']"
                 :description="'Mandatory. Specify the JIRA project key'"
                 :show="isJira"
                 :inputHandler="updateField"
@@ -205,8 +205,8 @@
           <CheckboxPropertyField
             id="tlsVerify"
             label="TLS verify"
-            :value="formValues.tls_verify"
-            name="tls_verify"
+            :value="formValues['tls-verify']"
+            name="tls-verify"
             :show="isJira"
             :inputHandler="updateField"
           />
@@ -216,8 +216,9 @@
             <div class="col">
               <PropertyField
                 id="fixVersions"
+                name="fix-versions"
                 label="Fix Versions"
-                :value="formValues.fixVersions | toString"
+                :value="formValues['fix-versions'] | toString"
                 description="Optional, specify comma separated list of Fix versions to add to Ticket"
                 :show="isJira"
                 :inputHandler="updateCollectionField"
@@ -226,8 +227,9 @@
             <div class="col">
               <PropertyField
                 id="affectsVersions"
+                name="affects-versions"
                 label="Affects Versions"
-                :value="formValues.affectsVersions | toString"
+                :value="formValues['affects-versions'] | toString"
                 description="Optional, specify comma separated list of Affects versions to add to Ticket"
                 :show="isJira"
                 :inputHandler="updateCollectionField"
@@ -362,10 +364,10 @@
             <div class="col">
               <PropertyField
                 id="sizeLimit"
+                name="size-limit"
                 label="Size Limit"
-                :value="formValues.SizeLimit"
+                :value="formValues['size-limit']"
                 inputType="number"
-                :name="'SizeLimit'"
                 description="Optional. Maximum scan length, in bytes. Default: 10000"
                 :show="isSplunk"
                 :inputHandler="updateField"

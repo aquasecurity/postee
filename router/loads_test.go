@@ -17,10 +17,10 @@ import (
 
 var (
 	cfgData string = `
-Name: tenant
-AquaServer: https://demolab.aquasec.com
-Max_DB_Size: 13 # Max size of DB. MB. if empty then unlimited
-Delete_Old_Data: 7 # delete data older than N day(s).  If empty then we do not delete.
+name: tenant
+aqua-server: https://demolab.aquasec.com
+max-db-size: 13 # Max size of DB. MB. if empty then unlimited
+delete-old-data: 7 # delete data older than N day(s).  If empty then we do not delete.d
 
 routes:
 - name: route1      #  name must be unique
@@ -31,7 +31,7 @@ routes:
   outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
   template: raw       #  a template for this route
   plugins:
-   Policy-Show-All: true
+   policy-show-all: true
 
 - name: route2      #  name must be unique
   input: |
@@ -40,7 +40,7 @@ routes:
   outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
   template: raw       #  a template for this route
   plugins:
-   Policy-Show-All: true
+   policy-show-all: true
 
 templates:
 - name: raw
@@ -52,7 +52,7 @@ outputs:
   enable: true
   url: http://localhost:8088
   token: 00aac750-a69c-4ebb-8771-41905f7369dd
-  SizeLimit: 1000
+  size-limit: 1000
 
 - name: jira
   type: jira
@@ -60,8 +60,8 @@ outputs:
   url: "https://afdesk.atlassian.net/"
   user: admin
   password: admin
-  tls_verify: false
-  project_key: kcv`
+  tls-verify: false
+  project-key: kcv`
 )
 
 type ctxWrapper struct {
@@ -167,8 +167,8 @@ func TestReload(t *testing.T) {
   url: "https://afdesk.atlassian.net/"
   user: admin
   password: admin
-  tls_verify: false
-  project_key: kcv`
+  tls-verify: false
+  project-key: kcv`
 
 	wrap := ctxWrapper{}
 	wrap.setup(cfgData)

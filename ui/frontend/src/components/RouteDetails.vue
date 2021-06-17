@@ -75,9 +75,9 @@
               class="mb-4"
               id="aggregateIssuesNumber"
               label="Aggregate-Issues-Number"
-              :value="formValues.plugins?formValues.plugins['Aggregate-Issues-Number']:undefined"
+              :value="formValues.plugins?formValues.plugins['aggregate-issues-number']:undefined"
               inputType="number"
-              name="Aggregate-Issues-Number"
+              name="aggregate-issues-number"
               description="Optional: Aggregate multiple scans into one ticket/message	Numeric number. Default is 1"
               :inputHandler="updateRoutePluginField"
             />
@@ -85,8 +85,8 @@
               class="mb-4"
               id="aggregateIssuesTimeout"
               label="Aggregate-Issues-Timeout"
-              :value="formValues.plugins?formValues.plugins['Aggregate-Issues-Timeout']:undefined"
-              name="Aggregate-Issues-Timeout"
+              :value="formValues.plugins?formValues.plugins['aggregate-issues-timeout']:undefined"
+              name="aggregate-issues-timeout"
               description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
               :inputHandler="updateRoutePluginField"
             />
@@ -94,8 +94,8 @@
               class="mb-4"
               id="policyShowAll"
               label="Policy-Show-All"
-              name="Policy-Show-All"
-              :value="formValues.plugins?formValues.plugins['Policy-Show-All']:undefined"
+              name="policy-show-all"
+              :value="formValues.plugins?formValues.plugins['policy-show-all']:undefined"
               description="Optional: trigger the output for all scan results. If set to true, output will be triggered even for old scan results. Default value: false"
               :inputHandler="updateRoutePluginField"
             />
