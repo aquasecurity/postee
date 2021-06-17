@@ -16,7 +16,7 @@ func GetPlgnStats() (r map[string]int, err error) {
 	}
 	defer db.Close()
 	err = db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(hookDbService.DbBucketOutputScanStats))
+		bucket := tx.Bucket([]byte(hookDbService.DbBucketOutputStats))
 		if bucket == nil {
 			return nil //no bucket - empty stats will be returned
 		}

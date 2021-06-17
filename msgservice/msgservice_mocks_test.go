@@ -67,6 +67,10 @@ type DemoEmailOutput struct {
 	emailCounts int
 }
 
+func (plg *DemoEmailOutput) GetName() string {
+	return "demo"
+}
+
 func (plg *DemoEmailOutput) getEmailsCount() int {
 	plg.mu.Lock()
 	e := plg.emailCounts

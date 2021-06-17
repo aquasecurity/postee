@@ -16,6 +16,10 @@ type WebhookOutput struct {
 	Url  string
 }
 
+func (webhook *WebhookOutput) GetName() string {
+	return webhook.Name
+}
+
 func (webhook *WebhookOutput) Init() error {
 	log.Printf("Starting Webhook output %q, for sending to %q",
 		webhook.Name, webhook.Url)

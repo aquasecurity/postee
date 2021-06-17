@@ -76,7 +76,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 				log.Printf("Error while building aggregated content: %v", err)
 				return
 			}
-			send(output, &route.Name, content)
+			send(output, content)
 		}
 	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
 		AggregateScanAndGetQueue(route.Name, content, 0, true)
@@ -88,14 +88,14 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 			log.Printf("%s is already scheduled\n", route.Name)
 		}
 	} else {
-		send(output, &route.Name, content)
+		send(output, content)
 
 	}
 }
 
-func send(otpt outputs.Output, name *string, cnt map[string]string) {
+func send(otpt outputs.Output, cnt map[string]string) {
 	go otpt.Send(cnt)
-	dbservice.RegisterPlgnInvctn(*name)
+	dbservice.RegisterPlgnInvctn(otpt.GetName())
 }
 
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {

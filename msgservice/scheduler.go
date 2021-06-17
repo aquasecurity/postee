@@ -14,7 +14,7 @@ var getTicker = func(seconds int) *time.Ticker {
 }
 var RunScheduler = func(
 	route *routes.InputRoute,
-	fnSend func(plg outputs.Output, name *string, cnt map[string]string),
+	fnSend func(plg outputs.Output, cnt map[string]string),
 	fnAggregate func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
 	inpteval data.Inpteval,
 	name *string,
@@ -40,7 +40,7 @@ var RunScheduler = func(
 					if err != nil {
 						log.Printf("Unable to build aggregated contents %v\n", err)
 					}
-					fnSend(output, &route.Name, aggregated)
+					fnSend(output, aggregated)
 				}
 			}
 		}

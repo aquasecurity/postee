@@ -25,6 +25,10 @@ type SplunkOutput struct {
 	splunkLayout layout.LayoutProvider
 }
 
+func (splunk *SplunkOutput) GetName() string {
+	return splunk.Name
+}
+
 func (splunk *SplunkOutput) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
 	log.Printf("Starting Splunk output %q....", splunk.Name)

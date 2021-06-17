@@ -13,6 +13,7 @@ const (
 )
 
 type Output interface {
+	GetName() string
 	Init() error
 	Send(map[string]string) error
 	Terminate() error

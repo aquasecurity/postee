@@ -41,6 +41,10 @@ type JiraAPI struct {
 	boardType       string
 }
 
+func (ctx *JiraAPI) GetName() string {
+	return ctx.Name
+}
+
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	client, err := ctx.createClient()
 	if err != nil {

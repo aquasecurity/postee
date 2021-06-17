@@ -18,6 +18,10 @@ type ServiceNowOutput struct {
 	layoutProvider layout.LayoutProvider
 }
 
+func (sn *ServiceNowOutput) GetName() string {
+	return sn.Name
+}
+
 func (sn *ServiceNowOutput) Init() error {
 	log.Printf("Starting ServiceNow output %q....", sn.Name)
 	log.Printf("Your ServiceNow Table is %q on '%s.%s'", sn.Table, sn.Instance, servicenow.BaseServer)

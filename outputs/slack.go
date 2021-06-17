@@ -24,6 +24,10 @@ type SlackOutput struct {
 	slackLayout layout.LayoutProvider
 }
 
+func (slack *SlackOutput) GetName() string {
+	return slack.Name
+}
+
 func (slack *SlackOutput) Init() error {
 	slack.slackLayout = new(formatting.SlackMrkdwnProvider)
 	log.Printf("Starting Slack output %q....", slack.Name)

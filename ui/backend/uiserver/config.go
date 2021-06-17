@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/aquasecurity/postee/alertmgr"
 	hookDbService "github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/router"
 )
 
 func (srv *uiServer) getConfig(w http.ResponseWriter, r *http.Request) {
 	log.Printf("configured config path %s", srv.cfgPath)
 
-	_, err := alertmgr.Parsev2cfg(srv.cfgPath)
+	_, err := router.Parsev2cfg(srv.cfgPath)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

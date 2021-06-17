@@ -7,12 +7,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aquasecurity/postee/alertmgr"
 	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/router"
 )
 
 func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
-	plgSettings := &alertmgr.OutputSettings{}
+	plgSettings := &router.OutputSettings{}
 
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
@@ -27,7 +27,7 @@ func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plg := alertmgr.BuildAndInitOtpt(plgSettings, "")
+	plg := router.BuildAndInitOtpt(plgSettings, "")
 
 	testPayload := make(map[string]string)
 

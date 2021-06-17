@@ -21,6 +21,10 @@ type TeamsOutput struct {
 	Webhook     string
 }
 
+func (teams *TeamsOutput) GetName() string {
+	return teams.Name
+}
+
 func (teams *TeamsOutput) Init() error {
 	log.Printf("Starting MS Teams output %q....", teams.Name)
 	teams.teamsLayout = new(formatting.HtmlProvider)

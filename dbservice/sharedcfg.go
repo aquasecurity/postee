@@ -23,7 +23,7 @@ func EnsureApiKey() error {
 	}
 	defer db.Close()
 
-	err = Init(db, DbBucketOutputScanStats)
+	err = Init(db, DbBucketOutputStats)
 	if err != nil {
 		return err
 	}

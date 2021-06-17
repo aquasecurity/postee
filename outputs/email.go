@@ -28,6 +28,10 @@ type EmailOutput struct {
 	UseMX      bool
 }
 
+func (email *EmailOutput) GetName() string {
+	return email.Name
+}
+
 func (email *EmailOutput) Init() error {
 	log.Printf("Starting Email output %q...", email.Name)
 	if email.Sender == "" {
