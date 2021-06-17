@@ -36,7 +36,7 @@
             >
             </codemirror>
             <small class="form-text text-muted">
-              Set of REGO rules to filter received events
+              Set of REGO rules to filter received events. Leave empty to process all incoming events 
             </small>
           </div>
 
@@ -68,37 +68,38 @@
             >
           </div>
 
-          <div class="row">
-            <div class="col">
-              <PropertyField
-                id="aggregateIssuesNumber"
-                label="Aggregate-Issues-Number"
-                :value="formValues.plugins?formValues.plugins['Aggregate-Issues-Number']:undefined"
-                inputType="number"
-                name="Aggregate-Issues-Number"
-                description="Optional: Aggregate multiple scans into one ticket/message	Numeric number. Default is 1"
-                :inputHandler="updateRoutePluginField"
-              />
-            </div>
-            <div class="col">
-              <PropertyField
-                id="aggregateIssuesTimeout"
-                label="Aggregate-Issues-Timeout"
-                :value="formValues.plugins?formValues.plugins['Aggregate-Issues-Timeout']:undefined"
-                name="Aggregate-Issues-Timeout"
-                description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
-                :inputHandler="updateRoutePluginField"
-              />
-            </div>
+          <h4>Plugins</h4>
+          <div class="p-4">
+
+            <PropertyField
+              class="mb-4"
+              id="aggregateIssuesNumber"
+              label="Aggregate-Issues-Number"
+              :value="formValues.plugins?formValues.plugins['Aggregate-Issues-Number']:undefined"
+              inputType="number"
+              name="Aggregate-Issues-Number"
+              description="Optional: Aggregate multiple scans into one ticket/message	Numeric number. Default is 1"
+              :inputHandler="updateRoutePluginField"
+            />
+            <PropertyField
+              class="mb-4"
+              id="aggregateIssuesTimeout"
+              label="Aggregate-Issues-Timeout"
+              :value="formValues.plugins?formValues.plugins['Aggregate-Issues-Timeout']:undefined"
+              name="Aggregate-Issues-Timeout"
+              description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
+              :inputHandler="updateRoutePluginField"
+            />
+            <CheckboxPropertyField
+              class="mb-4"
+              id="policyShowAll"
+              label="Policy-Show-All"
+              name="Policy-Show-All"
+              :value="formValues.plugins?formValues.plugins['Policy-Show-All']:undefined"
+              description="Optional: trigger the output for all scan results. If set to true, output will be triggered even for old scan results. Default value: false"
+              :inputHandler="updateRoutePluginField"
+            />
           </div>
-          <CheckboxPropertyField
-            id="policyShowAll"
-            label="Policy-Show-All"
-            name="Policy-Show-All"
-            :value="formValues.plugins?formValues.plugins['Policy-Show-All']:undefined"
-            description="Optional: trigger the output for all scan results. If set to true, output will be triggered even for old scan results. Default value: false"
-            :inputHandler="updateRoutePluginField"
-          />
         </div>
       </form>
     </div>

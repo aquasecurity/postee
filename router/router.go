@@ -47,7 +47,7 @@ type Router struct {
 var (
 	errNoOutputs  = errors.New("there aren't started outputs")
 	initCtx       sync.Once
-	alertmgrCtx   *Router
+	routerCtx     *Router
 	baseForTicker = time.Hour
 
 	osStat = os.Stat
@@ -60,7 +60,7 @@ var (
 
 func Instance() *Router {
 	initCtx.Do(func() {
-		alertmgrCtx = &Router{
+		routerCtx = &Router{
 			mutexScan:   sync.Mutex{},
 			quit:        make(chan struct{}),
 			queue:       make(chan []byte, 1000),
@@ -70,7 +70,7 @@ func Instance() *Router {
 			stopTicker:  make(chan struct{}),
 		}
 	})
-	return alertmgrCtx
+	return routerCtx
 }
 func (ctx *Router) ReloadConfig() {
 	ctx.Terminate()
@@ -78,7 +78,7 @@ func (ctx *Router) ReloadConfig() {
 }
 
 func (ctx *Router) Start(cfgfile string) error {
-	log.Printf("Starting AlertMgr....")
+	log.Printf("Starting Router....")
 	ctx.cfgfile = cfgfile
 	ctx.outputs = map[string]outputs.Output{}
 	err := ctx.load()
@@ -90,10 +90,10 @@ func (ctx *Router) Start(cfgfile string) error {
 }
 
 func (ctx *Router) Terminate() {
-	log.Printf("Terminating AlertMgr....")
+	log.Printf("Terminating Router....")
 	initCtx = sync.Once{} //next start should use new instance
 
-	//TODO AlertMgr terminates incorrectly if it is not initialized properly
+	//TODO Router terminates incorrectly if it is not initialized properly
 
 	for _, pl := range ctx.outputs {
 		pl.Terminate()
