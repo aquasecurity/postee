@@ -23,22 +23,12 @@ func EnsureApiKey() error {
 	}
 	defer db.Close()
 
-	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DbBucketSharedConfig))
-		if bucket == nil {
-			bucket, err = tx.CreateBucket([]byte(DbBucketSharedConfig))
-
-			if err != nil {
-				return err
-			}
-		}
-		newApiKey, err := generateApiKey(32)
-		if err != nil {
-			return err
-		}
-		err = bucket.Put([]byte(apiKeyName), []byte(newApiKey))
+	newApiKey, err := generateApiKey(32)
+	if err != nil {
 		return err
-	})
+	}
+
+	err = dbInsert(db, DbBucketSharedConfig, []byte(apiKeyName), []byte(newApiKey))
 
 	return err
 }

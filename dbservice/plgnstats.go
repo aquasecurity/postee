@@ -15,20 +15,21 @@ func RegisterPlgnInvctn(name string) error {
 		return err
 	}
 	defer db.Close()
+	err = Init(db, DbBucketOutputScanStats)
+	if err != nil {
+		return err
+	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(DbBucketOutputScanStats))
-		if bucket == nil {
-			bucket, err = tx.CreateBucket([]byte(DbBucketOutputScanStats))
-
-			if err != nil {
-				return err
-			}
-			err = bucket.Put([]byte(name), []byte("1"))
-			return err
-		}
+		var i int
 		v := bucket.Get([]byte(name))
-		i, err := strconv.Atoi(string(v[:]))
+
+		if v == nil {
+			i = 0
+		} else {
+			i, err = strconv.Atoi(string(v[:]))
+		}
 
 		i++
 		nwv := strconv.Itoa(i)
