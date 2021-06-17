@@ -6,11 +6,11 @@ import (
 )
 
 var (
-	dbBucketName            = "WebhookBucket"
-	dbBucketAggregator      = "WebhookAggregator"
-	dbBucketExpiryDates     = "WebookExpiryDates"
-	DbBucketOutputScanStats = "WebhookPluginScanStats"
-	DbBucketSharedConfig    = "WebhookSharedConfig"
+	dbBucketName         = "WebhookBucket"
+	dbBucketAggregator   = "WebhookAggregator"
+	dbBucketExpiryDates  = "WebookExpiryDates"
+	DbBucketOutputStats  = "WebhookOutputStats"
+	DbBucketSharedConfig = "WebhookSharedConfig"
 
 	DbSizeLimit = 0
 	DbDueDate   = 0
