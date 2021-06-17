@@ -15,13 +15,13 @@ func RegisterPlgnInvctn(name string) error {
 		return err
 	}
 	defer db.Close()
-	err = Init(db, DbBucketOutputScanStats)
+	err = Init(db, DbBucketOutputStats)
 	if err != nil {
 		return err
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DbBucketOutputScanStats))
+		bucket := tx.Bucket([]byte(DbBucketOutputStats))
 		var i int
 		v := bucket.Get([]byte(name))
 
