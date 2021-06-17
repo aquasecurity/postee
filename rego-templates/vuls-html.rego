@@ -1,4 +1,4 @@
-package postee.email
+package postee.vuls.html
 
 import data.postee.by_flag
 #import common.by_flag
@@ -152,7 +152,7 @@ title = sprintf("%s vulnerability scan report", [input.image])
 href := sprintf("%s%s/%s", [input.postee.AquaServer, urlquery.encode(input.registry), urlquery.encode(input.image)])
 text := sprintf("%s%s/%s", [input.postee.AquaServer, input.registry, input.image])
 
-aggregation_pkg := "postee.html.scan.aggregation"
+aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
 
     msg := sprintf(tpl, [

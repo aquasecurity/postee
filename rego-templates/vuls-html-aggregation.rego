@@ -1,4 +1,4 @@
-package postee.html.scan.aggregation
+package postee.vuls.html.aggregation
 
 import data.postee.flat_array
 

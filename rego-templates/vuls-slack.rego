@@ -1,4 +1,4 @@
-package postee.slack
+package postee.vuls.slack
 
 import data.postee.by_flag
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
@@ -105,7 +105,7 @@ malware_list := l {
 ###########################################################################################################
 title = sprintf("%s vulnerability scan report", [input.image]) # title is string
 
-aggregation_pkg := "postee.slack.scan.aggregation"
+aggregation_pkg := "postee.vuls.slack.aggregation"
 
 result = res {
 	severities := ["critical", "high", "medium", "low", "negligible"]

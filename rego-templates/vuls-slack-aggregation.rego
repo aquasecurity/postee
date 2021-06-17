@@ -1,4 +1,4 @@
-package postee.slack.scan.aggregation
+package postee.vuls.slack.aggregation
 
 import data.postee.flat_array
 
