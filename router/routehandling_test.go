@@ -220,7 +220,7 @@ func TestHandling(t *testing.T) {
 			},
 		},
 		{
-			"No Output Outputs configured",
+			"No Outputs configured",
 			noOutputs,
 			[]invctn{},
 		},

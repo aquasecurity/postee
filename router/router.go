@@ -79,8 +79,13 @@ func (ctx *Router) ReloadConfig() {
 
 func (ctx *Router) Start(cfgfile string) error {
 	log.Printf("Starting Router....")
+
 	ctx.cfgfile = cfgfile
 	ctx.outputs = map[string]outputs.Output{}
+	ctx.inputRoutes = map[string]*routes.InputRoute{}
+	ctx.templates = map[string]data.Inpteval{}
+	ctx.ticker = nil
+
 	err := ctx.load()
 	if err != nil {
 		return err
@@ -91,7 +96,6 @@ func (ctx *Router) Start(cfgfile string) error {
 
 func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
-	initCtx = sync.Once{} //next start should use new instance
 
 	//TODO Router terminates incorrectly if it is not initialized properly
 

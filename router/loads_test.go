@@ -113,7 +113,10 @@ func (ctxWrapper *ctxWrapper) setup(cfg string) {
 		return ctxWrapper
 	}
 
-	ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
+	err = ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
+	if err != nil {
+		log.Printf("Can't write to %s", ctxWrapper.cfgPath)
+	}
 	ctxWrapper.instance = Instance()
 }
 
