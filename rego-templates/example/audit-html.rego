@@ -1,4 +1,4 @@
-package postee.audit.html
+package example.audit.html
 
 #Example of handling audit user
 
