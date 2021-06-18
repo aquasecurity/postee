@@ -38,7 +38,7 @@ Main goal of V2 changes is to make every aspect of product customizable. It now 
 
 
 ### Policy related features in Postee V2
-Many options which were inteded to send messages for specific events only are redesigning in favor of using OPA rules.
+Many options which were intended to limit sending messages for specific events only are redesigning in favor of using OPA rules.
 Here is list of options which are not supported anymore:
 - Policy-Min-Vulnerability
 - Policy-Registry
@@ -86,7 +86,115 @@ result:=sprintf("Vulnerabilities are found while scanning of image: <i>%s</i>", 
 
 Two examples are shipped with the app. One produces output for slack integration and another one builds html output which can be used across several integrations. These example can be used as starting point for message customization
 
-## App configuration YAML
+### Data Persistency
+The Postee container uses BoltDB to store information about previously scanned images.
+This is used to prevent resending messages that were already sent before.
+The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.
+
+If you would like to persist the database file between restarts of the Postee container, then you should
+use a persistent storage option to mount the "/server/database" directory of the container.
+The "deploy/kubernetes" directory in this project contains an example deployment that includes a basic Host Persistency.
+## Installation
+
+### From Source
+Clone this project: 
+```bash
+git clone git@github.com:aquasecurity/postee.git
+make build
+./bin/postee
+```
+
+### Docker
+Build the postee Docker image: 
+```bash
+docker build -t aquasec/postee:latest .
+```
+
+Run the Aqua Postee container with the configuration file:
+```bash
+docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \ 
+    -p 8444:8444 -p 8084:8084 aquasec/postee:latest
+```
+### [Kubernetes](./deploy/kubernetes/README.md)
+
+### [Helm](./deploy/helm/README.md)
+
+
+## Configure the Aqua Server with Webhook Integration
+
+Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
+![Screenshot](webhook-integration.png)
+
+Validate that a ticket has been opened, or email was sent (depending on your configuration file).
+
+You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
+Navigate to the **Settings** page in the System section, menu, under the "Image Scan Results Webhook" section.
+
+Click "Enable sending image scan results to Postee server", and specify the URL of the Aqua Webhook server.
+
+The URL is in the following formats:
+**HTTPS**: https://<Postee IP or DNS>:8444
+or
+**HTTP**: http://<Postee IP or DNS>:8084
+
+### Validate the Integration
+
+To validate that the integration is working, you can scan a new image for security vulnerabilities from the Aqua Server UI (Images > Add Image > Specify Image Name > Add).
+
+When vulnerabilities are found in an image, you will see that a JIRA ticket is created/ Email is received/ Slack message is posted to the channel.
+
+###### *To troubleshoot the integration, you can look at both the Aqua Postee container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
+
+## Run the Aqua Postee Container
+
+Build and run the Aqua Webhook Server container on the same host where the JIRA configuration file is located, as follows:
+
+```bash
+docker build -t postee:latest .
+
+docker run -d --name=aqua-postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \
+    -p 8444:8444 -p 8084:8084 postee:latest
+
+```
+
+###### *There is a volume mount that mounts the configuration file from the host to the container. There is also an environment variable, AQUAALERT_CFG, that specifies the location of the JIRA configuration file inside the container.*
+
+### Getting the JIRA connection details
+
+Follow these steps to set up JIRA integration:
+
+Login to Jira.
+Go to the user profile API tokens (JIRA Cloud users can find it here: https://id.atlassian.com/manage-profile/security/api-tokens).
+Click on the Create API Token. A new API token for the user is created.
+Keep the token value, together with the JIRA URL and user name, for the next step.
+
+### Getting the Slack connection details: [Slack Custom App](https://api.slack.com/)
+1. Visit api.slack.com
+2. Press "Create custom app"
+3. Fill app name and select slack workspace
+4. Open "Incoming webhooks" tab
+5. Enable "Incoming webhooks"
+6. Add webhook to workspace
+7. On next screen pick slack channel and click allow
+8. Copy webhook url to the Postee config
+
+### Getting the MS Teams connection details
+Open your Microsoft Teams client. Click on the "..." near the channel you would like to send notifications to.
+Choose "Connectors". The connectors window will open.
+Look for the "Incoming Webhook" connector (it is under the "All" category).
+Click "Add" near the Incoming Webhook connector. Click "Add" again.
+Provide a name and click "Create".
+You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
+
+### Configure the Splunk Integration
+You will need to craate an HTTP Event Collector in Splunk Enterprise or Splunk Cloud.
+This can usually be found in the Splunk console under "Settings -> Data Inputs -> HTTP Event Collector -> Add New".
+Once you create an HTTP Event Collector you will receive a token. You should provide this token, together with the Splunk HTTP Collector
+URL, as part of the cfg.yaml settings.
+
+## Set up the Configuration File
 To set up the integration, you will need to create a `cfg.yaml` file, which contains the connection settings. Edit the configuration file with the connection details of your JIRA, Slack, etc.
 
 IMPORTANT: Application config yaml is re-designed in V2 release and has no backward compatibility. 
@@ -197,62 +305,3 @@ Key | Description | Possible Values
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Webhook URL |
-### Data Persistency
-The Postee container uses BoltDB to store information about previously scanned images.
-This is used to prevent resending messages that were already sent before.
-The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.
-
-If you would like to persist the database file between restarts of the Postee container, then you should
-use a persistent storage option to mount the "/server/database" directory of the container.
-The "deploy" directory in this project contains an example deployment that includes a basic Host Persistency.
-## Installation
-
-### From Source
-Clone this project: 
-```bash
-git clone git@github.com:aquasecurity/postee.git
-make build
-./bin/postee
-```
-
-### Docker
-Build the postee Docker image: 
-```bash
-docker build -t aquasec/postee:latest .
-```
-
-Run the Aqua Postee container with the configuration file:
-```bash
-docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
-    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \ 
-    -p 8444:8444 -p 8084:8084 aquasec/postee:latest
-```
-### [Kubernetes](./deploy/kubernetes/README.md)
-
-### [Helm](./deploy/helm/README.md)
-
-
-## Configure the Aqua Server with Webhook Integration
-
-Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
-![Screenshot](webhook-integration.png)
-
-Validate that a ticket has been opened, or email was sent (depending on your configuration file).
-
-You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
-Navigate to the **Settings** page in the System section, menu, under the "Image Scan Results Webhook" section.
-
-Click "Enable sending image scan results to Postee server", and specify the URL of the Aqua Webhook server.
-
-The URL is in the following formats:
-**HTTPS**: https://<Postee IP or DNS>:8444
-or
-**HTTP**: http://<Postee IP or DNS>:8084
-
-### Validate the Integration
-
-To validate that the integration is working, you can scan a new image for security vulnerabilities from the Aqua Server UI (Images > Add Image > Specify Image Name > Add).
-
-When vulnerabilities are found in an image, you will see that a JIRA ticket is created/ Email is received/ Slack message is posted to the channel.
-
-###### *To troubleshoot the integration, you can look at both the Aqua Postee container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
