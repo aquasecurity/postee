@@ -1,3 +1,32 @@
+# Postee
+
+![Postee](postee.jpeg)
+
+![Docker Pulls][docker-pull]
+[![Coverage Status][cov-img]][cov]
+[![Go Report Card][report-card-img]][report-card]
+![](https://github.com/aquasecurity/postee/workflows/Go/badge.svg)
+[![License][license-img]][license]
+
+[download]: https://img.shields.io/github/downloads/aquasecurity/postee/total?logo=github
+[release-img]: https://img.shields.io/github/release/aquasecurity/postee.svg?logo=github
+[release]: https://github.com/aquasecurity/postee/releases
+[docker-pull]: https://img.shields.io/docker/pulls/aquasec/postee?logo=docker&label=docker%20pulls%20%2F%20postee
+[go-doc-img]: https://godoc.org/github.com/aquasecurity/postee?status.svg
+[cov-img]: https://codecov.io/github/aquasecurity/postee/branch/main/graph/badge.svg
+[cov]: https://codecov.io/github/aquasecurity/postee
+[report-card-img]: https://goreportcard.com/badge/github.com/aquasecurity/postee
+[report-card]: https://goreportcard.com/report/github.com/aquasecurity/postee
+[license-img]: https://img.shields.io/badge/License-mit-blue.svg
+[license]: https://github.com/aquasecurity/postee/blob/master/LICENSE
+
+# Table of Contents
+- [Abstract](#abstract)
+- [Features](#features)
+- [Installation](#installation)
+- [Configure the Aqua Server with Webhook Integration](#configure-the-aqua-server-with-webhook-integration)
+- [Set up the Configuration File](#set-up-the-configuration-file)
+
 ## Abstract
 Postee is a simple application that receives JSON messages from one hand, and delivers them (after reformatting) to different collaboration systems, like: JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow.
 
@@ -9,7 +38,7 @@ Main goal of V2 changes is to make every aspect of product customizable. It now 
 
 
 ### Policy related features in Postee V2
-Many options which can limit sending of messages are redesigning in favor of using OPA rules.
+Many options which were inteded to send messages for specific events only are redesigning in favor of using OPA rules.
 Here is list of options which are not supported anymore:
 - Policy-Min-Vulnerability
 - Policy-Registry
@@ -33,84 +62,95 @@ Image rescans: When an image is rescanned, the integration will not send a messa
 
 ##### Aggregate-Issues-Number and Aggregate-Issues-Timeout
 Aggregation policy: You can aggregate multiple scan results in a single ticket/message. This is useful if you would like to get a digest on daily/weekly basis.
-See Route plugins for more details
+See [Route plugins](#route-plugins-section) for more details
 
 #### Input message workflow
 Interaction of Postee v2 modules.
 ![Postee v2 scheme](/postee-v2-scheme.png)
 
 #### Rego Templates
-[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define template. Message payload is referenced as `input` when template is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
+[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define templates. Message payload is referenced as `input` when template is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
 Key | Description |Type
 --- | --- 
-result | message body| Can be either string or json
-title | message title| string
-aggregation_pkg|reference to package used to aggregate messages (when Aggregate-Issues-Timeout or Aggregate-Issues-Number options are used). If it's missed then aggregation feature is not supported| valid rego package
+*result* | message body| Can be either string or json
+*title* | message title| string
+*aggregation_pkg*|reference to package used to aggregate messages (when Aggregate-Issues-Timeout or Aggregate-Issues-Number options are used). If it's missed then aggregation feature is not supported| valid rego package
+
+So simplest example of Rego template would look like:
+```rego
+package example.vuls.html
+
+title:="Vulnerabilities are found"
+result:=sprintf("Vulnerabilities are found while scanning of image: <i>%s</i>", [input.image])
+```
 
 Two examples are shipped with the app. One produces output for slack integration and another one builds html output which can be used across several integrations. These example can be used as starting point for message customization
 
 ## App configuration YAML
-IMPORTANT: Application config yaml is re-designed in V2 release and has no backward compatibility.
+To set up the integration, you will need to create a `cfg.yaml` file, which contains the connection settings. Edit the configuration file with the connection details of your JIRA, Slack, etc.
+
+IMPORTANT: Application config yaml is re-designed in V2 release and has no backward compatibility. 
+Besides the structure changes all option names are now lowercase words separated by hyphens. So `UseMX` becomes `use-mx` for example
 
 ### General options
 General options are specified at the root level of config yaml. All these options were also available in Postee V1
 Key | Description | Possible Values
 --- | --- | ---
-AquaServer|Aqua Console URL. This is used for some of the integrations to include link to scan results| any valid url
-Delete_Old_Data|delete data older than N day(s).  If empty then we do not delete.| any integer value
-DbVerifyInterval|hours. an Interval between tests of DB. Default: 1 hour| any integer value
-Max_DB_Size|Max size of DB. MB. if empty then unlimited| any integer value
+*aqua-server*|Aqua Console URL. This is used for some of the integrations to include link to scan results| any valid url
+*delete-old-data*|delete data older than N day(s).  If empty then we do not delete.| any integer value
+*db-verify-interval*|hours. an Interval between tests of DB. Default: 1 hour| any integer value
+*max-db-size*|Max size of DB. MB. if empty then unlimited| any integer value
 
 ### Routes sections
 Route is used to control messages flow. It must include references to one or more outputs and reference to the template used for message rendering.
 Key | Description | Possible Values
 --- | --- | ---
-name|Unique name of route| string
-input|Rego rule to filter message| Rego language statements
-outputs|Outputs associated with route| Set of output names, like ["my-slack", "my-email"]. At least one element is required
-template| Reference to template, required| any template name
+*name*|Unique name of route| string
+*input*|Rego rule to filter message| Rego language statements
+*outputs*|Outputs associated with route| Set of output names, like ["my-slack", "my-email"]. At least one element is required
+*template*| Reference to template, required| any template name
 #### Route plugins section
 'Plugins' section contains configuration for useful Postee features. 
 Key | Description | Possible Values
 --- | --- | ---
-Policy-Show-All|Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.| boolean
-Aggregate-Issues-Number|Number of scans to aggregate into one ticket.| any integer value
-Aggregate-Issues-Timeout|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh
+*policy-show-all*|Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.| boolean
+*aggregate-issues-number*|Number of scans to aggregate into one ticket.| any integer value
+*aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh
 
 ### Templates
 There are several options to configure templates. One required template property is `name` (to allow references to template within route configuration). For further configuration pick none option from the list below:
-- Use buildin template. Postee loads bundle of templates from `rego-templates` folder. Root folder includes several templates shipped with application. Any subfolder can be used to append user templates. To specify particular rego rule use `regopackage` option.  Example is `postee.vuls.html` 
+- Use buildin template. Postee loads bundle of templates from `rego-templates` folder. Root folder includes several templates shipped with application. Any subfolder can be used to append user templates. To specify particular rego rule use `rego-package` option.  Example is `postee.vuls.html` 
 - Specify inline template. Relative small templates can be added to config directly. `body` option can be used for that 
 - Load from url. Rego template can be loaded from url. There is an `url` option
-- Legacy template. Legacy templates are introduced to support Postee V1 renderers. Option is `legacyScanRenderer`. Available values are  "jira", "slack", "html". "jira" should be used for jira integration, "slack" is for slack and "html" is for everything else.
+- Legacy template. Legacy templates are introduced to support Postee V1 renderers. Option is `legacy-scan-renderer`. Available values are  "jira", "slack", "html". "jira" should be used for jira integration, "slack" is for slack and "html" is for everything else.
 
 ### Outputs
 Outputs were known as plugins before. 
 #### ServiceNow integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-user | ServiceNow user name | 
-password | User API key / password |
-instance | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
-board | ServiceNow board name to open tickets on. Default is "incident" |
+*user* | ServiceNow user name | 
+*password* | User API key / password |
+*instance* | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
+*board* | ServiceNow board name to open tickets on. Default is "incident" |
 
 #### Jira integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-url | Jira project url |
-user | Jira user name | 
-password | User's API key | 
-project_key | The JIRA project key |
-board |  Optional: JIRA board key |
-priority|  Optional: ticket priority, e.g., High |
-assignee| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value |
-issuetype| Optional: issue type, e.g., Bug |
-labels| Optional: comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
-sprint| Optional: Sprint name, e.g., "3.5 Sprint 8" |
+*url* | Jira project url |
+*user* | Jira user name | 
+*password* | User's API key | 
+*project-key* | The JIRA project key |
+*board* |  Optional: JIRA board key |
+*priority*|  Optional: ticket priority, e.g., High |
+*assignee*| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value |
+*issuetype*| Optional: issue type, e.g., Bug |
+*labels*| Optional: comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
+*sprint*| Optional: Sprint name, e.g., "3.5 Sprint 8" |
 
 For Jira you can also specify custom fields that will be populated with values.
-Use the "unknowns" parameter in cfg.yaml for custom fields.
-Under the "unknowns" parameter, specify the list of fields names to provide value for.
+Use the `unknowns` parameter in cfg.yaml for custom fields.
+Under the `unknowns` parameter, specify the list of fields names to provide value for.
 You can add "-numeric-field", "-multiple-value", "multiple-line-text-field", "-date-time-picker" and "-field-url" as suffix to the custom field name, to specify what is the field type.
 
 For example: 
@@ -127,41 +167,92 @@ unknowns:
 #### Email integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-UseMX | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
-user | User name (usually email address) |
-password | Password | 
-host | SMTP host name | 
-port | SMTP port |
-sender |  Sender's email address |
-recipients|  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
+*use-mx* | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
+*user* | User name (usually email address) |
+*password* | Password | 
+*host* | SMTP host name | 
+*port* | SMTP port |
+*sender* |  Sender's email address |
+*recipients*|  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
 
 #### Slack integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-url | Slack WebHook URL (includes the access key) |
+*url* | Slack WebHook URL (includes the access key) |
 
 
 #### MS Teams integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-url | MS Teams WebHook URL |
+*url* | MS Teams WebHook URL |
 
 #### Splunk integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-token | The Splunk HTTP event collector token | 
-url | URL to Splunk HTTP event collector (e.g. http://server:8088) |
-SizeLimit | Optional. Maximum scan length, in bytes. Default: 10000 | 10000
+*token* | The Splunk HTTP event collector token | 
+*url* | URL to Splunk HTTP event collector (e.g. http://server:8088) |
+*size-limit* | Optional. Maximum scan length, in bytes. Default: 10000 | 10000
 
 #### Generic Webhook integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-url | Webhook URL |
-# Data Persistency #
+*url* | Webhook URL |
+### Data Persistency
 The Postee container uses BoltDB to store information about previously scanned images.
 This is used to prevent resending messages that were already sent before.
 The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.
 
 If you would like to persist the database file between restarts of the Postee container, then you should
 use a persistent storage option to mount the "/server/database" directory of the container.
-The "Kubernetes" directory in this project contains an example deployment that includes a basic Host Persistency.
+The "deploy" directory in this project contains an example deployment that includes a basic Host Persistency.
+## Installation
+
+### From Source
+Clone this project: 
+```bash
+git clone git@github.com:aquasecurity/postee.git
+make build
+./bin/postee
+```
+
+### Docker
+Build the postee Docker image: 
+```bash
+docker build -t aquasec/postee:latest .
+```
+
+Run the Aqua Postee container with the configuration file:
+```bash
+docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+    -e AQUAALERT_CFG=/config/cfg.yaml -e AQUAALERT_URL=0.0.0.0:8084 -e AQUAALERT_TLS=0.0.0.0:8444 \ 
+    -p 8444:8444 -p 8084:8084 aquasec/postee:latest
+```
+### [Kubernetes](./deploy/kubernetes/README.md)
+
+### [Helm](./deploy/helm/README.md)
+
+
+## Configure the Aqua Server with Webhook Integration
+
+Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
+![Screenshot](webhook-integration.png)
+
+Validate that a ticket has been opened, or email was sent (depending on your configuration file).
+
+You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
+Navigate to the **Settings** page in the System section, menu, under the "Image Scan Results Webhook" section.
+
+Click "Enable sending image scan results to Postee server", and specify the URL of the Aqua Webhook server.
+
+The URL is in the following formats:
+**HTTPS**: https://<Postee IP or DNS>:8444
+or
+**HTTP**: http://<Postee IP or DNS>:8084
+
+### Validate the Integration
+
+To validate that the integration is working, you can scan a new image for security vulnerabilities from the Aqua Server UI (Images > Add Image > Specify Image Name > Add).
+
+When vulnerabilities are found in an image, you will see that a JIRA ticket is created/ Email is received/ Slack message is posted to the channel.
+
+###### *To troubleshoot the integration, you can look at both the Aqua Postee container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
