@@ -171,9 +171,9 @@ docker run -d --name=aqua-postee -v /<path to configuration file>/cfg.yaml:/conf
 
 ## Configure and run Postee UI application
 ### Requirements
-Postee UI shares locations of Postee app config with main webhook app, also BoltDB needs to be in folder which is available for both apps.
+Postee Admin application shares location of `cfg.yaml` with main webhook app, also Bolt database needs to be in folder which is available for both apps.
 
-**Important**: If application config is submitted by UI app all yaml comments are removed. So if comments are important please make backup of config yaml.
+**Important**: If application config is submitted by UI app then all yaml comments are removed. So if comments are important please make backup of config yaml.
 ### Docker Image for Postee UI application
 Dockerfile to build image for UI app is [here](Dockerfile.ui)
 
