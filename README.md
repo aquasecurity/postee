@@ -36,7 +36,6 @@ Primary use of Postee is act as notification component for Aqua Security product
 ### New features in Postee V2
 Main goal of V2 changes is to make every aspect of product customizable. It now can work with any incoming JSON messages (not only vulnerability scan results). Once message is received by application it's evaluated against app config to make a decision whether it needs to be forwarded or dropped. All features related to represent messages as html or slack markdown still available but to support custom formatting new feature is introduced: Rego Templates. It uses Rego Language to define message body. More details are in Rego templates section below
 
-
 ### Policy related features in Postee V2
 Many options which were intended to limit sending messages for specific events only are redesigning in favor of using OPA rules.
 Here is list of options which are not supported anymore:
@@ -86,6 +85,14 @@ result:=sprintf("Vulnerabilities are found while scanning of image: <i>%s</i>", 
 ```
 
 Two examples are shipped with the app. One produces output for slack integration and another one builds html output which can be used across several integrations. These example can be used as starting point for message customization
+
+### Postee UI
+Another new feature of Postee is Admin application. It supports new application modules and provides set of forms for that.
+![Config app](/postee-output-config.png)
+Application has tabs for routes, outputs and templates. All field values are validated if required. Code editor is provided for the properties which can contain inline rego language statements.
+Besides validation, output form provides an option to test output configuration. Test email/issue/message will be created in integrated application while testing.
+
+See more details [here](#configure-and-run-postee-ui-application) 
 
 ### Data Persistency
 The Postee container uses BoltDB to store information about previously scanned images.
@@ -161,6 +168,28 @@ docker run -d --name=aqua-postee -v /<path to configuration file>/cfg.yaml:/conf
 ```
 
 ###### *There is a volume mount that mounts the configuration file from the host to the container. There is also an environment variable, AQUAALERT_CFG, that specifies the location of the JIRA configuration file inside the container.*
+
+## Configure and run Postee UI application
+### Requirements
+Postee UI shares locations of Postee app config with main webhook app, also BoltDB needs to be in folder which is available for both apps.
+
+**Important**: If application config is submitted by UI app all yaml comments are removed. So if comments are important please make backup of config yaml.
+### Docker Image for Postee UI application
+Dockerfile to build image for UI app is [here](Dockerfile.ui)
+
+### Orchestration example (Docker Compose)
+There is an example of [docker-compose.yml](docker-compose.yml) that can be used to simplify deploying of both app. Notice that two shared volumes are used. One is for Bolt db and second to store app config. To start apps use: `docker-compose up`.
+
+### Environment variables
+Name | Description | Default value
+--- | --- | ---
+POSTEE_UI_CFG|Path to app config| required, no default value
+POSTEE_UI_PORT|Port to use with UI app| 8090
+POSTEE_UI_UPDATE_URL|Url of webhook application|required
+POSTEE_ADMIN_USER|Admin account name|admin
+POSTEE_ADMIN_PASSWORD|Admin account password|admin
+
+## Outputs configuration
 
 ### Getting the JIRA connection details
 
