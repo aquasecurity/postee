@@ -10,6 +10,34 @@ import (
 )
 
 func TestAggregateIssuesPerTicket(t *testing.T) {
+	tests := []struct {
+		caseDesc              string
+		expectedSntCnt        int
+		expectedRenderCnt     int
+		expectedAggrRenderCnt int
+		skipAggrSpprt         bool
+	}{
+		{
+			caseDesc:              "basic",
+			expectedSntCnt:        1,
+			expectedRenderCnt:     4,
+			expectedAggrRenderCnt: 1,
+		},
+		{
+			caseDesc:              "no aggregation supported",
+			expectedSntCnt:        4,
+			expectedRenderCnt:     4,
+			expectedAggrRenderCnt: 0,
+			skipAggrSpprt:         true,
+		},
+	}
+
+	for _, test := range tests {
+		doAggregate(t, test.caseDesc, test.expectedSntCnt, test.expectedRenderCnt, test.expectedAggrRenderCnt, test.skipAggrSpprt)
+	}
+
+}
+func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRenderCnt int, expectedAggrRenderCnt int, skipAggrSpprt bool) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
@@ -30,10 +58,12 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 	demoRoute.Plugins.AggregateIssuesNumber = 3
 	demoRoute.Plugins.PolicyShowAll = true
 
-	demoInptEval := &DemoInptEval{}
+	demoInptEval := &DemoInptEval{
+		skipAggrSpprt: skipAggrSpprt,
+	}
 
 	demoEmailOutput.wg = &sync.WaitGroup{}
-	demoEmailOutput.wg.Add(1)
+	demoEmailOutput.wg.Add(expectedSntCnt)
 
 	for _, scan := range scans {
 		srv := new(MsgService)
@@ -41,10 +71,6 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 	}
 
 	demoEmailOutput.wg.Wait()
-
-	expectedSntCnt := 1
-	expectedRenderCnt := 4
-	expectedAggrRenderCnt := 1
 
 	if demoEmailOutput.getEmailsCount() != expectedSntCnt {
 		t.Errorf("The number of sent email doesn't match expected value. Sent: %d, expected: %d ", demoEmailOutput.getEmailsCount(), expectedSntCnt)
@@ -58,5 +84,3 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 		t.Errorf("The number of aggregation procedure invocations doesn't match expected value. It's called %d times, expected: %d ", demoInptEval.aggrCnt, expectedAggrRenderCnt)
 	}
 }
-
-//TODO add negative tests when no aggregation is configured and when input evaluator doesn't support aggregation

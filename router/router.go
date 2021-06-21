@@ -97,8 +97,6 @@ func (ctx *Router) Start(cfgfile string) error {
 func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
 
-	//TODO Router terminates incorrectly if it is not initialized properly
-
 	for _, pl := range ctx.outputs {
 		pl.Terminate()
 	}

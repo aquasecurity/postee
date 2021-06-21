@@ -18,10 +18,11 @@ var (
 )
 
 type DemoInptEval struct {
-	rndMu     sync.Mutex
-	aggrMu    sync.Mutex
-	renderCnt int
-	aggrCnt   int
+	rndMu         sync.Mutex
+	aggrMu        sync.Mutex
+	renderCnt     int
+	aggrCnt       int
+	skipAggrSpprt bool
 }
 
 func (inptEval *DemoInptEval) Eval(in map[string]interface{}, serverUrl string) (map[string]string, error) {
@@ -57,7 +58,7 @@ func (inptEval *DemoInptEval) BuildAggregatedContent(items []map[string]string) 
 	}, nil
 }
 func (inptEval *DemoInptEval) IsAggregationSupported() bool {
-	return true
+	return !inptEval.skipAggrSpprt
 }
 
 type DemoEmailOutput struct {
