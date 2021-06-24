@@ -133,7 +133,7 @@ result = res {
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
                                                                         "Image is non-compliant",
                                                                         "Image is compliant",
-                                                                        input.image_assurance_results.disallowed
+                                                                        with_default(input.image_assurance_results, "disallowed", false)
                                                                     )}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
                                                                         "Malware found: Yes",
@@ -177,8 +177,10 @@ result = res {
                 }
 	           ]
 
-    href:=sprintf("%s%s/%s", [input.postee.AquaServer, urlquery.encode(input.registry), urlquery.encode(input.image)])
-    text:=sprintf("%s%s/%s", [input.postee.AquaServer, input.registry, input.image])
+    aquaServer:=input.postee.AquaServer
+
+    href:=sprintf("%s%s/%s", [aquaServer, urlquery.encode(input.registry), urlquery.encode(input.image)])
+    text:=sprintf("%s%s/%s", [aquaServer, input.registry, input.image])
     urlText :=sprintf("See more: \u003c%s|%s\u003e", [href, text])
 
     footers := [
