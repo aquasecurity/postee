@@ -71,7 +71,7 @@ Interaction of Postee v2 modules.
 [Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define templates. Message payload is referenced as `input` when template is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
 
 Key | Description |Type
---- | --- |
+--- | --- | ---
 *result* | message body| Can be either string or json
 *title* | message title| string
 *aggregation_pkg*|reference to package used to aggregate messages (when Aggregate-Issues-Timeout or Aggregate-Issues-Number options are used). If it's missed then aggregation feature is not supported| valid rego package
