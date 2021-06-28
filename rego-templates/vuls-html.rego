@@ -138,12 +138,13 @@ render_vlnrb(severity, list) = "" {  #returns empty string if list of vulnerabil
 
 # builds 2-dimension array for vulnerability table
 vln_list(severity) = vlnrb {
+    some i, j
 	vlnrb := [r |
-    				item := input.resources[_]
+                    item := input.resources[i]
                     resource := item.resource
-                    vlnname := item.vulnerabilities[_].name
-                    fxvrsn := item.vulnerabilities[_].fix_version
-                    item.vulnerabilities[_].aqua_severity == severity # only items with severity matched
+                    vlnname := item.vulnerabilities[j].name
+                    fxvrsn := item.vulnerabilities[j].fix_version
+                    item.vulnerabilities[j].aqua_severity == severity # only items with severity matched
                     r := [vlnname, resource.name, resource.version, fxvrsn]
               ]
 }

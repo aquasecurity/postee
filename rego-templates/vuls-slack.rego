@@ -53,15 +53,16 @@ render_sections(rows, caption) = [] { #do not render section if provided collect
 vln_list(severity) = l {
     # builds list of rows for section for the given severity
 	vlnrb := [r |
-    				item := input.resources[_]
+                    some i, j
+                    item := input.resources[i]
                     resource := item.resource
-                    vlnname := item.vulnerabilities[_].name
+                    vlnname := item.vulnerabilities[j].name
 
-                    fxvrsn := with_default(item.vulnerabilities[_],"fix_version", "none")
+                    fxvrsn := with_default(item.vulnerabilities[j],"fix_version", "none")
                     resource_name = with_default(resource, "name", "none")
                     resource_version = with_default(resource, "version", "none")
 
-                    item.vulnerabilities[_].aqua_severity == severity
+                    item.vulnerabilities[j].aqua_severity == severity
 
                     r := [
                     	{"type": "mrkdwn", "text": vlnname},
