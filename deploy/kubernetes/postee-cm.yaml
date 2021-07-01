@@ -1,0 +1,10 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: postee-config
+data:
+  cfg.yaml: |
+    ---
+    # Reference: https://github.com/aquasecurity/postee/blob/main/cfg.yaml
+    - type: common   #  Common settings for all plugins
+      AquaServer:   #  url of Aqua Server for links. E.g. https://myserver.aquasec.com
