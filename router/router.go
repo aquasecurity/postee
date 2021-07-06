@@ -74,7 +74,11 @@ func Instance() *Router {
 }
 func (ctx *Router) ReloadConfig() {
 	ctx.Terminate()
-	ctx.Start(ctx.cfgfile)
+	err := ctx.Start(ctx.cfgfile)
+
+	if err != nil {
+		log.Printf("Unable to start router: %s", err)
+	}
 }
 
 func (ctx *Router) Start(cfgfile string) error {
@@ -158,10 +162,10 @@ func (ctx *Router) initTemplate(template *Template) error {
 		}
 
 		b, err := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
 		if err != nil {
 			return err
 		}
+		defer resp.Body.Close()
 		inpteval, err := regoservice.BuildExternalRegoEvaluator(path.Base(r.URL.Path), string(b))
 
 		if err != nil {
@@ -288,8 +292,6 @@ func (ctx *Router) handle(in []byte) {
 	}
 }
 func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Output {
-	var plg outputs.Output
-
 	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
 	if len(settings.User) == 0 && requireAuthorization[settings.Type] {
 		log.Printf("User for %q is empty", settings.Name)
@@ -302,6 +304,8 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	}
 
 	utils.Debug("Starting Output %q: %q\n", settings.Type, settings.Name)
+
+	var plg outputs.Output
 
 	switch settings.Type {
 	case "jira":

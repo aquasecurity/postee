@@ -1,4 +1,4 @@
-FROM node:latest as vuebuilder
+FROM node:alpine3.13 as vuebuilder
 ADD ./ui/frontend /frontend
 WORKDIR /frontend
 
@@ -12,7 +12,7 @@ ADD . /webhook
 WORKDIR /webhook/ui/backend
 RUN go build -o posteeui
 
-FROM alpine
+FROM alpine:alpine3.13
 EXPOSE 8000
 
 RUN mkdir /uiserver

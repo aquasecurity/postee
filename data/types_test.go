@@ -47,6 +47,5 @@ func TestHasUniqueId(t *testing.T) {
 		if got := si.HasId(); got != test.expectedResult {
 			t.Errorf(`for scan (image: "%s",registry: "%s",digest: "%s") HasUniqueId()== %t, want %t`, test.image, test.registry, test.digest, got, test.expectedResult)
 		}
-
 	}
 }
