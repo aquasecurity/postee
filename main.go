@@ -29,7 +29,6 @@ var (
 	url     = ""
 	tls     = ""
 	cfgfile = ""
-	done    = make(chan bool, 1)
 )
 
 var rootCmd = &cobra.Command{
@@ -80,6 +79,7 @@ func main() {
 
 func Daemonize() {
 	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
