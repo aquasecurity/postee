@@ -95,7 +95,12 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 
 func send(otpt outputs.Output, cnt map[string]string) {
 	go otpt.Send(cnt)
-	dbservice.RegisterPlgnInvctn(otpt.GetName())
+	err := dbservice.RegisterPlgnInvctn(otpt.GetName())
+	if err != nil {
+		log.Printf("Error while building aggregated content: %v", err)
+		return
+	}
+
 }
 
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {

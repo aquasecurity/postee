@@ -45,12 +45,9 @@ type Router struct {
 }
 
 var (
-	errNoOutputs  = errors.New("there aren't started outputs")
 	initCtx       sync.Once
 	routerCtx     *Router
 	baseForTicker = time.Hour
-
-	osStat = os.Stat
 
 	requireAuthorization = map[string]bool{
 		"servicenow": true,
