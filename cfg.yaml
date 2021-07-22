@@ -1,37 +1,31 @@
-name: tenant          #  the tenant name
-aqua-server: #  url of Aqua Server for links. E.g. https://myserver.aquasec.com
-max-db-size: 1000     #  Max size of DB. MB. if empty then unlimited
-delete-old-data: 10   #  delete data older than N day(s).  If empty then we do not delete.
-db-verify-interval: 1   #  hours. an Interval between tests of DB. Default: 1 hour
+name: tenant            #  The tenant name
+aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+max-db-size: 1000       #  Max size of DB. MB. if empty then unlimited
+delete-old-data: 10     #  Delete data from the database that is older than N day(s). If empty then data is not deleted.
+db-verify-interval: 1   #  How often to check the DB size. By default Postee checks every 1 hour
 
 routes:
-- name: route1      #  name must be unique
-  input: contains(input.image, "alpine")          #  REGO rules
-  outputs: [my-slack]  #  an integration output which will receive a scan or an audit event
-  template: slack-template   #  a template for this route
-  plugins:
-   aggregate-issues-number:   #  a number of scans to aggregate into one ticket
-   aggregate-issues-timeout:    #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
-   policy-show-all: true # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
-- name: route2      #  name must be unique
-  outputs: [my-email]  #  an integration output which will receive a scan or an audit event
-  template: rego-email   #  a template for this route
-  plugins:
-   aggregate-issues-number:   #  a number of scans to aggregate into one ticket
-   aggregate-issues-timeout:  #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
-   policy-show-all: true # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
-
+- name: route1                                 #  Route name. Must be unique
+  input: contains(input.image, "alpine")       #  REGO rule to match input message against
+  outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
+  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
+  plugins:                                     #  Optional plugins
+   aggregate-issues-number:                       # Number of same messages to aggregate into one output message 
+   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
+   policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
+  
 templates:
-- name: slack-template         #  name must be unique
-  rego-package:  postee.vuls.slack      #  REGO package for a template
-- name: rego-email                #  name must be unique
-  rego-package:  postee.vuls.html      #  REGO package for a template
-- name: legacy
+- name: slack-template                  #  Slack template
+  rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
+- name: rego-email                      #  HTML template
+  rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box) 
+- name: legacy                          #  Legacy Golang template
   legacy-scan-renderer: html
-- name: legacy-slack
+- name: legacy-slack                    #  Legacy slack template implemented in Golang
   legacy-scan-renderer: slack
-- name: custom-email
-  url: # url to custom rego file
+- name: custom-email                    #  Example of how to use a template from a Web URL
+  url:                                  #  URL to custom REGO file
+  
 outputs:
 - name: my-jira   #  name must be unique
   type: jira   #  supported types: jira, email
