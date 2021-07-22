@@ -10,22 +10,22 @@ routes:
   outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
   template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
   plugins:                                     #  Optional plugins
-   aggregate-issues-number:                       # Number of same messages to aggregate into one output message 
+   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
    aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
    policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
-  
+
 templates:
 - name: slack-template                  #  Slack template
   rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
-- name: rego-email                      #  HTML template
-  rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box) 
+- name: rego-html                      #  HTML template
+  rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box)
 - name: legacy                          #  Legacy Golang template
   legacy-scan-renderer: html
 - name: legacy-slack                    #  Legacy slack template implemented in Golang
   legacy-scan-renderer: slack
 - name: custom-email                    #  Example of how to use a template from a Web URL
   url:                                  #  URL to custom REGO file
-  
+
 outputs:
 - name: my-jira   #  name must be unique
   type: jira   #  supported types: jira, email
@@ -77,7 +77,6 @@ outputs:
   type: teams
   enable: true
   url: https://outlook.office.com/webhook/....   #  Webhook's url
-  policy-opa: ["/config/policy.rego"]
 
 - name: webhook
   type: webhook
