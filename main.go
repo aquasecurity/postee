@@ -53,12 +53,24 @@ func main() {
 			url = os.Getenv("AQUAALERT_URL")
 		}
 
+		if os.Getenv("POSTEE_HTTP") != "" {
+			url = os.Getenv("POSTEE_HTTP")
+		}
+
 		if os.Getenv("AQUAALERT_TLS") != "" {
 			tls = os.Getenv("AQUAALERT_TLS")
 		}
 
+		if os.Getenv("POSTEE_HTTPS") != "" {
+			tls = os.Getenv("POSTEE_HTTPS")
+		}
+
 		if os.Getenv("AQUAALERT_CFG") != "" {
 			cfgfile = os.Getenv("AQUAALERT_CFG")
+		}
+
+		if os.Getenv("POSTEE_CFG") != "" {
+			cfgfile = os.Getenv("POSTEE_CFG")
 		}
 
 		err := router.Instance().Start(cfgfile)

@@ -58,9 +58,9 @@ spec:
           imagePullPolicy: Always
           name: aqua-postee
           env:
-            - name: AQUAALERT_CFG
+            - name: POSTEE_CFG
               value: /policy/cfg.yaml
-            - name: AQUAALERT_DEBUG
+            - name: POSTEE_DEBUG
               value: "not"
           ports:
             - containerPort: 8082
