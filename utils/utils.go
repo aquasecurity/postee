@@ -24,6 +24,9 @@ func InitDebug() {
 	if os.Getenv("AQUAALERT_DEBUG") != "" {
 		dbg = true
 	}
+	if os.Getenv("POSTEE_DEBUG") != "" {
+		dbg = true
+	}
 }
 
 func Debug(format string, v ...interface{}) {
