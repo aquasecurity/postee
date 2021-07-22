@@ -1,6 +1,8 @@
 package postee.vuls.html
 
 import data.postee.by_flag
+import data.postee.with_default
+
 #import common.by_flag
 ################################################ Templates ################################################
 #main template to render message
@@ -141,11 +143,16 @@ vln_list(severity) = vlnrb {
     some i, j
 	vlnrb := [r |
                     item := input.resources[i]
+
+
                     resource := item.resource
                     vlnname := item.vulnerabilities[j].name
-                    fxvrsn := item.vulnerabilities[j].fix_version
+                    fxvrsn := with_default(item.vulnerabilities[j],"fix_version", "none")
+                    resource_name = with_default(resource, "name", "none")
+                    resource_version = with_default(resource, "version", "none")
+
                     item.vulnerabilities[j].aqua_severity == severity # only items with severity matched
-                    r := [vlnname, resource.name, resource.version, fxvrsn]
+                    r := [vlnname, resource_name, resource_version, fxvrsn]
               ]
 }
 ###########################################################################################################
@@ -162,7 +169,7 @@ result = msg {
 	by_flag(
      "Image is non-compliant",
      "Image is compliant",
-     input.image_assurance_results.disallowed
+     with_default(input.image_assurance_results, "disallowed", false)
     ),
 	by_flag(
      "Malware found: Yes",
