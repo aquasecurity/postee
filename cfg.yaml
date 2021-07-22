@@ -15,7 +15,7 @@ routes:
    policy-show-all: true # Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.
 - name: route2      #  name must be unique
   outputs: [my-email]  #  an integration output which will receive a scan or an audit event
-  template: rego-email   #  a template for this route
+  template: rego-html   #  a template for this route
   plugins:
    aggregate-issues-number:   #  a number of scans to aggregate into one ticket
    aggregate-issues-timeout:  #  number of seconds, minutes, hours to aggregate, maximum is 24 hours Xs or Xm or Xh)
@@ -24,7 +24,7 @@ routes:
 templates:
 - name: slack-template         #  name must be unique
   rego-package:  postee.vuls.slack      #  REGO package for a template
-- name: rego-email                #  name must be unique
+- name: rego-html                #  name must be unique
   rego-package:  postee.vuls.html      #  REGO package for a template
 - name: legacy
   legacy-scan-renderer: html
@@ -83,7 +83,6 @@ outputs:
   type: teams
   enable: true
   url: https://outlook.office.com/webhook/....   #  Webhook's url
-  policy-opa: ["/config/policy.rego"]
 
 - name: webhook
   type: webhook
