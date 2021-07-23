@@ -178,10 +178,11 @@ result = res {
                 }
 	           ]
 
-    aquaServer:=input.postee.AquaServer
+    postee := with_default(input, "postee", {})
+    aqua_server := with_default(input, "AquaServer", "")
 
-    href:=sprintf("%s%s/%s", [aquaServer, urlquery.encode(input.registry), urlquery.encode(input.image)])
-    text:=sprintf("%s%s/%s", [aquaServer, input.registry, input.image])
+    href:=sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
+    text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
     urlText :=sprintf("See more: \u003c%s|%s\u003e", [href, text])
 
     footers := [

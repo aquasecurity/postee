@@ -156,9 +156,12 @@ vln_list(severity) = vlnrb {
               ]
 }
 ###########################################################################################################
+postee := with_default(input, "postee", {})
+aqua_server := with_default(input, "AquaServer", "")
+
 title = sprintf("%s vulnerability scan report", [input.image])
-href := sprintf("%s%s/%s", [input.postee.AquaServer, urlquery.encode(input.registry), urlquery.encode(input.image)])
-text := sprintf("%s%s/%s", [input.postee.AquaServer, input.registry, input.image])
+href := sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
+text := sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
