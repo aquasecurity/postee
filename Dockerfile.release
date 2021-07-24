@@ -4,8 +4,10 @@ EXPOSE 8082
 EXPOSE 8445
 RUN mkdir /server
 RUN mkdir /server/database
-COPY postee /server/postee
+RUN mkdir /config
+COPY postee /server/
 COPY rego-templates /server/rego-templates
+COPY cfg.yaml /config/
 WORKDIR /server
 RUN chmod +x postee
 RUN addgroup -g 1099 postee
