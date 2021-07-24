@@ -47,6 +47,8 @@ dockers:
       - "public.ecr.aws/aquasecurity/postee:{{ .Version }}"
     ids:
       - postee
+    extra_files:
+      - rego-templates/
     build_flag_templates:
       - "--label=org.label-schema.schema-version=1.0"
       - "--label=org.label-schema.name={{ .ProjectName }}"
