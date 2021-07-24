@@ -1,4 +1,4 @@
-# The configuration file contains a general sttings section,
+# The configuration file contains a general settings section,
 # routes, templates and outputs sections.
 
 name: tenant            #  The tenant name
