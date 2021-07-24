@@ -8,8 +8,8 @@ RUN yarn build
 
 FROM golang:1.16-alpine as gobuilder
 
-ADD . /webhook
-WORKDIR /webhook/ui/backend
+ADD . /server
+WORKDIR /server/ui/backend
 RUN go build -o posteeui
 
 FROM alpine:alpine3.13
@@ -22,13 +22,13 @@ RUN mkdir /server
 RUN mkdir /server/database
 RUN mkdir /config
 
-COPY --from=gobuilder /webhook/ui/backend/posteeui /uiserver
+COPY --from=gobuilder /server/ui/backend/posteeui /uiserver
 COPY --from=vuebuilder /frontend/dist /uiserver/www
 
 WORKDIR /uiserver
-RUN addgroup -g 1099 webhook
-RUN adduser -D -g '' -G webhook -u 1099 webhook
-RUN chown -R webhook:webhook /server
-RUN chown -R webhook:webhook /config
-USER webhook
+RUN addgroup -g 1099 postee
+RUN adduser -D -g '' -G postee -u 1099 postee
+RUN chown -R postee:postee /server
+RUN chown -R postee:postee /config
+USER postee
 ENTRYPOINT ["/uiserver/posteeui"]

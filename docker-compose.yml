@@ -10,8 +10,8 @@ services:
             - bolt:/server/database
             - config:/config
         environment:
-            - "AQUAALERT_CFG=/config/cfg.yaml"
-            - "AQUAALERT_DEBUG=ON"
+            - "POSTEE_CFG=/config/cfg.yaml"
+            - "POSTEE_DEBUG=ON"
     posteeui:
         build:
             context: .

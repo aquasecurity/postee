@@ -45,9 +45,9 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: AQUAALERT_CFG
+            - name: POSTEE_CFG
               value: /policy/cfg.yaml
-            - name: AQUAALERT_DEBUG
+            - name: POSTEE_DEBUG
               value: "not"
           ports:
             - name: http

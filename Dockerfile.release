@@ -8,9 +8,9 @@ COPY bin /server/
 COPY rego-templates /server/rego-templates
 WORKDIR /server
 RUN chmod +x postee
-RUN addgroup -g 1099 webhook
-RUN adduser -D -g '' -G webhook -u 1099 webhook
-RUN chown -R webhook:webhook /server
-RUN chown -R webhook:webhook /config
-USER webhook
+RUN addgroup -g 1099 postee
+RUN adduser -D -g '' -G postee -u 1099 postee
+RUN chown -R postee:postee /server
+RUN chown -R postee:postee /config
+USER postee
 ENTRYPOINT ["/server/postee"]

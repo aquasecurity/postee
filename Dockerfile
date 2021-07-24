@@ -1,7 +1,7 @@
 FROM golang:1.15.8-alpine as builder
 # RUN apk add --update git
-ADD . /webhook/
-WORKDIR /webhook/
+ADD . /server/
+WORKDIR /server/
 RUN go build -o ./bin/postee main.go
 
 
@@ -12,14 +12,14 @@ EXPOSE 8445
 RUN mkdir /server
 RUN mkdir /server/database
 RUN mkdir /config
-COPY --from=builder /webhook/bin /server/
-COPY --from=builder /webhook/rego-templates /server/rego-templates
-COPY --from=builder /webhook/cfg.yaml /config/
+COPY --from=builder /server/bin /server/
+COPY --from=builder /server/rego-templates /server/rego-templates
+COPY --from=builder /server/cfg.yaml /config/
 WORKDIR /server
 RUN chmod +x postee
-RUN addgroup -g 1099 webhook
-RUN adduser -D -g '' -G webhook -u 1099 webhook
-RUN chown -R webhook:webhook /server
-RUN chown -R webhook:webhook /config
-USER webhook
+RUN addgroup -g 1099 postee
+RUN adduser -D -g '' -G postee -u 1099 postee
+RUN chown -R postee:postee /server
+RUN chown -R postee:postee /config
+USER postee
 ENTRYPOINT ["/server/postee"]
