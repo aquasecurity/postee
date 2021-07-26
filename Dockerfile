@@ -5,16 +5,16 @@ WORKDIR /server/
 RUN go build -o ./bin/postee main.go
 
 
-FROM alpine
+FROM alpine:3.13
 RUN apk update && apk add wget ca-certificates
 EXPOSE 8082
 EXPOSE 8445
 RUN mkdir /server
 RUN mkdir /server/database
 RUN mkdir /config
+COPY cfg.yaml /config/
 COPY --from=builder /server/bin /server/
 COPY --from=builder /server/rego-templates /server/rego-templates
-COPY --from=builder /server/cfg.yaml /config/
 WORKDIR /server
 RUN chmod +x postee
 RUN addgroup -g 1099 postee
