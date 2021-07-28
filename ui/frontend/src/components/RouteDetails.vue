@@ -126,7 +126,7 @@
                   ? formValues.plugins['unique-message-props'].join(', ')
                   : undefined
               "
-              description="Optional: Comma separated list of top level properties which unique indentify an event message. If message with same id is received more than once it will be ignored"
+              description="Optional: Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored"
               :inputHandler="updateRoutePluginCollectionField"
             />
           </div>
