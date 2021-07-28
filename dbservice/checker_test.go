@@ -1,10 +1,11 @@
 package dbservice
 
 import (
-	bolt "go.etcd.io/bbolt"
 	"os"
 	"testing"
 	"time"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 func TestExpiredDates(t *testing.T) {
@@ -40,7 +41,7 @@ func TestExpiredDates(t *testing.T) {
 			CheckExpiredData()
 		}
 
-		_, isNew, err := HandleCurrentInfo(&AlpineImageResult)
+		isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
 		if err != nil {
 			t.Fatal("First Add AlpineImageResult Error", err)
 		}
@@ -82,7 +83,7 @@ func TestDbSizeLimnit(t *testing.T) {
 			CheckSizeLimit()
 		}
 
-		_, isNew, err := HandleCurrentInfo(&AlpineImageResult)
+		isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
 		if err != nil {
 			t.Fatal("First Add AlpineImageResult Error", err)
 		}
@@ -105,7 +106,7 @@ func TestWrongBuckets(t *testing.T) {
 	}()
 	DbPath = "test_webhooks.db"
 
-	_, _, err := HandleCurrentInfo(&AlpineImageResult)
+	_, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,13 +117,13 @@ func TestWrongBuckets(t *testing.T) {
 	CheckSizeLimit()
 
 	dbBucketName = "dbBucketName"
-	_, _, err = HandleCurrentInfo(&AlpineImageResult)
+	_, err = MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
 	if err == nil {
 		t.Error("No error for empty dbBucketExpiryDates")
 	}
 	dbBucketExpiryDates = "dbBucketExpiryDates"
 	dbBucketName = ""
-	_, _, err = HandleCurrentInfo(&AlpineImageResult)
+	_, err = MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
 	if err == nil {
 		t.Error("No error for empty dbBucketName")
 	}

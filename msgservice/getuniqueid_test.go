@@ -42,34 +42,39 @@ var (
 
 func TestScanUniqueId(t *testing.T) {
 	tests := []struct {
-		inputs        []string
-		caseDesc      string
-		policyShowAll bool
-		expctdInvc    int
+		inputs             []string
+		caseDesc           string
+		policyShowAll      bool
+		uniqueMessageProps []string
+		expctdInvc         int
 	}{
 		{
-			inputs:        []string{unique_scan1, unique_scan1},
-			caseDesc:      "Same scan twice with PolicyShowAll: false",
-			policyShowAll: false,
-			expctdInvc:    1,
+			inputs:             []string{unique_scan1, unique_scan1},
+			caseDesc:           "Same scan twice with PolicyShowAll: false",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			policyShowAll:      false,
+			expctdInvc:         1,
 		},
 		{
-			inputs:        []string{unique_scan1, unique_scan1},
-			caseDesc:      "Same scan twice with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
+			inputs:             []string{unique_scan1, unique_scan1},
+			caseDesc:           "Same scan twice with PolicyShowAll: true",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			policyShowAll:      true,
+			expctdInvc:         2,
 		},
 		{
-			inputs:        []string{unique_scan1, unique_scan2},
-			caseDesc:      "2 unique scan with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
+			inputs:             []string{unique_scan1, unique_scan2},
+			caseDesc:           "2 unique scan with PolicyShowAll: true",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			policyShowAll:      true,
+			expctdInvc:         2,
 		},
 		{
-			inputs:        []string{unique_scan1, unique_scan2},
-			caseDesc:      "2 unique scan with PolicyShowAll: false",
-			policyShowAll: false,
-			expctdInvc:    2,
+			inputs:             []string{unique_scan1, unique_scan2},
+			caseDesc:           "2 unique scan with PolicyShowAll: false",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			policyShowAll:      false,
+			expctdInvc:         2,
 		},
 		{
 			inputs:        []string{non_unique_payload, non_unique_payload},
@@ -86,12 +91,12 @@ func TestScanUniqueId(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		sendInputs(t, test.caseDesc, test.inputs, test.policyShowAll, test.expctdInvc)
+		sendInputs(t, test.caseDesc, test.inputs, test.policyShowAll, test.uniqueMessageProps, test.expctdInvc)
 	}
 
 }
 
-func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bool, expected int) {
+func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bool, uniqueMessageProps []string, expected int) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
@@ -108,6 +113,7 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bo
 
 	demoRoute.Name = "demo-route"
 	demoRoute.Plugins.PolicyShowAll = policyShowAll
+	demoRoute.Plugins.UniqueMessageProps = uniqueMessageProps
 
 	demoInptEval := &DemoInptEval{}
 

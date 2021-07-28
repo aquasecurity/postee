@@ -1,7 +1,5 @@
 package data
 
-import "fmt"
-
 type ScanImageInfo struct {
 	Image                  string `json:"image"`
 	Registry               string `json:"registry"`
@@ -70,16 +68,4 @@ type Vulnerability struct {
 	Version    string `json:"version"`
 	FixVersion string `json:"fix_version"`
 	Severity   string `json:"aqua_severity"` //`json:""`nvd_severity
-}
-
-func BuildUniqueId(digest, image, registry string) string {
-	return fmt.Sprintf("%s-%s-%s", digest, image, registry)
-}
-
-func (si *ScanImageInfo) GetUniqueId() string {
-	return BuildUniqueId(si.Digest, si.Image, si.Registry)
-}
-
-func (si *ScanImageInfo) HasId() bool {
-	return si.Digest != "" || si.Image != "" || si.Registry != ""
 }
