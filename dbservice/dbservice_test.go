@@ -1,8 +1,12 @@
 package dbservice
 
 import (
+	"errors"
 	"os"
 	"testing"
+
+	"go.etcd.io/bbolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 var (
@@ -71,7 +75,7 @@ var (
 	}`
 )
 
-func TestHandleCurrentInfo(t *testing.T) {
+func TestStoreMessage(t *testing.T) {
 	var tests = []struct {
 		input *string
 	}{
@@ -106,4 +110,100 @@ func TestHandleCurrentInfo(t *testing.T) {
 		}
 	}
 
+}
+func TestInitError(t *testing.T) {
+	originalInit := Init
+	originalDbPath := DbPath
+	initErr := errors.New("init error")
+
+	DbPath = "test_webhooks.db"
+
+	Init = func(db *bbolt.DB, bucket string) error {
+		return initErr
+	}
+
+	defer func() {
+		Init = originalInit
+		os.Remove(DbPath)
+		DbPath = originalDbPath
+	}()
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+
+	if isNew {
+		t.Errorf("Scan shouldn't be marked as new\n")
+	}
+
+	if err != initErr {
+		t.Errorf("Unexpected error: expected %s, got %s \n", initErr, err)
+	}
+
+}
+func TestSelectError(t *testing.T) {
+	originalDbSelect := dbSelect
+	originalDbPath := DbPath
+	selectErr := errors.New("select error")
+
+	DbPath = "test_webhooks.db"
+
+	dbSelect = func(db *bolt.DB, bucket, key string) (result []byte, err error) {
+		return nil, selectErr
+	}
+
+	defer func() {
+		dbSelect = originalDbSelect
+		os.Remove(DbPath)
+		DbPath = originalDbPath
+	}()
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+
+	if isNew {
+		t.Errorf("Scan shouldn't be marked as new\n")
+	}
+
+	if err != selectErr {
+		t.Errorf("Unexpected error: expected %s, got %s \n", selectErr, err)
+	}
+
+}
+func TestInsertError(t *testing.T) {
+	var tests = []struct {
+		bucket string
+	}{
+		{"WebhookBucket"},
+		{"WebookExpiryDates"},
+	}
+	for _, test := range tests {
+		testBucketInsert(t, test.bucket)
+	}
+}
+
+func testBucketInsert(t *testing.T, testBucket string) {
+	originalDbInsert := dbInsert
+	originalDbPath := DbPath
+	insertErr := errors.New("insert error")
+
+	DbPath = "test_webhooks.db"
+
+	dbInsert = func(db *bolt.DB, bucket string, key, value []byte) error {
+		if bucket == testBucket {
+			return insertErr
+		}
+		return nil
+	}
+
+	defer func() {
+		dbInsert = originalDbInsert
+		os.Remove(DbPath)
+		DbPath = originalDbPath
+	}()
+
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+
+	if isNew {
+		t.Errorf("Scan shouldn't be marked as new\n")
+	}
+
+	if err != insertErr {
+		t.Errorf("Unexpected error: expected %s, got %s \n", insertErr, err)
+	}
 }
