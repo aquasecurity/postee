@@ -36,7 +36,8 @@
             >
             </codemirror>
             <small class="form-text text-muted">
-              Set of REGO rules to filter received events. Leave empty to process all incoming events 
+              Set of REGO rules to filter received events. Leave empty to
+              process all incoming events
             </small>
           </div>
 
@@ -52,7 +53,6 @@
             </small>
           </b-form-group>
 
-
           <div class="form-group form-input">
             <label for="template">Template</label>
             <select
@@ -61,7 +61,13 @@
               id="template"
               name="template"
             >
-              <option v-for="template in availableTemplates" v-bind:key="template" :value="template">{{template}}</option>
+              <option
+                v-for="template in availableTemplates"
+                v-bind:key="template"
+                :value="template"
+              >
+                {{ template }}
+              </option>
             </select>
             <small id="aHelp" class="form-text text-muted"
               >Select templates to render events</small
@@ -70,12 +76,15 @@
 
           <h4>Plugins</h4>
           <div class="p-4">
-
             <PropertyField
               class="mb-4"
               id="aggregateIssuesNumber"
               label="Aggregate-Issues-Number"
-              :value="formValues.plugins?formValues.plugins['aggregate-issues-number']:undefined"
+              :value="
+                formValues.plugins
+                  ? formValues.plugins['aggregate-issues-number']
+                  : undefined
+              "
               inputType="number"
               name="aggregate-issues-number"
               description="Optional: Aggregate multiple scans into one ticket/message	Numeric number. Default is 1"
@@ -85,7 +94,11 @@
               class="mb-4"
               id="aggregateIssuesTimeout"
               label="Aggregate-Issues-Timeout"
-              :value="formValues.plugins?formValues.plugins['aggregate-issues-timeout']:undefined"
+              :value="
+                formValues.plugins
+                  ? formValues.plugins['aggregate-issues-timeout']
+                  : undefined
+              "
               name="aggregate-issues-timeout"
               description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
               :inputHandler="updateRoutePluginField"
@@ -95,9 +108,26 @@
               id="policyShowAll"
               label="Policy-Show-All"
               name="policy-show-all"
-              :value="formValues.plugins?formValues.plugins['policy-show-all']:undefined"
+              :value="
+                formValues.plugins
+                  ? formValues.plugins['policy-show-all']
+                  : undefined
+              "
               description="Optional: trigger the output for all scan results. If set to true, output will be triggered even for old scan results. Default value: false"
               :inputHandler="updateRoutePluginField"
+            />
+            <PropertyField
+              class="mb-4"
+              id="uniqueMessageProps"
+              label="Unique Message Props"
+              name="unique-message-props"
+              :value="
+                formValues.plugins && formValues.plugins['unique-message-props']
+                  ? formValues.plugins['unique-message-props'].join(', ')
+                  : undefined
+              "
+              description="Optional: Comma separated list of top level properties which unique indentify an event message. If message with same id is received more than once it will be ignored"
+              :inputHandler="updateRoutePluginCollectionField"
             />
           </div>
         </div>
@@ -200,28 +230,37 @@ export default {
     },
     updateRoutePluginField(e) {
       if (!this.formValues.plugins) {
-        this.formValues.plugins = {}
+        this.formValues.plugins = {};
       }
       const propName = e.target.attributes["name"].value;
       const inputType = e.target.attributes["type"]?.value;
-      let v
-      switch(inputType) {
-          case "checkbox": {
-              v = e.target.checked
-              break;
-          }
-          case "number": {
-              v = Number(e.target.value)
-              break;
-          }
-          default: {
-              v = e.target.value
-          }
-
+      let v;
+      switch (inputType) {
+        case "checkbox": {
+          v = e.target.checked;
+          break;
+        }
+        case "number": {
+          v = Number(e.target.value);
+          break;
+        }
+        default: {
+          v = e.target.value;
+        }
       }
       this.formValues.plugins[propName] = v;
-    }
+    },
+    updateRoutePluginCollectionField(e) {
+      if (!this.formValues.plugins) {
+        this.formValues.plugins = {};
+      }
+      const propName = e.target.attributes["name"].value;
+      const v = e.target.value.split(",").map((s) => s.trim());
+
+      this.formValues.plugins[propName] = v;
+    },
   },
+
   mounted() {
     this.name = this.$route.params.name;
   },
