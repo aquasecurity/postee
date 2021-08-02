@@ -189,6 +189,7 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 
 	r, err := rego.New(
 		rego.Query(query),
+		jsonFmtFunc(),
 		rego.Load(buildinRegoTemplates, nil),
 	).PrepareForEval(ctx)
 
@@ -232,6 +233,7 @@ func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, er
 
 	r, err := rego.New(
 		rego.Query("data"),
+		jsonFmtFunc(),
 		rego.Load(commonRegoTemplates, nil), //only common modules
 		rego.Module(filename, body),
 	).PrepareForEval(ctx)
