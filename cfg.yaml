@@ -24,6 +24,8 @@ templates:
   rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
 - name: rego-html                       #  Out of the box HTML template
   rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box)
+- name: raw-html                        #  Raw message json
+  rego-package:  postee.rawmessage.html #  HTLM template REGO package (available out of the box)
 - name: legacy                          #  Out of the box legacy Golang template
   legacy-scan-renderer: html
 - name: legacy-slack                    #  Legacy slack template implemented in Golang
