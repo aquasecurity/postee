@@ -91,7 +91,6 @@ contains(input.image, "alpine")
 'Plugins' section contains configuration for useful Postee features. 
 Key | Description | Possible Values
 --- | --- | ---
-*policy-show-all*|Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.| boolean
 *aggregate-issues-number*|Number of scans to aggregate into one ticket.| any integer value
 *aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh
 *unique-message-props*|Optional. Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored

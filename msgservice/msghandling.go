@@ -50,7 +50,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		}
 	}
 
-	if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 && !route.Plugins.PolicyShowAll {
+	if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 {
 		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
 		wasStored, err := dbservice.MayBeStoreMessage(input, msgKey)
 		if err != nil {

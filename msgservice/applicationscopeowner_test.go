@@ -36,7 +36,6 @@ func TestApplicationScopeOwner(t *testing.T) {
 	demoRoute := &routes.InputRoute{}
 
 	demoRoute.Name = "demo-route"
-	demoRoute.Plugins.PolicyShowAll = true
 
 	demoInptEval := &DemoInptEval{}
 

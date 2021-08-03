@@ -44,59 +44,46 @@ func TestScanUniqueId(t *testing.T) {
 	tests := []struct {
 		inputs             []string
 		caseDesc           string
-		policyShowAll      bool
 		uniqueMessageProps []string
 		expctdInvc         int
 	}{
 		{
 			inputs:             []string{unique_scan1, unique_scan1},
-			caseDesc:           "Same scan twice with PolicyShowAll: false",
+			caseDesc:           "Same scan twice with unique message props specified",
 			uniqueMessageProps: []string{"digest", "image", "registry"},
-			policyShowAll:      false,
 			expctdInvc:         1,
 		},
 		{
-			inputs:             []string{unique_scan1, unique_scan1},
-			caseDesc:           "Same scan twice with PolicyShowAll: true",
+			inputs:     []string{unique_scan1, unique_scan1},
+			caseDesc:   "Same scan twice without unique message props specified",
+			expctdInvc: 2,
+		},
+		{
+			inputs:             []string{unique_scan1, unique_scan2},
+			caseDesc:           "2 unique scan with unique message props specified",
 			uniqueMessageProps: []string{"digest", "image", "registry"},
-			policyShowAll:      true,
 			expctdInvc:         2,
 		},
 		{
 			inputs:             []string{unique_scan1, unique_scan2},
-			caseDesc:           "2 unique scan with PolicyShowAll: true",
+			caseDesc:           "2 unique scan without unique message props specified",
 			uniqueMessageProps: []string{"digest", "image", "registry"},
-			policyShowAll:      true,
 			expctdInvc:         2,
 		},
 		{
-			inputs:             []string{unique_scan1, unique_scan2},
-			caseDesc:           "2 unique scan with PolicyShowAll: false",
-			uniqueMessageProps: []string{"digest", "image", "registry"},
-			policyShowAll:      false,
-			expctdInvc:         2,
-		},
-		{
-			inputs:        []string{non_unique_payload, non_unique_payload},
-			caseDesc:      "2 non-scan inputs with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
-		},
-		{
-			caseDesc:      "2 non-scan inputs with PolicyShowAll: false",
-			inputs:        []string{non_unique_payload, non_unique_payload},
-			policyShowAll: false,
-			expctdInvc:    2,
+			inputs:     []string{non_unique_payload, non_unique_payload},
+			caseDesc:   "2 non-scan inputs without unique message props specified",
+			expctdInvc: 2,
 		},
 	}
 
 	for _, test := range tests {
-		sendInputs(t, test.caseDesc, test.inputs, test.policyShowAll, test.uniqueMessageProps, test.expctdInvc)
+		sendInputs(t, test.caseDesc, test.inputs, test.uniqueMessageProps, test.expctdInvc)
 	}
 
 }
 
-func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bool, uniqueMessageProps []string, expected int) {
+func sendInputs(t *testing.T, caseDesc string, inputs []string, uniqueMessageProps []string, expected int) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
@@ -112,7 +99,6 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bo
 	demoRoute := &routes.InputRoute{}
 
 	demoRoute.Name = "demo-route"
-	demoRoute.Plugins.PolicyShowAll = policyShowAll
 	demoRoute.Plugins.UniqueMessageProps = uniqueMessageProps
 
 	demoInptEval := &DemoInptEval{}

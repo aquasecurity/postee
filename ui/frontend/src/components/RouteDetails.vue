@@ -103,19 +103,6 @@
               description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
               :inputHandler="updateRoutePluginField"
             />
-            <CheckboxPropertyField
-              class="mb-4"
-              id="policyShowAll"
-              label="Policy-Show-All"
-              name="policy-show-all"
-              :value="
-                formValues.plugins
-                  ? formValues.plugins['policy-show-all']
-                  : undefined
-              "
-              description="Optional: trigger the output for all scan results. If set to true, output will be triggered even for old scan results. Default value: false"
-              :inputHandler="updateRoutePluginField"
-            />
             <PropertyField
               class="mb-4"
               id="uniqueMessageProps"
@@ -141,7 +128,6 @@ import { mapState } from "vuex";
 import ValidationMixin from "./validator";
 import FormFieldMixin from "./form";
 import PropertyField from "./PropertyField.vue";
-import CheckboxPropertyField from "./CheckboxPropertyField.vue";
 
 import { codemirror } from "vue-codemirror";
 
@@ -165,7 +151,6 @@ export default {
   mixins: [FormFieldMixin, ValidationMixin],
   components: {
     PropertyField,
-    CheckboxPropertyField,
     codemirror,
   },
   computed: {
