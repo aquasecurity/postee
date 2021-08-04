@@ -1,4 +1,4 @@
-package router
+package postee
 
 import (
 	"io/ioutil"

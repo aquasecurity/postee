@@ -1,5 +1,7 @@
 package router
 
+/*
+
 import (
 	"bytes"
 	"errors"
@@ -167,3 +169,4 @@ func newTestResponse(status int, response string) *http.Response {
 		Header: make(http.Header),
 	}
 }
+*/

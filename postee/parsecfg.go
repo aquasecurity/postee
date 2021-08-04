@@ -1,10 +1,11 @@
-package router
+package postee
 
 import (
 	"bytes"
 	"io/ioutil"
 	"log"
 
+	"github.com/aquasecurity/postee/router"
 	"github.com/ghodss/yaml"
 )
 
@@ -24,7 +25,7 @@ const (
 `
 )
 
-func Parsev2cfg(cfgpath string) (*TenantSettings, error) {
+func Parsev2cfg(cfgpath string) (*router.TenantSettings, error) {
 	data, err := ioutil.ReadFile(cfgpath)
 	if err != nil {
 		log.Printf("Failed to open file %s, %s", cfgpath, err)
@@ -33,7 +34,7 @@ func Parsev2cfg(cfgpath string) (*TenantSettings, error) {
 
 	checkV1Cfg(data, cfgpath)
 
-	tenant := &TenantSettings{}
+	tenant := &router.TenantSettings{}
 	err = yaml.Unmarshal(data, tenant)
 
 	if err != nil {

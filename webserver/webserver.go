@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/router"
@@ -16,22 +15,21 @@ import (
 )
 
 type WebServer struct {
-	quit   chan struct{}
-	router *mux.Router
+	quit              chan struct{}
+	router            *mux.Router
+	msgRouter         *router.Router
+	msgRouterProvider func(*router.Router) *router.Router
 }
 
-var initCtx sync.Once
-var wsCtx *WebServer
-
-func Instance() *WebServer {
-	initCtx.Do(func() {
-		wsCtx = &WebServer{
-			quit:   make(chan struct{}),
-			router: mux.NewRouter().StrictSlash(true),
-		}
-	})
-	return wsCtx
+func New(msgRouter *router.Router, msgRouterProvider func(*router.Router) *router.Router) *WebServer {
+	return &WebServer{
+		quit:              make(chan struct{}),
+		router:            mux.NewRouter().StrictSlash(true),
+		msgRouter:         msgRouter,
+		msgRouterProvider: msgRouterProvider,
+	}
 }
+
 func (ctx *WebServer) withApiKey(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		correctKey, err := dbservice.GetApiKey()
@@ -109,7 +107,7 @@ func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	utils.Debug("%s\n\n", string(body))
-	router.Instance().Send(body)
+	ctx.msgRouter.Send(body)
 	ctx.writeResponse(w, http.StatusOK, "")
 }
 

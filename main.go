@@ -8,9 +8,8 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/aquasecurity/postee/router"
+	"github.com/aquasecurity/postee/postee"
 	"github.com/aquasecurity/postee/utils"
-	"github.com/aquasecurity/postee/webserver"
 	"github.com/spf13/cobra"
 )
 
@@ -73,16 +72,14 @@ func main() {
 			cfgfile = os.Getenv("POSTEE_CFG")
 		}
 
-		err := router.Instance().Start(cfgfile)
+		app, err := postee.NewConfigFromFile(cfgfile, url, tls).Start()
+
 		if err != nil {
-			log.Printf("Can't start alert manager %v", err)
+			log.Printf("Can't start message router %v", err)
 			return
 		}
 
-		defer router.Instance().Terminate()
-
-		go webserver.Instance().Start(url, tls)
-		defer webserver.Instance().Terminate()
+		defer app.Terminate()
 
 		Daemonize()
 	}

@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"path"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/aquasecurity/postee/data"
@@ -31,7 +30,6 @@ const (
 )
 
 type Router struct {
-	mutexScan   sync.Mutex
 	quit        chan struct{}
 	queue       chan []byte
 	ticker      *time.Ticker
@@ -44,8 +42,6 @@ type Router struct {
 }
 
 var (
-	initCtx       sync.Once
-	routerCtx     *Router
 	baseForTicker = time.Hour
 
 	requireAuthorization = map[string]bool{
@@ -54,44 +50,70 @@ var (
 	}
 )
 
-func Instance() *Router {
-	initCtx.Do(func() {
-		routerCtx = &Router{
-			mutexScan:   sync.Mutex{},
-			quit:        make(chan struct{}),
-			queue:       make(chan []byte, 1000),
-			outputs:     make(map[string]outputs.Output),
-			inputRoutes: make(map[string]*routes.InputRoute),
-			templates:   make(map[string]data.Inpteval),
-			stopTicker:  make(chan struct{}),
-		}
-	})
-	return routerCtx
-}
-func (ctx *Router) ReloadConfig() {
-	ctx.Terminate()
-	err := ctx.Start(ctx.cfgfile)
-
-	if err != nil {
-		log.Printf("Unable to start router: %s", err)
-	}
-}
-
-func (ctx *Router) Start(cfgfile string) error {
+func New(settings *TenantSettings) *Router {
 	log.Printf("Starting Router....")
+	router := &Router{}
 
-	ctx.cfgfile = cfgfile
-	ctx.outputs = map[string]outputs.Output{}
-	ctx.inputRoutes = map[string]*routes.InputRoute{}
-	ctx.templates = map[string]data.Inpteval{}
-	ctx.ticker = nil
+	router.outputs = map[string]outputs.Output{}
+	router.inputRoutes = map[string]*routes.InputRoute{}
+	router.templates = map[string]data.Inpteval{}
+	router.ticker = nil
 
-	err := ctx.load()
-	if err != nil {
-		return err
+	if len(settings.AquaServer) > 0 {
+		var slash string
+		if !strings.HasSuffix(settings.AquaServer, "/") {
+			slash = "/"
+		}
+		router.aquaServer = fmt.Sprintf("%s%s#/images/", settings.AquaServer, slash)
 	}
-	go ctx.listen()
-	return nil
+
+	dbservice.DbSizeLimit = settings.DBMaxSize
+	dbservice.DbDueDate = settings.DBRemoveOldData
+
+	if settings.DBTestInterval == 0 {
+		settings.DBTestInterval = 1 //?????
+	}
+
+	if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
+		router.ticker = time.NewTicker(baseForTicker * time.Duration(settings.DBTestInterval))
+		go func() {
+			for {
+				select {
+				case <-router.stopTicker:
+					return
+				case <-router.ticker.C:
+					dbservice.CheckSizeLimit()
+					dbservice.CheckExpiredData()
+				}
+			}
+		}()
+	}
+
+	for i, r := range settings.InputRoutes {
+		router.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(&settings.InputRoutes[i])
+	}
+
+	for _, t := range settings.Templates {
+		err := router.initTemplate(&t)
+		if err != nil {
+			log.Printf("Can not initialize template %s: %v \n", t.Name, err)
+		}
+	}
+
+	for _, settings := range settings.Outputs {
+		utils.Debug("%#v\n", anonymizeSettings(&settings))
+
+		if settings.Enable {
+			plg := BuildAndInitOtpt(&settings, router.aquaServer)
+			if plg != nil {
+				log.Printf("Output %s is configured", settings.Name)
+				router.outputs[settings.Name] = plg
+			}
+		}
+	}
+
+	go router.listen()
+	return router
 }
 
 func (ctx *Router) Terminate() {
@@ -177,68 +199,6 @@ func (ctx *Router) initTemplate(template *Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-	}
-	return nil
-}
-
-func (ctx *Router) load() error {
-	ctx.mutexScan.Lock()
-	defer ctx.mutexScan.Unlock()
-	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
-	tenant, err := Parsev2cfg(ctx.cfgfile)
-
-	if err != nil {
-		return err
-	}
-
-	if len(tenant.AquaServer) > 0 {
-		var slash string
-		if !strings.HasSuffix(tenant.AquaServer, "/") {
-			slash = "/"
-		}
-		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
-	}
-
-	dbservice.DbSizeLimit = tenant.DBMaxSize
-	dbservice.DbDueDate = tenant.DBRemoveOldData
-	if tenant.DBTestInterval == 0 {
-		tenant.DBTestInterval = 1
-	}
-	if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
-		ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
-		go func() {
-			for {
-				select {
-				case <-ctx.stopTicker:
-					return
-				case <-ctx.ticker.C:
-					dbservice.CheckSizeLimit()
-					dbservice.CheckExpiredData()
-				}
-			}
-		}()
-	}
-
-	for i, r := range tenant.InputRoutes {
-		ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(&tenant.InputRoutes[i])
-	}
-	for _, t := range tenant.Templates {
-		err := ctx.initTemplate(&t)
-		if err != nil {
-			log.Printf("Can not initialize template %s: %v \n", t.Name, err)
-		}
-	}
-
-	for _, settings := range tenant.Outputs {
-		utils.Debug("%#v\n", anonymizeSettings(&settings))
-
-		if settings.Enable {
-			plg := BuildAndInitOtpt(&settings, ctx.aquaServer)
-			if plg != nil {
-				log.Printf("Output %s is configured", settings.Name)
-				ctx.outputs[settings.Name] = plg
-			}
-		}
 	}
 	return nil
 }
