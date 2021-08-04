@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/aquasecurity/postee/router"
+	"github.com/aquasecurity/postee/routes"
 	"github.com/aquasecurity/postee/webserver"
 )
 
@@ -50,8 +51,31 @@ func (cb *AppConfigBuilder) AquaServer(aquaServer string) *AppConfigBuilder {
 	cb.MsgRouterConfig.AquaServer = aquaServer
 	return cb
 }
+func (cb *AppConfigBuilder) DBMaxSize(dbMaxSize int) *AppConfigBuilder {
+	cb.MsgRouterConfig.DBMaxSize = dbMaxSize
+	return cb
+}
+func (cb *AppConfigBuilder) DBTestInterval(dbTestInterval int) *AppConfigBuilder {
+	cb.MsgRouterConfig.DBTestInterval = dbTestInterval
+	return cb
+}
+func (cb *AppConfigBuilder) DBRemoveOldData(dbRemoveOldData int) *AppConfigBuilder {
+	cb.MsgRouterConfig.DBRemoveOldData = dbRemoveOldData
+	return cb
+}
 
-//TODO add  more methods to AppConfigBuilder to add Routes, Outputs and Templates
+func (cb *AppConfigBuilder) AddOutput(output *router.OutputSettings) *AppConfigBuilder {
+	cb.MsgRouterConfig.Outputs = append(cb.MsgRouterConfig.Outputs, *output)
+	return cb
+}
+func (cb *AppConfigBuilder) AddRoute(route *routes.InputRoute) *AppConfigBuilder {
+	cb.MsgRouterConfig.InputRoutes = append(cb.MsgRouterConfig.InputRoutes, *route)
+	return cb
+}
+func (cb *AppConfigBuilder) AddTemplate(template *router.Template) *AppConfigBuilder {
+	cb.MsgRouterConfig.Templates = append(cb.MsgRouterConfig.Templates, *template)
+	return cb
+}
 
 func (cb *AppConfigBuilder) Start() (*App, error) {
 	/*
