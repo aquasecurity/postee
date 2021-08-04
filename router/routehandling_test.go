@@ -1,182 +1,228 @@
 package router
 
-/*
 import (
 	"testing"
 	"time"
+
+	"github.com/aquasecurity/postee/routes"
 )
 
 var (
-	singleRoute string = `
-Name: tenant
+	singleRoute = &TenantSettings{
+		InputRoutes: []routes.InputRoute{{
 
-routes:
-- name: route1
-  outputs: ["my-slack"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
+			Name:     "route1",
+			Outputs:  []string{"my-slack"},
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: `package postee
+result:=input`,
+			},
+		},
+		Outputs: []OutputSettings{
+			{
+				Name:   "my-slack",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/TTT",
+			},
+		},
+	}
 
-templates:
-- name: raw
-  body: |
-   package postee
-   result:=input
+	noAssociatedOutput = &TenantSettings{
+		InputRoutes: []routes.InputRoute{{
 
-outputs:
-- name: my-slack
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	noAssociatedOutput string = `
-Name: tenant
+			Name:     "route1",
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: `package postee
+result:=input`,
+			},
+		},
+		Outputs: []OutputSettings{
+			{
+				Name:   "my-slack",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/TTT",
+			},
+		},
+	}
+	twoRoutes = &TenantSettings{
+		InputRoutes: []routes.InputRoute{
+			{
 
-routes:
-- name: route1
-  template: raw
-  plugins:
-   Policy-Show-All: true
+				Name:     "route1",
+				Outputs:  []string{"my-slack"},
+				Template: "raw",
+				Plugins: routes.Plugins{
+					PolicyShowAll: true,
+				},
+			},
+			{
 
-templates:
-- name: raw
-  body: |
-   package postee
-   result:=input
+				Name:     "route2",
+				Outputs:  []string{"my-slack"},
+				Template: "raw",
+				Plugins: routes.Plugins{
+					PolicyShowAll: true,
+				},
+			}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: `package postee
+result:=input`,
+			},
+		},
+		Outputs: []OutputSettings{
+			{
+				Name:   "my-slack",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/TTT",
+			},
+		},
+	}
+	twoOutputs = &TenantSettings{
+		InputRoutes: []routes.InputRoute{{
 
-outputs:
-- name: my-slack
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	twoRoutes string = `
-Name: tenant
+			Name:     "route1",
+			Outputs:  []string{"my-slack", "my-slack2"},
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: `package postee
+result:=input`,
+			},
+		},
+		Outputs: []OutputSettings{
+			{
+				Name:   "my-slack",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/XXX",
+			},
+			{
+				Name:   "my-slack2",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/TTT",
+			},
+		},
+	}
+	noOutputs = &TenantSettings{
+		InputRoutes: []routes.InputRoute{{
 
-routes:
-- name: route1
-  outputs: ["my-slack"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
+			Name:     "route1",
+			Outputs:  []string{"my-slack"},
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: `package postee
+result:=input`,
+			},
+		},
+	}
+	noTemplates = &TenantSettings{
+		InputRoutes: []routes.InputRoute{{
 
-- name: route2
-  outputs: ["my-slack"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
+			Name:     "route1",
+			Outputs:  []string{"my-slack"},
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Outputs: []OutputSettings{
+			{
+				Name:   "my-slack",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/XXX",
+			},
+			{
+				Name:   "my-slack2",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/TTT",
+			},
+		},
+	}
+	invalidTemplate = &TenantSettings{
+		InputRoutes: []routes.InputRoute{{
 
-templates:
-- name: raw
-  body: |
-   package postee
-   result:=input
+			Name:     "route1",
+			Outputs:  []string{"my-slack"},
+			Template: "rawx",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: `package postee
+result:=input`,
+			},
+		},
+		Outputs: []OutputSettings{
+			{
+				Name:   "my-slack",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/TTT",
+			},
+		},
+	}
+	invalidOutput = &TenantSettings{
+		InputRoutes: []routes.InputRoute{{
 
-outputs:
-- name: my-slack
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-
-	twoOutputs string = `
-Name: tenant
-
-routes:
-- name: route1
-  outputs: ["my-slack", "my-slack2"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
-
-templates:
-- name: raw
-  body: |
-   package postee
-   result:=input
-
-outputs:
-- name: my-slack
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/XXX
-- name: my-slack2
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	noOutputs string = `
-Name: tenant
-
-routes:
-- name: route1
-  outputs: ["my-slack3"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
-
-templates:
-- name: raw
-  body: |
-   package postee
-   result:=input`
-	noTemplates string = `
-Name: tenant
-
-routes:
-- name: route1
-  outputs: ["my-slack", "my-slack2"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
-
-outputs:
-- name: my-slack
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/XXX
-- name: my-slack2
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	invalidTemplate string = `
-Name: tenant
-
-routes:
-- name: route1
-  outputs: ["my-slack"]
-  template: rawx
-  plugins:
-   Policy-Show-All: true
-
-templates:
-- name: raw
-  body: |
-   package postee
-   result:=input
-
-outputs:
-- name: my-slack
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	invalidOutput string = `
-Name: tenant
-
-routes:
-- name: route1
-  outputs: ["x-slack"]
-  template: raw
-  plugins:
-   Policy-Show-All: true
-
-templates:
-- name: raw
-  body: |
-   package postee
-   result:=input
-
-outputs:
-- name: my-slack
-  type: slack
-  enable: true
-  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+			Name:     "route1",
+			Outputs:  []string{"x-slack"},
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: `package postee
+result:=input`,
+			},
+		},
+		Outputs: []OutputSettings{
+			{
+				Name:   "my-slack",
+				Type:   "slack",
+				Enable: true,
+				Url:    "https://hooks.slack.com/services/ABCDF/1234/TTT",
+			},
+		},
+	}
 
 	payload = `{"image" : "alpine"}`
 )
@@ -184,7 +230,7 @@ outputs:
 func TestHandling(t *testing.T) {
 	tests := []struct {
 		caseDesc      string
-		cfg           string
+		cfg           *TenantSettings
 		expctdInvctns []invctn
 	}{
 		{
@@ -250,18 +296,13 @@ func TestHandling(t *testing.T) {
 		runTestRouteHandlingCase(t, test.caseDesc, test.cfg, test.expctdInvctns)
 	}
 }
-func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfg string, expctdInvctns []invctn) {
+func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfg *TenantSettings, expctdInvctns []invctn) {
 	actualInvctCnt := 0
 	t.Logf("Case: %s\n", caseDesc)
 	wrap := ctxWrapper{}
 	wrap.setup(cfg)
 
 	defer wrap.teardown()
-
-	err := wrap.instance.Start(wrap.cfgPath)
-	if err != nil {
-		t.Fatalf("[%s] Unexpected error %v", caseDesc, err)
-	}
 
 	wrap.instance.handle([]byte(payload))
 	timeoutDuration := 3 * time.Second
@@ -309,11 +350,6 @@ func TestInvalidRouteName(t *testing.T) {
 
 	defer wrap.teardown()
 
-	err := wrap.instance.Start(wrap.cfgPath)
-	if err != nil {
-		t.Fatalf("Unexpected error %v", err)
-	}
-
 	wrap.instance.HandleRoute("not-exist", []byte(payload))
 	timeout := time.After(1 * time.Second)
 	for {
@@ -338,11 +374,6 @@ func TestSend(t *testing.T) {
 
 	defer wrap.teardown()
 
-	err := wrap.instance.Start(wrap.cfgPath)
-	if err != nil {
-		t.Fatalf("Unexpected error %v", err)
-	}
-
 	wrap.instance.Send([]byte(payload))
 	timeout := time.After(1 * time.Second)
 	for {
@@ -358,4 +389,3 @@ func TestSend(t *testing.T) {
 		}
 	}
 }
-*/

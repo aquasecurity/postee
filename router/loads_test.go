@@ -1,9 +1,7 @@
 package router
 
-/*
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"testing"
@@ -17,52 +15,63 @@ import (
 )
 
 var (
-	cfgData string = `
-name: tenant
-aqua-server: https://demolab.aquasec.com
-max-db-size: 13 # Max size of DB. MB. if empty then unlimited
-delete-old-data: 7 # delete data older than N day(s).  If empty then we do not delete.d
+	cfgData *TenantSettings = &TenantSettings{
 
-routes:
-- name: route1      #  name must be unique
-  input: |
-   contains(input.image, "alpine")
-   input.vulnerability_summary.critical >= 3
+		AquaServer:      "https://demolab.aquasec.com",
+		DBMaxSize:       13,
+		DBRemoveOldData: 7,
 
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
-  template: raw       #  a template for this route
-  plugins:
-   policy-show-all: true
+		InputRoutes: []routes.InputRoute{{
 
-- name: route2      #  name must be unique
-  input: |
-   contains(input.image, "alpine")
+			Name: "route1",
+			Input: `
+contains(input.image, "alpine")
+input.vulnerability_summary.critical >= 3
+ `,
+			Outputs:  []string{"my-slack"},
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}, {
 
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
-  template: raw       #  a template for this route
-  plugins:
-   policy-show-all: true
-
-templates:
-- name: raw
-  body: input
-
-outputs:
-- name: splunk
-  type: splunk
-  enable: true
-  url: http://localhost:8088
-  token: 00aac750-a69c-4ebb-8771-41905f7369dd
-  size-limit: 1000
-
-- name: jira
-  type: jira
-  enable: true
-  url: "https://afdesk.atlassian.net/"
-  user: admin
-  password: admin
-  tls-verify: false
-  project-key: kcv`
+			Name: "route2",
+			Input: `
+contains(input.image, "alpine")
+ `,
+			Outputs:  []string{"my-slack"},
+			Template: "raw",
+			Plugins: routes.Plugins{
+				PolicyShowAll: true,
+			},
+		}},
+		Templates: []Template{
+			{
+				Name: "raw",
+				Body: "input",
+			},
+		},
+		Outputs: []OutputSettings{
+			{
+				Name:      "splunk",
+				Type:      "splunk",
+				Enable:    true,
+				Url:       "http://localhost:8088",
+				Token:     "00aac750-a69c-4ebb-8771-41905f7369dd",
+				SizeLimit: 1000,
+			},
+			{
+				Name:       "jira",
+				Type:       "jira",
+				Enable:     true,
+				Url:        "https://afdesk.atlassian.net/",
+				User:       "admin",
+				Password:   "admin",
+				TlsVerify:  false,
+				ProjectKey: "kcv",
+			},
+		},
+	}
 )
 
 type ctxWrapper struct {
@@ -90,7 +99,7 @@ func (ctx *ctxWrapper) MsgHandling(input []byte, output outputs.Output, route *r
 	ctx.buff <- i
 }
 
-func (ctxWrapper *ctxWrapper) setup(cfg string) {
+func (ctxWrapper *ctxWrapper) setup(settings *TenantSettings) {
 	ctxWrapper.savedDBPath = dbservice.DbPath
 	ctxWrapper.savedBaseForTicker = baseForTicker
 	ctxWrapper.cfgPath = "cfg_test.yaml"
@@ -114,11 +123,7 @@ func (ctxWrapper *ctxWrapper) setup(cfg string) {
 		return ctxWrapper
 	}
 
-	err = ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
-	if err != nil {
-		log.Printf("Can't write to %s", ctxWrapper.cfgPath)
-	}
-	ctxWrapper.instance = Instance()
+	ctxWrapper.instance = New(settings)
 }
 
 func (ctxWrapper *ctxWrapper) teardown() {
@@ -142,7 +147,6 @@ func TestLoads(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	demoCtx.Start(wrap.cfgPath)
 
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {
@@ -163,46 +167,6 @@ func TestLoads(t *testing.T) {
 		t.Errorf("Output 'splunk' didn't run!")
 	}
 }
-func TestReload(t *testing.T) {
-	extraOtptCfg := `
-- name: jira2
-  type: jira
-  enable: true
-  url: "https://afdesk.atlassian.net/"
-  user: admin
-  password: admin
-  tls-verify: false
-  project-key: kcv`
-
-	wrap := ctxWrapper{}
-	wrap.setup(cfgData)
-
-	defer wrap.teardown()
-
-	demoCtx := wrap.instance
-	demoCtx.Start(wrap.cfgPath)
-
-	expectedOutputsCnt := 2
-	if len(demoCtx.outputs) != expectedOutputsCnt {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(demoCtx.outputs))
-	}
-
-	f, err := os.OpenFile(wrap.cfgPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		t.Errorf("Can't open config %v\n", err)
-	}
-	defer f.Close()
-	if _, err := f.WriteString(extraOtptCfg); err != nil {
-		t.Errorf("Can't update config %v\n", err)
-	}
-	demoCtx.ReloadConfig()
-	expectedOutputsAfterReload := 3
-
-	if len(demoCtx.outputs) != expectedOutputsAfterReload {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsAfterReload, len(demoCtx.outputs))
-	}
-
-}
 
 func TestServiceGetters(t *testing.T) {
 	scanner := getScanService()
@@ -210,4 +174,3 @@ func TestServiceGetters(t *testing.T) {
 		t.Error("getScanService() doesn't return an instance of scanservice.ScanService")
 	}
 }
-*/

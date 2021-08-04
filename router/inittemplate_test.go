@@ -1,7 +1,5 @@
 package router
 
-/*
-
 import (
 	"bytes"
 	"errors"
@@ -107,7 +105,7 @@ func TestInitTemplate(t *testing.T) {
 
 }
 func doInitTemplate(t *testing.T, caseDesc string, template *Template, expectedCls string, shouldReturnError bool) {
-	demoCtx := Instance()
+	demoCtx := New(&TenantSettings{})
 	err := demoCtx.initTemplate(template)
 	if err != nil && !shouldReturnError {
 		t.Fatalf("[%s] Unexpected error: %v", caseDesc, err)
@@ -169,4 +167,3 @@ func newTestResponse(status int, response string) *http.Response {
 		Header: make(http.Header),
 	}
 }
-*/

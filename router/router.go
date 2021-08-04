@@ -52,12 +52,14 @@ var (
 
 func New(settings *TenantSettings) *Router {
 	log.Printf("Starting Router....")
-	router := &Router{}
-
-	router.outputs = map[string]outputs.Output{}
-	router.inputRoutes = map[string]*routes.InputRoute{}
-	router.templates = map[string]data.Inpteval{}
-	router.ticker = nil
+	router := &Router{
+		quit:        make(chan struct{}),
+		queue:       make(chan []byte, 1000),
+		outputs:     make(map[string]outputs.Output),
+		inputRoutes: make(map[string]*routes.InputRoute),
+		templates:   make(map[string]data.Inpteval),
+		stopTicker:  make(chan struct{}),
+	}
 
 	if len(settings.AquaServer) > 0 {
 		var slash string
