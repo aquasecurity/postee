@@ -27,19 +27,14 @@ cover :
 	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes -v -coverprofile=cover.out
 	go tool cover -html=cover.out
 
-develop :
+composer :
 	@echo "Running Postee UI...."
-	docker-compose up
+	docker-compose up --build
 
-docker-webhook :
-	@echo "Building image...."
-	docker build --no-cache -t aquasec/postee:webhook -f Dockerfile .
-	docker run -p 8082:8082 -p 8445:8445 aquasec/postee:webhook
-
-docker-release : build
+docker-webhook : build
 	@echo "Building image...."
 	docker build --no-cache -t aquasec/postee:latest -f Dockerfile.release .
-	docker run -p 8082:8082 aquasec/postee:latest
+	docker run -p 8082:8082 -p 8445:8445 aquasec/postee:latest --cfgfile /server/cfg.yaml
 
 deploy-k8s :
 	@echo "Deploy Postee in Kubernetes...."
