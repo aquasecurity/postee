@@ -28,7 +28,7 @@ func (webhook *WebhookOutput) Init() error {
 
 func (webhook *WebhookOutput) Send(content map[string]string) error {
 	log.Printf("Sending webhook to %q", webhook.Url)
-	data := content["src"]
+	data := content["description"] //it's not supposed to work with legacy renderer
 	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
 		log.Printf("Sending webhook Error: %v", err)

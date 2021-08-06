@@ -32,6 +32,9 @@ templates:
   legacy-scan-renderer: slack
 - name: custom-email                    #  Example of how to use a template from a Web URL
   url:                                  #  URL to custom REGO file
+- name: raw-json                        # route message "As Is" to external webhook
+  rego-package: postee.rawmessage.json
+
 
 # Outputs are target services that should consume the messages
 outputs:
