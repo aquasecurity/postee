@@ -74,11 +74,6 @@ spec:
               mountPath: /rego
             - name: postee-db
               mountPath: /server/database
-          livenessProbe:
-            httpGet:
-              path: /ping
-              port: 8082
-            initialDelaySeconds: 30
           resources:
             limits:
               cpu: 500m
