@@ -149,10 +149,7 @@ func TestLoads(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	err := demoCtx.Start(wrap.cfgPath)
-	if err != nil {
-		t.Fatal(err)
-	}
+	demoCtx.ApplyFileCfg(wrap.cfgPath)
 
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {
@@ -190,10 +187,8 @@ func TestReload(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	errStart := demoCtx.Start(wrap.cfgPath)
-	if errStart != nil {
-		t.Fatal(errStart)
-	}
+	demoCtx.ApplyFileCfg(wrap.cfgPath)
+
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {
 		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(demoCtx.outputs))

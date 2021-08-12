@@ -74,11 +74,7 @@ func main() {
 			cfgfile = os.Getenv("POSTEE_CFG")
 		}
 
-		if os.Getenv("PATH_TO_DB") != "" {
-			dbservice.SetNewDbPathFromEnv()
-		}
-
-		err := router.Instance().Start(cfgfile)
+		err := router.Instance().ApplyFileCfg(cfgfile)
 		if err != nil {
 			log.Printf("Can't start alert manager %v", err)
 			return
