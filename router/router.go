@@ -70,21 +70,29 @@ func Instance() *Router {
 }
 func (ctx *Router) ReloadConfig() {
 	ctx.Terminate()
-	err := ctx.Start(ctx.cfgfile)
+	err := ctx.ApplyFileCfg(ctx.cfgfile)
 
 	if err != nil {
 		log.Printf("Unable to start router: %s", err)
 	}
 }
-
-func (ctx *Router) Start(cfgfile string) error {
-	log.Printf("Starting Router....")
-
-	ctx.cfgfile = cfgfile
+func (ctx *Router) resetCfg() {
 	ctx.outputs = map[string]outputs.Output{}
 	ctx.inputRoutes = map[string]*routes.InputRoute{}
 	ctx.templates = map[string]data.Inpteval{}
 	ctx.ticker = nil
+}
+func (ctx *Router) NewConfig() {
+	ctx.resetCfg()
+	go ctx.listen()
+}
+
+func (ctx *Router) ApplyFileCfg(cfgfile string) error {
+	log.Printf("Starting Router....")
+
+	ctx.cfgfile = cfgfile
+
+	ctx.resetCfg()
 
 	err := ctx.load()
 	if err != nil {
@@ -180,6 +188,16 @@ func (ctx *Router) initTemplate(template *Template) error {
 	}
 	return nil
 }
+func (ctx *Router) setAquaServerUrl(url string) {
+	if len(url) > 0 {
+		var slash string
+		if !strings.HasSuffix(url, "/") {
+			slash = "/"
+		}
+		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", url, slash)
+	}
+
+}
 
 func (ctx *Router) load() error {
 	ctx.mutexScan.Lock()
@@ -191,13 +209,9 @@ func (ctx *Router) load() error {
 		return err
 	}
 
-	if len(tenant.AquaServer) > 0 {
-		var slash string
-		if !strings.HasSuffix(tenant.AquaServer, "/") {
-			slash = "/"
-		}
-		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
-	}
+	ctx.setAquaServerUrl(tenant.AquaServer)
+	//----------------------------------------------------
+	// TODO there should be some other way of doing that
 
 	dbservice.DbSizeLimit = tenant.DBMaxSize
 	dbservice.DbDueDate = tenant.DBRemoveOldData
@@ -218,6 +232,8 @@ func (ctx *Router) load() error {
 			}
 		}()
 	}
+
+	//----------------------------------------------------
 
 	for i, r := range tenant.InputRoutes {
 		ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(&tenant.InputRoutes[i])
