@@ -59,8 +59,6 @@ spec:
           volumeMounts:
             - name: {{ $fullName }}-cfg
               mountPath: /policy
-            - name: {{ $fullName }}-rego
-              mountPath: /rego
             - name: {{ $fullName }}-db
               mountPath: {{ .Values.persistentVolume.mountPath }}
           resources:
@@ -69,9 +67,6 @@ spec:
         - configMap:
             name: {{ $fullName }}-cfg
           name: {{ $fullName }}-cfg
-        - configMap:
-            name: {{ $fullName }}-rego
-          name: {{ $fullName }}-rego
         - name: {{ $fullName }}-db
         {{- if .Values.persistentVolume.enabled }}
           persistentVolumeClaim:

@@ -12,7 +12,3 @@ The Postee endpoint
 https://postee-svc.default.svc.cluster.local:8443
 ````
 
-## Use Postee with OPA
-
-Create a ConfigMap that will hold rego files. See the the rego folder for samples.
-
