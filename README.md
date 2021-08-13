@@ -25,92 +25,140 @@
 - [Usage](#usage)
 - [Postee Configuration File](#postee-configuration-file)
 - [Configure the Aqua Server with Webhook Integration](#configure-the-aqua-server-with-webhook-integration)
+- [Customizing Templates](#customizing-templates)
 - [Postee UI](#postee-ui)
-- [Rego Templates](#rego-templates)
 - [Misc](#misc)
 
 
 ## Abstract
-Postee is a simple application that receives JSON input messages through a webhook interface, and delivers them based on rule logic to a set of collaboration systems, including: JIRA, Email, Slack, Microsoft Teams, Generic WebHook, Splunk and ServiceNow.
+Postee is a simple message routing application that receives JSON input messages through a webhook interface, and delivers them based on rules to a set of collaboration systems, including: JIRA, Email, Slack, Microsoft Teams, ServiceNow, Splunk and Generic WebHook.
 
-Primary use of Postee is act as a notification component for Aqua Security products. It's extremely useful for sending vulnerability scan results or selected audit events to collaboration systems
+Primary use of Postee is to act as a notification component for Aqua Security products. It's extremely useful for sending vulnerability scan results or audit alerts from Aqua Platform to collaboration systems.
 
 ![Postee v2 scheme](/postee-v2-scheme.png)
 
 ## Usage
 
+To run Postee you will first need to configure the Postee Configuration File](#postee-configuration-file), which contains all the message routing logic. 
+After the configuration file is ready, you can run the official Postee container image (aquasec/postee:latest), or compile it from source. There are different options to mount your customize configuration file to Postee - if running as a Docker container, then you simply mount the configuration files as a volume mount. If running as a Kubernetes deployment, you will need to mount it as a ConfigMap. See the below usage examples for how to run Postee on different scenarios.
+
+After Postee will run, it will expose two endpoints, HTTP and HTTPS. You can send your JSON messages to these endpoints, where they will be delivered to their target system based on the defined rules.
+
+### Docker
+To run Postee as a Docker container, you mount the cfg.yaml to '/config/cfg.yaml' path in the Postee container.
+
+
+```bash
+docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
+    -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084 -e POSTEE_HTTPS=0.0.0.0:8444 \ 
+    -p 8084:8084 -p 8444:8444 aquasec/postee:latest
+```
+
+### Kubernetes
+When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod. 
+
+See [Kubernetes instructions](./deploy/kubernetes/README.md) to run Postee on Kubernetes using deployment yamls.
+
+### Helm
+When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod. 
+
+See [Helm instructions](./deploy/helm/README.md) to run Postee on Kubernetes using Helm chart.
+
 ### From Source
-Clone this project: 
+Clone and build the project: 
 ```bash
 git clone git@github.com:aquasecurity/postee.git
 make build
+```
+After that, modify the cfg.yaml file and set the 'POSTEE_CFG' environment variable to point to it.
+```bash
+export POSTEE_CFG=<path to cfg.yaml>
 ./bin/postee
 ```
 
-### Docker
-```bash
-docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
-    -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084 -e POSTEE_HTTP=0.0.0.0:8444 \ 
-    -p 8444:8444 -p 8084:8084 aquasec/postee:latest
-```
-### Kubernetes
-
-See [Kubernetes instructions](./deploy/kubernetes/README.md)
-
-### Helm
-See [Helm instuctions](./deploy/helm/README.md)
-
 ## Postee Configuration File
-To set up Postee, you will need to update the sample `cfg.yaml` file, with your general settings, routes, templates and outputs. 
+When Postee receives a message it will process it based on routing rules and send it to the appropriate target. How does it know how to do that? Well, this information is defined in Postee's configuration file, [cfg.yaml](https://github.com/aquasecurity/postee/blob/main/cfg.yaml), which contains the following definitions: 
+1. General settings
+2. Routes
+3. Templates
+4. Outputs
 
-###### *IMPORTANT: Application config yaml is re-designed in V2 release and has no backward compatibility. Besides the structure changes all option names are now lowercase words separated by hyphens. So `UseMX` becomes `use-mx` for example*
 
-### General options
-General options are specified at the root level of cfg.yaml. 
-Key | Description | Possible Values
---- | --- | ---
-*aqua-server*|Aqua Console URL. This is used for some of the integrations to include link to Aqua UI| any valid url
-*delete-old-data*|Delete cached messages that are older than N day(s). If empty then Postee does not delete cached messages.| any integer value
-*db-verify-interval*|Specify time interval (in hours) for Postee to perform database cleanup jobs. Default: 1 hour| any integer value
-*max-db-size*|The maximum size of Postee database (in MB). Once reached to size limit, Postee will delete old cached messages. If empty then Postee database will have unlimited size| any integer value
 
-### Routes sections
-Route is used to control message flows. It includes reference to one or more outputs and reference to the template used for message rendering.
-Key | Description | Possible Values
---- | --- | ---
-*name*|Unique name of route| string
-*input*|Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements
-*outputs*|One or more outputs that are defined in the "outputs" section| Set of output names, like ["my-slack", "my-email"]. At least one element is required
-*template*| A template that is defined in the "template" section, required| any template name
+### General settings
+General settings are specified at the root level of cfg.yaml. They include general configuration that applies to the Postee application.
 
-The below 'input' Rego rule will match  JSON messages that have the field 'image' with "alpine" as a value:
+Key | Description | Possible Values | Example Value
+--- | --- | --- | ---
+*aqua-server*|Aqua Platform URL. This is used for some of the integrations to will include a link to the Aqua UI| Aqua Platform valid URL | https://server.my.aqua
+*delete-old-data*|Postee might cache incoming message to avoid sending them multiple times. This setting tells Postee to delete cached messages that are older than N day(s). If empty then Postee does not delete cached messages.| any integer value | 7
+*db-verify-interval*|Specify time interval (in hours) for Postee to perform database cleanup jobs. Default: 1 hour| any integer value  | 1
+*max-db-size*|The maximum size of Postee database (in MB). Once reached to size limit, Postee will delete old cached messages. If empty then Postee database will have unlimited size| any integer value | 200
+
+### Routes 
+A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the output(s) that the message should be delivered to.
+
+The most important part of a route is the input definition. We use the Rego language to define what are the conditions for an incoming message to be handled by a certain route. For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
+
 ```
-contains(input.image, "alpine")
+input: contains(input.image,"alpine")
 ```
+
+You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 
+
+```
+input: | 
+  contains(input.image,"alpine")
+  contains(input.registry, "Docker Hub")
+  input.vulnerability_summary.critical>0
+```
+
+After defining the route's input condition, what is left is to define the template that will be used to format the input message, and the output that formatted message will be sent to.
+
+The below table describes the fields to define a route:
+
+
+Key | Description | Possible Values | Example
+--- | --- | --- | ---
+*name*|Unique name of route| string | teams-vul-route
+*input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
+*outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
+*template*| A template that is defined in the "template" section| any template name | raw-html
+
+
 #### Route plugins section
-'Plugins' section contains configuration for useful Postee features. 
-Key | Description | Possible Values
---- | --- | ---
-*policy-show-all*|Optional. Open a ticket even if a ticket was opened for same image with same amount of vulnerabilities. Default is false.| boolean
-*aggregate-issues-number*|Number of scans to aggregate into one ticket.| any integer value
-*aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh
+A route can have an optional 'Plugins' section, that contains additional configuration for some useful Postee routing features. 
+Key | Description | Possible Values | Example
+--- | --- | --- | ---
+*policy-show-all*|Optional. Send the message to target even if same message was sent before. Default is false.| boolean | true
+*aggregate-issues-number*|Number of messages to aggregate into one message.| any integer value | 10
+*aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
 
 ### Templates
-There are several options to configure templates. One required template property is `name` (to allow references to template within route configuration). For further configuration pick one option from the list below:
-- Use a built-in template. Postee loads bundle of templates from `rego-templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego-templates' directory. To specify particular rego rule use `rego-package` option. Example is `postee.vuls.html` 
-- Specify inline template. Relative small templates can be added to config directly. `body` option can be used for that 
-- Load from url. Rego template can be loaded from url. There is an `url` option
-- Legacy template. Legacy templates are introduced to support Postee V1 renderers. Option is `legacy-scan-renderer`. Available values are  "jira", "slack", "html". "jira" should be used for jira integration, "slack" is for slack and "html" is for everything else.
+Templates are used to format input messages before sending them to the output. For example - before sending a message to Microsoft Teams there is a need to format the input JSON into an HTML. This is done using a template.
+
+Each template has a 'name' field, which is used by the route to assign the template to input and output. 
+In addition to name, a template will have **one** of the 4 below keys:
+
+Key | Description | Example
+--- | --- | ---
+*rego-package*|Postee loads bundle of templates from `rego-templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego-templates' directory.| `postee.vuls.html`
+*body*| Specify inline template. Relative small templates can be added to config directly | input
+*url*| Load from url. Rego template can be loaded from url.| http://myserver.com/rego.txt
+*legacy-scan-renderer*| Legacy templates are introduced to support Postee V1 renderers. Available values are  "jira", "slack", "html". "jira" should be used for jira integration, "slack" is for slack and "html" is for everything else. | html
+
 
 ### Outputs
-Outputs are remote services that formatted messages should be sent to.
+Outputs are remote services that messages should be sent to. Each output has two mandatory fields, which are 'name' and 'type':
 
-Key | Description | Possible Values
---- | --- | ---
-*name* | Unique name of the output. This name is used in the route definition. | Any string
-*type* | The type of the output | You can choose from the following types: email, jira, slack, teams, webhook, splunk, serviceNow, 
+Key | Description | Possible Values | Example
+--- | --- | --- | ---
+*name* | Unique name of the output. This name is used in the route definition. | Any string | teams-output
+*type* | The type of the output | You can choose from the following types: email, jira, slack, teams, webhook, splunk, serviceNow | email
 
-Each output has a mandatory 'name' and 'type' parameters. Depending on the 'type', additional parameters are required.
+
+Depending on the 'type', additional parameters are required.
+
 ### ServiceNow integration parameters
 Key | Description | Possible Values
 --- | --- | ---
@@ -183,32 +231,6 @@ Key | Description | Possible Values
 --- | --- | ---
 *url* | Webhook URL |
 
-
-## Postee UI
-Postee provides a simple Web UI to simplify the configuration management. 
-![Config app](/postee-output-config.png)
-
-See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
-
-## Rego Templates
-[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) is used to define templates. Message payload is referenced as `input` when template is rendered. Result of rendering is output. Several properties are picked from output and send to configured outputs.
-
-Key | Description |Type
---- | --- | ---
-*result* | message body| Can be either string or json
-*title* | message title| string
-*aggregation_pkg*|reference to package used to aggregate messages (when Aggregate-Issues-Timeout or Aggregate-Issues-Number options are used). If it's missed then aggregation feature is not supported| valid rego package
-
-So the simplest example of Rego template would look like:
-```rego
-package example.vuls.html
-
-title:="Vulnerabilities are found"
-result:=sprintf("Vulnerabilities are found while scanning of image: <i>%s</i>", [input.image])
-```
-
-Two examples are shipped with the app. One produces output for slack integration and another one builds html output which can be used across several integrations. These example can be used as starting point for message customization
-
 ## Configure the Aqua Server with Webhook Integration
 
 Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
@@ -232,9 +254,38 @@ To validate that the integration is working, you can scan a new image for securi
 
 When vulnerabilities are found in an image, you will see that a JIRA ticket is created/ Email is received/ Slack message is posted to the channel.
 
-###### *To troubleshoot the integration, you can look at both the Aqua Postee container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
+To troubleshoot the integration, you can look at both the Aqua Postee container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
 
+## Customizing Templates
+Postee loads bundle of templates from `rego-templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego-templates' directory.
 
+To create your own template, you should create a new file under the 'rego-templates' directory, and use the
+[Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) for the actual template code.
+
+Message payload is referenced as `input` when template is rendered. The result variable should be used to store the output message, which is the result of the template formatting. 
+The following variables should be defined in the custom Rego template:
+
+Key | Description |Type
+--- | --- | ---
+*result* | message body| Can be either string or json
+*title* | message title| string
+*aggregation_pkg*|reference to package used to aggregate messages (when Aggregate-Issues-Timeout or Aggregate-Issues-Number options are used). If it's missed then aggregation feature is not supported| valid rego package
+
+So the simplest example of Rego template would look like:
+```rego
+package example.vuls.html
+
+title:="Vulnerabilities are found"
+result:=sprintf("Vulnerabilities are found while scanning of image: <i>%s</i>", [input.image])
+```
+
+Two examples are shipped with the app. One produces output for slack integration and another one builds html output which can be used across several integrations. These example can be used as starting point for message customization
+
+## Postee UI
+Postee provides a simple Web UI to simplify the configuration management. 
+![Config app](/postee-output-config.png)
+
+See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
 
 ## Misc
 
@@ -275,7 +326,7 @@ Provide a name and click "Create".
 You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
 
 ### Configure the Splunk Integration
-You will need to craate an HTTP Event Collector in Splunk Enterprise or Splunk Cloud.
+You will need to carate an HTTP Event Collector in Splunk Enterprise or Splunk Cloud.
 This can usually be found in the Splunk console under "Settings -> Data Inputs -> HTTP Event Collector -> Add New".
 Once you create an HTTP Event Collector you will receive a token. You should provide this token, together with the Splunk HTTP Collector
 URL, as part of the cfg.yaml settings.
