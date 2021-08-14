@@ -20,6 +20,7 @@ import (
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
 	"github.com/aquasecurity/postee/utils"
+	"golang.org/x/xerrors"
 )
 
 const (
@@ -128,7 +129,7 @@ func (ctx *Router) Send(data []byte) {
 	ctx.queue <- data
 }
 
-func (ctx *Router) initTemplate(template *Template) error {
+func (ctx *Router) initTemplate(template *data.Template) error {
 	log.Printf("Configuring template %s \n", template.Name)
 
 	if template.LegacyScanRenderer != "" {
@@ -248,15 +249,62 @@ func (ctx *Router) load() error {
 	for _, settings := range tenant.Outputs {
 		utils.Debug("%#v\n", anonymizeSettings(&settings))
 
-		if settings.Enable {
-			plg := BuildAndInitOtpt(&settings, ctx.aquaServer)
-			if plg != nil {
-				log.Printf("Output %s is configured", settings.Name)
-				ctx.outputs[settings.Name] = plg
-			}
+		err = ctx.addOutput(&settings)
+
+		if err != nil {
+			log.Printf("Can not initialize output %s: %v \n", settings.Name, err)
+		} else {
+			log.Printf("Output %s is configured", settings.Name)
 		}
+
 	}
 	return nil
+}
+
+func (ctx *Router) addOutput(settings *data.OutputSettings) error {
+	if settings.Enable {
+		plg, err := buildAndInitOtpt(settings, ctx.aquaServer)
+
+		if err != nil {
+			return err
+		}
+
+		ctx.outputs[settings.Name] = plg
+
+	}
+	return nil
+}
+func (ctx *Router) deleteOutput(outputName string, removeFromRoutes bool) error {
+	output, ok := ctx.outputs[outputName]
+	if !ok {
+		return xerrors.Errorf("output %s is not found", outputName)
+	}
+	output.Terminate()
+	delete(ctx.outputs, outputName)
+
+	if removeFromRoutes {
+		for _, route := range ctx.inputRoutes {
+			removeOutputFromRoute(route, outputName)
+		}
+	}
+
+	return nil
+}
+func (ctx *Router) listOutputs() []data.OutputSettings {
+	r := make([]data.OutputSettings, 0)
+	for _, output := range ctx.outputs {
+		r = append(r, *output.CloneSettings())
+	}
+	return r
+}
+func removeOutputFromRoute(r *routes.InputRoute, outputName string) {
+	filtered := make([]string, 0)
+	for _, n := range r.Outputs {
+		if n != outputName {
+			filtered = append(filtered, n)
+		}
+	}
+	r.Outputs = filtered
 }
 
 type service interface {
@@ -303,16 +351,14 @@ func (ctx *Router) handle(in []byte) {
 		ctx.HandleRoute(routeName, in)
 	}
 }
-func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Output {
+func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outputs.Output, error) {
 	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
 	if len(settings.User) == 0 && requireAuthorization[settings.Type] {
-		log.Printf("User for %q is empty", settings.Name)
-		return nil
+		return nil, xerrors.Errorf("user for %q is empty", settings.Name)
 	}
 	settings.Password = utils.GetEnvironmentVarOrPlain(settings.Password)
 	if len(settings.Password) == 0 && requireAuthorization[settings.Type] {
-		log.Printf("Password for %q is empty", settings.Name)
-		return nil
+		return nil, xerrors.Errorf("password for %q is empty", settings.Name)
 	}
 
 	utils.Debug("Starting Output %q: %q\n", settings.Type, settings.Name)
@@ -335,13 +381,11 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	case "splunk":
 		plg = buildSplunkOutput(settings)
 	default:
-		log.Printf("Output type %q is undefined or empty. Output name is %q.",
-			settings.Type, settings.Name)
-		return nil
+		return nil, xerrors.Errorf("output %s has undefined or empty type: %q", settings.Name, settings.Type)
 	}
 	plg.Init()
 
-	return plg
+	return plg, nil
 }
 
 func (ctx *Router) listen() {

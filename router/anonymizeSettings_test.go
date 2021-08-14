@@ -1,37 +1,41 @@
 package router
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/aquasecurity/postee/data"
+)
 
 func TestAnonymizeSettings(t *testing.T) {
 	tests := []struct {
-		original *OutputSettings
-		expected *OutputSettings
+		original *data.OutputSettings
+		expected *data.OutputSettings
 	}{{
-		&OutputSettings{
+		&data.OutputSettings{
 			User: "admin",
 		},
-		&OutputSettings{
+		&data.OutputSettings{
 			User: "<hidden>",
 		},
 	}, {
-		&OutputSettings{
+		&data.OutputSettings{
 			User: "",
 		},
-		&OutputSettings{
+		&data.OutputSettings{
 			User: "",
 		},
 	}, {
-		&OutputSettings{
+		&data.OutputSettings{
 			Password: "secret",
 		},
-		&OutputSettings{
+		&data.OutputSettings{
 			Password: "<hidden>",
 		},
 	}, {
-		&OutputSettings{
+		&data.OutputSettings{
 			Url: "http://localhost",
 		},
-		&OutputSettings{
+		&data.OutputSettings{
 			Url: "<hidden>",
 		},
 	},

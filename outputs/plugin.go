@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/layout"
 )
 
@@ -18,6 +19,7 @@ type Output interface {
 	Send(map[string]string) error
 	Terminate() error
 	GetLayoutProvider() layout.LayoutProvider
+	CloneSettings() *data.OutputSettings //TODO shouldn't return reference
 }
 
 func getHandledRecipients(recipients []string, content *map[string]string, outputName string) []string {

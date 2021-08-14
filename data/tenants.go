@@ -1,4 +1,4 @@
-package router
+package data
 
 import (
 	"github.com/aquasecurity/postee/routes"

@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/aquasecurity/postee/data"
 )
 
 func TestBuildAndInitOtpt(t *testing.T) {
 	tests := []struct {
 		caseDesc            string
-		outputSettings      OutputSettings
+		outputSettings      data.OutputSettings
 		expctdProps         map[string]interface{}
 		shouldFail          bool
 		expectedOutputClass string
 	}{
 		{
 			"Simple Slack",
-			OutputSettings{
+			data.OutputSettings{
 				Name:   "my-slack",
 				Type:   "slack",
 				Enable: true,
@@ -31,7 +33,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Simple Email output",
-			OutputSettings{
+			data.OutputSettings{
 				User:       "EmailUser",
 				Password:   "pAsSw0rD",
 				Host:       "smtp.gmail.com",
@@ -54,7 +56,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Simple Jira output",
-			OutputSettings{
+			data.OutputSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Password:   "admin",
@@ -79,7 +81,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Jira output without credentials",
-			OutputSettings{
+			data.OutputSettings{
 				Url:        "localhost:2990",
 				Name:       "my-jira",
 				Type:       "jira",
@@ -94,7 +96,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Jira output without password",
-			OutputSettings{
+			data.OutputSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Name:       "my-jira",
@@ -110,7 +112,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Jira output with missed type",
-			OutputSettings{
+			data.OutputSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Name:       "my-jira",
@@ -125,7 +127,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Jira Output with some default values",
-			OutputSettings{
+			data.OutputSettings{
 				Url:        "localhost:2990",
 				Name:       "my-jira-with-defaults",
 				Type:       "jira",
@@ -149,7 +151,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Simple webhook output",
-			OutputSettings{
+			data.OutputSettings{
 				Url:  "http://localhost:8080",
 				Name: "my-webhook",
 				Type: "webhook",
@@ -162,7 +164,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Simple ServiceNow output",
-			OutputSettings{
+			data.OutputSettings{
 				Name:         "my-servicenow",
 				Type:         "serviceNow",
 				User:         "admin",
@@ -181,7 +183,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"Simple Teams output",
-			OutputSettings{
+			data.OutputSettings{
 				Url:  "https://outlook.office.com/webhook/ABCD",
 				Name: "my-teams",
 				Type: "teams",
@@ -194,7 +196,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		o := BuildAndInitOtpt(&test.outputSettings, "")
+		o, _ := buildAndInitOtpt(&test.outputSettings, "") //TODO handle error
 		if test.shouldFail && o != nil {
 			t.Fatalf("No output expected for %s test case", test.caseDesc)
 		} else if !test.shouldFail && o == nil {

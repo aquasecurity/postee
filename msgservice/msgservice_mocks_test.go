@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
 )
@@ -70,6 +71,9 @@ type DemoEmailOutput struct {
 
 func (plg *DemoEmailOutput) GetName() string {
 	return "demo"
+}
+func (plg *DemoEmailOutput) CloneSettings() *data.OutputSettings {
+	return nil
 }
 
 func (plg *DemoEmailOutput) getEmailsCount() int {

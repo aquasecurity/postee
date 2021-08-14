@@ -8,6 +8,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
 
@@ -43,6 +44,28 @@ type JiraAPI struct {
 
 func (ctx *JiraAPI) GetName() string {
 	return ctx.Name
+}
+
+func (ctx *JiraAPI) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name: ctx.Name,
+		Url:  ctx.Url,
+		User: ctx.User,
+		//password is omitted
+		TlsVerify:       ctx.TlsVerify,
+		IssueType:       ctx.Issuetype,
+		ProjectKey:      ctx.ProjectKey,
+		Priority:        ctx.Priority,
+		Assignee:        data.CopyStringArray(ctx.Assignee),
+		Summary:         ctx.Summary,
+		Sprint:          ctx.SprintName,
+		FixVersions:     data.CopyStringArray(ctx.FixVersions),
+		AffectsVersions: data.CopyStringArray(ctx.AffectsVersions),
+		Labels:          data.CopyStringArray(ctx.Labels),
+		//TODO Unknowns
+		Enable: true,
+		Type:   "Jira",
+	}
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {

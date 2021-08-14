@@ -28,6 +28,15 @@ func (slack *SlackOutput) GetName() string {
 	return slack.Name
 }
 
+func (slack *SlackOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:   slack.Name,
+		Url:    slack.Url,
+		Enable: true,
+		Type:   "slack",
+	}
+}
+
 func (slack *SlackOutput) Init() error {
 	slack.slackLayout = new(formatting.SlackMrkdwnProvider)
 	log.Printf("Starting Slack output %q....", slack.Name)

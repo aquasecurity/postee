@@ -1,8 +1,12 @@
 package router
 
-import "reflect"
+import (
+	"reflect"
 
-func anonymizeSettings(settings *OutputSettings) *OutputSettings {
+	"github.com/aquasecurity/postee/data"
+)
+
+func anonymizeSettings(settings *data.OutputSettings) *data.OutputSettings {
 	fieldsToAnonymize := [...]string{
 		"User",
 		"Password",
