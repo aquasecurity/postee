@@ -171,12 +171,12 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
-		return fmt.Errorf("Failed to create meta project: %s\n", err)
+		return fmt.Errorf("failed to create meta project: %s", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
-		return fmt.Errorf("Failed to create meta issue type: %s", err)
+		return fmt.Errorf("failed to create meta issue type: %s", err)
 	}
 
 	ctx.Summary = content["title"]
@@ -221,9 +221,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	}
 
 	if len(ctx.Labels) > 0 {
-		for _, l := range ctx.Labels {
-			issue.Fields.Labels = append(issue.Fields.Labels, l)
-		}
+		issue.Fields.Labels = append(issue.Fields.Labels, ctx.Labels...)
 	}
 
 	if len(ctx.FixVersions) > 0 {
@@ -252,11 +250,6 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	}
 	log.Printf("Created new jira issue %s", i.ID)
 	return nil
-}
-
-func (ctx *JiraAPI) login(client *jira.Client) error {
-	_, err := client.Authentication.AcquireSessionCookie(ctx.User, ctx.Password)
-	return err
 }
 
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {
@@ -403,7 +396,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 			}
 
 		default:
-			return nil, fmt.Errorf("Unknown issue type encountered: %s for %s", valueType, key)
+			return nil, fmt.Errorf("unknown issue type encountered: %s for %s", valueType, key)
 		}
 	}
 	issue.Fields = issueFields

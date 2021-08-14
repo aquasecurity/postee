@@ -52,7 +52,7 @@ func (webhook *WebhookOutput) Send(content map[string]string) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		msg := "Sending webhook wrong status: %q. Body: %s"
+		msg := "sending webhook wrong status: %q. Body: %s"
 		log.Printf(msg, resp.StatusCode, body)
 		return fmt.Errorf(msg, resp.StatusCode, body)
 	}
