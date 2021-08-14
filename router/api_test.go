@@ -69,3 +69,6 @@ func TestListOutput(t *testing.T) {
 	assert.True(t, r.Enable, "output must be enabled")
 
 }
+
+//TODO templates
+//TODO routes

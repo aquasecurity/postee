@@ -17,6 +17,13 @@ we want to add this as we want the consumer to be able to add a code for extendi
 when adding a route, the callback function will be part of each route
 func InputCallBack(inputMessage) (bool, error)
 */
+type InputCallbackFunc func(InputMessage interface{}) bool
+
+//SetInputCallbackFunc The call back func will be called as the last evaluation method of the input rego,
+//it will be added to the rego with && operator and the entire input evaluation will pass through only if the callback retuns true
+func SetInputCallbackFunc(routeName string, callaback InputCallbackFunc) {
+
+}
 
 func WithDefaultConfig() error {
 	return WithFileConfig(defaultConfigPath)
@@ -53,7 +60,6 @@ func UpdateOutput(output *data.OutputSettings) error {
 	return Instance().addOutput(output)
 }
 func ListOutputs() []data.OutputSettings {
-	//should return clones of objects
 	return Instance().listOutputs()
 }
 
@@ -64,18 +70,22 @@ func DeleteOutput(name string) error {
 //-----------------------------------------------
 
 //------------------Routes--------------------
-func AddRoute(route *routes.InputRoute) error {
-	return nil
+func AddRoute(route *routes.InputRoute) {
+	Instance().addRoute(route)
 }
 
 func DeleteRoute(name string) error {
-	return nil
+	return Instance().deleteRoute(name)
 }
-func ListRoutes() ([]routes.InputRoute, error) {
-	//should return clones of objects
-	return make([]routes.InputRoute, 0), nil
+func ListRoutes() []routes.InputRoute {
+	return Instance().listRoutes()
 }
-func UpdateRoute(*routes.InputRoute) error {
+func UpdateRoute(route *routes.InputRoute) error {
+	err := Instance().deleteRoute(route.Name)
+	if err != nil {
+		return err
+	}
+	Instance().addRoute(route)
 	return nil
 }
 
@@ -83,23 +93,37 @@ func UpdateRoute(*routes.InputRoute) error {
 
 //-------------------Templates-------------------
 func AddTemplate(template *data.Template) error {
-	return nil
+	return Instance().initTemplate(template)
 }
 func UpdateTemplate(template *data.Template) error {
-	return nil
+	err := Instance().deleteTemplate(template.Name, true)
+
+	if err != nil {
+		return err
+	}
+
+	return Instance().initTemplate(template)
 }
 
 func DeleteTemplate(name string) error {
-	return nil
+	return Instance().deleteTemplate(name, true)
 }
 
-func ListTemplates() ([]data.Template, error) {
-	//should return clones of objects
-	return make([]data.Template, 0), nil
+func ListTemplates() []string {
+	/*
+		There is nothing to update (as only one property defines template).
+		So only list of template names returned
+	*/
+	templates := Instance().templates
+	names := make([]string, 0, len(templates))
+	for n := range templates {
+		names = append(names, n)
+	}
+	return names
 }
 
 //-----------------------------------------------
 
-func Send(data []byte) {
-	//just put data into queue. No error returned
+func Send(b []byte) {
+	Instance().Send(b)
 }

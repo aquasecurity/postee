@@ -2,7 +2,6 @@ package router
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -130,6 +129,23 @@ func (ctx *Router) Terminate() {
 func (ctx *Router) Send(data []byte) {
 	ctx.queue <- data
 }
+func (ctx *Router) deleteTemplate(name string, removeFromRoutes bool) error {
+	_, ok := ctx.outputs[name]
+	if !ok {
+		return xerrors.Errorf("template %s is not found", name)
+	}
+	delete(ctx.outputs, name)
+
+	if removeFromRoutes {
+		for _, route := range ctx.inputRoutes {
+			if route.Template == name {
+				route.Template = ""
+			}
+		}
+	}
+
+	return nil
+}
 
 func (ctx *Router) initTemplate(template *data.Template) error {
 	log.Printf("Configuring template %s \n", template.Name)
@@ -165,7 +181,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 		}
 
 		if resp.StatusCode > 399 {
-			return errors.New(fmt.Sprintf("can not connect to %s, response status is %d", template.Url, resp.StatusCode))
+			return xerrors.Errorf("can not connect to %s, response status is %d", template.Url, resp.StatusCode)
 		}
 
 		b, err := ioutil.ReadAll(resp.Body)
@@ -235,8 +251,8 @@ func (ctx *Router) load() error {
 
 	//----------------------------------------------------
 
-	for i, r := range tenant.InputRoutes {
-		ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(&tenant.InputRoutes[i])
+	for _, r := range tenant.InputRoutes {
+		ctx.addRoute(&r)
 	}
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)
@@ -258,6 +274,39 @@ func (ctx *Router) load() error {
 
 	}
 	return nil
+}
+
+func (ctx *Router) addRoute(r *routes.InputRoute) {
+	ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(r)
+}
+func (ctx *Router) deleteRoute(name string) error {
+	r, ok := ctx.inputRoutes[name]
+	if !ok {
+		return xerrors.Errorf("output %s is not found", name)
+	}
+	r.StopScheduler()
+	delete(ctx.inputRoutes, name)
+
+	return nil
+}
+
+func (ctx *Router) listRoutes() []routes.InputRoute {
+	list := make([]routes.InputRoute, 0, len(ctx.inputRoutes))
+	for _, r := range ctx.inputRoutes {
+		list = append(list, routes.InputRoute{
+			Name:    r.Name,
+			Input:   r.Input,
+			Outputs: data.CopyStringArray(r.Outputs),
+			Plugins: routes.Plugins{
+				AggregateIssuesNumber:   r.Plugins.AggregateIssuesNumber,
+				AggregateIssuesTimeout:  r.Plugins.AggregateIssuesTimeout,
+				PolicyShowAll:           r.Plugins.PolicyShowAll,
+				AggregateTimeoutSeconds: r.Plugins.AggregateTimeoutSeconds,
+			},
+			Template: r.Template,
+		})
+	}
+	return list
 }
 
 func (ctx *Router) addOutput(settings *data.OutputSettings) error {
