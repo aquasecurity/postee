@@ -91,9 +91,17 @@ func (ctx *ctxWrapper) MsgHandling(input []byte, output outputs.Output, route *r
 }
 
 func (ctxWrapper *ctxWrapper) setup(cfg string) {
+	ctxWrapper.init()
+
+	ctxWrapper.cfgPath = "cfg_test.yaml"
+	err := ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
+	if err != nil {
+		log.Printf("Can't write to %s", ctxWrapper.cfgPath)
+	}
+}
+func (ctxWrapper *ctxWrapper) init() {
 	ctxWrapper.savedDBPath = dbservice.DbPath
 	ctxWrapper.savedBaseForTicker = baseForTicker
-	ctxWrapper.cfgPath = "cfg_test.yaml"
 	ctxWrapper.savedGetService = getScanService
 	ctxWrapper.buff = make(chan invctn)
 
@@ -114,10 +122,6 @@ func (ctxWrapper *ctxWrapper) setup(cfg string) {
 		return ctxWrapper
 	}
 
-	err = ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
-	if err != nil {
-		log.Printf("Can't write to %s", ctxWrapper.cfgPath)
-	}
 	ctxWrapper.instance = Instance()
 }
 

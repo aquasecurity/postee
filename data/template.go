@@ -1,4 +1,4 @@
-package router
+package data
 
 type Template struct {
 	Name               string `json:"name"`

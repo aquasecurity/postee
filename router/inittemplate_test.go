@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/aquasecurity/postee/data"
 )
 
 var (
@@ -43,13 +45,13 @@ func TestInitTemplate(t *testing.T) {
 	}()
 
 	tests := []struct {
-		template          *Template
+		template          *data.Template
 		caseDesc          string
 		expectedCls       string
 		shouldReturnError bool
 	}{
 		{
-			template: &Template{
+			template: &data.Template{
 				Name:               "legacy-html",
 				LegacyScanRenderer: "html",
 			},
@@ -57,7 +59,7 @@ func TestInitTemplate(t *testing.T) {
 			expectedCls: "*formatting.legacyScnEvaluator",
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name:        "built-in",
 				RegoPackage: "postee.slack",
 			},
@@ -65,7 +67,7 @@ func TestInitTemplate(t *testing.T) {
 			expectedCls: "*regoservice.regoEvaluator",
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "from-url",
 				Url:  "http://localhost/slack.rego",
 			},
@@ -73,7 +75,7 @@ func TestInitTemplate(t *testing.T) {
 			expectedCls: "*regoservice.regoEvaluator",
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "not-found",
 				Url:  "http://localhost/wrong.rego",
 			},
@@ -82,7 +84,7 @@ func TestInitTemplate(t *testing.T) {
 			shouldReturnError: true,
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "from-invalid-url",
 				Url:  "invalid-url",
 			},
@@ -91,7 +93,7 @@ func TestInitTemplate(t *testing.T) {
 			shouldReturnError: true,
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "inline",
 				Body: "package postee.inline",
 			},
@@ -104,7 +106,7 @@ func TestInitTemplate(t *testing.T) {
 	}
 
 }
-func doInitTemplate(t *testing.T, caseDesc string, template *Template, expectedCls string, shouldReturnError bool) {
+func doInitTemplate(t *testing.T, caseDesc string, template *data.Template, expectedCls string, shouldReturnError bool) {
 	demoCtx := Instance()
 	err := demoCtx.initTemplate(template)
 	if err != nil && !shouldReturnError {

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/routes"
 )
 
@@ -44,19 +45,20 @@ func DBRemoveOldData(dbRemoveOldData int) { //optional
 }
 
 //------------------Outputs-------------------
-func AddOutput(output *OutputSettings) error {
-	return nil
+func AddOutput(output *data.OutputSettings) error {
+	return Instance().addOutput(output)
 }
-func UpdateOutput(output *OutputSettings) error {
-	return nil
+func UpdateOutput(output *data.OutputSettings) error {
+	Instance().deleteOutput(output.Name, false)
+	return Instance().addOutput(output)
 }
-func ListOutputs() ([]OutputSettings, error) {
+func ListOutputs() []data.OutputSettings {
 	//should return clones of objects
-	return make([]OutputSettings, 0), nil
+	return Instance().listOutputs()
 }
 
 func DeleteOutput(name string) error {
-	return nil
+	return Instance().deleteOutput(name, true)
 }
 
 //-----------------------------------------------
@@ -80,10 +82,10 @@ func UpdateRoute(*routes.InputRoute) error {
 //-----------------------------------------------
 
 //-------------------Templates-------------------
-func AddTemplate(template *Template) error {
+func AddTemplate(template *data.Template) error {
 	return nil
 }
-func UpdateTemplate(template *Template) error {
+func UpdateTemplate(template *data.Template) error {
 	return nil
 }
 
@@ -91,9 +93,9 @@ func DeleteTemplate(name string) error {
 	return nil
 }
 
-func ListTemplates() ([]Template, error) {
+func ListTemplates() ([]data.Template, error) {
 	//should return clones of objects
-	return make([]Template, 0), nil
+	return make([]data.Template, 0), nil
 }
 
 //-----------------------------------------------

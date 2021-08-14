@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/aquasecurity/postee/data"
 	"github.com/ghodss/yaml"
 )
 
@@ -24,17 +25,17 @@ const (
 `
 )
 
-func Parsev2cfg(cfgpath string) (*TenantSettings, error) {
-	data, err := ioutil.ReadFile(cfgpath)
+func Parsev2cfg(cfgpath string) (*data.TenantSettings, error) {
+	b, err := ioutil.ReadFile(cfgpath)
 	if err != nil {
 		log.Printf("Failed to open file %s, %s", cfgpath, err)
 		return nil, err
 	}
 
-	checkV1Cfg(data, cfgpath)
+	checkV1Cfg(b, cfgpath)
 
-	tenant := &TenantSettings{}
-	err = yaml.Unmarshal(data, tenant)
+	tenant := &data.TenantSettings{}
+	err = yaml.Unmarshal(b, tenant)
 
 	if err != nil {
 		log.Printf("Failed yaml.Unmarshal, %s", err)

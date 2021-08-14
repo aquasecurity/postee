@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 	"github.com/aquasecurity/postee/v2/utils"
@@ -24,6 +25,15 @@ type TeamsOutput struct {
 
 func (teams *TeamsOutput) GetName() string {
 	return teams.Name
+}
+
+func (teams *TeamsOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:   teams.Name,
+		Url:    teams.Webhook,
+		Enable: true,
+		Type:   "teams",
+	}
 }
 
 func (teams *TeamsOutput) Init() error {

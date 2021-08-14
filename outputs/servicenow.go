@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 	servicenow "github.com/aquasecurity/postee/v2/servicenow"
@@ -20,6 +21,18 @@ type ServiceNowOutput struct {
 
 func (sn *ServiceNowOutput) GetName() string {
 	return sn.Name
+}
+
+func (sn *ServiceNowOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name: sn.Name,
+		User: sn.User,
+		//password
+		InstanceName: sn.Instance,
+		BoardName:    sn.Table,
+		Enable:       true,
+		Type:         "serviceNow",
+	}
 }
 
 func (sn *ServiceNowOutput) Init() error {

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 )
@@ -30,6 +31,21 @@ type EmailOutput struct {
 
 func (email *EmailOutput) GetName() string {
 	return email.Name
+}
+
+func (email *EmailOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name: email.Name,
+		User: email.User,
+		//password is omitted
+		Host:       email.Host,
+		Port:       email.Port,
+		Sender:     email.Sender,
+		UseMX:      email.UseMX,
+		Recipients: data.CopyStringArray(email.Recipients),
+		Enable:     true,
+		Type:       "email",
+	}
 }
 
 func (email *EmailOutput) Init() error {

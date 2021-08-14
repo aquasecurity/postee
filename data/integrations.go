@@ -1,4 +1,4 @@
-package router
+package data
 
 type OutputSettings struct {
 	Name            string            `json:"name,omitempty"`

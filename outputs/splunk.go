@@ -29,6 +29,17 @@ func (splunk *SplunkOutput) GetName() string {
 	return splunk.Name
 }
 
+func (splunk *SplunkOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:      splunk.Name,
+		Url:       splunk.Url,
+		Token:     splunk.Token,
+		SizeLimit: splunk.EventLimit,
+		Enable:    true,
+		Type:      "splunk",
+	}
+}
+
 func (splunk *SplunkOutput) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
 	log.Printf("Starting Splunk output %q....", splunk.Name)

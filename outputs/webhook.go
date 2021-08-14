@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 )
@@ -18,6 +19,15 @@ type WebhookOutput struct {
 
 func (webhook *WebhookOutput) GetName() string {
 	return webhook.Name
+}
+
+func (webhook *WebhookOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:   webhook.Name,
+		Url:    webhook.Url,
+		Enable: true,
+		Type:   "webhook",
+	}
 }
 
 func (webhook *WebhookOutput) Init() error {
