@@ -249,9 +249,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	}
 
 	if len(ctx.Labels) > 0 {
-		for _, l := range ctx.Labels {
-			issue.Fields.Labels = append(issue.Fields.Labels, l)
-		}
+		issue.Fields.Labels = append(issue.Fields.Labels, ctx.Labels...)
 	}
 
 	if len(ctx.FixVersions) > 0 {
@@ -435,7 +433,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 			}
 
 		default:
-			return nil, fmt.Errorf("Unknown issue type encountered: %s for %s", valueType, key)
+			return nil, fmt.Errorf("unknown issue type encountered: %s for %s", valueType, key)
 		}
 	}
 	issue.Fields = issueFields
