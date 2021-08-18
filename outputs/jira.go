@@ -12,6 +12,7 @@ import (
 	"github.com/aquasecurity/postee/layout"
 
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -191,7 +192,8 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 		Name string `json:"name"`
 	}
 
-	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig)
+	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, isServerJira(ctx.Url))
+
 	if err != nil {
 		log.Printf("Failed to init issue: %s\n", err)
 		return err
@@ -271,7 +273,7 @@ func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira
 	return metaIssuetype, nil
 }
 
-func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
+func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string, useSrvApi bool) (*jira.Issue, error) {
 	issue := new(jira.Issue)
 	issueFields := new(jira.IssueFields)
 	issueFields.Unknowns = make(map[string]interface{})
@@ -356,7 +358,16 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 		case "priority":
 			issueFields.Unknowns[jiraKey] = jira.Priority{Name: value}
 		case "user":
-			users, resp, err := c.User.Find(value)
+			var users []jira.User
+			var resp *jira.Response
+			var err error
+
+			if useSrvApi {
+				users, resp, err = findUserOnJiraServer(c, value)
+			} else {
+				users, resp, err = c.User.Find(value)
+			}
+
 			if err != nil {
 				log.Printf("Get Jira User info error: %v", err)
 				continue
@@ -385,4 +396,25 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 	}
 	issue.Fields = issueFields
 	return issue, nil
+}
+func findUserOnJiraServer(c *jira.Client, email string) ([]jira.User, *jira.Response, error) {
+	req, _ := c.NewRequest("GET", fmt.Sprintf("/rest/api/2/user/search?username=%s", email), nil)
+
+	users := []jira.User{}
+
+	resp, err := c.Do(req, &users)
+	if err != nil {
+		log.Printf("%v", err)
+		return nil, resp, err
+	}
+	return users, resp, nil
+}
+func isServerJira(rawUrl string) bool {
+	jiraUrl, err := url.Parse(rawUrl)
+
+	if err == nil {
+		return !strings.HasSuffix(jiraUrl.Host, "atlassian.net")
+	}
+
+	return false
 }
