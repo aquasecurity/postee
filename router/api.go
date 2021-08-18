@@ -1,6 +1,8 @@
 package router
 
 import (
+	"bytes"
+
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/routes"
 )
@@ -125,5 +127,6 @@ func ListTemplates() []string {
 //-----------------------------------------------
 
 func Send(b []byte) {
-	Instance().Send(b)
+	//Instance().Send(b)
+	Instance().handle(bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''}))
 }
