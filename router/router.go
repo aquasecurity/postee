@@ -84,7 +84,6 @@ func (ctx *Router) resetCfg() {
 }
 func (ctx *Router) NewConfig() {
 	ctx.resetCfg()
-	go ctx.listen()
 }
 
 func (ctx *Router) ApplyFileCfg(cfgfile string) error {
