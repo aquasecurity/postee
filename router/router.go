@@ -76,17 +76,19 @@ func (ctx *Router) ReloadConfig() {
 	}
 }
 
-func (ctx *Router) resetCfg(synchronous bool) {
-	ctx.outputs = map[string]outputs.Output{}
-	ctx.inputRoutes = map[string]*routes.InputRoute{}
-	ctx.templates = map[string]data.Inpteval{}
-	ctx.ticker = nil
+func (ctx *Router) initCfg(synchronous bool) {
+	ctx.cleanInstance()
+
 	ctx.synchronous = synchronous
 
-	if ctx.synchronous {
+	if !ctx.synchronous {
 		ctx.quit = make(chan struct{})
 		ctx.queue = make(chan []byte, 1000)
 		ctx.stopTicker = make(chan struct{})
+	} else {
+		ctx.quit = nil
+		ctx.queue = nil
+		ctx.stopTicker = nil
 	}
 }
 
@@ -95,7 +97,7 @@ func (ctx *Router) ApplyFileCfg(cfgfile string, synchronous bool) error {
 
 	ctx.cfgfile = cfgfile
 
-	ctx.resetCfg(synchronous)
+	ctx.initCfg(synchronous)
 
 	err := ctx.load()
 	if err != nil {
@@ -122,16 +124,27 @@ func (ctx *Router) Terminate() {
 	}
 	log.Printf("Route schedulers stopped")
 
+	log.Printf("ctx.quit %v\n", ctx.quit)
+
 	if ctx.quit != nil {
 		ctx.quit <- struct{}{}
 	}
 
 	log.Printf("quit notified")
+
 	if ctx.ticker != nil {
 		ctx.stopTicker <- struct{}{}
 		log.Printf("stopTicker notified")
 	}
 
+	ctx.cleanInstance()
+}
+func (ctx *Router) cleanInstance() {
+	ctx.outputs = map[string]outputs.Output{}
+	ctx.inputRoutes = map[string]*routes.InputRoute{}
+	ctx.templates = map[string]data.Inpteval{}
+	ctx.ticker = nil
+	ctx.quit = nil
 }
 
 func (ctx *Router) Send(data []byte) {
@@ -259,7 +272,6 @@ func (ctx *Router) load() error {
 			}
 		}()
 	}
-
 	//----------------------------------------------------
 
 	for _, r := range tenant.InputRoutes {
