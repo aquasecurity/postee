@@ -22,7 +22,7 @@ func InputCallBack(inputMessage) (bool, error)
 type InputCallbackFunc func(InputMessage interface{}) bool
 
 //SetInputCallbackFunc The call back func will be called as the last evaluation method of the input rego,
-//it will be added to the rego with && operator and the entire input evaluation will pass through only if the callback retuns true
+//it will be added to the rego with && operator and the entire input evaluation will pass through only if the callback returns true
 func SetInputCallbackFunc(routeName string, callaback InputCallbackFunc) {
 
 }
