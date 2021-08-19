@@ -74,7 +74,7 @@ func main() {
 			cfgfile = os.Getenv("POSTEE_CFG")
 		}
 
-		err := router.Instance().ApplyFileCfg(cfgfile)
+		err := router.Instance().ApplyFileCfg(cfgfile, false)
 		if err != nil {
 			log.Printf("Can't start alert manager %v", err)
 			return

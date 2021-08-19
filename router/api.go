@@ -38,7 +38,7 @@ func WithFileConfig(path string) error {
 }
 func WithNewConfig(name string) { //tenant name
 	Instance().Terminate()
-	Instance().resetCfg(true)
+	Instance().initCfg(true)
 }
 
 func AquaServerUrl(aquaServerUrl string) { //optional
