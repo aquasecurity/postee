@@ -41,6 +41,7 @@ type Router struct {
 	outputs     map[string]outputs.Output
 	inputRoutes map[string]*routes.InputRoute
 	templates   map[string]data.Inpteval
+	synchronous bool
 }
 
 var (
@@ -58,46 +59,53 @@ func Instance() *Router {
 	initCtx.Do(func() {
 		routerCtx = &Router{
 			mutexScan:   sync.Mutex{},
-			quit:        make(chan struct{}),
-			queue:       make(chan []byte, 1000),
 			outputs:     make(map[string]outputs.Output),
 			inputRoutes: make(map[string]*routes.InputRoute),
 			templates:   make(map[string]data.Inpteval),
-			stopTicker:  make(chan struct{}),
+			synchronous: false,
 		}
 	})
 	return routerCtx
 }
 func (ctx *Router) ReloadConfig() {
 	ctx.Terminate()
-	err := ctx.ApplyFileCfg(ctx.cfgfile)
+	err := ctx.ApplyFileCfg(ctx.cfgfile, ctx.synchronous)
 
 	if err != nil {
 		log.Printf("Unable to start router: %s", err)
 	}
 }
-func (ctx *Router) resetCfg() {
+
+func (ctx *Router) resetCfg(synchronous bool) {
 	ctx.outputs = map[string]outputs.Output{}
 	ctx.inputRoutes = map[string]*routes.InputRoute{}
 	ctx.templates = map[string]data.Inpteval{}
 	ctx.ticker = nil
-}
-func (ctx *Router) NewConfig() {
-	ctx.resetCfg()
+	ctx.synchronous = synchronous
+
+	if ctx.synchronous {
+		ctx.quit = make(chan struct{})
+		ctx.queue = make(chan []byte, 1000)
+		ctx.stopTicker = make(chan struct{})
+	}
 }
 
-func (ctx *Router) ApplyFileCfg(cfgfile string) error {
+func (ctx *Router) ApplyFileCfg(cfgfile string, synchronous bool) error {
 	log.Printf("Starting Router....")
 
 	ctx.cfgfile = cfgfile
 
-	ctx.resetCfg()
+	ctx.resetCfg(synchronous)
 
 	err := ctx.load()
 	if err != nil {
 		return err
 	}
-	go ctx.listen()
+
+	if !ctx.synchronous {
+		go ctx.listen()
+	}
+
 	return nil
 }
 
@@ -114,7 +122,10 @@ func (ctx *Router) Terminate() {
 	}
 	log.Printf("Route schedulers stopped")
 
-	ctx.quit <- struct{}{}
+	if ctx.quit != nil {
+		ctx.quit <- struct{}{}
+	}
+
 	log.Printf("quit notified")
 	if ctx.ticker != nil {
 		ctx.stopTicker <- struct{}{}
@@ -390,7 +401,12 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 			continue
 		}
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
-		go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+
+		if ctx.synchronous {
+			getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+		} else {
+			go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+		}
 	}
 }
 
