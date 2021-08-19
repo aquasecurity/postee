@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"os"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/routes"
@@ -12,6 +13,7 @@ const (
 )
 
 /*
+TODO
 Is it possible to add a callback func to the route "input", this callback func, will be called when evaluating the input "rego"
 and if the callback func returns "false" then the evaluation will fail and the message is not sent.
 
@@ -32,12 +34,11 @@ func WithDefaultConfig() error {
 }
 func WithFileConfig(path string) error {
 	Instance().Terminate()
-	return Instance().ApplyFileCfg(path)
+	return Instance().ApplyFileCfg(path, true)
 }
 func WithNewConfig(name string) { //tenant name
 	Instance().Terminate()
-	Instance().NewConfig()
-
+	Instance().resetCfg(true)
 }
 
 func AquaServerUrl(aquaServerUrl string) { //optional
@@ -97,6 +98,22 @@ func UpdateRoute(route *routes.InputRoute) error {
 func AddTemplate(template *data.Template) error {
 	return Instance().initTemplate(template)
 }
+
+//helper method
+func AddRegoTemplateFromFile(name, filename string) error {
+	b, err := os.ReadFile(filename)
+
+	if err != nil {
+		return err
+	}
+
+	return AddTemplate(&data.Template{
+		Name: name,
+		Body: string(b),
+	})
+
+}
+
 func UpdateTemplate(template *data.Template) error {
 	err := Instance().deleteTemplate(template.Name, true)
 
