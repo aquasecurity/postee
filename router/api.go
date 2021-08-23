@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/routes"
 )
 
@@ -29,15 +30,17 @@ func SetInputCallbackFunc(routeName string, callaback InputCallbackFunc) {
 
 }
 
-func WithDefaultConfig() error {
-	return WithFileConfig(defaultConfigPath)
+func WithDefaultConfig(dbPath string) error {
+	return WithFileConfig(defaultConfigPath, dbPath)
 }
-func WithFileConfig(path string) error {
+func WithFileConfig(cfgPath, dbPath string) error {
 	Instance().Terminate()
-	return Instance().ApplyFileCfg(path, true)
+	dbservice.DbPath = dbPath
+	return Instance().ApplyFileCfg(cfgPath, true)
 }
-func WithNewConfig(name string) { //tenant name
+func WithNewConfig(tenantName, dbPath string) { //tenant name
 	Instance().Terminate()
+	dbservice.DbPath = dbPath
 	Instance().initCfg(true)
 }
 

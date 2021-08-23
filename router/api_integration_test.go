@@ -51,7 +51,7 @@ func TestAudit(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	router.WithNewConfig("test")
+	router.WithNewConfig("test", "./webhook.db")
 
 	err := router.AddTemplate(&data.Template{
 		Name: "audit-json-template",
