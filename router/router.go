@@ -319,6 +319,7 @@ func (ctx *Router) deleteRoute(name string) error {
 	}
 	r.StopScheduler()
 	delete(ctx.inputRoutes, name)
+	delete(ctx.inputCallBacks, name)
 
 	return nil
 }
