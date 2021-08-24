@@ -506,7 +506,7 @@ func TestCallBack(t *testing.T) {
 				wrap.instance.setInputCallbackFunc("route1", tt.callback)
 			}
 
-			wrap.instance.Send([]byte(payload))
+			wrap.instance.handle([]byte(payload))
 			timeout := time.After(1 * time.Second)
 			for {
 				select {
