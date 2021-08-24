@@ -8,7 +8,6 @@ import (
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/outputs"
-	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
 )
 
@@ -18,25 +17,13 @@ type MsgService struct {
 	isNew    bool
 }
 
-func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
+func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
 	if output == nil {
 		return
 	}
 
-	in := map[string]interface{}{}
-	if err := json.Unmarshal(input, &in); err != nil {
-		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
-		return
-	}
-
-	if ok, err := regoservice.DoesMatchRegoCriteria(in, route.Input); err != nil {
-		prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", route.Input, err, input)
-		return
-	} else if !ok {
-		prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, route.Input)
-		return
-	}
-
+	//TODO marshalling message back to bytes, change after merge with https://github.com/aquasecurity/postee/pull/150
+	input, _ := json.Marshal(in)
 	if err := scan.init(input); err != nil {
 		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return

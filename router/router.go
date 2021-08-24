@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -31,17 +32,18 @@ const (
 )
 
 type Router struct {
-	mutexScan   sync.Mutex
-	quit        chan struct{}
-	queue       chan []byte
-	ticker      *time.Ticker
-	stopTicker  chan struct{}
-	cfgfile     string
-	aquaServer  string
-	outputs     map[string]outputs.Output
-	inputRoutes map[string]*routes.InputRoute
-	templates   map[string]data.Inpteval
-	synchronous bool
+	mutexScan      sync.Mutex
+	quit           chan struct{}
+	queue          chan []byte
+	ticker         *time.Ticker
+	stopTicker     chan struct{}
+	cfgfile        string
+	aquaServer     string
+	outputs        map[string]outputs.Output
+	inputRoutes    map[string]*routes.InputRoute
+	templates      map[string]data.Inpteval
+	synchronous    bool
+	inputCallBacks map[string][]InputCallbackFunc
 }
 
 var (
@@ -143,6 +145,8 @@ func (ctx *Router) cleanInstance() {
 	ctx.outputs = map[string]outputs.Output{}
 	ctx.inputRoutes = map[string]*routes.InputRoute{}
 	ctx.templates = map[string]data.Inpteval{}
+	ctx.inputCallBacks = map[string][]InputCallbackFunc{}
+
 	ctx.ticker = nil
 	ctx.quit = nil
 }
@@ -298,10 +302,17 @@ func (ctx *Router) load() error {
 	}
 	return nil
 }
+func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallbackFunc) {
+	inputCallBacks := ctx.inputCallBacks[routeName]
+	inputCallBacks = append(inputCallBacks, callback)
+
+	ctx.inputCallBacks[routeName] = inputCallBacks
+}
 
 func (ctx *Router) addRoute(r *routes.InputRoute) {
 	ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(r)
 }
+
 func (ctx *Router) deleteRoute(name string) error {
 	r, ok := ctx.inputRoutes[name]
 	if !ok {
@@ -379,7 +390,7 @@ func removeOutputFromRoute(r *routes.InputRoute, outputName string) {
 }
 
 type service interface {
-	MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
 }
 
 var getScanService = func() service {
@@ -400,6 +411,27 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Printf("route %q has no outputs", routeName)
 		return
 	}
+	inMsg := map[string]interface{}{}
+	if err := json.Unmarshal(in, &inMsg); err != nil {
+		utils.PrnInputLogs("json.Unmarshal error for %q: %v", in, err)
+		return
+	}
+
+	if ok, err := regoservice.DoesMatchRegoCriteria(inMsg, r.Input); err != nil {
+		utils.PrnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, in)
+		return
+	} else if !ok {
+		utils.PrnInputLogs("Input %s... doesn't match a REGO rule: %s", in, r.Input)
+		return
+	}
+
+	inputCallbacks := ctx.inputCallBacks[routeName]
+
+	for _, callback := range inputCallbacks {
+		if !callback(inMsg) {
+			return
+		}
+	}
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
@@ -415,9 +447,9 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
 
 		if ctx.synchronous {
-			getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+			getScanService().MsgHandling(inMsg, pl, r, tmpl, &ctx.aquaServer)
 		} else {
-			go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+			go getScanService().MsgHandling(inMsg, pl, r, tmpl, &ctx.aquaServer)
 		}
 	}
 }

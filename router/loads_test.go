@@ -80,7 +80,7 @@ type invctn struct {
 	routeName   string
 }
 
-func (ctx *ctxWrapper) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
+func (ctx *ctxWrapper) MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
 	i := invctn{
 		fmt.Sprintf("%T", output),
 		fmt.Sprintf("%T", inpteval),

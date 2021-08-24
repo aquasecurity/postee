@@ -22,12 +22,13 @@ we want to add this as we want the consumer to be able to add a code for extendi
 when adding a route, the callback function will be part of each route
 func InputCallBack(inputMessage) (bool, error)
 */
-type InputCallbackFunc func(InputMessage interface{}) bool
+type InputCallbackFunc func(inputMessage map[string]interface{}) bool
 
 //SetInputCallbackFunc The call back func will be called as the last evaluation method of the input rego,
 //it will be added to the rego with && operator and the entire input evaluation will pass through only if the callback returns true
-func SetInputCallbackFunc(routeName string, callaback InputCallbackFunc) {
 
+func SetInputCallbackFunc(routeName string, callback InputCallbackFunc) {
+	Instance().setInputCallbackFunc(routeName, callback)
 }
 
 func WithDefaultConfig(dbPath string) error {
