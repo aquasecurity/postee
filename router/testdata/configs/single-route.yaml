@@ -1,0 +1,20 @@
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT

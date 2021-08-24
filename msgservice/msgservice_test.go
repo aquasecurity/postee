@@ -3,7 +3,6 @@ package msgservice
 import (
 	"errors"
 	"os"
-	"sync"
 	"testing"
 
 	"github.com/aquasecurity/postee/v2/dbservice"

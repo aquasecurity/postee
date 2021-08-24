@@ -1,0 +1,14 @@
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack3"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input

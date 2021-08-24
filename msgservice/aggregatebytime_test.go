@@ -52,9 +52,9 @@ func TestAggregateByTimeout(t *testing.T) {
 	srvUrl := ""
 
 	srv1 := new(MsgService)
-	srv1.MsgHandling([]byte(mockScan1), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.MsgHandling([]byte(mockScan2), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.MsgHandling([]byte(mockScan3), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling(mockScan1, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling(mockScan2, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling(mockScan3, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
 
 	expectedSchedulerInvctCnt := 1
 

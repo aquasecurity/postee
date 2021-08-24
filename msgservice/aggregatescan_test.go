@@ -49,7 +49,7 @@ func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRend
 		emailCounts: 0,
 	}
 
-	scans := []string{mockScan1, mockScan2, mockScan3, mockScan4}
+	scans := []map[string]interface{}{mockScan1, mockScan2, mockScan3, mockScan4}
 
 	srvUrl := ""
 	demoRoute := &routes.InputRoute{}
@@ -66,7 +66,7 @@ func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRend
 
 	for _, scan := range scans {
 		srv := new(MsgService)
-		srv.MsgHandling([]byte(scan), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv.MsgHandling(scan, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	demoEmailOutput.wg.Wait()

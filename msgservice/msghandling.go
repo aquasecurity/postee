@@ -16,14 +16,15 @@ import (
 type MsgService struct {
 }
 
-func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
+func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
 	if output == nil {
 		return
 	}
 
-	in := map[string]interface{}{}
-	if err := json.Unmarshal(input, &in); err != nil {
-		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
+	//TODO marshalling message back to bytes, change after merge with https://github.com/aquasecurity/postee/pull/150
+	input, _ := json.Marshal(in)
+	if err := scan.init(input); err != nil {
+		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
 		return
 	}
 

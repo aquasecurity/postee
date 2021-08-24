@@ -1,0 +1,18 @@
+Name: tenant
+
+routes:
+- name: route1
+  outputs: ["my-slack", "my-slack2"]
+  template: raw
+  plugins:
+   Policy-Show-All: true
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/XXX
+- name: my-slack2
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT

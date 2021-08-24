@@ -31,17 +31,18 @@ const (
 )
 
 type Router struct {
-	mutexScan   sync.Mutex
-	quit        chan struct{}
-	queue       chan []byte
-	ticker      *time.Ticker
-	stopTicker  chan struct{}
-	cfgfile     string
-	aquaServer  string
-	outputs     map[string]outputs.Output
-	inputRoutes map[string]*routes.InputRoute
-	templates   map[string]data.Inpteval
-	synchronous bool
+	mutexScan      sync.Mutex
+	quit           chan struct{}
+	queue          chan []byte
+	ticker         *time.Ticker
+	stopTicker     chan struct{}
+	cfgfile        string
+	aquaServer     string
+	outputs        map[string]outputs.Output
+	inputRoutes    map[string]*routes.InputRoute
+	templates      map[string]data.Inpteval
+	synchronous    bool
+	inputCallBacks map[string][]InputCallbackFunc
 }
 
 var (
@@ -145,6 +146,8 @@ func (ctx *Router) cleanInstance() {
 	ctx.outputs = map[string]outputs.Output{}
 	ctx.inputRoutes = map[string]*routes.InputRoute{}
 	ctx.templates = map[string]data.Inpteval{}
+	ctx.inputCallBacks = map[string][]InputCallbackFunc{}
+
 	ctx.ticker = nil
 	ctx.quit = nil
 }
@@ -298,10 +301,17 @@ func (ctx *Router) load() error {
 	}
 	return nil
 }
+func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallbackFunc) {
+	inputCallBacks := ctx.inputCallBacks[routeName]
+	inputCallBacks = append(inputCallBacks, callback)
+
+	ctx.inputCallBacks[routeName] = inputCallBacks
+}
 
 func (ctx *Router) addRoute(r *routes.InputRoute) {
 	ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(r)
 }
+
 func (ctx *Router) deleteRoute(name string) error {
 	r, ok := ctx.inputRoutes[name]
 	if !ok {
@@ -379,7 +389,7 @@ func removeOutputFromRoute(r *routes.InputRoute, outputName string) {
 }
 
 type service interface {
-	MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
 	EvaluateRegoRule(input *routes.InputRoute, in []byte) bool
 }
 
@@ -421,9 +431,9 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
 
 		if ctx.synchronous {
-			getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+			getScanService().MsgHandling(inMsg, pl, r, tmpl, &ctx.aquaServer)
 		} else {
-			go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+			go getScanService().MsgHandling(inMsg, pl, r, tmpl, &ctx.aquaServer)
 		}
 	}
 }
