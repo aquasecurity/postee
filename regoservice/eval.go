@@ -99,7 +99,6 @@ func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 	if !ok {
 		return "", errors.New(fmt.Sprintf("property %s is not found", prop))
 	}
-	fmt.Printf("value: %q", expr)
 	switch v := expr.(type) {
 	case string:
 		return v, nil

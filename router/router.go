@@ -318,6 +318,8 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		plg = buildWebhookOutput(settings)
 	case "splunk":
 		plg = buildSplunkOutput(settings)
+	case "stdout":
+		plg = buildStdoutOutput(settings)
 	default:
 		log.Printf("Output type %q is undefined or empty. Output name is %q.",
 			settings.Type, settings.Name)
