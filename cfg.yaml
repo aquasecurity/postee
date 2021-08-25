@@ -83,8 +83,8 @@ outputs:
   url: https://hooks.slack.com/services/TAAAA/BBB/<key>
 
 - name: ms-team
-  type: false
-  enable: true
+  type: teams
+  enable: false
   url: https://outlook.office.com/webhook/....   #  Webhook's url
 
 - name: webhook
