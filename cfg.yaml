@@ -9,14 +9,18 @@ db-verify-interval: 1   #  How often to check the DB size. By default Postee che
 
 # Routes are used to define how to handle an incoming message
 routes:
-- name: route1                                 #  Route name. Must be unique
-  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
-  outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
-  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
-  plugins:                                     #  Optional plugins
-   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
-   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
-   policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
+- name: stdout
+  outputs: [ stdout ]
+  template: raw-json
+
+#- name: route1                                 #  Route name. Must be unique
+#  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
+#  outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
+#  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
+#  plugins:                                     #  Optional plugins
+#   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
+#   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
+#   policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
 
 # Templates are used to format a message
 templates:
@@ -38,9 +42,13 @@ templates:
 
 # Outputs are target services that should consume the messages
 outputs:
+- name: stdout
+  type: stdout
+  enable: true
+
 - name: my-jira   #  name must be unique
   type: jira      #  supported types: jira, email
-  enable: true
+  enable: false
   url:            # Mandatory. E.g "https://johndoe.atlassian.net"
   user:           # Mandatory. E.g :johndoe@gmail.com"
   password:       # Mandatory. Specify Jira user API key
@@ -54,7 +62,7 @@ outputs:
 
 - name: my-email
   type: email
-  enable: true
+  enable: false
   user:      # Mandatory: SMTP user name (e.g. johndoe@gmail.com)
   password:  # Mandatory: SMTP password
   host:      # Mandatory: SMTP host name (e.g. smtp.gmail.com)
@@ -64,36 +72,36 @@ outputs:
 
 - name: my-email-smtp-server
   type: email
-  enable: true
+  enable: false
   use-mx: true
   sender:  # Mandatory: The email address to use as a sender
   recipients: ["", ""]  # Mandatory: comma separated list of recipients
     
 - name: my-slack
   type: slack
-  enable: true
+  enable: false
   url: https://hooks.slack.com/services/TAAAA/BBB/<key>
 
 - name: ms-team
-  type: teams
+  type: false
   enable: true
   url: https://outlook.office.com/webhook/....   #  Webhook's url
 
 - name: webhook
   type: webhook
-  enable: true
+  enable: false
   url: https://..../webhook/   #  Webhook's url
 
 - name: splunk
   type: splunk
-  enable: true
+  enable: false
   url: http://localhost:8088 # Mandatory. Url of a Splunk server
   token: <token>             # Mandatory. a HTTP Event Collector Token
   size-limit: 10000          # Optional. Maximum scan length, in bytes. Default: 10000
 
 - name: my-servicenow
   type: serviceNow
-  enable: true
+  enable: false
   user:      # Mandatory. E.g :johndoe@gmail.com"
   password:  # Mandatory. Specify user API key
   instance:  # Mandatory. Name of ServiceN  ow Instance
