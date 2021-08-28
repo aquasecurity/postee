@@ -2,7 +2,6 @@ package msgservice
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"strings"
 
@@ -103,16 +102,6 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		send(output, content)
 
 	}
-}
-func GetMessageUniqueId(in map[string]interface{}, props []string) string {
-	values := make([]string, len(props))
-	for _, prop := range props {
-		v, ok := in[prop]
-		if ok {
-			values = append(values, fmt.Sprintf("%s", v))
-		}
-	}
-	return strings.Join(values, "-")
 }
 
 func send(otpt outputs.Output, cnt map[string]string) {

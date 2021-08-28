@@ -7,6 +7,7 @@ import (
 
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/routes"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -118,3 +119,76 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, uniqueMessagePro
 	}
 
 }
+
+func TestGetMessageUniqueId(t *testing.T) {
+	tests := []struct {
+		props   []string
+		name    string
+		context map[string]interface{}
+		wantKey string
+		wantErr string
+	}{
+		{
+			props:   []string{"name"},
+			name:    "Single property",
+			context: map[string]interface{}{"name": "alpine"},
+			wantKey: "alpine",
+		},
+		{
+			props:   []string{"name", "registry"},
+			name:    "Multi property",
+			context: map[string]interface{}{"name": "alpine", "registry": "registry2"},
+			wantKey: "alpine-registry2",
+		},
+		{
+			props:   []string{"name", "cnt"},
+			name:    "Numeric",
+			context: map[string]interface{}{"name": "alpine", "cnt": 0},
+			wantKey: "alpine-0",
+		},
+		{
+			props:   []string{"name", "registry"},
+			name:    "Missed property",
+			context: map[string]interface{}{"name": "alpine"},
+			wantKey: "alpine",
+		},
+		{
+			props:   []string{"name", "meta.category"},
+			name:    "Multi Level Property",
+			context: map[string]interface{}{"name": "alpine", "meta": map[string]interface{}{"category": "design"}},
+			wantKey: "alpine-design",
+		},
+		{
+			props:   []string{"name", "items.id"},
+			name:    "Multi Level Property With Collection",
+			context: map[string]interface{}{"name": "alpine", "items": []map[string]interface{}{{"id": "KLM"}, {"id": "DEF"}}},
+			wantKey: "alpine-KLM",
+		},
+		{
+			props:   []string{"name", "items.id"},
+			name:    "Multi Level Property With Empty Collection",
+			context: map[string]interface{}{"name": "alpine", "items": []map[string]interface{}{}},
+			wantKey: "alpine",
+		},
+		{
+			props:   []string{"name.id"},
+			name:    "Multi Level Property Referencing String",
+			context: map[string]interface{}{"name": "alpine"},
+			wantErr: "alpine-KLM",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			key := GetMessageUniqueId(test.context, test.props)
+			assert.Equal(t, test.wantKey, key)
+		})
+	}
+
+}
+
+/*
+func TestTemp(t *testing.T) {
+	l := []string{"a", "b", "c", "d"}
+	fmt.Printf("%v", l[1:])
+}*/
