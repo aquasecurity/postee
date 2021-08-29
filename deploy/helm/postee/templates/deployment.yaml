@@ -46,7 +46,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: POSTEE_CFG
-              value: /policy/cfg.yaml
+              value: /config/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
           ports:
@@ -58,7 +58,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: {{ $fullName }}-cfg
-              mountPath: /policy
+              mountPath: /config
             - name: {{ $fullName }}-db
               mountPath: {{ .Values.persistentVolume.mountPath }}
           resources:
