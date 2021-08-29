@@ -1,16 +1,22 @@
 # Postee Helm Chart
 
 ## Test
-`cd deploy/helm`
-
-`helm install my-postee -n aqua --dry-run --debug --set-file applicationConfigPath="../../cfg.yaml" ./postee`
+```bash
+cd deploy/helm
+helm install my-postee -n aqua --dry-run --debug --set-file applicationConfigPath="../../cfg.yaml" ./postee
+```
 
 ## Install
 
 **NOTE**
 The cfg.yaml is located under `deploy/helm/postee/cfg-files/cfg.yaml`
 
-`helm install my-postee -n aqua --debug ./postee`
+```bash
+helm install my-postee -n aqua --debug ./postee
+```
 
 ## Delete
-`helm -n aqua delete my-postee`
+```bash
+helm -n aqua delete my-postee
+```
+
