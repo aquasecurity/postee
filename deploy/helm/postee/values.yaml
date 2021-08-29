@@ -9,7 +9,7 @@ image:
   repository: aquasec/postee
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "main"
+  tag: "latest"
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent
