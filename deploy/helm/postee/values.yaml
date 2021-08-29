@@ -7,7 +7,7 @@ posteeConfigPath: "cfg-files/*"
 
 image:
   repository: aquasec/postee
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 imageInit:
