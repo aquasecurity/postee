@@ -1,3 +1,6 @@
+# The configuration file contains a general settings section,
+# routes, templates and outputs sections.
+
 name: tenant            #  The tenant name
 aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
 max-db-size: 1000       #  Max size of DB. MB. if empty then unlimited
@@ -6,14 +9,18 @@ db-verify-interval: 1   #  How often to check the DB size. By default Postee che
 
 # Routes are used to define how to handle an incoming message
 routes:
-- name: route1                                 #  Route name. Must be unique
-  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
-  outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
-  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
-  plugins:                                     #  Optional plugins
-   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
-   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
-   policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
+- name: stdout
+  outputs: [ stdout ]
+  template: raw-json
+
+#- name: route1                                 #  Route name. Must be unique
+#  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
+#  outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
+#  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
+#  plugins:                                     #  Optional plugins
+#   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
+#   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
+#   policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
 
 # Templates are used to format a message
 templates:
@@ -21,18 +28,27 @@ templates:
   rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
 - name: rego-html                       #  Out of the box HTML template
   rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box)
+- name: raw-html                        #  Raw message json
+  rego-package:  postee.rawmessage.html #  HTLM template REGO package (available out of the box)
 - name: legacy                          #  Out of the box legacy Golang template
   legacy-scan-renderer: html
 - name: legacy-slack                    #  Legacy slack template implemented in Golang
   legacy-scan-renderer: slack
 - name: custom-email                    #  Example of how to use a template from a Web URL
   url:                                  #  URL to custom REGO file
+- name: raw-json                        # route message "As Is" to external webhook
+  rego-package: postee.rawmessage.json
+
 
 # Outputs are target services that should consume the messages
 outputs:
+- name: stdout
+  type: stdout
+  enable: true
+
 - name: my-jira   #  name must be unique
   type: jira      #  supported types: jira, email
-  enable: true
+  enable: false
   url:            # Mandatory. E.g "https://johndoe.atlassian.net"
   user:           # Mandatory. E.g :johndoe@gmail.com"
   password:       # Mandatory. Specify Jira user API key
@@ -43,3 +59,50 @@ outputs:
   issuetype:      # Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
   priority:       # Optional. Specify the issues severity. Default is "High"
   assignee:       # Optional. Specify the assigned user. Default is the user that opened the ticket
+
+- name: my-email
+  type: email
+  enable: false
+  user:      # Mandatory: SMTP user name (e.g. johndoe@gmail.com)
+  password:  # Mandatory: SMTP password
+  host:      # Mandatory: SMTP host name (e.g. smtp.gmail.com)
+  port:      # Mandatory: SMTP server port (e.g. 587)
+  sender:    # Mandatory: The email address to use as a sender
+  recipients: ["", ""]  # Mandatory: comma separated list of recipients
+
+- name: my-email-smtp-server
+  type: email
+  enable: false
+  use-mx: true
+  sender:  # Mandatory: The email address to use as a sender
+  recipients: ["", ""]  # Mandatory: comma separated list of recipients
+    
+- name: my-slack
+  type: slack
+  enable: false
+  url: https://hooks.slack.com/services/TAAAA/BBB/<key>
+
+- name: ms-team
+  type: teams
+  enable: false
+  url: https://outlook.office.com/webhook/....   #  Webhook's url
+
+- name: webhook
+  type: webhook
+  enable: false
+  url: https://..../webhook/   #  Webhook's url
+
+- name: splunk
+  type: splunk
+  enable: false
+  url: http://localhost:8088 # Mandatory. Url of a Splunk server
+  token: <token>             # Mandatory. a HTTP Event Collector Token
+  size-limit: 10000          # Optional. Maximum scan length, in bytes. Default: 10000
+
+- name: my-servicenow
+  type: serviceNow
+  enable: false
+  user:      # Mandatory. E.g :johndoe@gmail.com"
+  password:  # Mandatory. Specify user API key
+  instance:  # Mandatory. Name of ServiceN  ow Instance
+  board:     #  Specify the ServiceNow board name to open tickets on. Default is "incident"
