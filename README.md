@@ -93,7 +93,7 @@ Key | Description | Possible Values
 --- | --- | ---
 *aggregate-issues-number*|Number of scans to aggregate into one ticket.| any integer value
 *aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh
-*unique-message-props*|Optional. Comma separated list of properties which unique identify an event message. If message with same id is received more than once it will be ignored. In order to support behavior similar to Postee 1.0 it should be something like:```digest, image, registry, vulnerability_summary.critical, vulnerability_summary.high, vulnerability_summary.medium, vulnerability_summary.low```
+*unique-message-props*|Optional. Comma separated list of properties which unique identify an event message. If message with same id is received more than once it will be ignored. In order to support behavior similar to Postee 1.0 it should be something like:```unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"]```
 
 ### Templates
 There are several options to configure templates. One required template property is `name` (to allow references to template within route configuration). For further configuration pick one option from the list below:
