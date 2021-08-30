@@ -17,7 +17,9 @@ env:
   KIND_IMAGE: "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
 jobs:
   publish:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -28,17 +30,22 @@ jobs:
         with:
           version: ${{ env.KIND_VERSION }}
           image: ${{ env.KIND_IMAGE }}
+      - name: Test connection to Kubernetes cluster
+        run: |
+          kubectl cluster-info
+      - name: Installing Kubernetes Postee manifest
+        run: |
+            kubectl create -f deploy/kubernetes
       - name: Testing Kubernetes Postee manifest
         run: |
-          kubectl create -f deploy/kubernetes
-          kubectl wait --for=condition=available \
-          --timeout=1m deploy/postee & ok_pid=$!
-          wait -n $ok_pid
-          exit $?
+            kubectl wait --for=condition=Ready pod -l app=aqua-postee --timeout=150s
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
           version: v3.6.0
+      - name: Testing Helm Postee manifest
+        run: |
+            helm upgrade --install test deploy/helm/postee --debug
       - name: Install chart-releaser
         env:
           VERSION: 1.2.1
