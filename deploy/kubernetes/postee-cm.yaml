@@ -6,7 +6,7 @@ data:
   cfg.yaml: |
     ---
     # Reference: https://github.com/aquasecurity/postee/blob/main/cfg.yaml
-    
+
     name: tenant            #  The tenant name
     aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
     max-db-size: 1000       #  Max size of DB. MB. if empty then unlimited
