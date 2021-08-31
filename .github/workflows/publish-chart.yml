@@ -52,9 +52,23 @@ jobs:
         run: |
           wget "https://github.com/helm/chart-releaser/releases/download/v${VERSION}/chart-releaser_${VERSION}_linux_amd64.tar.gz"
           tar xzvf chart-releaser_${VERSION}_linux_amd64.tar.gz cr
+      - name: 'Action Get Latest Tag'
+        uses: 'actions-ecosystem/action-get-latest-tag@v1.4.1'
+        id: 'get-latest-tag'
+        with:
+          semver_only: true
+      - name: 'Determine default bump'
+        id: 'bump'
+        run: |
+          LATEST_TAG=${{ steps.get-latest-tag.outputs.tag }}
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+              echo "::set-output name=type::major"
+          else
+              echo "::set-output name=type::patch"
+          fi
       - name: Package helm chart
         run: |
-          RELEASE=$(echo ${{ github.ref }} | sed -e "s#refs/tags/##g" | sed -e 's/^v//')
+          RELEASE=${{ steps.get-latest-tag.outputs.tag }}
           echo "Release ${RELEASE}"
           helm package --app-version=${RELEASE} --version=${RELEASE} ${{ env.CHART_DIR }} -d .cr-release-packages
       - name: Upload helm chart
