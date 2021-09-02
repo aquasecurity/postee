@@ -2,7 +2,6 @@
 apiVersion: v1
 kind: Service
 metadata:
-  creationTimestamp: null
   labels:
     app: aqua-postee
   name: postee-svc
@@ -19,13 +18,10 @@ spec:
   selector:
     app: aqua-postee
   type: ClusterIP
-status:
-  loadBalancer: {}
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  creationTimestamp: null
   labels:
     app: aqua-postee
   name: postee
@@ -34,10 +30,17 @@ spec:
   selector:
     matchLabels:
       app: aqua-postee
-  strategy: {}
+  serviceName: postee-svc
+  volumeClaimTemplates:
+    - metadata:
+        name: postee-db
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: aqua-postee
       name: aqua-postee
@@ -53,13 +56,25 @@ spec:
           volumeMounts:
             - name: postee-db
               mountPath: /server/database
+        - name: init-cfg
+          image: busybox:latest
+          command:
+            - cp
+            - /data/cfg.yaml
+            - /server/database/cfg.yaml
+          volumeMounts:
+            - name: config-volume
+              mountPath: /data
+              readOnly: false
+            - name: postee-db
+              mountPath: /server/database
       containers:
         - image: aquasec/postee:latest
           imagePullPolicy: Always
           name: aqua-postee
           env:
             - name: POSTEE_CFG
-              value: /policy/cfg.yaml
+              value: /server/database/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
           ports:
@@ -69,7 +84,8 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: config-volume
-              mountPath: /policy
+              mountPath: /data
+              readOnly: false
             - name: postee-db
               mountPath: /server/database
           resources:
@@ -80,8 +96,9 @@ spec:
               cpu: 200m
               memory: 128Mi
       volumes:
-        - configMap:
+        - name: config-volume
+          configMap:
             name: postee-config
-          name: config-volume
-        - name: postee-db
-          emptyDir: {} # For persistence storage use PVC and PV
+            items:
+            - key: cfg.yaml
+              path: cfg.yaml
