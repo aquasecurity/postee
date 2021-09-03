@@ -1,6 +1,7 @@
 package outputs
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/aquasecurity/postee/formatting"
@@ -49,11 +50,19 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 	}
 	utils.Debug("Message is: %q\n", body)
 
-	err := msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"])+body)
+	escaped, err := escapeJSON(body)
+	if err != nil {
+		log.Printf("Error while escaping payload: %v", err)
+		return err
+	}
+
+	err = msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"])+escaped)
+
 	if err != nil {
 		log.Printf("TeamsOutput Send Error: %v", err)
 		return err
 	}
+
 	log.Printf("Sending to MS Teams via %q was successful!", teams.Name)
 	return nil
 }
@@ -65,4 +74,13 @@ func (teams *TeamsOutput) Terminate() error {
 
 func (teams *TeamsOutput) GetLayoutProvider() layout.LayoutProvider {
 	return teams.teamsLayout
+}
+
+func escapeJSON(s string) (string, error) {
+	b, err := json.Marshal(s)
+	if err != nil {
+		panic(err)
+	}
+	// Trim the beginning and trailing " character
+	return string(b[1 : len(b)-1]), nil
 }

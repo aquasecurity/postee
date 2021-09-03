@@ -48,7 +48,7 @@ spec:
           command:
             - /bin/chown
             - -R
-            - "1099"  
+            - "1099"
             - /server/database
           volumeMounts:
             - name: postee-db
@@ -70,15 +70,8 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /policy
-            - name: rego-config
-              mountPath: /rego
             - name: postee-db
               mountPath: /server/database
-          livenessProbe:
-            httpGet:
-              path: /ping
-              port: 8082
-            initialDelaySeconds: 30
           resources:
             limits:
               cpu: 500m
@@ -90,8 +83,5 @@ spec:
         - configMap:
             name: postee-config
           name: config-volume
-        - configMap:
-            name: rego-config
-          name: rego-config
         - name: postee-db
           emptyDir: {} # For persistence storage use PVC and PV

@@ -6,6 +6,10 @@ import (
 	"github.com/aquasecurity/postee/outputs"
 )
 
+func buildStdoutOutput(sourceSettings *OutputSettings) *outputs.StdoutOutput {
+	return &outputs.StdoutOutput{Name: sourceSettings.Name}
+}
+
 func buildSplunkOutput(sourceSettings *OutputSettings) *outputs.SplunkOutput {
 	return &outputs.SplunkOutput{
 		Name:       sourceSettings.Name,

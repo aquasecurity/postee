@@ -3,7 +3,7 @@ module github.com/aquasecurity/postee
 go 1.15
 
 require (
-	github.com/andygrunwald/go-jira v1.13.0
+	github.com/andygrunwald/go-jira v1.14.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/open-policy-agent/opa v0.27.1
