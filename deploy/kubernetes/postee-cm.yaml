@@ -7,48 +7,72 @@ data:
     ---
     # Reference: https://github.com/aquasecurity/postee/blob/main/cfg.yaml
 
-    name: tenant            #  The tenant name
-    aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
-    max-db-size: 1000       #  Max size of DB. MB. if empty then unlimited
-    delete-old-data: 10     #  Delete data from the database that is older than N day(s). If empty then data is not deleted.
-    db-verify-interval: 1   #  How often to check the DB size. By default Postee checks every 1 hour
-
-    # Routes are used to define how to handle an incoming message
-    routes:
-    - name: route1                                 #  Route name. Must be unique
-      input: contains(input.image, "alpine")       #  REGO rule to match input message against route
-      outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
-      template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
-      plugins:                                     #  Optional plugins
-       aggregate-issues-number:                       # Number of same messages to aggregate into one output message
-       aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
-       policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
-
-    # Templates are used to format a message
-    templates:
-    - name: slack-template                  #  Out of the box template for slack
-      rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
-    - name: rego-html                       #  Out of the box HTML template
-      rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box)
-    - name: legacy                          #  Out of the box legacy Golang template
-      legacy-scan-renderer: html
-    - name: legacy-slack                    #  Legacy slack template implemented in Golang
-      legacy-scan-renderer: slack
-    - name: custom-email                    #  Example of how to use a template from a Web URL
-      url:                                  #  URL to custom REGO file
-
-    # Outputs are target services that should consume the messages
     outputs:
-    - name: my-jira   #  name must be unique
-      type: jira      #  supported types: jira, email
-      enable: true
-      url:            # Mandatory. E.g "https://johndoe.atlassian.net"
-      user:           # Mandatory. E.g :johndoe@gmail.com"
-      password:       # Mandatory. Specify Jira user API key
-      project-key:    # Mandatory. Specify the JIRA product key
-      tls-verify: false
-      board:          # Optional. Specify the Jira board name to open tickets on
-      labels:         # Optional, specify array of labels to add to Ticket, for example: ["label1", "label2"]
-      issuetype:      # Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
-      priority:       # Optional. Specify the issues severity. Default is "High"
-      assignee:       # Optional. Specify the assigned user. Default is the user that opened the ticket
+      - type: email
+        name: my-email
+        user: xxxxxx@gmail.com
+        host: smtp.gmail.com
+        port: 587
+        sender: xxxxxxxx@gmail.com
+        recipients:
+          - xxxxxxxxx@xxxxx.com
+        password: xxxxxxxxxx
+        enable: false
+      - type: serviceNow
+        name: my-service-now
+        enable: false
+        user: xxxxxxxxx
+        password: xxxxxxxxxx
+        instance: xxxxxxxx
+      - type: slack
+        name: my-slack
+        enable: false
+        url: >-
+          https://hooks.slack.com/services/xxxxxxx/xxxxxxx/xxxxxxx
+      - type: teams
+        name: my-teams
+        enable: false
+        url: >-
+          https://xxxxxxxx.webhook.office.com/webhookb2/xxxxxxxx/IncomingWebhook/xxxxx/xxxxx
+    routes:
+      - name: slack-route
+        input: contains(input.image, "alpine")
+        outputs:
+          - my-slack
+        template: legacy-slack
+        plugins:
+          aggregate-issues-number: null
+          aggregate-issues-timeout: null
+          policy-show-all: true
+        output: []
+      - output: []
+        name: email-route
+        input: |
+          contains(input.image,"alpine")
+        outputs:
+          - my-email
+        template: legacy
+      - output: []
+        name: servicenow-route
+        input: contains(input.image,"alpine")
+        outputs:
+          - my-service-now
+        template: legacy
+      - output: []
+        name: msTeams-route
+        outputs:
+          - my-teams
+        template: legacy
+    templates:
+      - name: slack-template
+        rego-package: postee.vuls.slack
+      - name: rego-html
+        rego-package: postee.vuls.html
+      - name: legacy
+        legacy-scan-renderer: html
+      - name: legacy-slack
+        legacy-scan-renderer: slack
+      - name: custom-email
+        url: null
+    name: tenant
+    AquaServer: https://xxxxxxxxxxx.com

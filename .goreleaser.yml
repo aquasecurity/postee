@@ -61,3 +61,24 @@ dockers:
       - "--label=org.label-schema.build-date={{ .Date }}"
       - "--label=org.label-schema.vcs=https://github.com/aquasecurity/postee"
       - "--label=org.label-schema.vcs-ref={{ .FullCommit }}"
+  - dockerfile: Dockerfile.ui
+    use_buildx: true
+    image_templates:
+      - "docker.io/aquasec/postee-ui:{{ .Version }}"
+      - "public.ecr.aws/aquasecurity/postee-ui:{{ .Version }}"
+      - "docker.io/aquasec/postee-ui:latest"
+      - "public.ecr.aws/aquasecurity/postee-ui:latest"
+    ids:
+      - postee-ui
+    extra_files:
+      - rego-templates/
+      - cfg.yaml
+    build_flag_templates:
+      - "--label=org.label-schema.schema-version=1.0"
+      - "--label=org.label-schema.name={{ .ProjectName }}"
+      - "--label=org.label-schema.description=Postee UI"
+      - "--label=org.label-schema.vendor=Aqua Security"
+      - "--label=org.label-schema.version={{ .Version }}"
+      - "--label=org.label-schema.build-date={{ .Date }}"
+      - "--label=org.label-schema.vcs=https://github.com/aquasecurity/postee"
+      - "--label=org.label-schema.vcs-ref={{ .FullCommit }}"
