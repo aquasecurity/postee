@@ -20,13 +20,13 @@ routes:
 #  plugins:                                     #  Optional plugins
 #   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
 #   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
-#   policy-show-all: true                          # Send a message to output even if exact same message was already processed. Default is false.
+#   unique-message-props: ["digest","image","registry"] # Optional: Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored
 
 # Templates are used to format a message
 templates:
-- name: slack-template                  #  Out of the box template for slack
+- name: vuls-slack                  #  Out of the box template for slack
   rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
-- name: rego-html                       #  Out of the box HTML template
+- name: vuls-html                       #  Out of the box HTML template
   rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box)
 - name: raw-html                        #  Raw message json
   rego-package:  postee.rawmessage.html #  HTLM template REGO package (available out of the box)

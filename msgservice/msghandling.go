@@ -13,9 +13,6 @@ import (
 )
 
 type MsgService struct {
-	scanInfo *data.ScanImageInfo
-	prevScan *data.ScanImageInfo
-	isNew    bool
 }
 
 func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
@@ -37,21 +34,35 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		return
 	}
 
-	if err := scan.init(input); err != nil {
-		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
-		return
-	}
-
 	//TODO move logic below somewhere close to Jira output implementation
 	owners := ""
-	if len(scan.scanInfo.ApplicationScopeOwners) > 0 {
-		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
+	applicationScopeOwnersObj, ok := in["application_scope_owners"]
+	if ok {
+		applicationScopeOwners := make([]string, 0)
+
+		for _, owner := range applicationScopeOwnersObj.([]interface{}) {
+			applicationScopeOwners = append(applicationScopeOwners, owner.(string))
+		}
+
+		if len(applicationScopeOwners) > 0 {
+			owners = strings.Join(applicationScopeOwners, ";")
+		}
 	}
 
-	if scan.scanInfo.HasId() && !scan.isNew && !route.Plugins.PolicyShowAll {
-		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
-		return
+	if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 {
+		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
+		wasStored, err := dbservice.MayBeStoreMessage(input, msgKey)
+		if err != nil {
+			log.Printf("Error while storing input: %v", err)
+			return
+		}
+		if !wasStored {
+			log.Printf("The same message was received before: %s", msgKey)
+			return
+		}
+
 	}
+
 	posteeOpts := map[string]string{
 		"AquaServer": *AquaServer,
 	}
@@ -114,34 +125,4 @@ var AggregateScanAndGetQueue = func(outputName string, currentContent map[string
 		return nil
 	}
 	return aggregatedScans
-}
-
-func (scan *MsgService) init(data []byte) (err error) {
-	scan.scanInfo, err = parseImageInfo(data)
-	if err != nil {
-		return err
-	}
-	var prevScanSource []byte
-	prevScanSource, scan.isNew, err = dbservice.HandleCurrentInfo(scan.scanInfo)
-	if err != nil {
-		return err
-	}
-	if !scan.isNew {
-		return nil
-	}
-
-	if len(prevScanSource) > 0 {
-		scan.prevScan, err = parseImageInfo(prevScanSource)
-		return err
-	}
-	return nil
-}
-
-func parseImageInfo(source []byte) (*data.ScanImageInfo, error) {
-	scanInfo := new(data.ScanImageInfo)
-	err := json.Unmarshal(source, scanInfo)
-	if err != nil {
-		return nil, err
-	}
-	return scanInfo, nil
 }

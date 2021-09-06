@@ -36,7 +36,6 @@ func TestApplicationScopeOwner(t *testing.T) {
 	demoRoute := &routes.InputRoute{}
 
 	demoRoute.Name = "demo-route"
-	demoRoute.Plugins.PolicyShowAll = true
 
 	demoInptEval := &DemoInptEval{}
 
@@ -60,7 +59,7 @@ func TestApplicationScopeOwner(t *testing.T) {
 	owners := strings.Split(ownersStr, ";")
 	for _, own := range owners {
 		if own != "recipient1@aquasec.com" && own != "recipient2@aquasec.com" {
-			t.Errorf("Unexpected owner value: %s", own)
+			t.Errorf("Unexpected owner value: '%s'", own)
 		}
 	}
 }
