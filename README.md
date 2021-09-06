@@ -133,7 +133,7 @@ Key | Description | Possible Values | Example
 --- | --- | --- | ---
 *aggregate-issues-number*|Number of messages to aggregate into one message.| any integer value | 10
 *aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
-*unique-message-props*|Optional. Comma separated list of properties which unique identify an event message. If message with same id is received more than once it will be ignored. | [] | To support behavior similar to Postee 1.0 it should be something like: ```unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"]```
+*unique-message-props*|Optional. Comma separated list of properties which uniquely identifies an event message. If message with same property values is received more than once, consequitive messages will be ignored. | Array of properties that their value uniquely identifies a message | To avoid duplicate scanning messages you can use the following properties: ```unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"]```
 
 
 ### Templates
