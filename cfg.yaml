@@ -20,7 +20,7 @@ routes:
 #  plugins:                                     #  Optional plugins
 #   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
 #   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
-#   unique-message-props: ["digest","image","registry"] # Optional: Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored
+#   unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"] # Optional: Comma separated list of top level properties which uniqult identifies an event message. If message with same property values is received more than once it will be ignored
 
 # Templates are used to format a message
 templates:
