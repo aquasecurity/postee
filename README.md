@@ -234,16 +234,23 @@ Key | Description | Possible Values
 *url* | Webhook URL |
 
 ## Configure the Aqua Server with Webhook Integration
-
-Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
-![Screenshot](webhook-integration.png)
-
-Validate that a ticket has been opened, or email was sent (depending on your configuration file).
+Postee can be integrated with Aqua Console to deliver vulnerability and audit messages to target systems.
 
 You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
-Navigate to the **Settings** page in the System section, menu, under the "Image Scan Results Webhook" section.
+Navigate to the **Image Scan Results Webhook** page, under the "Settings" menu.
+![Screenshot](webhook-integration.png)
 
-Click "Enable sending image scan results to Postee server", and specify the URL of the Aqua Webhook server.
+Click "Enable sending image scan results to webhook", and specify the URL of Postee.
+Now, scan an image and look at the Postee log files - you will see that Postee have recieved an incoming message once scan is done,
+and that the message was routed based on the cfg.yaml configuration.
+
+You can also configure the Aqua Server to send a Webhook notification for every audit message.
+Navigate to the **Log Management** page, under the "Integrations" menu.
+![Screenshot](aqua-webhook-audit.jpg)
+Click on the "Webhook" item, and specify the URL of Postee.
+Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to 
+forward appropriate messages to target systems.
+
 
 The URL is in the following formats:
 **HTTPS**: https://<Postee IP or DNS>:8444
