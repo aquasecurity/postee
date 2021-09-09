@@ -241,7 +241,7 @@ Navigate to the **Image Scan Results Webhook** page, under the "Settings" menu.
 ![Screenshot](webhook-integration.png)
 
 Click "Enable sending image scan results to webhook", and specify the URL of Postee.
-Now, scan an image and look at the Postee log files - you will see that Postee have recieved an incoming message once scan is done,
+Now, scan an image and look at the Postee log files - you will see that Postee have received an incoming message once scan is done,
 and that the message was routed based on the cfg.yaml configuration.
 
 You can also configure the Aqua Server to send a Webhook notification for every audit message.
