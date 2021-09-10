@@ -39,6 +39,20 @@ spec:
         resources:
           requests:
             storage: 1Gi
+    - metadata:
+        name: postee-config
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+    - metadata:
+        name: rego-template
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
   template:
     metadata:
       labels:
@@ -61,20 +75,20 @@ spec:
           command:
             - cp
             - /data/cfg.yaml
-            - /server/database/cfg.yaml
+            - /config/cfg.yaml
           volumeMounts:
             - name: config-volume
               mountPath: /data
               readOnly: false
-            - name: postee-db
-              mountPath: /server/database
+            - name: postee-config
+              mountPath: /config
       containers:
         - image: aquasec/postee:latest
           imagePullPolicy: Always
           name: aqua-postee
           env:
             - name: POSTEE_CFG
-              value: /server/database/cfg.yaml
+              value: /config/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
           ports:
@@ -88,6 +102,8 @@ spec:
               readOnly: false
             - name: postee-db
               mountPath: /server/database
+            - name: rego-template
+              mountPath: /server/rego-template/custom
           resources:
             limits:
               cpu: 500m

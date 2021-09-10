@@ -39,7 +39,7 @@ spec:
           name: postee-ui
           env:
             - name: POSTEE_UI_CFG
-              value: /server/database/cfg.yaml
+              value: /config/cfg.yaml
             - name: POSTEE_UI_PORT
               value: "8000"
             - name: POSTEE_UI_UPDATE_URL
@@ -54,6 +54,8 @@ spec:
           volumeMounts:
             - name: postee-db
               mountPath: /server/database
+            - name: postee-config
+              mountPath: /config
           resources:
             limits:
               cpu: 500m
@@ -65,3 +67,6 @@ spec:
         - name: postee-db
           persistentVolumeClaim:
             claimName: postee-db-postee-0
+        - name: postee-config
+          persistentVolumeClaim:
+            claimName: postee-config-postee-0
