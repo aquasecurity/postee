@@ -102,6 +102,8 @@ spec:
               readOnly: false
             - name: postee-db
               mountPath: /server/database
+            - name: postee-config
+              mountPath: /config
             - name: rego-template
               mountPath: /server/rego-template/custom
           resources:

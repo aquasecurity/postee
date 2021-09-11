@@ -110,7 +110,7 @@ input: contains(input.image,"alpine")
 
 Another example using regular expression:
 ```
-input: regex.match("*alp*", input.image)
+input: regex.match("alp:*", input.image)
 ```
 
 You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 

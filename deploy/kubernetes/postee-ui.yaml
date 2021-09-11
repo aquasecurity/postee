@@ -29,10 +29,17 @@ spec:
       labels:
         app: postee-ui
     spec:
-      securityContext:
-        runAsUser: 1099
-        runAsGroup: 1099
-        fsGroup: 1099
+      initContainers:
+        - name: chmod-er
+          image: busybox:latest
+          command:
+            - /bin/chown
+            - -R
+            - "1099"
+            - /config
+          volumeMounts:
+            - name: postee-config
+              mountPath: /config
       containers:
         - image: krol/postee-ui:latest
           imagePullPolicy: Always
