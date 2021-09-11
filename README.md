@@ -136,12 +136,14 @@ Key | Description | Possible Values | Example
 
 
 #### Route plugins section
-A route can have an optional 'Plugins' section, that contains additional configuration for some useful Postee routing features. 
+'Plugins' section contains configuration for useful Postee features. 
+
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
-*policy-show-all*|Optional. Send the message to target even if same message was sent before. Default is false.| boolean | true
 *aggregate-issues-number*|Number of messages to aggregate into one message.| any integer value | 10
 *aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
+*unique-message-props*|Optional. Comma separated list of properties which uniquely identifies an event message. If message with same property values is received more than once, consequitive messages will be ignored. | Array of properties that their value uniquely identifies a message | To avoid duplicate scanning messages you can use the following properties: ```unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"]```
+
 
 ### Templates
 Templates are used to format input messages before sending them to the output. For example - before sending a message to Microsoft Teams there is a need to format the input JSON into an HTML. This is done using a template.
@@ -241,16 +243,23 @@ Key | Description | Possible Values
 *url* | Webhook URL |
 
 ## Configure the Aqua Server with Webhook Integration
-
-Configure the Aqua Server to send a Webhook notification when a new vulnerability is found
-![Screenshot](webhook-integration.png)
-
-Validate that a ticket has been opened, or email was sent (depending on your configuration file).
+Postee can be integrated with Aqua Console to deliver vulnerability and audit messages to target systems.
 
 You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
-Navigate to the **Settings** page in the System section, menu, under the "Image Scan Results Webhook" section.
+Navigate to the **Image Scan Results Webhook** page, under the "Settings" menu.
+![Screenshot](webhook-integration.png)
 
-Click "Enable sending image scan results to Postee server", and specify the URL of the Aqua Webhook server.
+Click "Enable sending image scan results to webhook", and specify the URL of Postee.
+Now, scan an image and look at the Postee log files - you will see that Postee have received an incoming message once scan is done,
+and that the message was routed based on the cfg.yaml configuration.
+
+You can also configure the Aqua Server to send a Webhook notification for every audit message.
+Navigate to the **Log Management** page, under the "Integrations" menu.
+![Screenshot](aqua-webhook-audit.jpg)
+Click on the "Webhook" item, and specify the URL of Postee.
+Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to 
+forward appropriate messages to target systems.
+
 
 The URL is in the following formats:
 **HTTPS**: https://<Postee IP or DNS>:8444

@@ -1,12 +1,16 @@
 package msgservice
 
 import (
+	"encoding/json"
 	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/routes"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -42,56 +46,48 @@ var (
 
 func TestScanUniqueId(t *testing.T) {
 	tests := []struct {
-		inputs        []string
-		caseDesc      string
-		policyShowAll bool
-		expctdInvc    int
+		inputs             []string
+		caseDesc           string
+		uniqueMessageProps []string
+		expctdInvc         int
 	}{
 		{
-			inputs:        []string{unique_scan1, unique_scan1},
-			caseDesc:      "Same scan twice with PolicyShowAll: false",
-			policyShowAll: false,
-			expctdInvc:    1,
+			inputs:             []string{unique_scan1, unique_scan1},
+			caseDesc:           "Same scan twice with unique message props specified",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			expctdInvc:         1,
 		},
 		{
-			inputs:        []string{unique_scan1, unique_scan1},
-			caseDesc:      "Same scan twice with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
+			inputs:     []string{unique_scan1, unique_scan1},
+			caseDesc:   "Same scan twice without unique message props specified",
+			expctdInvc: 2,
 		},
 		{
-			inputs:        []string{unique_scan1, unique_scan2},
-			caseDesc:      "2 unique scan with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
+			inputs:             []string{unique_scan1, unique_scan2},
+			caseDesc:           "2 unique scan with unique message props specified",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			expctdInvc:         2,
 		},
 		{
-			inputs:        []string{unique_scan1, unique_scan2},
-			caseDesc:      "2 unique scan with PolicyShowAll: false",
-			policyShowAll: false,
-			expctdInvc:    2,
+			inputs:             []string{unique_scan1, unique_scan2},
+			caseDesc:           "2 unique scan without unique message props specified",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			expctdInvc:         2,
 		},
 		{
-			inputs:        []string{non_unique_payload, non_unique_payload},
-			caseDesc:      "2 non-scan inputs with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
-		},
-		{
-			caseDesc:      "2 non-scan inputs with PolicyShowAll: false",
-			inputs:        []string{non_unique_payload, non_unique_payload},
-			policyShowAll: false,
-			expctdInvc:    2,
+			inputs:     []string{non_unique_payload, non_unique_payload},
+			caseDesc:   "2 non-scan inputs without unique message props specified",
+			expctdInvc: 2,
 		},
 	}
 
 	for _, test := range tests {
-		sendInputs(t, test.caseDesc, test.inputs, test.policyShowAll, test.expctdInvc)
+		sendInputs(t, test.caseDesc, test.inputs, test.uniqueMessageProps, test.expctdInvc)
 	}
 
 }
 
-func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bool, expected int) {
+func sendInputs(t *testing.T, caseDesc string, inputs []string, uniqueMessageProps []string, expected int) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
@@ -107,7 +103,7 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bo
 	demoRoute := &routes.InputRoute{}
 
 	demoRoute.Name = "demo-route"
-	demoRoute.Plugins.PolicyShowAll = policyShowAll
+	demoRoute.Plugins.UniqueMessageProps = uniqueMessageProps
 
 	demoInptEval := &DemoInptEval{}
 
@@ -123,6 +119,89 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, policyShowAll bo
 
 	if demoEmailOutput.getEmailsCount() != expected {
 		t.Errorf("[%s] Wrong number of Send method calls: expected %d, got %d", caseDesc, expected, demoEmailOutput.getEmailsCount())
+	}
+
+}
+
+func TestGetMessageUniqueId(t *testing.T) {
+	tests := []struct {
+		props    []string
+		name     string
+		context  map[string]interface{}
+		filename string
+		wantKey  string
+		wantErr  string
+	}{
+		{
+			props:   []string{"name"},
+			name:    "Single property",
+			context: map[string]interface{}{"name": "alpine"},
+			wantKey: "alpine",
+		},
+		{
+			props:   []string{"name", "registry"},
+			name:    "Multi property",
+			context: map[string]interface{}{"name": "alpine", "registry": "registry2"},
+			wantKey: "alpine-registry2",
+		},
+		{
+			props:   []string{"name", "cnt"},
+			name:    "Numeric",
+			context: map[string]interface{}{"name": "alpine", "cnt": 0},
+			wantKey: "alpine-0",
+		},
+		{
+			props:   []string{"name", "registry"},
+			name:    "Missed property",
+			context: map[string]interface{}{"name": "alpine"},
+			wantKey: "alpine",
+		},
+		{
+			props:   []string{"name", "meta.category"},
+			name:    "Multi Level Property",
+			context: map[string]interface{}{"name": "alpine", "meta": map[string]interface{}{"category": "design"}},
+			wantKey: "alpine-design",
+		},
+		{
+			props:   []string{"name", "items.id"},
+			name:    "Multi Level Property With Collection",
+			context: map[string]interface{}{"name": "alpine", "items": []map[string]interface{}{{"id": "KLM"}, {"id": "DEF"}}},
+			wantKey: "alpine-KLM",
+		},
+		{
+			props:   []string{"name", "items.id"},
+			name:    "Multi Level Property With Empty Collection",
+			context: map[string]interface{}{"name": "alpine", "items": []map[string]interface{}{}},
+			wantKey: "alpine",
+		},
+		{
+			props:   []string{"name.id"},
+			name:    "Multi Level Property Referencing String",
+			context: map[string]interface{}{"name": "alpine"},
+		},
+		{
+			props:    []string{"digest", "image", "registry", "vulnerability_summary.critical", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"},
+			name:     "Legacy scan logic from Postee 1.0",
+			filename: "all-in-one-image.json",
+			wantKey:  "sha256:45388de11cfbf5c5d9e2e1418dfeac221c57cfffa1e2fffa833ac283ed029ecf-all-in-one:3.5.19223-Aqua-0-7-30-6",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var msg map[string]interface{}
+			if test.filename != "" {
+				fname := filepath.Join("testdata", test.filename)
+				b, err := os.ReadFile(fname)
+				require.NoError(t, err)
+				err = json.Unmarshal(b, &msg)
+				require.NoError(t, err)
+			} else {
+				msg = test.context
+			}
+			key := GetMessageUniqueId(msg, test.props)
+			assert.Equal(t, test.wantKey, key)
+		})
 	}
 
 }

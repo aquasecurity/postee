@@ -134,59 +134,6 @@ func Equal(A, B *data.ScanImageInfo) bool {
 	return true
 }
 
-func TestParseImageInfo(t *testing.T) {
-	var tests = []struct {
-		input             []byte
-		result            *data.ScanImageInfo
-		shouldReturnError bool
-	}{
-		{
-			input:  AlpineImageSource,
-			result: &AlpineImageResult,
-		},
-		{
-			input:             []byte(invalidJson),
-			shouldReturnError: true,
-		},
-	}
-
-	for _, test := range tests {
-		got, err := parseImageInfo(test.input)
-		if err != nil && !test.shouldReturnError {
-			t.Errorf("Can't parse next sequence: %s\nError: %s", string(test.input), err.Error())
-		}
-
-		if err == nil && test.shouldReturnError {
-			t.Errorf("Error is expected for the input: %s\n", string(test.input))
-		}
-
-		if test.shouldReturnError {
-			continue
-		}
-
-		if !Equal(test.result, got) {
-			t.Errorf("\nInput: %s\nResult: %v\nWaiting: %v", string(test.input), got, test.result)
-		}
-	}
-}
-
-func TestScanImageInfo_GetUniqueId(t *testing.T) {
-	var tests = []struct {
-		input  *data.ScanImageInfo
-		result string
-	}{
-		{&AlpineImageResult,
-			"sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1-alpine:3.8-Docker Hub",
-		},
-	}
-	for _, test := range tests {
-		if got := test.input.GetUniqueId(); got != test.result {
-			t.Errorf("ScanImageInfo_GetUniqueId(%s-%s-%s):\nResult: %s\nWaiting: %s",
-				test.input.Digest, test.input.Image, test.input.Registry, got, test.result)
-		}
-	}
-}
-
 func BenchmarkGenTicketDescription(b *testing.B) {
 	provider := new(formatting.JiraLayoutProvider)
 	for i := 0; i < b.N; i++ {

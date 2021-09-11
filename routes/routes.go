@@ -12,8 +12,8 @@ type InputRoute struct {
 type Plugins struct {
 	AggregateIssuesNumber   int    `json:"aggregate-issues-number"`
 	AggregateIssuesTimeout  string `json:"aggregate-issues-timeout"`
-	PolicyShowAll           bool   `json:"policy-show-all"`
 	AggregateTimeoutSeconds int
+	UniqueMessageProps      []string `json:"unique-message-props"`
 }
 
 func (route *InputRoute) IsSchedulerRun() bool {

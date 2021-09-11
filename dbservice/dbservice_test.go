@@ -1,51 +1,90 @@
 package dbservice
 
 import (
-	"encoding/json"
-	"github.com/aquasecurity/postee/data"
+	"errors"
 	"os"
 	"testing"
+
+	"go.etcd.io/bbolt"
+	bolt "go.etcd.io/bbolt"
 )
 
 var (
-	AlpineImageResult = data.ScanImageInfo{
-		Image:          "alpine:3.8",
-		Registry:       "Docker Hub",
-		Digest:         "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
-		PreviousDigest: "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
-		ImageAssuranceResults: data.ImageAssuranceResults{
-			true,
-			[]data.ControlCheck{
-				{"max_severity", "Default", false},
-				{"trusted_base_images", "Default", true},
-				{"max_score", "Default", false},
-			},
-		},
-		VulnerabilitySummary: data.VulnerabilitySummary{
-			2, 0, 0, 2, 0, 0, 0, 0,
-		},
-		ScanOptions: data.ScanOptions{true, true},
-		Resources: []data.InfoResources{
-			{
-				[]data.Vulnerability{
-					{"CVE-2018-20679", "", "", "medium"},
-					{"CVE-2019-5747", "", "", "medium"},
+	AlpineImageKey    = "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1-alpine:3.8-Docker Hub"
+	AlpineImageResult = `{
+		"image": "alpine:3.8",
+		"registry": "Docker Hub",
+		"digest": "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
+		"previous_digest": "sha256:c8bccc0af9571ec0d006a43acb5a8d08c4ce42b6cc7194dd6eb167976f501ef1",
+		"image_assurance_results": {
+			"disallowed": true,
+			"checks_performed": [
+				{
+					"control": "max_severity",
+					"policy_name": "Default",
+					"failed": false
 				},
-				data.ResourceDetails{"busybox", "1.28.4-r3"},
-			},
+				{
+					"control": "trusted_base_images",
+					"policy_name": "Default",
+					"failed": true
+				},
+				{
+					"control": "max_score",
+					"policy_name": "Default",
+					"failed": false
+				}
+			]
 		},
-	}
+		"vulnerability_summary": {
+			"total": 2,
+			"critical": 0,
+			"high": 0,
+			"medium": 2,
+			"low": 0,
+			"negligible": 0,
+			"sensitive": 0,
+			"malware": 0
+		},
+		"scan_options": {
+			"scan_sensitive_data": true,
+			"scan_malware": true
+		},
+		"resources": [
+			{
+				"vulnerabilities": [
+					{
+						"name": "CVE-2018-20679",
+						"version": "",
+						"fix_version": "",
+						"aqua_severity": "medium"
+					},
+					{
+						"name": "CVE-2019-5747",
+						"version": "",
+						"fix_version": "",
+						"aqua_severity": "medium"
+					}
+				],
+				"resource": {
+					"name": "busybox",
+					"version": "1.28.4-r3"
+				}
+			}
+		]
+	}`
 )
 
-func TestHandleCurrentInfo(t *testing.T) {
+func TestStoreMessage(t *testing.T) {
 	var tests = []struct {
-		input *data.ScanImageInfo
+		input *string
 	}{
 		{&AlpineImageResult},
 	}
 
 	dbPathReal := DbPath
 	defer func() {
+		os.Remove(DbPath)
 		DbPath = dbPathReal
 	}()
 	DbPath = "test_webhooks.db"
@@ -53,7 +92,7 @@ func TestHandleCurrentInfo(t *testing.T) {
 	for _, test := range tests {
 
 		// Handling of first scan
-		_, isNew, err := HandleCurrentInfo(test.input)
+		isNew, err := MayBeStoreMessage([]byte(*test.input), AlpineImageKey)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -62,56 +101,109 @@ func TestHandleCurrentInfo(t *testing.T) {
 		}
 
 		// Handling of second scan with the same data
-		_, isNew, err = HandleCurrentInfo(test.input)
+		isNew, err = MayBeStoreMessage([]byte(*test.input), AlpineImageKey)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
 		if isNew {
 			t.Errorf("A old scan wasn't found!\n")
 		}
-
-		// Change number of High vulnerabilities and handling it
-		test.input.High++
-		_, isNew, err = HandleCurrentInfo(test.input)
-		if err != nil {
-			t.Errorf("Error: %s\n", err)
-		}
-		if !isNew {
-			t.Errorf("Updating scan was ignored!\n")
-		}
-
-		// image scan with same name and registry, but different digest than previous scan.
-		// get bytes of Base Scan
-		testScanBytes, err := json.Marshal(test.input)
-		if err != nil {
-			t.Errorf("Error: %s\n", err)
-		}
-		t.Log("Base scan:", string(testScanBytes))
-		// Set current scan as previous for a next scan, and change digest inside a new scan
-		test.input.PreviousDigest, test.input.Digest = test.input.Digest, "sha256:manual_digest"
-
-		prevScanBytesFromDb, isNew, err := HandleCurrentInfo(test.input)
-		if err != nil {
-			t.Errorf("Error: %s\n", err)
-		}
-		t.Log("Prev scan:", string(prevScanBytesFromDb))
-
-		if !isNew {
-			t.Errorf("Scan with updated digest was ignored!\n")
-		}
-
-		// PrevScan must be equals BaseScan
-		if len(testScanBytes) != len(prevScanBytesFromDb) {
-			t.Errorf("Prev scan is wrong!\nResult:%s\nWaiting:%s\n", prevScanBytesFromDb, testScanBytes)
-		} else {
-			for i := range prevScanBytesFromDb {
-				if testScanBytes[i] != prevScanBytesFromDb[i] {
-					t.Errorf("Prev scan is wrong!\nResult:%s\nWaiting:%s\n",
-						string(prevScanBytesFromDb), string(testScanBytes))
-					break
-				}
-			}
-		}
 	}
-	os.Remove(DbPath)
+
+}
+func TestInitError(t *testing.T) {
+	originalInit := Init
+	originalDbPath := DbPath
+	initErr := errors.New("init error")
+
+	DbPath = "test_webhooks.db"
+
+	Init = func(db *bbolt.DB, bucket string) error {
+		return initErr
+	}
+
+	defer func() {
+		Init = originalInit
+		os.Remove(DbPath)
+		DbPath = originalDbPath
+	}()
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+
+	if isNew {
+		t.Errorf("Scan shouldn't be marked as new\n")
+	}
+
+	if err != initErr {
+		t.Errorf("Unexpected error: expected %s, got %s \n", initErr, err)
+	}
+
+}
+func TestSelectError(t *testing.T) {
+	originalDbSelect := dbSelect
+	originalDbPath := DbPath
+	selectErr := errors.New("select error")
+
+	DbPath = "test_webhooks.db"
+
+	dbSelect = func(db *bolt.DB, bucket, key string) (result []byte, err error) {
+		return nil, selectErr
+	}
+
+	defer func() {
+		dbSelect = originalDbSelect
+		os.Remove(DbPath)
+		DbPath = originalDbPath
+	}()
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+
+	if isNew {
+		t.Errorf("Scan shouldn't be marked as new\n")
+	}
+
+	if err != selectErr {
+		t.Errorf("Unexpected error: expected %s, got %s \n", selectErr, err)
+	}
+
+}
+func TestInsertError(t *testing.T) {
+	var tests = []struct {
+		bucket string
+	}{
+		{"WebhookBucket"},
+		{"WebookExpiryDates"},
+	}
+	for _, test := range tests {
+		testBucketInsert(t, test.bucket)
+	}
+}
+
+func testBucketInsert(t *testing.T, testBucket string) {
+	originalDbInsert := dbInsert
+	originalDbPath := DbPath
+	insertErr := errors.New("insert error")
+
+	DbPath = "test_webhooks.db"
+
+	dbInsert = func(db *bolt.DB, bucket string, key, value []byte) error {
+		if bucket == testBucket {
+			return insertErr
+		}
+		return nil
+	}
+
+	defer func() {
+		dbInsert = originalDbInsert
+		os.Remove(DbPath)
+		DbPath = originalDbPath
+	}()
+
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+
+	if isNew {
+		t.Errorf("Scan shouldn't be marked as new\n")
+	}
+
+	if err != insertErr {
+		t.Errorf("Unexpected error: expected %s, got %s \n", insertErr, err)
+	}
 }
