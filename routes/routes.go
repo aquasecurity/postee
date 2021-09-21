@@ -10,8 +10,8 @@ type InputRoute struct {
 }
 
 type Plugins struct {
-	AggregateIssuesNumber   int    `json:"aggregate-issues-number"`
-	AggregateIssuesTimeout  string `json:"aggregate-issues-timeout"`
+	AggregateMessageNumber  int    `json:"aggregate-message-number"`
+	AggregateMessageTimeout string `json:"aggregate-message-timeout"`
 	AggregateTimeoutSeconds int
 	UniqueMessageProps      []string `json:"unique-message-props"`
 }

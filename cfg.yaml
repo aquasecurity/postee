@@ -18,8 +18,8 @@ routes:
 #  outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
 #  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
 #  plugins:                                     #  Optional plugins
-#   aggregate-issues-number:                       # Number of same messages to aggregate into one output message
-#   aggregate-issues-timeout:                      # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
+#   aggregate-message-number:                   # Number of same messages to aggregate into one output message
+#   aggregate-message-timeout:                  # Number of seconds/minutes/hours to aggregat same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
 #   unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"] # Optional: Comma separated list of top level properties which uniqult identifies an event message. If message with same property values is received more than once it will be ignored
 
 # Templates are used to format a message

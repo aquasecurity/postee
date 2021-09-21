@@ -131,8 +131,8 @@ Key | Description | Possible Values | Example
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
-*aggregate-issues-number*|Number of messages to aggregate into one message.| any integer value | 10
-*aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
+*aggregate-message-number*|Number of messages to aggregate into one message.| any integer value | 10
+*aggregate-message-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
 *unique-message-props*|Optional. Comma separated list of properties which uniquely identifies an event message. If message with same property values is received more than once, consequitive messages will be ignored. | Array of properties that their value uniquely identifies a message | To avoid duplicate scanning messages you can use the following properties: ```unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"]```
 
 
@@ -278,7 +278,7 @@ Key | Description |Type
 --- | --- | ---
 *result* | message body| Can be either string or json
 *title* | message title| string
-*aggregation_pkg*|reference to package used to aggregate messages (when Aggregate-Issues-Timeout or Aggregate-Issues-Number options are used). If it's missed then aggregation feature is not supported| valid rego package
+*aggregation_pkg*|reference to package used to aggregate messages (when aggregate-message-timeout or aggregate-message-number options are used). If it's missed then aggregation feature is not supported| valid rego package
 
 So the simplest example of Rego template would look like:
 ```rego

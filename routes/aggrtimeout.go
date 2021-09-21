@@ -16,22 +16,22 @@ func ConfigureAggrTimeout(route *InputRoute) *InputRoute {
 		"h": 3600,
 	}
 
-	if len(route.Plugins.AggregateIssuesTimeout) > 0 {
+	if len(route.Plugins.AggregateMessageTimeout) > 0 {
 		wasConvert := false
 		for suffix, k := range times {
-			if strings.HasSuffix(strings.ToLower(route.Plugins.AggregateIssuesTimeout), suffix) {
-				timeout, err = strconv.Atoi(strings.TrimSuffix(route.Plugins.AggregateIssuesTimeout, suffix))
+			if strings.HasSuffix(strings.ToLower(route.Plugins.AggregateMessageTimeout), suffix) {
+				timeout, err = strconv.Atoi(strings.TrimSuffix(route.Plugins.AggregateMessageTimeout, suffix))
 				timeout *= k
 				wasConvert = true
 				break
 			}
 		}
 		if !wasConvert {
-			timeout, err = strconv.Atoi(route.Plugins.AggregateIssuesTimeout)
+			timeout, err = strconv.Atoi(route.Plugins.AggregateMessageTimeout)
 		}
 		if err != nil {
 			log.Printf("%q settings: Can't convert 'AggregateIssuesTimeout'(%q) to seconds.",
-				route.Name, route.Plugins.AggregateIssuesTimeout)
+				route.Name, route.Plugins.AggregateMessageTimeout)
 		}
 	}
 	route.Plugins.AggregateTimeoutSeconds = timeout

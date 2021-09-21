@@ -79,8 +79,8 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		content["owners"] = owners
 	}
 
-	if route.Plugins.AggregateIssuesNumber > 0 && inpteval.IsAggregationSupported() {
-		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateIssuesNumber, false)
+	if route.Plugins.AggregateMessageNumber > 0 && inpteval.IsAggregationSupported() {
+		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateMessageNumber, false)
 		if len(aggregated) > 0 {
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
