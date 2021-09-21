@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -43,6 +45,8 @@ func TestEval(t *testing.T) {
 		t.Fatalf("Unexpected error %v\n", err)
 	}
 	out, err := e.Eval(in, "")
+
+	assert.NoError(t, err)
 
 	if out["title"] != expectedTitle {
 		t.Errorf("Unexpected title value got %s, expected %s\n", out["title"], expectedTitle)
@@ -151,5 +155,17 @@ func TestBuildLegacyScnEvaluator(t *testing.T) {
 		if actualCls != test.expectedLayoutClass {
 			t.Errorf("Invalid type of layout provider returned, expected %s, got %s\n", test.expectedLayoutClass, actualCls)
 		}
+	}
+}
+func TestToScanImage(t *testing.T) {
+	var wrongProp map[bool]string
+	inp := make(map[string]interface{})
+
+	inp["wrongProp"] = wrongProp
+
+	_, err := toScanImage(inp)
+
+	if err == nil {
+		t.Errorf("Error is expected\n")
 	}
 }
