@@ -179,7 +179,7 @@ result = res {
 	           ]
 
     postee := with_default(input, "postee", {})
-    aqua_server := with_default(input, "AquaServer", "")
+    aqua_server := with_default(postee, "AquaServer", "")
 
     href:=sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
     text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
