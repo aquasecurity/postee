@@ -30,7 +30,7 @@ func TestEval(t *testing.T) {
 <TD style='padding: 5px;'><span style='color:#c00000'>0</span></TD><TD style='padding: 5px;'><span style='color:#e0443d'>1</span></TD><TD style='padding: 5px;'><span style='color:#f79421'>3</span></TD><TD style='padding: 5px;'><span style='color:#e1c930'>4</span></TD><TD style='padding: 5px;'><span style='color:green'>5</span></TD>
 </TR>
 </TABLE>
-<p>See more: <a href=''></a></p>
+<p>See more: <a href='registry1/Demo+mock+image1'>registry1/Demo+mock+image1</a></p>
 `
 
 	in := map[string]interface{}{}
