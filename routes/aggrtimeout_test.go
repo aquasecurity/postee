@@ -2,11 +2,11 @@ package routes
 
 import "testing"
 
-func TestAggrTimeout(t *testing.T) {
-	tests := []struct {
-		caseDesc               string
-		aggregateIssuesTimeout string
-		expctdSeconds          int
+var (
+	tests = []struct {
+		caseDesc      string
+		timeout       string
+		expctdSeconds int
 	}{
 		{
 			"One minute",
@@ -34,12 +34,19 @@ func TestAggrTimeout(t *testing.T) {
 			0,
 		},
 	}
+)
+
+func TestTimeouts(t *testing.T) {
 	for _, test := range tests {
 		route := &InputRoute{}
-		route.Plugins.AggregateMessageTimeout = test.aggregateIssuesTimeout
+		route.Plugins.AggregateMessageTimeout = test.timeout
+		route.Plugins.UniqueMessageTimeout = test.timeout
 		route = ConfigureTimeouts(route)
 		if route.Plugins.AggregateTimeoutSeconds != test.expctdSeconds {
-			t.Errorf("[%s] Invalid number of seconds, expected %d, got %d \n", test.caseDesc, test.expctdSeconds, route.Plugins.AggregateTimeoutSeconds)
+			t.Errorf("[%s] Invalid number of seconds in AggregateTimeoutSeconds, expected %d, got %d \n", test.caseDesc, test.expctdSeconds, route.Plugins.AggregateTimeoutSeconds)
+		}
+		if route.Plugins.UniqueMessageTimeoutSeconds != test.expctdSeconds {
+			t.Errorf("[%s] Invalid number of seconds in UniqueMessageTimeout, expected %d, got %d \n", test.caseDesc, test.expctdSeconds, route.Plugins.UniqueMessageTimeoutSeconds)
 		}
 	}
 
