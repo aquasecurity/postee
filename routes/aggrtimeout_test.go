@@ -37,7 +37,7 @@ func TestAggrTimeout(t *testing.T) {
 	for _, test := range tests {
 		route := &InputRoute{}
 		route.Plugins.AggregateMessageTimeout = test.aggregateIssuesTimeout
-		route = ConfigureAggrTimeout(route)
+		route = ConfigureTimeouts(route)
 		if route.Plugins.AggregateTimeoutSeconds != test.expctdSeconds {
 			t.Errorf("[%s] Invalid number of seconds, expected %d, got %d \n", test.caseDesc, test.expctdSeconds, route.Plugins.AggregateTimeoutSeconds)
 		}

@@ -200,27 +200,24 @@ func (ctx *Router) load() error {
 	}
 
 	dbservice.DbSizeLimit = tenant.DBMaxSize
-	dbservice.DbDueDate = tenant.DBRemoveOldData
 	if tenant.DBTestInterval == 0 {
 		tenant.DBTestInterval = 1
 	}
-	if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
-		ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
-		go func() {
-			for {
-				select {
-				case <-ctx.stopTicker:
-					return
-				case <-ctx.ticker.C:
-					dbservice.CheckSizeLimit()
-					dbservice.CheckExpiredData()
-				}
+	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
+	go func() {
+		for {
+			select {
+			case <-ctx.stopTicker:
+				return
+			case <-ctx.ticker.C:
+				dbservice.CheckSizeLimit()
+				dbservice.CheckExpiredData()
 			}
-		}()
-	}
+		}
+	}()
 
 	for i, r := range tenant.InputRoutes {
-		ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(&tenant.InputRoutes[i])
+		ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(&tenant.InputRoutes[i])
 	}
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)

@@ -6,7 +6,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-func MayBeStoreMessage(message []byte, messageKey string) (wasStored bool, err error) {
+func MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -36,9 +36,11 @@ func MayBeStoreMessage(message []byte, messageKey string) (wasStored bool, err e
 		if err != nil {
 			return false, err
 		}
-		err = dbInsert(db, dbBucketExpiryDates, []byte(time.Now().UTC().Format(time.RFC3339Nano)), bMessageKey)
-		if err != nil {
-			return false, err
+		if expired != nil {
+			err = dbInsert(db, dbBucketExpiryDates, []byte(expired.Format(DateFmt)), bMessageKey)
+			if err != nil {
+				return false, err
+			}
 		}
 		return true, nil
 	}

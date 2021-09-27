@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
@@ -51,7 +52,9 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 
 	if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 {
 		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
-		wasStored, err := dbservice.MayBeStoreMessage(input, msgKey)
+		expired := calculateExpired(route.Plugins.UniqueMessageTimeoutSeconds)
+
+		wasStored, err := dbservice.MayBeStoreMessage(input, msgKey, expired)
 		if err != nil {
 			log.Printf("Error while storing input: %v", err)
 			return
@@ -112,6 +115,14 @@ func send(otpt outputs.Output, cnt map[string]string) {
 		return
 	}
 
+}
+func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
+	if UniqueMessageTimeoutSeconds == 0 {
+		return nil
+	}
+	timeToExpire := time.Duration(UniqueMessageTimeoutSeconds) * time.Second
+	expired := time.Now().UTC().Add(timeToExpire)
+	return &expired
 }
 
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func ConfigureAggrTimeout(route *InputRoute) *InputRoute {
+func parseTimeouts(v string) (int, error) {
 	var timeout int
 	var err error
 
@@ -16,24 +16,39 @@ func ConfigureAggrTimeout(route *InputRoute) *InputRoute {
 		"h": 3600,
 	}
 
-	if len(route.Plugins.AggregateMessageTimeout) > 0 {
-		wasConvert := false
-		for suffix, k := range times {
-			if strings.HasSuffix(strings.ToLower(route.Plugins.AggregateMessageTimeout), suffix) {
-				timeout, err = strconv.Atoi(strings.TrimSuffix(route.Plugins.AggregateMessageTimeout, suffix))
-				timeout *= k
-				wasConvert = true
-				break
-			}
-		}
-		if !wasConvert {
-			timeout, err = strconv.Atoi(route.Plugins.AggregateMessageTimeout)
-		}
-		if err != nil {
-			log.Printf("%q settings: Can't convert 'AggregateIssuesTimeout'(%q) to seconds.",
-				route.Name, route.Plugins.AggregateMessageTimeout)
+	wasConvert := false
+	for suffix, k := range times {
+		if strings.HasSuffix(strings.ToLower(v), suffix) {
+			timeout, err = strconv.Atoi(strings.TrimSuffix(v, suffix))
+			timeout *= k
+			wasConvert = true
+			break
 		}
 	}
-	route.Plugins.AggregateTimeoutSeconds = timeout
+	if !wasConvert {
+		timeout, err = strconv.Atoi(v)
+	}
+	return timeout, err
+}
+
+func ConfigureTimeouts(route *InputRoute) *InputRoute {
+	if len(route.Plugins.AggregateMessageTimeout) > 0 {
+		aggregateTimeoutSeconds, err := parseTimeouts(route.Plugins.AggregateMessageTimeout)
+		if err != nil {
+			log.Printf("%q settings: Can't convert 'aggregate-message-timeout'(%q) to seconds.",
+				route.Name, route.Plugins.AggregateMessageTimeout)
+		}
+
+		route.Plugins.AggregateTimeoutSeconds = aggregateTimeoutSeconds
+	}
+	if len(route.Plugins.UniqueMessageTimeout) > 0 {
+		UniqueMessageTimeoutSeconds, err := parseTimeouts(route.Plugins.UniqueMessageTimeout)
+		if err != nil {
+			log.Printf("%q settings: Can't convert 'unique-message-timeout'(%q) to seconds.",
+				route.Name, route.Plugins.UniqueMessageTimeout)
+		}
+
+		route.Plugins.UniqueMessageTimeoutSeconds = UniqueMessageTimeoutSeconds
+	}
 	return route
 }

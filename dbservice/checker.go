@@ -2,9 +2,10 @@ package dbservice
 
 import (
 	"bytes"
-	bolt "go.etcd.io/bbolt"
 	"log"
 	"time"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 func CheckSizeLimit() {
@@ -42,9 +43,6 @@ func CheckSizeLimit() {
 }
 
 func CheckExpiredData() {
-	if DbDueDate == 0 {
-		return
-	}
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -77,8 +75,7 @@ func getExpired(db *bolt.DB) (keys [][]byte, err error) {
 		}
 		c := b.Cursor()
 
-		d := time.Duration(DbDueDate) * dueTimeBase
-		max := []byte(time.Now().UTC().Add(-d).Format(time.RFC3339Nano))
+		max := []byte(time.Now().UTC().Format(DateFmt)) //remove expired records
 		for k, v := c.First(); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 			keys = append(keys, v)
 			ttlKeys = append(ttlKeys, k)
