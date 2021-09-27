@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"go.etcd.io/bbolt"
-	bolt "go.etcd.io/bbolt"
 )
 
 var (
@@ -146,7 +145,7 @@ func TestSelectError(t *testing.T) {
 
 	DbPath = "test_webhooks.db"
 
-	dbSelect = func(db *bolt.DB, bucket, key string) (result []byte, err error) {
+	dbSelect = func(db *bbolt.DB, bucket, key string) (result []byte, err error) {
 		return nil, selectErr
 	}
 
@@ -185,7 +184,7 @@ func testBucketInsert(t *testing.T, testBucket string) {
 
 	DbPath = "test_webhooks.db"
 
-	dbInsert = func(db *bolt.DB, bucket string, key, value []byte) error {
+	dbInsert = func(db *bbolt.DB, bucket string, key, value []byte) error {
 		if bucket == testBucket {
 			return insertErr
 		}
