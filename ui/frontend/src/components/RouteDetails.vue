@@ -116,6 +116,19 @@
               description="Optional: Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored"
               :inputHandler="updateRoutePluginCollectionField"
             />
+            <PropertyField
+              class="mb-4"
+              id="uniqueMessageTimeout"
+              label="Unique-Message-Timeout"
+              :value="
+                formValues.plugins
+                  ? formValues.plugins['unique-message-timeout']
+                  : undefined
+              "
+              name="unique-message-timeout"
+              description="Optional: Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted"
+              :inputHandler="updateRoutePluginField"
+            />
           </div>
         </div>
       </form>

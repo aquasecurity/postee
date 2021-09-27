@@ -24,6 +24,11 @@ var (
 			7200,
 		},
 		{
+			"Two days",
+			"2d",
+			172800,
+		},
+		{
 			"Exact number of seconds",
 			"300",
 			300,
