@@ -157,7 +157,7 @@ vln_list(severity) = vlnrb {
 }
 ###########################################################################################################
 postee := with_default(input, "postee", {})
-aqua_server := with_default(input, "AquaServer", "")
+aqua_server := with_default(postee, "AquaServer", "")
 
 title = sprintf("%s vulnerability scan report", [input.image])
 href := sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])

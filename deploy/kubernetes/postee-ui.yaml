@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postee-ui-svc
+spec:
+  ports:
+    - name: postee-ui
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+  selector:
+    app: postee-ui
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: postee-ui
+  name: postee-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postee-ui
+  template:
+    metadata:
+      labels:
+        app: postee-ui
+    spec:
+      initContainers:
+        - name: chmod-er
+          image: busybox:latest
+          command:
+            - /bin/chown
+            - -R
+            - "1099"
+            - /config
+          volumeMounts:
+            - name: postee-config
+              mountPath: /config
+      containers:
+        - image: krol/postee-ui:latest
+          imagePullPolicy: Always
+          name: postee-ui
+          env:
+            - name: POSTEE_UI_CFG
+              value: /config/cfg.yaml
+            - name: POSTEE_UI_PORT
+              value: "8000"
+            - name: POSTEE_UI_UPDATE_URL
+              value: "http://postee-svc:8080"
+            - name: POSTEE_ADMIN_USER
+              value: demo
+            - name: POSTEE_ADMIN_PASSWORD
+              value: demo
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: postee-db
+              mountPath: /server/database
+            - name: postee-config
+              mountPath: /config
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: postee-db
+          persistentVolumeClaim:
+            claimName: postee-db-postee-0
+        - name: postee-config
+          persistentVolumeClaim:
+            claimName: postee-config-postee-0
