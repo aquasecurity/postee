@@ -1,6 +1,6 @@
 FROM golang:1.15.8-alpine as builder
 # RUN apk add --update git
-ADD . /server/
+COPY . /server/
 WORKDIR /server/
 RUN go build -o ./bin/postee main.go
 

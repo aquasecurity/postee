@@ -98,10 +98,19 @@ Key | Description | Possible Values | Example Value
 ### Routes 
 A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the output(s) that the message should be delivered to.
 
-The most important part of a route is the input definition. We use the Rego language to define what are the conditions for an incoming message to be handled by a certain route. For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
+The most important part of a route is the input definition. We use the Rego language to define what are the conditions for an incoming message to be handled by a certain route.
+
+> NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
+
+For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
 
 ```
 input: contains(input.image,"alpine")
+```
+
+Another example using regular expression:
+```
+input: regex.match("alp:*", input.image)
 ```
 
 You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 
