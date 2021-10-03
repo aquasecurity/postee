@@ -41,7 +41,7 @@ changelog:
       - '^release'
 dockers:
   - dockerfile: Dockerfile.release
-    use_buildx: true
+    use: buildx
     image_templates:
       - "docker.io/aquasec/postee:{{ .Version }}"
       - "public.ecr.aws/aquasecurity/postee:{{ .Version }}"
@@ -62,7 +62,7 @@ dockers:
       - "--label=org.label-schema.vcs=https://github.com/aquasecurity/postee"
       - "--label=org.label-schema.vcs-ref={{ .FullCommit }}"
   - dockerfile: Dockerfile.ui
-    use_buildx: true
+    use: buildx
     image_templates:
       - "docker.io/aquasec/postee-ui:{{ .Version }}"
       - "public.ecr.aws/aquasecurity/postee-ui:{{ .Version }}"
@@ -73,6 +73,7 @@ dockers:
     extra_files:
       - rego-templates/
       - cfg.yaml
+      - ui/
     build_flag_templates:
       - "--label=org.label-schema.schema-version=1.0"
       - "--label=org.label-schema.name={{ .ProjectName }}"

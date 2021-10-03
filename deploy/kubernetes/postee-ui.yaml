@@ -41,7 +41,7 @@ spec:
             - name: postee-config
               mountPath: /config
       containers:
-        - image: krol/postee-ui:latest
+        - image: aquasec/postee-ui:latest
           imagePullPolicy: Always
           name: postee-ui
           env:

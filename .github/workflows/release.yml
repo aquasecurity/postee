@@ -3,6 +3,7 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
 env:
   GO_VERSION: "1.16"
 jobs:
@@ -50,7 +51,7 @@ jobs:
       - name: Release
         uses: goreleaser/goreleaser-action@v2
         with:
-          version: v0.155.0
+          version: ~> 0.180
           args: release --rm-dist
           workdir: .
         env:
