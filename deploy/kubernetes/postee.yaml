@@ -113,6 +113,18 @@ spec:
             requests:
               cpu: 200m
               memory: 128Mi
+            livenessProbe:
+              httpGet:
+                path: /ping
+                port: 8082
+              initialDelaySeconds: 10
+              periodSeconds: 10
+            readinessProbe:
+              httpGet:
+                path: /ping
+                port: 8082
+              initialDelaySeconds: 10
+              periodSeconds: 10
       volumes:
         - name: config-volume
           configMap:
