@@ -102,6 +102,18 @@ The most important part of a route is the input definition. We use the Rego lang
 
 > NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
 
+After defining the route's input condition, what is left is to define the template that will be used to format the input message, and the output that formatted message will be sent to.
+
+The below table describes the fields to define a route:
+
+
+Key | Description | Possible Values | Example
+--- | --- | --- | ---
+*name*|Unique name of route| string | teams-vul-route
+*input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
+*outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
+*template*| A template that is defined in the "template" section| any template name | raw-html
+
 For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
 
 ```
@@ -116,25 +128,13 @@ input: regex.match("alp:*", input.image)
 You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 
 
 ```
-input: | 
+input: |
   contains(input.image,"alpine")
   contains(input.registry, "Docker Hub")
   input.vulnerability_summary.critical>0
 ```
 
-After defining the route's input condition, what is left is to define the template that will be used to format the input message, and the output that formatted message will be sent to.
-
-The below table describes the fields to define a route:
-
-
-Key | Description | Possible Values | Example
---- | --- | --- | ---
-*name*|Unique name of route| string | teams-vul-route
-*input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
-*outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
-*template*| A template that is defined in the "template" section| any template name | raw-html
-
-
+See more route samples [HERE](./docs/routes.md)
 #### Route plugins section
 'Plugins' section contains configuration for useful Postee features. 
 
@@ -301,9 +301,12 @@ Two examples are shipped with the app. One produces output for slack integration
 
 ## Postee UI
 Postee provides a simple Web UI to simplify the configuration management. 
-![Config app](/postee-output-config.png)
 
 See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
+
+![Config app](/postee-output-config.png)
+
+
 
 ## Misc
 
