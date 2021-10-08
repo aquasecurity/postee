@@ -114,8 +114,6 @@ Key | Description | Possible Values | Example
 *outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
 
-#### Aqua Scanner Message
-
 For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
 
 ```
@@ -136,13 +134,7 @@ input: |
   input.vulnerability_summary.critical>0
 ```
 
-### Tracee Message
-
-The following input definition will match Tracee JSON messages.
-
-```
-input: contains(input.SigMetadata.ID,"TRC-")
-```
+See more route samples [HERE](./docs/routes.md)
 #### Route plugins section
 'Plugins' section contains configuration for useful Postee features. 
 
@@ -309,9 +301,12 @@ Two examples are shipped with the app. One produces output for slack integration
 
 ## Postee UI
 Postee provides a simple Web UI to simplify the configuration management. 
-![Config app](/postee-output-config.png)
 
 See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
+
+![Config app](/postee-output-config.png)
+
+
 
 ## Misc
 

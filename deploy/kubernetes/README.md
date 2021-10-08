@@ -20,3 +20,7 @@ The Postee endpoint
 https://postee-svc.default.svc.cluster.local:8443
 ````
 
+The Postee-UI endpoint
+````
+https://postee-ui-svc.default.svc.cluster.local:8000
+````
