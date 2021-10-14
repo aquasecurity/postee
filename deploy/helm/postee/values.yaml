@@ -86,7 +86,8 @@ affinity: {}
 ##
 persistentVolume:
   enabled: false
-  mountPath: /server/database
+  mountPathDb: /server/database
+  mountPathConfig: /config
   accessModes:
     - ReadWriteOnce
   size: 1Gi

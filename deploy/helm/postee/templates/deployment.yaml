@@ -1,6 +1,6 @@
 {{- $fullName := include "postee.fullname" . -}}
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "postee.fullname" . }}
   labels:
@@ -12,6 +12,29 @@ spec:
   selector:
     matchLabels:
       {{- include "postee.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "postee.fullname" . }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ $fullName }}-db
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: {{ $fullName }}-config
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+    - metadata:
+        name: {{ $fullName }}-rego-template
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -29,13 +52,24 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
-        - name: init-postee
+        - name: setting-db
           image: "{{ .Values.imageInit.repository }}:{{ .Values.imageInit.tag }}"
           imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
           command: ["/bin/chown", "-R", "1099", "{{ .Values.persistentVolume.mountPath }}"]
           volumeMounts:
             - name: {{ $fullName }}-db
-              mountPath: {{ .Values.persistentVolume.mountPath }}
+              mountPath: {{ .Values.persistentVolume.mountPathDb }}
+          securityContext:
+            runAsUser: 0
+        - name: setting-cfg
+          image: "{{ .Values.imageInit.repository }}:{{ .Values.imageInit.tag }}"
+          imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
+          command: ["/bin/cp", "/k8s/cfg.yaml", "/data/cfg.yaml", "{{ .Values.persistentVolume.mountPath }}"]
+          volumeMounts:
+            - name: {{ $fullName }}-configmap-vol
+              mountPath: {{ .Values.persistentVolume.mountPathConfig }}
+            - name: {{ $fullName }}-config
+              mountPath: {{ .Values.persistentVolume.mountPathConfig }}
           securityContext:
             runAsUser: 0
       containers:
@@ -46,14 +80,14 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: POSTEE_CFG
-              value: /config/cfg.yaml
+              value: /data/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
-            - name: ssl
+            - name: tls
               containerPort: {{ .Values.service.targetPortSsl }}
               protocol: TCP
           volumeMounts:
@@ -66,14 +100,7 @@ spec:
       volumes:
         - configMap:
             name: {{ $fullName }}-cfg
-          name: {{ $fullName }}-cfg
-        - name: {{ $fullName }}-db
-        {{- if .Values.persistentVolume.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ if .Values.persistentVolume.existingClaim }}{{ .Values.persistentVolume.existingClaim }}{{- else }}{{ $fullName }}-pvc {{- end }}
-        {{- else }}
-          emptyDir: {}
-        {{- end }}
+          name: {{ $fullName }}-configmap-vol
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
