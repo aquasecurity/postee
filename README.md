@@ -182,9 +182,10 @@ Key | Description | Possible Values
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Jira project url |
-*user* | Jira user name | 
-*password* | User's API key | 
 *project-key* | The JIRA project key |
+*user* | Jira user name | 
+*password* | Optional: User's API key. Used only for Jira Cloud | 
+*token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center | 
 *board* |  Optional: JIRA board key |
 *priority*|  Optional: ticket priority, e.g., High |
 *assignee*| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value |
@@ -322,11 +323,19 @@ The "deploy/kubernetes" directory in this project contains an example deployment
 ### Getting the JIRA connection details
 
 Follow these steps to set up JIRA integration:
-
-Login to Jira.
+1. Get a new token for user:
+    * Login to Jira Cloud.
 Go to the user profile API tokens (JIRA Cloud users can find it here: https://id.atlassian.com/manage-profile/security/api-tokens).
 Click on the Create API Token. A new API token for the user is created.
-Keep the token value, together with the JIRA URL and user name, for the next step.
+    * Login to Jira Server/Data center
+Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created. 
+2. Fill jira output in cfg.yaml:
+    * Jira Cloud:
+        * User: your email.
+        * Password: your API token.
+    * Jira Server/Data center:
+        * User: your userName.
+        * Token: your Personal Access Tokens.
 
 ### Getting the Slack connection details: [Slack Custom App](https://api.slack.com/)
 1. Visit api.slack.com
