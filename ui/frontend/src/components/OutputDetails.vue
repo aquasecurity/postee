@@ -89,15 +89,24 @@
                 id="password"
                 label="Password"
                 inputType="password"
-                :errorMsg="errors['password']"
                 :value="formValues.password"
                 name="password"
+                description="Optional. Specify Jira user API key. Used only for Jira Cloud"
                 :show="showCredentials"
                 :inputHandler="updateField"
-                :validator="v(required)"
               />
             </div>
           </div>
+          <PropertyField
+            id="Jiratoken"
+            label="Token"
+            inputType="token"
+            :value="formValues.token"
+            name="token"
+            description="Optional. Specify Jira user Personal Access Token. Used only for Jira Server/Data Center"
+            :show="isJira"
+            :inputHandler="updateField"
+          />
           <PropertyField
             id="url"
             label="Url"
