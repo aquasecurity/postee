@@ -53,8 +53,8 @@ outputs:
   enable: false
   url:            # Mandatory. E.g "https://johndoe.atlassian.net"
   user:           # Mandatory. E.g :johndoe@gmail.com"
-  password:       # Mandatory for Jira Cloud. Specify Jira user API key
-  token:          # Mandatory for Jira Server. Specify Jira user Personal Access Token
+  password:       # Optional. Specify Jira user API key. Used only for Jira Cloud
+  token:          # Optional. Specify Jira user Personal Access Token. Used only for Jira Server/Data Center
   project-key:    # Mandatory. Specify the JIRA product key
   tls-verify: false
   board:          # Optional. Specify the Jira board name to open tickets on
