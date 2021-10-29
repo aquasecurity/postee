@@ -38,10 +38,10 @@ export default {
 
         validateJiraPasswordandToken() {
             if (!this.formValues.token && !this.formValues.password){
-                return `Password or token is required`
+                return `Password or token are required`
             } 
             else if (this.formValues.token && this.formValues.password){
-                return `Password and token is filled`
+                return `Password and token are filled`
             }
             return false;
         },
