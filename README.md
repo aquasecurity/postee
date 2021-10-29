@@ -184,7 +184,7 @@ Key | Description | Possible Values
 *url* | Jira project url |
 *project-key* | The JIRA project key |
 *user* | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center | 
-*password* | Optional: User's API key. Used only for Jira Cloud | 
+*password* | Optional: User's password. API token can also be used for Cloud Jira instances. | 
 *token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center | 
 *board* |  Optional: JIRA board key |
 *priority*|  Optional: ticket priority, e.g., High |
@@ -335,6 +335,8 @@ Select your profile picture at top right of the screen, then choose  Settings > 
         * Password: your API token.
     * Jira Server/Data center:
         * User: your UserName.
+        * Password: your Password.\
+        or
         * Token: your Personal Access Tokens.
 
 ### Getting the Slack connection details: [Slack Custom App](https://api.slack.com/)
