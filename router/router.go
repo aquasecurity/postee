@@ -50,7 +50,6 @@ var (
 
 	requireAuthorization = map[string]bool{
 		"servicenow": true,
-		"jira":       false,
 	}
 )
 
@@ -298,14 +297,13 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		log.Printf("Password for %q is empty", settings.Name)
 		return nil
 	}
-	settings.Token = utils.GetEnvironmentVarOrPlain(settings.Token)
 	if settings.Type == "jira" {
 		if len(settings.User) == 0 {
 			log.Printf("User for %q is empty", settings.Name)
 			return nil
 		}
 		if len(settings.Token) == 0 && len(settings.Password) == 0 {
-			log.Printf("Password and Token for %q is empty", settings.Name)
+			log.Printf("Password and Token for %q are empty", settings.Name)
 			return nil
 		}
 	}
