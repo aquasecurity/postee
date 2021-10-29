@@ -121,6 +121,9 @@ func (jira *JiraAPI) GetLayoutProvider() layout.LayoutProvider {
 
 func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 	if ctx.Token != "" {
+		if !isServerJira(ctx.Url) {
+			return nil, errors.New("Jira Cloud can't work with PAT")
+		}
 		if ctx.Password != "" {
 			log.Printf("Found both Password and PAT, using PAT to authenticate.")
 		}
@@ -134,14 +137,14 @@ func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 		}
 		return tp.Client(), nil
 	} else {
-		if !ctx.TlsVerify {
-			if !isServerJira(ctx.Url) {
-				return nil, errors.New("jira Cloud uses Tls Vertify")
-			}
-		}
 		tp := jira.BasicAuthTransport{
 			Username: ctx.User,
 			Password: ctx.Password,
+		}
+		if !ctx.TlsVerify {
+			tp.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
 		}
 		return tp.Client(), nil
 	}

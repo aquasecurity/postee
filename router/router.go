@@ -297,6 +297,7 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		log.Printf("Password for %q is empty", settings.Name)
 		return nil
 	}
+	settings.Token = utils.GetEnvironmentVarOrPlain(settings.Token)
 	if settings.Type == "jira" {
 		if len(settings.User) == 0 {
 			log.Printf("User for %q is empty", settings.Name)
