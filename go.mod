@@ -12,4 +12,4 @@ require (
 	go.etcd.io/bbolt v1.3.5
 )
 
-replace github.com/andygrunwald/go-jira => ../go-jira
+replace github.com/andygrunwald/go-jira => github.com/DmitriyLewen/go-jira v1.14.1-0.20211027084757-49364f29be7f
