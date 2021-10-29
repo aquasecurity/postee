@@ -89,24 +89,15 @@
                 id="password"
                 label="Password"
                 inputType="password"
+                :errorMsg="errors['password']"
                 :value="formValues.password"
                 name="password"
-                description="Optional. Specify Jira user API key. Used only for Jira Cloud"
                 :show="showCredentials"
                 :inputHandler="updateField"
+                :validator="v(required)"
               />
             </div>
           </div>
-          <PropertyField
-            id="Jiratoken"
-            label="Token"
-            inputType="token"
-            :value="formValues.token"
-            name="token"
-            description="Optional. Specify Jira user Personal Access Token. Used only for Jira Server/Data Center"
-            :show="isJira"
-            :inputHandler="updateField"
-          />
           <PropertyField
             id="url"
             label="Url"
@@ -185,6 +176,46 @@
           <!-- email custom properties end -->
 
           <!-- jira custom properties start -->
+          <div class="row">
+            <div class="col">
+              <PropertyField
+                id="jirauser"
+                label="User"
+                :value="formValues.user"
+                name="user"
+                :show="isJira"
+                :inputHandler="updateField"
+                :errorMsg="errors['user']"
+                :validator="v(required)"
+              />
+            </div>
+            <div class="col">
+              <PropertyField
+                id="jirapassword"
+                label="Password"
+                inputType="password"
+                :errorMsg="errors['password']"
+                :value="formValues.password"
+                name="password"
+                description="Optional. Specify Jira user API key. Used only for Jira Cloud"
+                :show="isJira"
+                :inputHandler="updateField"
+                :validator="v(validateJiraPasswordandToken)"
+              />
+            </div>
+          </div>
+          <PropertyField
+            id="jiratoken"
+            label="Token"
+            inputType="token"
+            :errorMsg="errors['token']"
+            :value="formValues.token"
+            name="token"
+            description="Optional. Specify Jira user Personal Access Token. Used only for Jira Server/Data Center"
+            :show="isJira"
+            :inputHandler="updateField"
+            :validator="v(validateJiraPasswordandToken)"
+          />
           <div class="row">
             <div class="col">
               <PropertyField
@@ -404,7 +435,7 @@ const urlDescriptionByType = {
   jira: 'Mandatory. E.g "https://johndoe.atlassian.net"',
   slack: "",
 };
-const typesWithCredentials = ["serviceNow", "jira", "email"]; //TODO add description strings
+const typesWithCredentials = ["serviceNow", "email"]; //TODO add description strings
 
 export default {
   data() {
