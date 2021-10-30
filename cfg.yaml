@@ -3,9 +3,9 @@
 
 name: tenant            #  The tenant name
 aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
-max-db-size: 1000       #  Max size of DB. MB. if empty then unlimited
+max-db-size: 1000       #  Max size of DB in MB. If empty then unlimited
 delete-old-data: 10     #  Delete data from the database that is older than N day(s). If empty then data is not deleted.
-db-verify-interval: 1   #  How often to check the DB size. By default Postee checks every 1 hour
+db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
 
 # Routes are used to define how to handle an incoming message
 routes:
@@ -27,9 +27,9 @@ templates:
 - name: vuls-slack                  #  Out of the box template for slack
   rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
 - name: vuls-html                       #  Out of the box HTML template
-  rego-package:  postee.vuls.html       #  HTLM template REGO package (available out of the box)
+  rego-package:  postee.vuls.html       #  HTML template REGO package (available out of the box)
 - name: raw-html                        #  Raw message json
-  rego-package:  postee.rawmessage.html #  HTLM template REGO package (available out of the box)
+  rego-package:  postee.rawmessage.html #  HTML template REGO package (available out of the box)
 - name: legacy                          #  Out of the box legacy Golang template
   legacy-scan-renderer: html
 - name: legacy-slack                    #  Legacy slack template implemented in Golang
