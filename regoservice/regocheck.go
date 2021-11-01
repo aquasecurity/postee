@@ -16,18 +16,25 @@ allow {
 }
 `
 
-func DoesMatchRegoCriteria(input interface{}, rule string) (bool, error) {
+func DoesMatchRegoCriteria(input interface{}, files []string, rule string) (bool, error) {
+	ctx := context.Background()
+	r := &rego.Rego{}
 
-	if rule == "" {
-		return true, nil //no rule defined - any input allowed
+	if len(files) != 0 {
+		r = rego.New(
+			rego.Query("x = data.postee.allow"),
+			rego.Load(files, nil))
+	} else {
+		if rule == "" {
+			return true, nil //no rule defined - any input allowed
+		}
+
+		r = rego.New(
+			rego.Query("x = data.postee.allow"),
+			rego.Module("postee.rego", fmt.Sprintf(module, rule)),
+		)
 	}
 
-	r := rego.New(
-		rego.Query("x = data.postee.allow"),
-		rego.Module("postee.rego", fmt.Sprintf(module, rule)),
-	)
-
-	ctx := context.Background()
 	query, err := r.PrepareForEval(ctx)
 	if err != nil {
 		return false, err
