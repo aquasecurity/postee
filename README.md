@@ -111,6 +111,7 @@ Key | Description | Possible Values | Example
 --- | --- | --- | ---
 *name*|Unique name of route| string | teams-vul-route
 *input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
+*input-files*|One or more files with Rego rules| Set of Rego language files | ["route1.rego", "route2.rego"] 
 *outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
 
