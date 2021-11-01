@@ -1,7 +1,5 @@
 # Postee
 
-![Postee](postee.jpeg)
-
 ![Docker Pulls][docker-pull]
 [![Coverage Status][cov-img]][cov]
 [![Go Report Card][report-card-img]][report-card]
