@@ -24,6 +24,17 @@
             :inputHandler="updateField"
             :validator="v(uniqueName)"
           />
+          <PropertyField
+              class="mb-4"
+              :id="'input-files'"
+              :label="'Input Files'"
+              :value="
+                formValues && formValues['input-files']
+                  ? formValues['input-files'].join(', ')
+                  : undefined
+              "
+              :inputHandler="updateInputFilesCollectionField"
+            />
           <div class="form-group form-input">
             <label class="form-label" for="input">REGO rule:</label>
 
@@ -234,6 +245,15 @@ export default {
         }
       }
       this.formValues.plugins[propName] = v;
+    },
+    updateInputFilesCollectionField(e) {
+      if (!this.formValues) {
+        this.formValues = {};
+      }
+      const propName = e.target.attributes["name"].value;
+      const v = e.target.value.split(",").map((s) => s.trim());
+
+      this.formValues[propName] = v;
     },
     updateRoutePluginCollectionField(e) {
       if (!this.formValues.plugins) {
