@@ -55,7 +55,7 @@ func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRend
 	demoRoute := &routes.InputRoute{}
 
 	demoRoute.Name = "demo-route"
-	demoRoute.Plugins.AggregateIssuesNumber = 3
+	demoRoute.Plugins.AggregateMessageNumber = 3
 
 	demoInptEval := &DemoInptEval{
 		skipAggrSpprt: skipAggrSpprt,
