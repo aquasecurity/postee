@@ -32,9 +32,13 @@ composer :
 	docker-compose up --build
 
 docker-webhook : build
-	@echo "Building image...."
+	@echo "Building image Dockerfile.release...."
 	docker build --no-cache -t aquasec/postee:latest -f Dockerfile.release .
 	docker run -p 8082:8082 -p 8445:8445 aquasec/postee:latest --cfgfile /server/cfg.yaml
+
+docker-ui :
+	@echo "Building image Dockerfile.ui...."
+	docker build --no-cache -t aquasec/postee-ui:latest -f Dockerfile.ui .
 
 deploy-k8s :
 	@echo "Deploy Postee in Kubernetes...."

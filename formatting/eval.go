@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/aquasecurity/postee/data"
@@ -21,12 +22,13 @@ func (legacyScnEvaluator *legacyScnEvaluator) Eval(in map[string]interface{}, se
 		return nil, err
 	}
 	title := fmt.Sprintf("%s vulnerability scan report", in["image"])
+	image_url_part := scan.Registry + "/" + url.QueryEscape(scan.Image)
 
 	return map[string]string{
 
 		"title":       title,
-		"description": layout.GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl),
-		"url":         serverUrl,
+		"description": layout.GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl+image_url_part),
+		"url":         serverUrl + image_url_part,
 	}, nil
 }
 func (legacyScnEvaluator *legacyScnEvaluator) IsAggregationSupported() bool {

@@ -97,20 +97,9 @@ Key | Description | Possible Values | Example Value
 ### Routes 
 A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the output(s) that the message should be delivered to.
 
-The most important part of a route is the input definition. We use the Rego language to define what are the conditions for an incoming message to be handled by a certain route. For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
+The most important part of a route is the input definition. We use the Rego language to define what are the conditions for an incoming message to be handled by a certain route.
 
-```
-input: contains(input.image,"alpine")
-```
-
-You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 
-
-```
-input: | 
-  contains(input.image,"alpine")
-  contains(input.registry, "Docker Hub")
-  input.vulnerability_summary.critical>0
-```
+> NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
 
 After defining the route's input condition, what is left is to define the template that will be used to format the input message, and the output that formatted message will be sent to.
 
@@ -124,7 +113,27 @@ Key | Description | Possible Values | Example
 *outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
 
+For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
 
+```
+input: contains(input.image,"alpine")
+```
+
+Another example using regular expression:
+```
+input: regex.match("alp:*", input.image)
+```
+
+You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 
+
+```
+input: |
+  contains(input.image,"alpine")
+  contains(input.registry, "Docker Hub")
+  input.vulnerability_summary.critical>0
+```
+
+See more route samples [HERE](./docs/routes.md)
 #### Route plugins section
 'Plugins' section contains configuration for useful Postee features. 
 
@@ -292,9 +301,12 @@ Two examples are shipped with the app. One produces output for slack integration
 
 ## Postee UI
 Postee provides a simple Web UI to simplify the configuration management. 
-![Config app](/postee-output-config.png)
 
 See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
+
+![Config app](/postee-output-config.png)
+
+
 
 ## Misc
 

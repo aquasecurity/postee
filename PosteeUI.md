@@ -5,6 +5,15 @@ Postee Admin application shares location of `cfg.yaml` with main webhook app, al
 
 **Important**: If application config is submitted by UI app then all yaml comments are removed. So if comments are important please make backup of config yaml.
 
+### Kubernetes for Postee UI application
+
+The manifest is [here](https://github.com/aquasecurity/postee/blob/main/deploy/kubernetes/postee.yaml).
+
+It will expose a service `postee-ui-svc` in the port `8000`.
+
+`https://postee-ui.default.svc.cluster.local:8000`
+
+
 ### Docker Image for Postee UI application
 Dockerfile to build image for UI app is [here](Dockerfile.ui)
 
