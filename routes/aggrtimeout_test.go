@@ -29,6 +29,11 @@ var (
 			172800,
 		},
 		{
+			"Two days with space between",
+			"2 d",
+			172800,
+		},
+		{
 			"Exact number of seconds",
 			"300",
 			300,
@@ -36,6 +41,16 @@ var (
 		{
 			"Invalid format",
 			"xxxl",
+			0,
+		},
+		{
+			"Empty string",
+			"",
+			0,
+		},
+		{
+			"a space",
+			" ",
 			0,
 		},
 	}

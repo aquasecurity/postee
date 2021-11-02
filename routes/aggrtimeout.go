@@ -17,6 +17,12 @@ func parseTimeouts(v string) (int, error) {
 		"d": 86400,
 	}
 
+	v = strings.ReplaceAll(v, " ", "")
+
+	if v == "" {
+		return 0, nil
+	}
+
 	wasConvert := false
 	for suffix, k := range times {
 		if strings.HasSuffix(strings.ToLower(v), suffix) {
@@ -33,23 +39,21 @@ func parseTimeouts(v string) (int, error) {
 }
 
 func ConfigureTimeouts(route *InputRoute) *InputRoute {
-	if len(route.Plugins.AggregateMessageTimeout) > 0 {
-		aggregateTimeoutSeconds, err := parseTimeouts(route.Plugins.AggregateMessageTimeout)
-		if err != nil {
-			log.Printf("%q settings: Can't convert 'aggregate-message-timeout'(%q) to seconds.",
-				route.Name, route.Plugins.AggregateMessageTimeout)
-		}
-
-		route.Plugins.AggregateTimeoutSeconds = aggregateTimeoutSeconds
+	aggregateTimeoutSeconds, err := parseTimeouts(route.Plugins.AggregateMessageTimeout)
+	if err != nil {
+		log.Printf("%q settings: Can't convert 'aggregate-message-timeout'(%q) to seconds.",
+			route.Name, route.Plugins.AggregateMessageTimeout)
 	}
-	if len(route.Plugins.UniqueMessageTimeout) > 0 {
-		UniqueMessageTimeoutSeconds, err := parseTimeouts(route.Plugins.UniqueMessageTimeout)
-		if err != nil {
-			log.Printf("%q settings: Can't convert 'unique-message-timeout'(%q) to seconds.",
-				route.Name, route.Plugins.UniqueMessageTimeout)
-		}
 
-		route.Plugins.UniqueMessageTimeoutSeconds = UniqueMessageTimeoutSeconds
+	route.Plugins.AggregateTimeoutSeconds = aggregateTimeoutSeconds
+
+	uniqueMessageTimeoutSeconds, err := parseTimeouts(route.Plugins.UniqueMessageTimeout)
+	if err != nil {
+		log.Printf("%q settings: Can't convert 'unique-message-timeout'(%q) to seconds.",
+			route.Name, route.Plugins.UniqueMessageTimeout)
 	}
+
+	route.Plugins.UniqueMessageTimeoutSeconds = uniqueMessageTimeoutSeconds
+
 	return route
 }
