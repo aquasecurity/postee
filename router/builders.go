@@ -75,6 +75,7 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 		Url:             sourceSettings.Url,
 		User:            sourceSettings.User,
 		Password:        sourceSettings.Password,
+		Token:           sourceSettings.Token,
 		TlsVerify:       sourceSettings.TlsVerify,
 		Issuetype:       sourceSettings.IssueType,
 		ProjectKey:      strings.ToUpper(sourceSettings.ProjectKey),
