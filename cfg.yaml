@@ -34,6 +34,8 @@ templates:
   legacy-scan-renderer: html
 - name: legacy-slack                    #  Legacy slack template implemented in Golang
   legacy-scan-renderer: slack
+- name: legacy-jira                     #  Legacy jira template implemented in Golang
+  legacy-scan-renderer: jira
 - name: custom-email                    #  Example of how to use a template from a Web URL
   url:                                  #  URL to custom REGO file
 - name: raw-json                        # route message "As Is" to external webhook
@@ -51,7 +53,8 @@ outputs:
   enable: false
   url:            # Mandatory. E.g "https://johndoe.atlassian.net"
   user:           # Mandatory. E.g :johndoe@gmail.com"
-  password:       # Mandatory. Specify Jira user API key
+  password:       # Optional. Specify Jira user API key. Used only for Jira Cloud
+  token:          # Optional. Specify Jira user Personal Access Token. Used only for Jira Server/Data Center
   project-key:    # Mandatory. Specify the JIRA product key
   tls-verify: false
   board:          # Optional. Specify the Jira board name to open tickets on

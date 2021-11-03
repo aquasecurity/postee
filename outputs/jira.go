@@ -24,6 +24,7 @@ type JiraAPI struct {
 	Url             string
 	User            string
 	Password        string
+	Token           string
 	TlsVerify       bool
 	Issuetype       string
 	ProjectKey      string
@@ -118,18 +119,43 @@ func (jira *JiraAPI) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.JiraLayoutProvider)
 }
 
-func (ctx *JiraAPI) createClient() (*jira.Client, error) {
-	tp := jira.BasicAuthTransport{
-		Username: ctx.User,
-		Password: ctx.Password,
-	}
-
-	if !ctx.TlsVerify {
-		tp.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
+	if ctx.Token != "" {
+		if !isServerJira(ctx.Url) {
+			return nil, errors.New("Jira Cloud can't work with PAT")
 		}
+		if ctx.Password != "" {
+			log.Printf("Found both Password and PAT, using PAT to authenticate.")
+		}
+		tp := jira.BearerTokenAuthTransport{
+			Token: ctx.Token,
+		}
+		if !ctx.TlsVerify {
+			tp.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+		}
+		return tp.Client(), nil
+	} else {
+		tp := jira.BasicAuthTransport{
+			Username: ctx.User,
+			Password: ctx.Password,
+		}
+		if !ctx.TlsVerify {
+			tp.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+		}
+		return tp.Client(), nil
 	}
-	client, err := jira.NewClient(tp.Client(), ctx.Url)
+}
+
+func (ctx *JiraAPI) createClient() (*jira.Client, error) {
+	tpClient, err := ctx.buildTransportClient()
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new JIRA client. %v", err)
+	}
+	client, err := jira.NewClient(tpClient, ctx.Url)
 	if err != nil {
 		return client, fmt.Errorf("unable to create new JIRA client. %v", err)
 	}
