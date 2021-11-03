@@ -115,6 +115,14 @@ Key | Description | Possible Values | Example
 *outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
 
+The `rego-filters` folder contains examples of policy related functions. You can use the examples. To do this, you need to change the input data in the arrays of rego files and fill in the config file. When using 2 or more files, they will be combined by "OR".
+To combine policy related functions by "AND", use the `Policy-Related-Features.rego` file, change the input data, and fill in the required function in allow.
+```
+allow{
+    PermitImageNames
+    PermitMinVulnerability
+}
+```
 For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
 
 ```
