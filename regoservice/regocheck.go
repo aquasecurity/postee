@@ -3,11 +3,14 @@ package regoservice
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/open-policy-agent/opa/rego"
 )
 
-const module = `package postee
+const (
+	module = `package postee
 
 default allow = false
 
@@ -15,12 +18,26 @@ allow {
 %s
 }
 `
+	defaultPathToRegoFilters = "./rego-filters"
+)
 
 func DoesMatchRegoCriteria(input interface{}, files []string, rule string) (bool, error) {
 	ctx := context.Background()
 	r := &rego.Rego{}
+	pathToRegoFilters := defaultPathToRegoFilters
 
 	if len(files) != 0 {
+		if os.Getenv("REGO_FILTERS_PATH") != "" {
+			pathToRegoFilters = os.Getenv("REGO_FILTERS_PATH")
+		}
+		if !strings.HasSuffix(pathToRegoFilters, "/") {
+			pathToRegoFilters += "/"
+		}
+		for i, file := range files {
+			if !strings.HasPrefix(file, pathToRegoFilters) {
+				files[i] = pathToRegoFilters + file
+			}
+		}
 		r = rego.New(
 			rego.Query("x = data.postee.allow"),
 			rego.Load(files, nil))
