@@ -16,7 +16,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/andygrunwald/go-jira"
+	"github.com/aquasecurity/go-jira"
 )
 
 type JiraAPI struct {
