@@ -108,7 +108,13 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 }
 
 func send(otpt outputs.Output, cnt map[string]string) {
-	go otpt.Send(cnt)
+	go func() {
+		err := otpt.Send(cnt)
+		if err != nil {
+			log.Printf("Error while sending event: %v", err)
+		}
+	}()
+
 	err := dbservice.RegisterPlgnInvctn(otpt.GetName())
 	if err != nil {
 		log.Printf("Error while building aggregated content: %v", err)
