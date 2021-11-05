@@ -179,6 +179,46 @@
           <div class="row">
             <div class="col">
               <PropertyField
+                id="jirauser"
+                label="User"
+                :value="formValues.user"
+                name="user"
+                :show="isJira"
+                :inputHandler="updateField"
+                :errorMsg="errors['user']"
+                :validator="v(required)"
+              />
+            </div>
+            <div class="col">
+              <PropertyField
+                id="jirapassword"
+                label="Password"
+                inputType="password"
+                :errorMsg="errors['password']"
+                :value="formValues.password"
+                name="password"
+                description="Optional. Specify Jira user password. API key can also be used for Cloud Jira instances"
+                :show="isJira"
+                :inputHandler="updateField"
+                :validator="v(validateJiraPasswordandToken)"
+              />
+            </div>
+          </div>
+          <PropertyField
+            id="jiratoken"
+            label="Token"
+            inputType="token"
+            :errorMsg="errors['token']"
+            :value="formValues.token"
+            name="token"
+            description="Optional. Specify Personal Access Token. Can be used for on-premise Jira only"
+            :show="isJira"
+            :inputHandler="updateField"
+            :validator="v(validateJiraPasswordandToken)"
+          />
+          <div class="row">
+            <div class="col">
+              <PropertyField
                 id="projectKey"
                 label="Project Key"
                 name="project-key"
@@ -395,7 +435,7 @@ const urlDescriptionByType = {
   jira: 'Mandatory. E.g "https://johndoe.atlassian.net"',
   slack: "",
 };
-const typesWithCredentials = ["serviceNow", "jira", "email"]; //TODO add description strings
+const typesWithCredentials = ["serviceNow", "email"]; //TODO add description strings
 
 export default {
   data() {

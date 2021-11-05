@@ -36,6 +36,16 @@ export default {
             return !value ? `${label} is required` : false;
         },
 
+        validateJiraPasswordandToken() {
+            if (!this.formValues.token && !this.formValues.password){
+                return `Password or token are required`
+            } 
+            else if (this.formValues.token && this.formValues.password){
+                return `Password and token are filled`
+            }
+            return false;
+        },
+
         recipients(label, value) {
             const hasOneElement = value && value.length && value[0]
             if (!hasOneElement) {
