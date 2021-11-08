@@ -1,6 +1,7 @@
 package uiserver
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -52,6 +53,8 @@ func Instance(webLocalPath, port, cfg, webhookUrl, admusr string, admpwd string)
 	server.router.HandleFunc("/api/test", server.testSettings).Methods("POST")
 	server.router.HandleFunc("/api/outputs/stats", server.plgnStats).Methods("GET")
 
+	server.router.HandleFunc("/ping", server.pingHandler).Methods("GET")
+
 	web := &localWebServer{
 		localPath: webLocalPath,
 		url:       "/",
@@ -67,4 +70,11 @@ func (srv *uiServer) Start() {
 
 func (srv *uiServer) Stop() {
 	log.Print("UI Postee server stopped!")
+}
+
+func (ctx *uiServer) pingHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	jsonStr, _ := json.Marshal("Postee UI alive!")
+	w.Write(jsonStr)
 }
