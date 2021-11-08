@@ -260,9 +260,6 @@ export default {
       this.formValues.plugins[propName] = v;
     },
     updateInputFilesCollectionField(e) {
-      if (!this.formValues) {
-        this.formValues = {};
-      }
       const propName = e.target.attributes["name"].value;
       const v = e.target.value.split(",").map((s) => s.trim());
 

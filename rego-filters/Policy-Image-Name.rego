@@ -1,7 +1,7 @@
 package postee.aa
 
 
-ArrayPermitedImageNames := {"all"}#Comma separated list of images that will trigger the integration.
+ArrayPermitedImageNames := {"ubuntu", "busybox"}#Comma separated list of images that will trigger the integration.
 
 default PermitImageNames = false
 PermitImageNames = true{ 
