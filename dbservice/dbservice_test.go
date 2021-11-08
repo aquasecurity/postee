@@ -4,9 +4,9 @@ import (
 	"errors"
 	"os"
 	"testing"
+	"time"
 
 	"go.etcd.io/bbolt"
-	bolt "go.etcd.io/bbolt"
 )
 
 var (
@@ -92,7 +92,7 @@ func TestStoreMessage(t *testing.T) {
 	for _, test := range tests {
 
 		// Handling of first scan
-		isNew, err := MayBeStoreMessage([]byte(*test.input), AlpineImageKey)
+		isNew, err := MayBeStoreMessage([]byte(*test.input), AlpineImageKey, nil)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -101,7 +101,7 @@ func TestStoreMessage(t *testing.T) {
 		}
 
 		// Handling of second scan with the same data
-		isNew, err = MayBeStoreMessage([]byte(*test.input), AlpineImageKey)
+		isNew, err = MayBeStoreMessage([]byte(*test.input), AlpineImageKey, nil)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -127,7 +127,7 @@ func TestInitError(t *testing.T) {
 		os.Remove(DbPath)
 		DbPath = originalDbPath
 	}()
-	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 
 	if isNew {
 		t.Errorf("Scan shouldn't be marked as new\n")
@@ -145,7 +145,7 @@ func TestSelectError(t *testing.T) {
 
 	DbPath = "test_webhooks.db"
 
-	dbSelect = func(db *bolt.DB, bucket, key string) (result []byte, err error) {
+	dbSelect = func(db *bbolt.DB, bucket, key string) (result []byte, err error) {
 		return nil, selectErr
 	}
 
@@ -154,7 +154,7 @@ func TestSelectError(t *testing.T) {
 		os.Remove(DbPath)
 		DbPath = originalDbPath
 	}()
-	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 
 	if isNew {
 		t.Errorf("Scan shouldn't be marked as new\n")
@@ -184,7 +184,7 @@ func testBucketInsert(t *testing.T, testBucket string) {
 
 	DbPath = "test_webhooks.db"
 
-	dbInsert = func(db *bolt.DB, bucket string, key, value []byte) error {
+	dbInsert = func(db *bbolt.DB, bucket string, key, value []byte) error {
 		if bucket == testBucket {
 			return insertErr
 		}
@@ -196,8 +196,11 @@ func testBucketInsert(t *testing.T, testBucket string) {
 		os.Remove(DbPath)
 		DbPath = originalDbPath
 	}()
+	//expired shouldn't be null to cause insert to 'WebookExpiryDates' bucket
+	timeToExpire := time.Duration(1) * time.Second
+	expired := time.Now().UTC().Add(timeToExpire)
 
-	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey)
+	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, &expired)
 
 	if isNew {
 		t.Errorf("Scan shouldn't be marked as new\n")

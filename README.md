@@ -91,7 +91,6 @@ General settings are specified at the root level of cfg.yaml. They include gener
 Key | Description | Possible Values | Example Value
 --- | --- | --- | ---
 *aqua-server*|Aqua Platform URL. This is used for some of the integrations to will include a link to the Aqua UI| Aqua Platform valid URL | https://server.my.aqua
-*delete-old-data*|Postee might cache incoming message to avoid sending them multiple times. This setting tells Postee to delete cached messages that are older than N day(s). If empty then Postee does not delete cached messages.| any integer value | 7
 *db-verify-interval*|Specify time interval (in hours) for Postee to perform database cleanup jobs. Default: 1 hour| any integer value  | 1
 *max-db-size*|The maximum size of Postee database (in MB). Once reached to size limit, Postee will delete old cached messages. If empty then Postee database will have unlimited size| any integer value | 200
 
@@ -140,9 +139,10 @@ See more route samples [HERE](./docs/routes.md)
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
-*aggregate-issues-number*|Number of messages to aggregate into one message.| any integer value | 10
-*aggregate-issues-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
+*aggregate-message-number*|Number of messages to aggregate into one message.| any integer value | 10
+*aggregate-message-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
 *unique-message-props*|Optional. Comma separated list of properties which uniquely identifies an event message. If message with same property values is received more than once, consequitive messages will be ignored. | Array of properties that their value uniquely identifies a message | To avoid duplicate scanning messages you can use the following properties: ```unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"]```
+*unique-message-timeout*|Optional. Used along with *unique-message-props*, has no effect if unique props are not specified. Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted | 1d
 
 
 ### Templates
@@ -288,7 +288,7 @@ Key | Description |Type
 --- | --- | ---
 *result* | message body| Can be either string or json
 *title* | message title| string
-*aggregation_pkg*|reference to package used to aggregate messages (when Aggregate-Issues-Timeout or Aggregate-Issues-Number options are used). If it's missed then aggregation feature is not supported| valid rego package
+*aggregation_pkg*|reference to package used to aggregate messages (when aggregate-message-timeout or aggregate-message-number options are used). If it's missed then aggregation feature is not supported| valid rego package
 
 So the simplest example of Rego template would look like:
 ```rego

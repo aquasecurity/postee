@@ -36,7 +36,7 @@ var tests = []struct {
 	{
 		caseDesc: "MayBeStoreMessage",
 		errPrvdr: func() error {
-			_, err := MayBeStoreMessage(nil, "a-b-c")
+			_, err := MayBeStoreMessage(nil, "a-b-c", nil)
 			return err
 		},
 	},
