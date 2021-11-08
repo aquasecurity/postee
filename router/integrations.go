@@ -27,4 +27,5 @@ type OutputSettings struct {
 	UseMX           bool              `json:"use-mx,omitempty"`
 	InstanceName    string            `json:"instance,omitempty"`
 	SizeLimit       int               `json:"size-limit,omitempty"`
+	OrganizationId  string            `json:"organization-id,omitempty"`
 }

@@ -68,6 +68,15 @@ func buildEmailOutput(sourceSettings *OutputSettings) *outputs.EmailOutput {
 		UseMX:      sourceSettings.UseMX,
 	}
 }
+func buildNexusIqOutput(sourceSettings *OutputSettings) *outputs.NexusIqOutput {
+	return &outputs.NexusIqOutput{
+		Name:           sourceSettings.Name,
+		Url:            sourceSettings.Url,
+		User:           sourceSettings.User,
+		Password:       sourceSettings.Password,
+		OrganizationId: sourceSettings.OrganizationId,
+	}
+}
 
 func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 	jiraApi := &outputs.JiraAPI{
