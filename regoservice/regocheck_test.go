@@ -12,8 +12,8 @@ func TestOpaRego(t *testing.T) {
 	incorrectRego := `default input = false`
 	emptyRego := ""
 
-	inputFiles := []string{"inputFiles.rego"}
-	incorrectInputFiles := []string{"incorrectFile.rego"}
+	inputFiles := []string{"../inputFiles.rego"}
+	incorrectInputFiles := []string{"../incorrectFile.rego"}
 	emptyinputFiles := []string{}
 	file, err := os.Create("inputFiles.rego")
 	if err != nil {
