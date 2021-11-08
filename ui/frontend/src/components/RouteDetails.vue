@@ -89,29 +89,29 @@
           <div class="p-4">
             <PropertyField
               class="mb-4"
-              id="aggregateIssuesNumber"
-              label="Aggregate-Issues-Number"
+              id="aggregateMessageNumber"
+              label="Aggregate-Message-Number"
               :value="
                 formValues.plugins
-                  ? formValues.plugins['aggregate-issues-number']
+                  ? formValues.plugins['aggregate-message-number']
                   : undefined
               "
               inputType="number"
-              name="aggregate-issues-number"
-              description="Optional: Aggregate multiple scans into one ticket/message	Numeric number. Default is 1"
+              name="aggregate-message-number"
+              description="Optional: Aggregate multiple messages into one ticket/message	Numeric number. Default is 1"
               :inputHandler="updateRoutePluginField"
             />
             <PropertyField
               class="mb-4"
-              id="aggregateIssuesTimeout"
-              label="Aggregate-Issues-Timeout"
+              id="aggregateMessageTimeout"
+              label="Aggregate-Message-Timeout"
               :value="
                 formValues.plugins
-                  ? formValues.plugins['aggregate-issues-timeout']
+                  ? formValues.plugins['aggregate-message-timeout']
                   : undefined
               "
-              name="aggregate-issues-timeout"
-              description="Optional: Aggregate multiple scans over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
+              name="aggregate-message-timeout"
+              description="Optional: Aggregate multiple messages over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
               :inputHandler="updateRoutePluginField"
             />
             <PropertyField
@@ -126,6 +126,19 @@
               "
               description="Optional: Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored"
               :inputHandler="updateRoutePluginCollectionField"
+            />
+            <PropertyField
+              class="mb-4"
+              id="uniqueMessageTimeout"
+              label="Unique-Message-Timeout"
+              :value="
+                formValues.plugins
+                  ? formValues.plugins['unique-message-timeout']
+                  : undefined
+              "
+              name="unique-message-timeout"
+              description="Optional: Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted"
+              :inputHandler="updateRoutePluginField"
             />
           </div>
         </div>
