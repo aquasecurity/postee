@@ -34,7 +34,7 @@ func (nexus *NexusIqOutput) GetName() string {
 }
 
 func (nexus *NexusIqOutput) Init() error {
-	/*TODO*/
+	log.Printf("Starting Nexus IQ output %q, for sending to %q", nexus.Name, nexus.Url)
 	return nil
 }
 func (nexus *NexusIqOutput) auth() string {
@@ -42,8 +42,6 @@ func (nexus *NexusIqOutput) auth() string {
 }
 
 func (nexus *NexusIqOutput) execute(method string, url string, payload string, headers map[string]string) (map[string]interface{}, error) {
-	fmt.Println(url)
-
 	client := http.DefaultClient
 
 	var reader io.Reader = nil
@@ -74,9 +72,7 @@ func (nexus *NexusIqOutput) execute(method string, url string, payload string, h
 		return nil, err
 	}
 
-	fmt.Println(string(body))
-
-	if resp.StatusCode > 399 { //TODO better check
+	if resp.StatusCode/100 == 2 {
 		msg := "received incorrect response status: %d. Body: %s"
 		return nil, fmt.Errorf(msg, resp.StatusCode, body)
 	}
@@ -134,13 +130,11 @@ func (nexus *NexusIqOutput) createApp(organizationId string, appName string) (st
 }
 
 func (nexus *NexusIqOutput) createOrGetApp(appName string) (string, error) {
-	fmt.Printf("get app for name: %s\n", appName)
 	app, err := nexus.getAppByNameAndOrg(nexus.OrganizationId, appName)
 	if err != nil {
 		return "", err
 	}
 	if app == "" {
-		fmt.Printf("create app for name: %s\n", appName)
 		app, err = nexus.createApp(nexus.OrganizationId, appName)
 		if err != nil {
 			return "", err
@@ -162,8 +156,6 @@ func (nexus *NexusIqOutput) registerBom(appId string, bom string) error {
 func (nexus *NexusIqOutput) Send(content map[string]string) error {
 	appId, err := nexus.createOrGetApp(content["title"])
 
-	fmt.Printf("get app id %s\n", appId)
-
 	if err != nil {
 		return err
 	}
@@ -181,7 +173,7 @@ func (nexus *NexusIqOutput) Send(content map[string]string) error {
 }
 
 func (nexus *NexusIqOutput) Terminate() error {
-	/*TODO*/
+	log.Printf("Nexus IQ output %q terminated.", nexus.Name)
 	return nil
 }
 
