@@ -31,13 +31,16 @@ func ChangeDbPath(newPath string) {
 
 func SetNewDbPathFromEnv() {
 	newPath := os.Getenv("PATH_TO_DB")
-	if _, err := os.Stat(newPath); err != nil {
-		if os.IsNotExist(err) {
-			err = os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
-			if err != nil {
-				log.Printf("Can't create DateBase directory: %v", err)
+	if newPath != "" {
+		if _, err := os.Stat(newPath); err != nil {
+			if os.IsNotExist(err) {
+				err = os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
+				if err != nil {
+					log.Printf("Can't create DateBase directory: %v, the default path is used", err)
+					return
+				}
 			}
 		}
+		ChangeDbPath(newPath)
 	}
-	ChangeDbPath(newPath)
 }
