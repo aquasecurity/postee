@@ -43,20 +43,24 @@ func getFilesWithPathToRegoFilters(files []string) []string {
 }
 
 func buildRegoLoader(files []string, rule string) func(r *rego.Rego) {
-	if len(files) != 0 && files[0] != "" {
+	if IsUsedRegoFiles(files) {
 		filesWithPath := getFilesWithPathToRegoFilters(files)
 		return rego.Load(filesWithPath, nil)
 	}
-	if rule == "" { //no rule defined - any input allowed
-		rule = "true"
-	}
+
 	return rego.Module("postee.rego", fmt.Sprintf(module, rule))
 }
+func IsUsedRegoFiles(files []string) bool {
+	return len(files) != 0 && files[0] != ""
+}
 func DoesMatchRegoCriteria(input interface{}, files []string, rule string) (bool, error) {
-	ctx := context.Background()
-	r := &rego.Rego{}
+	if !IsUsedRegoFiles(files) && rule == "" {
+		return true, nil
+	}
 
-	r = rego.New(
+	ctx := context.Background()
+
+	r := rego.New(
 		rego.Query("x = data.postee.allow"),
 		buildRegoLoader(files, rule),
 	)

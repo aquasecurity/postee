@@ -12,22 +12,22 @@ func TestOpaRego(t *testing.T) {
 	incorrectRego := `default input = false`
 	emptyRego := ""
 
-	inputFiles := []string{"../inputFiles.rego"}
-	incorrectInputFiles := []string{"../incorrectFile.rego"}
+	correctInputFiles := []string{"../correctInputFiles.rego"}
+	incorrectInputFiles := []string{"../incorrectInputFiles.rego"}
 	emptyinputFiles := []string{}
-	file, err := os.Create("inputFiles.rego")
+	correctFile, err := os.Create("correctInputFiles.rego")
 	if err != nil {
 		t.Errorf("error create file: %v", err)
 	}
-	file.WriteString(fmt.Sprintf(module, rego))
-	defer os.Remove("inputFiles.rego")
-	defer file.Close()
-	incorrectFile, err := os.Create("incorrectFile.rego")
+	correctFile.WriteString(fmt.Sprintf(module, rego))
+	defer os.Remove("correctInputFiles.rego")
+	defer correctFile.Close()
+	incorrectFile, err := os.Create("incorrectInputFiles.rego")
 	if err != nil {
 		t.Errorf("error create file: %v", err)
 	}
 	incorrectFile.WriteString(fmt.Sprintf(module, incorrectRego))
-	defer os.Remove("incorrectFile.rego")
+	defer os.Remove("incorrectInputFiles.rego")
 	defer incorrectFile.Close()
 
 	scanResult := `{"image":"alpine:26"}`
@@ -44,7 +44,7 @@ func TestOpaRego(t *testing.T) {
 		{rego, emptyinputFiles, scanResult, true, false},
 		{rego, emptyinputFiles, scanNoJson, false, true},
 		{rego, emptyinputFiles, scanWithoutResult, false, false},
-		{emptyRego, inputFiles, scanResult, true, false},
+		{emptyRego, correctInputFiles, scanResult, true, false},
 		{emptyRego, incorrectInputFiles, scanNoJson, false, true},
 		{emptyRego, emptyinputFiles, scanWithoutResult, true, false},
 		{incorrectRego, emptyinputFiles, scanResult, false, true},
@@ -67,4 +67,37 @@ func TestOpaRego(t *testing.T) {
 			t.Errorf("DoesMatchRegoCriteria(%q, %q, %q) == %t, wanted %t", test.scan, test.inputFiles, test.rules, got, test.result)
 		}
 	}
+}
+
+func TestGetFilesWithPathToRegoFilters(t *testing.T) {
+	oldEnv := os.Getenv("REGO_FILTERS_PATH")
+	defer os.Setenv("REGO_FILTERS_PATH", oldEnv)
+	oldPathToRegoFilters := pathToRegoFilters
+
+	tests := []struct {
+		files         []string
+		env           string
+		expectedfiles []string
+	}{
+		{[]string{"policy.rego", "ignore.rego"}, "", []string{"rego-filters/policy.rego", "rego-filters/ignore.rego"}},
+		{[]string{"policy.rego", "ignore.rego"}, "filters", []string{"filters/policy.rego", "filters/ignore.rego"}},
+		{[]string{"policy.rego", "ignore.rego"}, "filters/regofiles", []string{"filters/regofiles/policy.rego", "filters/regofiles/ignore.rego"}},
+		{[]string{"policy.rego", "ignore.rego"}, "/filters/regofiles", []string{"/filters/regofiles/policy.rego", "/filters/regofiles/ignore.rego"}},
+		{[]string{}, "./rego", []string{}},
+	}
+
+	for _, test := range tests {
+		pathToRegoFilters = ""
+		os.Setenv("REGO_FILTERS_PATH", test.env)
+		fmt.Println(pathToRegoFilters)
+		filesWithPath := getFilesWithPathToRegoFilters(test.files)
+
+		for i := range test.expectedfiles {
+			if test.expectedfiles[i] != filesWithPath[i] {
+				t.Errorf("Error for env: %s\n expected file: %s, got: %s", test.env, test.expectedfiles[i], filesWithPath[i])
+			}
+		}
+	}
+
+	pathToRegoFilters = oldPathToRegoFilters
 }

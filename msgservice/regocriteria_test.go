@@ -18,6 +18,15 @@ var (
 		m == "world"
 	}	
 `
+	correctRego = `
+	package postee
+
+	default allow = false
+	
+	allow {
+		contains(input.image, "image1")
+	}
+`
 )
 
 func TestRegoCriteria(t *testing.T) {
@@ -25,39 +34,73 @@ func TestRegoCriteria(t *testing.T) {
 		input        string
 		caseDesc     string
 		regoCriteria string
+		regoFilePath string
 		shouldPass   bool
 	}{
 		{
 			input:        mockScan1,
-			caseDesc:     "Empty rule should allow",
+			caseDesc:     "Empty rule and files should allow",
 			regoCriteria: "",
+			regoFilePath: "",
 			shouldPass:   true,
 		},
 		{
 			input:        mockScan1,
 			caseDesc:     "Matching rule",
 			regoCriteria: `contains(input.image, "image1")`,
+			regoFilePath: "",
 			shouldPass:   true,
 		},
 		{
 			input:        mockScan2,
 			caseDesc:     "Not matching rule",
 			regoCriteria: `contains(input.image, "image1")`,
+			regoFilePath: "",
 			shouldPass:   false,
 		},
 		{
 			input:        mockScan1,
 			caseDesc:     "Invalid rule",
 			regoCriteria: badRego,
+			regoFilePath: "",
+			shouldPass:   false,
+		},
+		{
+			input:        mockScan1,
+			caseDesc:     "Matching file rule",
+			regoCriteria: correctRego,
+			regoFilePath: "../regoFile.rego",
+			shouldPass:   true,
+		},
+		{
+			input:        mockScan2,
+			caseDesc:     "Not matching file rule",
+			regoCriteria: correctRego,
+			regoFilePath: "../regoFile.rego",
+			shouldPass:   false,
+		},
+		{
+			input:        mockScan1,
+			caseDesc:     "Invalid file rule",
+			regoCriteria: badRego,
+			regoFilePath: "../regoFile.rego",
 			shouldPass:   false,
 		},
 	}
 	for _, test := range tests {
-		validateRegoInput(t, test.caseDesc, test.input, test.regoCriteria, test.shouldPass)
+		validateRegoInput(t, test.caseDesc, test.input, test.regoCriteria, test.regoFilePath, test.shouldPass)
 	}
 
 }
-func validateRegoInput(t *testing.T, caseDesc string, input string, regoCriteria string, shouldPass bool) {
+func validateRegoInput(t *testing.T, caseDesc string, input string, regoCriteria string, regoFilePath string, shouldPass bool) {
+	regoFile, err := os.Create("regoFile.rego")
+	if err != nil {
+		t.Error("Can't create regoFile.rego file")
+	}
+	regoFile.WriteString(regoCriteria)
+	defer os.Remove("regoFile.rego")
+	defer regoFile.Close()
+
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
@@ -79,6 +122,7 @@ func validateRegoInput(t *testing.T, caseDesc string, input string, regoCriteria
 
 	demoRoute.Name = "demo-route"
 	demoRoute.Input = regoCriteria
+	demoRoute.InputFiles = []string{regoFilePath}
 
 	demoInptEval := &DemoInptEval{}
 
