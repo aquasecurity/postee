@@ -94,7 +94,7 @@ func (nexus *NexusIqOutput) getAppByNameAndOrg(organizationId string, appName st
 	url := fmt.Sprintf("%s/api/v2/applications/organization/%s", nexus.Url, organizationId)
 	r, err := nexus.execute("GET", url, "", map[string]string{"Content-Type": "application/json"})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error fetching application: %v", err)
 	}
 	applications := r["applications"].([]interface{})
 	for _, item := range applications {
@@ -123,7 +123,7 @@ func (nexus *NexusIqOutput) createApp(organizationId string, appName string) (st
 	r, err := nexus.execute("POST", url, string(b), map[string]string{"Content-Type": "application/json"})
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error creating application: %v", err)
 	}
 
 	return r["id"].(string), nil
@@ -148,7 +148,7 @@ func (nexus *NexusIqOutput) registerBom(appId string, bom string) error {
 	_, err := nexus.execute("POST", url, string(bom), map[string]string{"Content-Type": "application/xml"})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("error registering bom: %v", err)
 	}
 	return nil
 }
