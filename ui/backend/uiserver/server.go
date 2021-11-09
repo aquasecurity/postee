@@ -1,7 +1,6 @@
 package uiserver
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -73,8 +72,5 @@ func (srv *uiServer) Stop() {
 }
 
 func (ctx *uiServer) pingHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	jsonStr, _ := json.Marshal("Postee UI alive!")
-	w.Write(jsonStr)
 }
