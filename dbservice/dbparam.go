@@ -1,6 +1,9 @@
 package dbservice
 
 import (
+	"log"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -24,4 +27,17 @@ func ChangeDbPath(newPath string) {
 	mutex.Lock()
 	DbPath = newPath
 	mutex.Unlock()
+}
+
+func SetNewDbPathFromEnv() {
+	newPath := os.Getenv("PATH_TO_DB")
+	if _, err := os.Stat(newPath); err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
+			if err != nil {
+				log.Printf("Can't create DateBase directory: %v", err)
+			}
+		}
+	}
+	ChangeDbPath(newPath)
 }
