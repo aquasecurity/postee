@@ -1,0 +1,14 @@
+name: Argon
+on: [pull_request]
+jobs:
+  scan:
+    name: Argon
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1e204e9a9253d643386038d443f96446fa156a97 # origin: v2.3.5
+      - name: Argon Security
+        uses: argonsecurity/scanner-action@aea6b4e82b7aa06aa45efa6621ae37595ee895d7 # origin: v1.1
+        with:
+          audit-only: true
+          argon-token: "${{ secrets.ARGON_TOKEN }}"
