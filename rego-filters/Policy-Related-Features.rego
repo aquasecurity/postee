@@ -3,10 +3,10 @@ import future.keywords.in
 #Constants vulnerability values. Don't remove it!
 allVulnerability := {"negligible": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 
-ArrayPermitedImageNames := {"all"} #Comma separated list of images that will trigger the integration.
-ArrayIgnoredImageNames := {"all"}  #List of comma separated images that will be ignored by the integration
-ArrayPermitedRegistry := {"all", "Aqua"} #The list of registry name that triggers the integration.
-ArrayIgnoreRegistry := {"all", "Aqua"} #Comma separated list of registries that will be ignored by the integration
+ArrayPermitedImageNames := {"ubuntu", "busybox"} #Comma separated list of images that will trigger the integration.
+ArrayIgnoredImageNames := {"alpine", "postgres"}  #List of comma separated images that will be ignored by the integration
+ArrayPermitedRegistry := {"Aqua"} #The list of registry name that triggers the integration.
+ArrayIgnoreRegistry := {"Aqua"} #Comma separated list of registries that will be ignored by the integration
 Vulnerability := "low" #The minimum vulnerability severity that triggers the integration.
 
 
@@ -44,7 +44,7 @@ PermitOnlyFixAvailable = true{
 
 #Select the required functions. The functions will be conjunct as a logical "AND". 
 allow{
-# 	  PermitImageNames
+#     PermitImageNames
 #     IgnoreImageNames
 #     PermitRegistry
 #     IgnoreRegistry

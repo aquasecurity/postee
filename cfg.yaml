@@ -15,9 +15,9 @@ routes:
 #- name: route1                                 #  Route name. Must be unique
 #  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
 #  input-files:                                  #  Array filePaths to files with REGO rules
-#   - Policy-Image-Name.rego
-#   - Igrore-Image-Name.rego
-#   - Policy-Registry.rego
+#   - Allow-Image-Name.rego
+#   - Ignore-Image-Name.rego
+#   - Allow-Registry.rego
 #   - Ignore-Registry.rego
 #   - Policy-Only-Fix-Available.rego
 #   - Policy-Min-Vulnerability.rego
