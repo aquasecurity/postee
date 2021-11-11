@@ -122,6 +122,16 @@ allow{
     PermitMinVulnerability
 }
 ```
+If you are using your own rego files, then the **package** field should be "postee" and the result should be in the  **allow** funtion:
+```
+package postee
+
+your_function{...} # 0 or more your functions
+
+allow {
+    your_function
+}
+```
 For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
 
 ```
