@@ -318,8 +318,20 @@ The size of the database can grow over time. Every image that is saved in the da
  
 Postee supports ‘PATH_TO_DB’ environment variable to change the database directory. To use, set the ‘PATH_TO_DB’ environment variable to point to the database file, for example: PATH_TO_DB="./database/webhook.db". By default, the directory for the database file is “/server/database/webhook.db”.
 
-If you would like to persist the database file between restarts of the Postee container, then you should use a persistent storage option to mount the database directory("/server/database" is the database directory by default.) of the container.
-The “deploy/kubernetes” directory in this project contains an example deployment that includes a basic Host Persistency.
+If you would like to persist the database file between restarts of the Postee container, then you should
+use a persistent storage option to mount the "/server/database" directory of the container.
+The "deploy/kubernetes" directory in this project contains an example deployment that includes a basic Host Persistency.
+    
+### Using environment variables in Postee Configuration File   
+Postee supports use of environment variables for *Output* fields: **User**, **Password** and **Token**. Add preffix `$` to the environment variable name in the configuration file, for example:
+```
+outputs:
+- name: my-jira   
+  type: jira     
+  enable: true
+  user: $JIRA_USERNAME
+  token: $JIRA_SERVER_TOKEN         
+```
 
 ### Getting the JIRA connection details
 
