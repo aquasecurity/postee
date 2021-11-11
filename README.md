@@ -122,7 +122,7 @@ allow{
     PermitMinVulnerability
 }
 ```
-If you are using your own rego files, then the **package** field should be "postee" and the result should be in the  **allow** funtion:
+If you are using your own rego files, then the **package** field should be "postee" and the result should be in the  **allow** function:
 ```
 package postee
 
