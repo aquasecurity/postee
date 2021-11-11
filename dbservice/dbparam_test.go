@@ -3,28 +3,47 @@ package dbservice
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
 func TestSetNewDbPathFromEnv(t *testing.T) {
+	envPathToDbOld := os.Getenv("PATH_TO_DB")
+	defer os.Setenv("PATH_TO_DB", envPathToDbOld)
+	dbPathOld := DbPath
+
+	defaultDbPath := "/server/database/webhooks.db"
 	var tests = []struct {
-		env            string
-		expectedDBPath string
+		name             string
+		envPathToDb      string
+		changePermission bool
+		expectedDBPath   string
 	}{
-		{"", "/server/database/webhooks.db"},
-		{"/database/database.db", "/server/database/webhooks.db"},
-		{"./base/base.db", "./base/base.db"},
+		{"Empty PATH_TO_DB", "", false, defaultDbPath},
+		{"Permission denied to create directory(default DbPath is used)", "/database/database.db", false, defaultDbPath},
+		{"New DbPath", "./base/base.db", false, "./base/base.db"},
+		{"Permission denied to check directory(default DbPath is used)", "webhook/database/webhooks.db", true, defaultDbPath},
 	}
-	envOld := os.Getenv("PATH_TO_DB")
-	defer os.Setenv("PATH_TO_DB", envOld)
 
 	for _, test := range tests {
-		os.Setenv("PATH_TO_DB", test.env)
-		SetNewDbPathFromEnv()
+		t.Run(test.name, func(t *testing.T) {
+			os.Setenv("PATH_TO_DB", test.envPathToDb)
+			baseDir := strings.Split(filepath.Dir(test.envPathToDb), "/")[0]
+			if test.changePermission {
+				err := os.Mkdir(baseDir, os.ModeDir)
+				if err != nil {
+					t.Errorf("Can't create dir: %s", baseDir)
+				}
+				os.Chmod(baseDir, 0)
+			}
+			SetNewDbPathFromEnv()
+			defer os.RemoveAll(baseDir)
+			defer ChangeDbPath(dbPathOld)
 
-		if test.expectedDBPath != DbPath {
-			t.Errorf("Paths is not equals, expected: %s, got: %s", test.expectedDBPath, DbPath)
-		}
-		os.RemoveAll(filepath.Dir(test.env))
+			if test.expectedDBPath != DbPath {
+				t.Errorf("[%s] Paths is not equals, expected: %s, got: %s", test.name, test.expectedDBPath, DbPath)
+			}
+
+		})
 	}
 }

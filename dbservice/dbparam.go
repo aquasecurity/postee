@@ -39,6 +39,9 @@ func SetNewDbPathFromEnv() {
 					log.Printf("Can't create DateBase directory: %v, the default path is used", err)
 					return
 				}
+			} else {
+				log.Printf("Can't check DateBase directory: %v, the default path is used", err)
+				return
 			}
 		}
 		ChangeDbPath(newPath)
