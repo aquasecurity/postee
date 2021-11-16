@@ -26,5 +26,5 @@ Name | Description | Default value
 POSTEE_UI_CFG|Path to app config| required, no default value
 POSTEE_UI_PORT|Port to use with UI app| 8090
 POSTEE_UI_UPDATE_URL|Url of webhook application|required
-POSTEE_ADMIN_USER|Admin account name|admin
-POSTEE_ADMIN_PASSWORD|Admin account password|admin
+POSTEE_ADMIN_USER|Admin account name|demo
+POSTEE_ADMIN_PASSWORD|Admin account password|demo
