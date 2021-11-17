@@ -314,7 +314,9 @@ See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
 ### Data Persistency
 The Postee container uses BoltDB to store information about previously scanned images.
 This is used to prevent resending messages that were already sent before.
-The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.
+The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.  
+ 
+Postee supports ‘PATH_TO_DB’ environment variable to change the database directory. To use, set the ‘PATH_TO_DB’ environment variable to point to the database file, for example: PATH_TO_DB="./database/webhook.db". By default, the directory for the database file is “/server/database/webhook.db”.
 
 If you would like to persist the database file between restarts of the Postee container, then you should
 use a persistent storage option to mount the "/server/database" directory of the container.
