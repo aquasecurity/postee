@@ -27,11 +27,19 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		return
 	}
 
-	if ok, err := regoservice.DoesMatchRegoCriteria(in, route.Input); err != nil {
-		prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", route.Input, err, input)
+	if ok, err := regoservice.DoesMatchRegoCriteria(in, route.InputFiles, route.Input); err != nil {
+		if !regoservice.IsUsedRegoFiles(route.InputFiles) {
+			prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", route.Input, err, input)
+		} else {
+			prnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
+		}
 		return
 	} else if !ok {
-		prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, route.Input)
+		if !regoservice.IsUsedRegoFiles(route.InputFiles) {
+			prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, route.Input)
+		} else {
+			prnInputLogs("Input %s... doesn't match a REGO input files rule", input)
+		}
 		return
 	}
 
