@@ -1,6 +1,6 @@
+# Example Configuration Files
+
 This directory contains examples of Postee configuration files.
-
-
 
 | File Name     | Use Case       
 | ------------- |:-------------
