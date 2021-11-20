@@ -1,3 +1,5 @@
+# This example will forward events of Drift Prevention to MS Teams.
+
 name: myserver
 aqua-server: https://myserver.com
 max-db-size: 1000       # Max size of DB. MB. if empty then unlimited
