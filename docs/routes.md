@@ -3,12 +3,23 @@
 You could use Postee with any json. See the following example receiving json events:
 
 ### Route All Messages
-To create a route that catches all messages, simply use the following:
+To create a route that matches all messages, simply use the following:
 
 ```
 routes:
 - name: catch-all
   input: input
+  ...
+```
+
+### Route Drift Prevention Messages
+To create a route that matches only messages that originated from a "Drift Prevention" event, use the following:
+
+```
+routes:
+- name: catch-drift
+  input: contains(input.control, "Drift")
+  ...
 ```
 
 ### Route Tracee Message
