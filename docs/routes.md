@@ -2,6 +2,13 @@
 
 You could use Postee with any json. See the following example receiving json events:
 
+### Route All Messages
+To create a route that catches all messages, simply use the following:
+
+routes:
+- name: catch-all
+  input: input
+  
 ### Route Tracee Message
 
 The following input JSON message is from [Tracee](https://github.com/aquasecurity/tracee).
