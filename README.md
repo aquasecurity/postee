@@ -39,8 +39,10 @@ Primary use of Postee is to act as a notification component for Aqua Security pr
 
 ## Usage
 
-To run Postee you will first need to configure the Postee Configuration File](#postee-configuration-file), which contains all the message routing logic. 
-After the configuration file is ready, you can run the official Postee container image (aquasec/postee:latest), or compile it from source. There are different options to mount your customize configuration file to Postee - if running as a Docker container, then you simply mount the configuration files as a volume mount. If running as a Kubernetes deployment, you will need to mount it as a ConfigMap. See the below usage examples for how to run Postee on different scenarios.
+To run Postee you will first need to configure the [Postee Configuration File](#postee-configuration-file), which contains all the message routing logic. 
+After the configuration file is ready, you can run the official Postee container image: **aquasec/postee:latest**, or compile it from source. 
+
+There are different options to mount your customize configuration file to Postee - if running as a Docker container, then you simply mount the configuration files as a volume mount. If running as a Kubernetes deployment, you will need to mount it as a ConfigMap. See the below usage examples for how to run Postee on different scenarios.
 
 After Postee will run, it will expose two endpoints, HTTP and HTTPS. You can send your JSON messages to these endpoints, where they will be delivered to their target system based on the defined rules.
 
@@ -275,16 +277,19 @@ and that the message was routed based on the cfg.yaml configuration.
 
 You can also configure the Aqua Server to send a Webhook notification for every audit message.
 Navigate to the **Log Management** page, under the "Integrations" menu.
+
 ![Screenshot](aqua-webhook-audit.jpg)
+
 Click on the "Webhook" item, and specify the URL of Postee.
+
 Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to 
 forward appropriate messages to target systems.
 
 
 The URL is in the following formats:
-**HTTPS**: https://<Postee IP or DNS>:8444
+**HTTPS**: https://<Postee IP or DNS>:8445
 or
-**HTTP**: http://<Postee IP or DNS>:8084
+**HTTP**: http://<Postee IP or DNS>:8082
 
 ### Validate the Integration
 
