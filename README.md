@@ -85,7 +85,7 @@ When Postee receives a message it will process it based on routing rules and sen
 3. Templates
 4. Outputs
 
-
+See examples of common Postee configuration files here: [Examples](main/docs/examples)
 
 ### General settings
 General settings are specified at the root level of cfg.yaml. They include general configuration that applies to the Postee application.
