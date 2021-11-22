@@ -1,0 +1,27 @@
+# This example will forward events of images with critical vulnerabilities to MS Teams.
+# Note that duplicate events of same image will be ignored for 30 days.
+
+name: myserver
+aqua-server: https://myserver.com
+max-db-size: 1000       # Max size of DB. MB. if empty then unlimited
+delete-old-data: 100    # delete data older than N day(s).  If empty then we do not delete.
+db-verify-interval: 1   # hours. an Interval between tests of DB. Default: 1 hour
+
+routes:
+- name: team-critical-vul
+  input: input.vulnerability_summary.critical > 0
+  outputs: [my-teams]
+  template: raw-html
+  plugins:
+    unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary_low"]
+    unique-message-timeout: 30d
+
+outputs:
+- name: my-teams
+  type: teams
+  enable: true
+  url: https://outlook.office.com/webhook/<replace>
+
+templates:
+- name: raw-html                        #  Raw message json
+  rego-package:  postee.rawmessage.html #  HTLM template REGO package

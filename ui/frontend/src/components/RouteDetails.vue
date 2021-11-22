@@ -24,6 +24,13 @@
             :inputHandler="updateField"
             :validator="v(uniqueName)"
           />
+          <PropertyField
+              class="mb-4"
+              :id="'input-files'"
+              :label="'Input Files'"
+              :value="formValues['input-files'] | toString"
+              :inputHandler="updateCollectionField"
+            />
           <div class="form-group form-input">
             <label class="form-label" for="input">REGO rule:</label>
 

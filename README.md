@@ -39,8 +39,10 @@ Primary use of Postee is to act as a notification component for Aqua Security pr
 
 ## Usage
 
-To run Postee you will first need to configure the Postee Configuration File](#postee-configuration-file), which contains all the message routing logic.
-After the configuration file is ready, you can run the official Postee container image (aquasec/postee:latest), or compile it from source. There are different options to mount your customize configuration file to Postee - if running as a Docker container, then you simply mount the configuration files as a volume mount. If running as a Kubernetes deployment, you will need to mount it as a ConfigMap. See the below usage examples for how to run Postee on different scenarios.
+To run Postee you will first need to configure the [Postee Configuration File](#postee-configuration-file), which contains all the message routing logic. 
+After the configuration file is ready, you can run the official Postee container image: **aquasec/postee:latest**, or compile it from source. 
+
+There are different options to mount your customize configuration file to Postee - if running as a Docker container, then you simply mount the configuration files as a volume mount. If running as a Kubernetes deployment, you will need to mount it as a ConfigMap. See the below usage examples for how to run Postee on different scenarios.
 
 After Postee will run, it will expose two endpoints, HTTP and HTTPS. You can send your JSON messages to these endpoints, where they will be delivered to their target system based on the defined rules.
 
@@ -83,7 +85,7 @@ When Postee receives a message it will process it based on routing rules and sen
 3. Templates
 4. Outputs
 
-
+See examples of common Postee configuration files here: [Examples](docs/examples)
 
 ### General settings
 General settings are specified at the root level of cfg.yaml. They include general configuration that applies to the Postee application.
@@ -110,9 +112,28 @@ Key | Description | Possible Values | Example
 --- | --- | --- | ---
 *name*|Unique name of route| string | teams-vul-route
 *input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
+*input-files*|One or more files with Rego rules| Set of Rego language files | ["Policy-Registry.rego", "Policy-Min-Vulnerability.rego"] 
 *outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
 
+The `rego-filters` folder contains examples of policy related functions. You can use the examples. To do this, you need to change the input data in the arrays of rego files and fill in the config file. If you want to use an other folder, set the 'REGO_FILTERS_PATH' environment variable to point to it. When using 2 or more files, they will be combined by "OR".
+To combine policy related functions by "AND", use the `Policy-Related-Features.rego` file, change the input data, and fill in the required function in allow.
+```
+allow{
+    PermitImageNames
+    PermitMinVulnerability
+}
+```
+If you are using your own rego files, then the **package** field should be "postee" and the result should be in the  **allow** function:
+```
+package postee
+
+your_function{...} # 0 or more your functions
+
+allow {
+    your_function
+}
+```
 For example, the following input definition will match JSON messages that have 'image.name' field with value that contains the string 'alpine':
 
 ```
@@ -264,16 +285,19 @@ and that the message was routed based on the cfg.yaml configuration.
 
 You can also configure the Aqua Server to send a Webhook notification for every audit message.
 Navigate to the **Log Management** page, under the "Integrations" menu.
+
 ![Screenshot](aqua-webhook-audit.jpg)
+
 Click on the "Webhook" item, and specify the URL of Postee.
-Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to
+
+Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to 
 forward appropriate messages to target systems.
 
 
 The URL is in the following formats:
-**HTTPS**: https://<Postee IP or DNS>:8444
+**HTTPS**: https://<Postee IP or DNS>:8445
 or
-**HTTP**: http://<Postee IP or DNS>:8084
+**HTTP**: http://<Postee IP or DNS>:8082
 
 ### Validate the Integration
 
@@ -322,11 +346,24 @@ See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
 ### Data Persistency
 The Postee container uses BoltDB to store information about previously scanned images.
 This is used to prevent resending messages that were already sent before.
-The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.
+The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.  
+ 
+Postee supports ‘PATH_TO_DB’ environment variable to change the database directory. To use, set the ‘PATH_TO_DB’ environment variable to point to the database file, for example: PATH_TO_DB="./database/webhook.db". By default, the directory for the database file is “/server/database/webhook.db”.
 
 If you would like to persist the database file between restarts of the Postee container, then you should
 use a persistent storage option to mount the "/server/database" directory of the container.
 The "deploy/kubernetes" directory in this project contains an example deployment that includes a basic Host Persistency.
+    
+### Using environment variables in Postee Configuration File   
+Postee supports use of environment variables for *Output* fields: **User**, **Password** and **Token**. Add preffix `$` to the environment variable name in the configuration file, for example:
+```
+outputs:
+- name: my-jira   
+  type: jira     
+  enable: true
+  user: $JIRA_USERNAME
+  token: $JIRA_SERVER_TOKEN         
+```
 
 ### Getting the JIRA connection details
 

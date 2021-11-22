@@ -51,6 +51,7 @@ dockers:
       - postee
     extra_files:
       - rego-templates/
+      - rego-filters/
       - cfg.yaml
     build_flag_templates:
       - "--label=org.label-schema.schema-version=1.0"
@@ -72,6 +73,7 @@ dockers:
       - postee-ui
     extra_files:
       - rego-templates/
+      - rego-filters/
       - cfg.yaml
       - ui/
     build_flag_templates:
