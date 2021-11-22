@@ -1,12 +1,25 @@
 # Postee Helm Chart
 
-## Test
+This chart bootstraps a Postee deployment on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm package manager](https://helm.sh/).
+
+## Prerequisites
+- Kubernetes 1.17+
+- Helm 3+
+## Test the Chart Repository
+
 ```bash
 cd deploy/helm
-helm install my-postee -n aqua --dry-run --debug --set-file applicationConfigPath="../../cfg.yaml" ./postee
+helm install my-postee -n postee --dry-run --set-file applicationConfigPath="../../cfg.yaml" ./postee
 ```
 
-## Install
+## Installing the Chart from the Source Code
+
+```bash
+cd deploy/helm
+helm install my-postee --create-namespace -n postee ./postee
+```
+
+## Installing from the the Aqua Chart Repository
 
 Let's add the Helm chart and deploy Postee executing:
 
@@ -31,10 +44,13 @@ helm install falcosidekick falcosecurity/falcosidekick --set config.kubeless.nam
 
 We check the logs:
 
-kubectl logs deployment/falcosidekick -n falco | head
+kubectl logs deployment/my-posteeui -n postee | head
+
+kubectl logs statefulsets/my-postee -n postee | head
 
 ## Delete
+
 ```bash
-helm -n aqua delete my-postee
+helm -n postee delete my-postee
 ```
 
