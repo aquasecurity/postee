@@ -39,7 +39,7 @@ Primary use of Postee is to act as a notification component for Aqua Security pr
 
 ## Usage
 
-To run Postee you will first need to configure the Postee Configuration File](#postee-configuration-file), which contains all the message routing logic. 
+To run Postee you will first need to configure the Postee Configuration File](#postee-configuration-file), which contains all the message routing logic.
 After the configuration file is ready, you can run the official Postee container image (aquasec/postee:latest), or compile it from source. There are different options to mount your customize configuration file to Postee - if running as a Docker container, then you simply mount the configuration files as a volume mount. If running as a Kubernetes deployment, you will need to mount it as a ConfigMap. See the below usage examples for how to run Postee on different scenarios.
 
 After Postee will run, it will expose two endpoints, HTTP and HTTPS. You can send your JSON messages to these endpoints, where they will be delivered to their target system based on the defined rules.
@@ -50,22 +50,22 @@ To run Postee as a Docker container, you mount the cfg.yaml to '/config/cfg.yaml
 
 ```bash
 docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
-    -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084 -e POSTEE_HTTPS=0.0.0.0:8444 \ 
+    -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084 -e POSTEE_HTTPS=0.0.0.0:8444 \
     -p 8084:8084 -p 8444:8444 aquasec/postee:latest
 ```
 
 ### Kubernetes
-When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod. 
+When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod.
 
 See [Kubernetes instructions](./deploy/kubernetes/README.md) to run Postee on Kubernetes using deployment yamls.
 
 ### Helm
-When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod. 
+When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod.
 
 See [Helm instructions](./deploy/helm/README.md) to run Postee on Kubernetes using Helm chart.
 
 ### From Source
-Clone and build the project: 
+Clone and build the project:
 ```bash
 git clone git@github.com:aquasecurity/postee.git
 make build
@@ -77,7 +77,7 @@ export POSTEE_CFG=<path to cfg.yaml>
 ```
 
 ## Postee Configuration File
-When Postee receives a message it will process it based on routing rules and send it to the appropriate target. How does it know how to do that? Well, this information is defined in Postee's configuration file, [cfg.yaml](https://github.com/aquasecurity/postee/blob/main/cfg.yaml), which contains the following definitions: 
+When Postee receives a message it will process it based on routing rules and send it to the appropriate target. How does it know how to do that? Well, this information is defined in Postee's configuration file, [cfg.yaml](https://github.com/aquasecurity/postee/blob/main/cfg.yaml), which contains the following definitions:
 1. General settings
 2. Routes
 3. Templates
@@ -94,7 +94,7 @@ Key | Description | Possible Values | Example Value
 *db-verify-interval*|Specify time interval (in hours) for Postee to perform database cleanup jobs. Default: 1 hour| any integer value  | 1
 *max-db-size*|The maximum size of Postee database (in MB). Once reached to size limit, Postee will delete old cached messages. If empty then Postee database will have unlimited size| any integer value | 200
 
-### Routes 
+### Routes
 A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the output(s) that the message should be delivered to.
 
 The most important part of a route is the input definition. We use the Rego language to define what are the conditions for an incoming message to be handled by a certain route.
@@ -124,7 +124,7 @@ Another example using regular expression:
 input: regex.match("alp:*", input.image)
 ```
 
-You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 
+You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability.
 
 ```
 input: |
@@ -135,7 +135,7 @@ input: |
 
 See more route samples [HERE](./docs/routes.md)
 #### Route plugins section
-'Plugins' section contains configuration for useful Postee features. 
+'Plugins' section contains configuration for useful Postee features.
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
@@ -148,7 +148,7 @@ Key | Description | Possible Values | Example
 ### Templates
 Templates are used to format input messages before sending them to the output. For example - before sending a message to Microsoft Teams there is a need to format the input JSON into an HTML. This is done using a template.
 
-Each template has a 'name' field, which is used by the route to assign the template to input and output. 
+Each template has a 'name' field, which is used by the route to assign the template to input and output.
 In addition to name, a template will have **one** of the 4 below keys:
 
 Key | Description | Example
@@ -173,19 +173,27 @@ Depending on the 'type', additional parameters are required.
 ### ServiceNow integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-*user* | ServiceNow user name | 
+*user* | ServiceNow user name |
 *password* | User API key / password |
 *instance* | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
 *board* | ServiceNow board name to open tickets on. Default is "incident" |
+
+### Nexus IQ integration parameters
+Key | Description | Possible Values
+--- | --- | ---
+*user* | Nexus IQ user name |
+*password* | Nexus IQ password |
+*url* | Url of Nexus IQ server |
+*organization-id* | Organization UID like "222de33e8005408a844c12eab952c9b0" |
 
 ### Jira integration parameters
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Jira project url |
 *project-key* | The JIRA project key |
-*user* | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center | 
-*password* | Optional: User's password. API token can also be used for Cloud Jira instances. | 
-*token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center | 
+*user* | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center |
+*password* | Optional: User's password. API token can also be used for Cloud Jira instances. |
+*token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center |
 *board* |  Optional: JIRA board key |
 *priority*|  Optional: ticket priority, e.g., High |
 *assignee*| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value |
@@ -198,13 +206,13 @@ Use the `unknowns` parameter in cfg.yaml for custom fields.
 Under the `unknowns` parameter, specify the list of fields names to provide value for.
 You can add "-numeric-field", "-multiple-value", "multiple-line-text-field", "-date-time-picker" and "-field-url" as suffix to the custom field name, to specify what is the field type.
 
-For example: 
+For example:
 ```yaml
 unknowns:
      mycustom: "this is a text custom field"
      mycustom-numeric-field: 123
-     mycustom-multiple-value: 1,2,3 
-     mycustom-multiple-line-text-field: "text \n moretext" 
+     mycustom-multiple-value: 1,2,3
+     mycustom-multiple-line-text-field: "text \n moretext"
      mycustom-date-time-picker: 2014-04-11T12:14:26.880+0400
      mycustom-url: https://tour.golang.org/moretypes/7
 ```
@@ -214,8 +222,8 @@ Key | Description | Possible Values
 --- | --- | ---
 *use-mx* | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
 *user* | User name (usually email address) |
-*password* | Password | 
-*host* | SMTP host name | 
+*password* | Password |
+*host* | SMTP host name |
 *port* | SMTP port |
 *sender* |  Sender's email address |
 *recipients*|  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
@@ -234,7 +242,7 @@ Key | Description | Possible Values
 ### Splunk integration parameters
 Key | Description | Possible Values
 --- | --- | ---
-*token* | The Splunk HTTP event collector token | 
+*token* | The Splunk HTTP event collector token |
 *url* | URL to Splunk HTTP event collector (e.g. http://server:8088) |
 *size-limit* | Optional. Maximum scan length, in bytes. Default: 10000 | 10000
 
@@ -258,7 +266,7 @@ You can also configure the Aqua Server to send a Webhook notification for every 
 Navigate to the **Log Management** page, under the "Integrations" menu.
 ![Screenshot](aqua-webhook-audit.jpg)
 Click on the "Webhook" item, and specify the URL of Postee.
-Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to 
+Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to
 forward appropriate messages to target systems.
 
 
@@ -281,7 +289,7 @@ Postee loads bundle of templates from `rego-templates` folder. This folder inclu
 To create your own template, you should create a new file under the 'rego-templates' directory, and use the
 [Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) for the actual template code.
 
-Message payload is referenced as `input` when template is rendered. The result variable should be used to store the output message, which is the result of the template formatting. 
+Message payload is referenced as `input` when template is rendered. The result variable should be used to store the output message, which is the result of the template formatting.
 The following variables should be defined in the custom Rego template:
 
 Key | Description |Type
@@ -301,7 +309,7 @@ result:=sprintf("Vulnerabilities are found while scanning of image: <i>%s</i>", 
 Two examples are shipped with the app. One produces output for slack integration and another one builds html output which can be used across several integrations. These example can be used as starting point for message customization
 
 ## Postee UI
-Postee provides a simple Web UI to simplify the configuration management. 
+Postee provides a simple Web UI to simplify the configuration management.
 
 See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
 
@@ -328,7 +336,7 @@ Follow these steps to set up JIRA integration:
 Go to the user profile API tokens (JIRA Cloud users can find it here: https://id.atlassian.com/manage-profile/security/api-tokens).
 Click on the Create API Token. A new API token for the user is created.
     * Login to Jira Server/Data center
-Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created. 
+Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created.
 2. Fill jira output in cfg.yaml:
     * Jira Cloud:
         * User: your email.
