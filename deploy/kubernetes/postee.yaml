@@ -12,19 +12,19 @@ data:
     outputs:
       - type: email
         name: my-email
-        user: xxxxxx@gmail.com
+        user: $MY_EMAIL_USER #Create kubernetes secret for use environment variable
         host: smtp.gmail.com
         port: 587
         sender: xxxxxxxx@gmail.com
         recipients:
           - xxxxxxxxx@xxxxx.com
-        password: xxxxxxxxxx
+        password: $MY_EMAIL_PASSWORD #Create kubernetes secret for use environment variable
         enable: false
       - type: serviceNow
         name: my-service-now
         enable: false
-        user: xxxxxxxxx
-        password: xxxxxxxxxx
+        user: $MY_SERVICE_NOW_USER #Create kubernates secret for use environment variable
+        password:  $MY_SERVICE_NOW_PASSWORD #Create kubernetes secret for use environment variable
         instance: xxxxxxxx
       - type: slack
         name: my-slack
@@ -173,6 +173,9 @@ spec:
               value: /config/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
+          envFrom:
+            - secretRef:            
+                name: postee-secrets 
           ports:
             - containerPort: 8082
               protocol: TCP
@@ -272,6 +275,9 @@ spec:
               value: demo
             - name: POSTEE_ADMIN_PASSWORD
               value: demo
+          envFrom:
+            - secretRef:              
+                name: postee-secrets 
           ports:
             - containerPort: 8000
               protocol: TCP
