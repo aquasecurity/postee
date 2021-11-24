@@ -23,7 +23,7 @@ data:
       - type: serviceNow
         name: my-service-now
         enable: false
-        user: $MY_SERVICE_NOW_USER #Create kubernates secret for use environment variable
+        user: $MY_SERVICE_NOW_USER #Create kubernetes secret for use environment variable
         password:  $MY_SERVICE_NOW_PASSWORD #Create kubernetes secret for use environment variable
         instance: xxxxxxxx
       - type: slack
