@@ -78,6 +78,7 @@ type invctn struct {
 	outputCls   string
 	templateCls string
 	routeName   string
+	found       bool
 }
 
 func (ctx *ctxWrapper) MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
@@ -85,6 +86,7 @@ func (ctx *ctxWrapper) MsgHandling(input map[string]interface{}, output outputs.
 		fmt.Sprintf("%T", output),
 		fmt.Sprintf("%T", inpteval),
 		route.Name,
+		false,
 	}
 	ctx.buff <- i
 }

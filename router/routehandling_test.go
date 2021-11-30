@@ -22,7 +22,7 @@ func TestHandling(t *testing.T) {
 			"single-route.yaml",
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1", false,
 				},
 			},
 		},
@@ -31,10 +31,10 @@ func TestHandling(t *testing.T) {
 			"two-routes.yaml",
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1", false,
 				},
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route2",
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route2", false,
 				},
 			},
 		},
@@ -43,10 +43,10 @@ func TestHandling(t *testing.T) {
 			"two-outputs.yaml",
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1", false,
 				},
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1", false,
 				},
 			},
 		},
@@ -80,7 +80,7 @@ func TestHandling(t *testing.T) {
 			"with-input-filter.yaml",
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1", false,
 				},
 			},
 		},
@@ -94,7 +94,7 @@ func TestHandling(t *testing.T) {
 			"with-input-filter-empty.yaml",
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1", false,
 				},
 			},
 		},
@@ -143,11 +143,14 @@ func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfgPath string, exp
 			return
 		case r := <-wrap.buff:
 			t.Logf("[%s] received invocation (%s, %s, %s)", caseDesc, r.routeName, r.outputCls, r.templateCls)
-			actualInvctCnt++
 			found := false
-			for _, expect := range expctdInvctns {
+			for i, expect := range expctdInvctns {
 				if r == expect {
+					actualInvctCnt++
+					t.Logf("r: %v\n", r)
+					t.Logf("expect: %v\n", expect)
 					found = true
+					expctdInvctns[i].found = true // won't be matched anymore
 					break
 				}
 			}

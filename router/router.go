@@ -278,8 +278,8 @@ func (ctx *Router) load() error {
 	}
 	//----------------------------------------------------
 
-	for _, r := range tenant.InputRoutes {
-		ctx.addRoute(&r)
+	for i := range tenant.InputRoutes {
+		ctx.addRoute(&tenant.InputRoutes[i])
 	}
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)
