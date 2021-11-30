@@ -11,17 +11,9 @@ import (
 
 const (
 	defaultConfigPath = "config/cfg.yaml"
+	defaultDbPath     = "./webhooks.db"
 )
 
-/*
-TODO
-Is it possible to add a callback func to the route "input", this callback func, will be called when evaluating the input "rego"
-and if the callback func returns "false" then the evaluation will fail and the message is not sent.
-
-we want to add this as we want the consumer to be able to add a code for extending the "input" evaluation.
-when adding a route, the callback function will be part of each route
-func InputCallBack(inputMessage) (bool, error)
-*/
 type InputCallbackFunc func(inputMessage map[string]interface{}) bool
 
 //SetInputCallbackFunc The call back func will be called as the last evaluation method of the input rego,
@@ -31,18 +23,36 @@ func SetInputCallbackFunc(routeName string, callback InputCallbackFunc) {
 	Instance().setInputCallbackFunc(routeName, callback)
 }
 
-func WithDefaultConfig(dbPath string) error {
-	return WithFileConfig(defaultConfigPath, dbPath)
+func WithDefaultConfig() error {
+	return WithFileConfig(defaultConfigPath)
 }
-func WithFileConfig(cfgPath, dbPath string) error {
+func WithFileConfig(cfgPath string) error {
 	Instance().Terminate()
-	dbservice.DbPath = dbPath
+	dbservice.DbPath = defaultDbPath
 	return Instance().ApplyFileCfg(cfgPath, true)
 }
-func WithNewConfig(tenantName, dbPath string) { //tenant name
+
+func WithNewConfig(tenantName string) { //tenant name
+	Instance().Terminate()
+	dbservice.DbPath = defaultDbPath
+	Instance().initCfg(true)
+}
+
+//initialize instance with custom db location
+func WithNewConfigAndDbPath(tenantName, dbPath string) { //tenant name
 	Instance().Terminate()
 	dbservice.DbPath = dbPath
 	Instance().initCfg(true)
+}
+
+func WithDefaultConfigAndDbPath(dbPath string) error {
+	return WithFileConfigAndDbPath(defaultConfigPath, dbPath)
+}
+
+func WithFileConfigAndDbPath(cfgPath, dbPath string) error {
+	Instance().Terminate()
+	dbservice.DbPath = dbPath
+	return Instance().ApplyFileCfg(cfgPath, true)
 }
 
 func AquaServerUrl(aquaServerUrl string) { //optional

@@ -209,12 +209,16 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		o, _ := buildAndInitOtpt(&test.outputSettings, "") //TODO handle error
-		if test.shouldFail && o != nil {
-			t.Fatalf("No output expected for %s test case", test.caseDesc)
-		} else if !test.shouldFail && o == nil {
-			t.Fatalf("Not expected output returned for %s test case", test.caseDesc)
+		o, err := buildAndInitOtpt(&test.outputSettings, "")
+
+		if !test.shouldFail && err != nil {
+			t.Fatalf("Unexpected error %v", err)
 		}
+
+		if test.shouldFail && o != nil && err == nil {
+			t.Fatalf("No output expected for %s test case", test.caseDesc)
+		}
+
 		actualOutputCls := fmt.Sprintf("%T", o)
 		if actualOutputCls != test.expectedOutputClass {
 			t.Errorf("[%s] Incorrect output type, expected %s, got %s", test.caseDesc, test.expectedOutputClass, actualOutputCls)
