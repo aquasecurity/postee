@@ -79,6 +79,11 @@ func TestRegoCriteria(t *testing.T) {
 
 }
 func validateRegoInput(t *testing.T, caseDesc string, input string, regoCriteria string, regoFilePath string, shouldPass bool) {
+	db := boltdb.NewBoltDb()
+	oldDb := dbservice.Db
+	dbservice.Db = db
+	defer func() { dbservice.Db = oldDb }()
+
 	regoFile, err := os.Create("regoFile.rego")
 	if err != nil {
 		t.Error("Can't create regoFile.rego file")
@@ -90,12 +95,12 @@ func validateRegoInput(t *testing.T, caseDesc string, input string, regoCriteria
 	defer os.Remove("regoFile.rego")
 	defer regoFile.Close()
 
-	dbPathReal := dbservice.DbPath
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,

@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"errors"
@@ -11,15 +11,16 @@ import (
 )
 
 func TestExpiredDates(t *testing.T) {
-	dbPathReal := DbPath
+	boltDb := NewBoltDb()
+	dbPathReal := boltDb.DbPath
 	realDueTimeBase := dueTimeBase
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(boltDb.DbPath)
+		boltDb.DbPath = dbPathReal
 		dueTimeBase = realDueTimeBase
 	}()
 	dueTimeBase = time.Nanosecond
-	DbPath = "test_webhooks.db"
+	boltDb.DbPath = "test_webhooks.db"
 	tests := []struct {
 		title                       string
 		delay                       int
@@ -36,12 +37,12 @@ func TestExpiredDates(t *testing.T) {
 		t.Log(test.title)
 		if test.needRun {
 			time.Sleep(time.Duration(test.delay) * time.Second)
-			CheckExpiredData()
+			boltDb.CheckExpiredData()
 		}
 		timeToExpire := time.Duration(test.uniqueMessageTimeoutSeconds) * time.Second
 		expired := time.Now().UTC().Add(timeToExpire)
 
-		wasStored, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, &expired)
+		wasStored, err := boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, &expired)
 
 		if err != nil {
 			t.Fatal("First Add AlpineImageResult Error", err)
@@ -54,14 +55,15 @@ func TestExpiredDates(t *testing.T) {
 }
 
 func TestDbSizeLimnit(t *testing.T) {
-	dbPathReal := DbPath
+	boltDb := NewBoltDb()
+	dbPathReal := boltDb.DbPath
 	realSizeLimit := DbSizeLimit
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(boltDb.DbPath)
+		boltDb.DbPath = dbPathReal
 		DbSizeLimit = realSizeLimit
 	}()
-	DbPath = "test_webhooks.db"
+	boltDb.DbPath = "test_webhooks.db"
 
 	tests := []struct {
 		title   string
@@ -75,16 +77,16 @@ func TestDbSizeLimnit(t *testing.T) {
 	}
 
 	DbSizeLimit = 1
-	CheckSizeLimit()
+	boltDb.CheckSizeLimit()
 
 	for _, test := range tests {
 		t.Log(test.title)
 		DbSizeLimit = test.limit
 		if test.needRun {
-			CheckSizeLimit()
+			boltDb.CheckSizeLimit()
 		}
 
-		isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
+		isNew, err := boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 		if err != nil {
 			t.Fatal("First Add AlpineImageResult Error", err)
 		}
@@ -96,18 +98,19 @@ func TestDbSizeLimnit(t *testing.T) {
 }
 
 func TestWrongBuckets(t *testing.T) {
+	boltDb := NewBoltDb()
 	savedDbBucketName := dbBucketName
 	savedDbBucketExpiryDates := dbBucketExpiryDates
-	dbPathReal := DbPath
+	dbPathReal := boltDb.DbPath
 	defer func() {
 		dbBucketName = savedDbBucketName
 		dbBucketExpiryDates = savedDbBucketExpiryDates
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(boltDb.DbPath)
+		boltDb.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
+	boltDb.DbPath = "test_webhooks.db"
 
-	_, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
+	_, err := boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -115,32 +118,33 @@ func TestWrongBuckets(t *testing.T) {
 	DbSizeLimit = 1
 	dbBucketName = ""
 	dbBucketExpiryDates = ""
-	CheckSizeLimit()
+	boltDb.CheckSizeLimit()
 
 	dbBucketName = "dbBucketName"
-	_, err = MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
+	_, err = boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err == nil {
 		t.Error("No error for empty dbBucketExpiryDates")
 	}
 	dbBucketExpiryDates = "dbBucketExpiryDates"
 	dbBucketName = ""
-	_, err = MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
+	_, err = boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err == nil {
 		t.Error("No error for empty dbBucketName")
 	}
 }
 
 func TestDbDelete(t *testing.T) {
-	dbPathReal := DbPath
+	boltDb := NewBoltDb()
+	dbPathReal := boltDb.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(boltDb.DbPath)
+		boltDb.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
+	boltDb.DbPath = "test_webhooks.db"
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
-		t.Fatal("Can't open db:", DbPath)
+		t.Fatal("Can't open db:", boltDb.DbPath)
 		return
 	}
 	defer db.Close()
@@ -171,19 +175,20 @@ func TestDbDelete(t *testing.T) {
 }
 
 func TestWithoutAccessToDb(t *testing.T) {
-	dbPathReal := DbPath
+	boltDb := NewBoltDb()
+	dbPathReal := boltDb.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(boltDb.DbPath)
+		boltDb.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
-	db, err := bolt.Open(DbPath, 0220, nil)
+	boltDb.DbPath = "test_webhooks.db"
+	db, err := bolt.Open(boltDb.DbPath, 0220, nil)
 	if err != nil {
-		t.Fatal("Can't open db:", DbPath)
+		t.Fatal("Can't open db:", boltDb.DbPath)
 		return
 	}
 	db.Close()
 	DbSizeLimit = 1
-	CheckSizeLimit()
-	CheckExpiredData()
+	boltDb.CheckSizeLimit()
+	boltDb.CheckExpiredData()
 }

@@ -1,23 +1,24 @@
-package dbservice
+package boltdb
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
 )
 
-func CheckSizeLimit() {
+func (boltDb *BoltDb) CheckSizeLimit() {
 	if DbSizeLimit == 0 {
 		return
 	}
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
-		log.Println("CheckSizeLimit: Can't open db:", DbPath)
+		log.Println("CheckSizeLimit: Can't open db:", boltDb.DbPath)
 		return
 	}
 	defer db.Close()
@@ -30,6 +31,7 @@ func CheckSizeLimit() {
 		c := b.Cursor()
 		size := 0
 		for k, v := c.First(); k != nil; k, v = c.Next() {
+			fmt.Println(string(v))
 			size += len(v)
 		}
 		if size > DbSizeLimit {
@@ -42,18 +44,18 @@ func CheckSizeLimit() {
 	}
 }
 
-func CheckExpiredData() {
+func (boltDb *BoltDb) CheckExpiredData() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
-		log.Println("CheckExpiredData: Can't open db:", DbPath)
+		log.Println("CheckExpiredData: Can't open db:", boltDb.DbPath)
 		return
 	}
 	defer db.Close()
 
-	expired, err := getExpired(db)
+	expired, err := boltDb.getExpired(db)
 	if err != nil {
 		log.Println("Can't select expired data: ", err)
 		return
@@ -64,7 +66,7 @@ func CheckExpiredData() {
 	}
 }
 
-func getExpired(db *bolt.DB) (keys [][]byte, err error) {
+func (boltDb *BoltDb) getExpired(db *bolt.DB) (keys [][]byte, err error) {
 	keys = [][]byte{}
 	ttlKeys := [][]byte{}
 

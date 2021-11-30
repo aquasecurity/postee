@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"errors"
@@ -8,6 +8,8 @@ import (
 	"go.etcd.io/bbolt"
 )
 
+var db = NewBoltDb()
+
 var tests = []struct {
 	caseDesc        string
 	errPrvdr        func() error
@@ -16,13 +18,13 @@ var tests = []struct {
 	{
 		caseDesc: "EnsureApiKey",
 		errPrvdr: func() error {
-			return EnsureApiKey()
+			return db.EnsureApiKey()
 		},
 	},
 	{
 		caseDesc: "GetApiKey",
 		errPrvdr: func() error {
-			_, err := GetApiKey()
+			_, err := db.GetApiKey()
 			return err
 		},
 		initIsNotCalled: true,
@@ -30,33 +32,32 @@ var tests = []struct {
 	{
 		caseDesc: "RegisterPlgnInvctn",
 		errPrvdr: func() error {
-			return RegisterPlgnInvctn("some-key")
+			return db.RegisterPlgnInvctn("some-key")
 		},
 	},
 	{
 		caseDesc: "MayBeStoreMessage",
 		errPrvdr: func() error {
-			_, err := MayBeStoreMessage(nil, "a-b-c", nil)
+			_, err := db.MayBeStoreMessage(nil, "a-b-c", nil)
 			return err
 		},
 	},
 	{
 		caseDesc: "AggregateScans",
 		errPrvdr: func() error {
-			_, err := AggregateScans("", map[string]string{}, 1, false)
+			_, err := db.AggregateScans("", map[string]string{}, 1, false)
 			return err
 		},
 	},
 }
 
 func TestInvalidDbPath(t *testing.T) {
-
-	dbPathReal := DbPath
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	DbPath = "/tmp"
+	db.DbPath = "/tmp"
 
 	for _, test := range tests {
 		err := test.errPrvdr()
@@ -68,13 +69,13 @@ func TestInvalidDbPath(t *testing.T) {
 }
 func TestBucketInitialization(t *testing.T) {
 	savedInit := Init
-	dbPathReal := DbPath
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(DbPath)
+		os.Remove(db.DbPath)
 		Init = savedInit
-		DbPath = dbPathReal
+		db.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 	expectedError := errors.New("weird error")
 	Init = func(db *bbolt.DB, bucket string) error {
 		return expectedError

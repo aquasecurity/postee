@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import bolt "go.etcd.io/bbolt"
 

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
-	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
 	"github.com/aquasecurity/postee/v2/msgservice"
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
@@ -62,6 +62,7 @@ outputs:
   password: admin
   tls-verify: false
   project-key: kcv`
+	db = boltdb.NewBoltDb()
 )
 
 type ctxWrapper struct {
@@ -102,12 +103,12 @@ func (ctxWrapper *ctxWrapper) setup(cfg string) {
 	}
 }
 func (ctxWrapper *ctxWrapper) init() {
-	ctxWrapper.savedDBPath = dbservice.DbPath
+	ctxWrapper.savedDBPath = db.DbPath
 	ctxWrapper.savedBaseForTicker = baseForTicker
 	ctxWrapper.savedGetService = getScanService
 	ctxWrapper.buff = make(chan invctn)
 
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 	baseForTicker = time.Microsecond
 	ctxWrapper.defaultRegoFolder = "rego-templates"
 	ctxWrapper.commonRegoFolder = ctxWrapper.defaultRegoFolder + "/common"
@@ -132,11 +133,11 @@ func (ctxWrapper *ctxWrapper) teardown() {
 
 	baseForTicker = ctxWrapper.savedBaseForTicker
 	os.Remove(ctxWrapper.cfgPath)
-	os.Remove(dbservice.DbPath)
+	os.Remove(db.DbPath)
 	os.Remove(ctxWrapper.commonRegoFolder)
 	os.Remove(ctxWrapper.defaultRegoFolder)
 
-	dbservice.ChangeDbPath(ctxWrapper.savedDBPath)
+	db.ChangeDbPath(ctxWrapper.savedDBPath)
 	getScanService = ctxWrapper.savedGetService
 	close(ctxWrapper.buff)
 }

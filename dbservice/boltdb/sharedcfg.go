@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"crypto/rand"
@@ -13,17 +13,17 @@ const (
 	apiKeyName = "POSTEE_API_KEY"
 )
 
-func EnsureApiKey() error {
+func (boltDb *BoltDb) EnsureApiKey() error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	err = Init(db, DbBucketOutputStats)
+	err = Init(db, dbBucketOutputStats)
 	if err != nil {
 		return err
 	}
@@ -33,19 +33,19 @@ func EnsureApiKey() error {
 		return err
 	}
 
-	err = dbInsert(db, DbBucketSharedConfig, []byte(apiKeyName), []byte(newApiKey))
+	err = dbInsert(db, dbBucketSharedConfig, []byte(apiKeyName), []byte(newApiKey))
 
 	return err
 }
-func GetApiKey() (string, error) {
+func (boltDb *BoltDb) GetApiKey() (string, error) {
 	var apiKey string = ""
-	db, err := bolt.Open(DbPath, 0444, nil) //should be enough
+	db, err := bolt.Open(boltDb.DbPath, 0444, nil) //should be enough
 	if err != nil {
 		return "", err
 	}
 	defer db.Close()
 	err = db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DbBucketSharedConfig))
+		bucket := tx.Bucket([]byte(dbBucketSharedConfig))
 		if bucket == nil {
 			return errors.New("no bucket") //no bucket
 		}

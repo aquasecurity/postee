@@ -11,6 +11,8 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/bbolt v1.3.6
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
+	github.com/lib/pq v1.2.0
+	github.com/zhashkevych/go-sqlxmock v1.5.2-0.20201023121933-f973d0041cfc
 )
 
 require (

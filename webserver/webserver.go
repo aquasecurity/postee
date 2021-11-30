@@ -34,7 +34,7 @@ func Instance() *WebServer {
 }
 func (ctx *WebServer) withApiKey(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		correctKey, err := dbservice.GetApiKey()
+		correctKey, err := dbservice.Db.GetApiKey()
 
 		if err != nil || correctKey == "" {
 			log.Printf("reload API key is either empty or there is an error: %s \n", err)
@@ -72,10 +72,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	if os.Getenv("AQUAALERT_KEY_PEM") != "" {
 		keyPem = os.Getenv("AQUAALERT_KEY_PEM")
 	}
-	err := dbservice.EnsureApiKey()
-	if err != nil {
-		log.Printf("EnsureApiKey error: %v \n", err)
-	}
+	dbservice.Db.EnsureApiKey()
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/tenant/{route}", ctx.sessionHandler(ctx.tenantHandler)).Methods("POST")

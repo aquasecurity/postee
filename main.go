@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/router"
 	"github.com/aquasecurity/postee/v2/utils"
 	"github.com/aquasecurity/postee/v2/webserver"

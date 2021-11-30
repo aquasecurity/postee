@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
@@ -38,12 +39,16 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 
 }
 func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRenderCnt int, expectedAggrRenderCnt int, skipAggrSpprt bool) {
-	dbPathReal := dbservice.DbPath
+	db = boltdb.NewBoltDb()
+	oldDb := dbservice.Db
+	dbservice.Db = db
+	defer func() { dbservice.Db = oldDb }()
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
