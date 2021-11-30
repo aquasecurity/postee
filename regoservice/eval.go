@@ -203,7 +203,11 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 	ctx := context.Background()
 
 	//execute query with empty input and check if aggregation package is defined
-	rs, _ := query.Eval(ctx, rego.EvalInput(make(map[string]interface{})))
+	rs, err := query.Eval(ctx, rego.EvalInput(make(map[string]interface{})))
+
+	if err != nil {
+		return nil, err
+	}
 
 	if len(rs) == 0 || len(rs[0].Expressions) == 0 {
 		return nil, errors.New("no results") //TODO error definition
