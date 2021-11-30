@@ -3,6 +3,7 @@ package routes
 type InputRoute struct {
 	Name       string   `json:"name"`
 	Input      string   `json:"input"`
+	InputFiles []string `json:"input-files"`
 	Outputs    []string `json:"outputs"`
 	Plugins    Plugins  `json:"plugins"`
 	Template   string   `json:"template"`
@@ -10,10 +11,12 @@ type InputRoute struct {
 }
 
 type Plugins struct {
-	AggregateIssuesNumber   int    `json:"aggregate-issues-number"`
-	AggregateIssuesTimeout  string `json:"aggregate-issues-timeout"`
-	PolicyShowAll           bool   `json:"policy-show-all"`
-	AggregateTimeoutSeconds int
+	AggregateMessageNumber      int    `json:"aggregate-message-number"`
+	AggregateMessageTimeout     string `json:"aggregate-message-timeout"`
+	AggregateTimeoutSeconds     int
+	UniqueMessageProps          []string `json:"unique-message-props"`
+	UniqueMessageTimeout        string   `json:"unique-message-timeout"`
+	UniqueMessageTimeoutSeconds int
 }
 
 func (route *InputRoute) IsSchedulerRun() bool {

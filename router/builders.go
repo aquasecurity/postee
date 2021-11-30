@@ -7,6 +7,10 @@ import (
 	"github.com/aquasecurity/postee/outputs"
 )
 
+func buildStdoutOutput(sourceSettings *data.OutputSettings) *outputs.StdoutOutput {
+	return &outputs.StdoutOutput{Name: sourceSettings.Name}
+}
+
 func buildSplunkOutput(sourceSettings *data.OutputSettings) *outputs.SplunkOutput {
 	return &outputs.SplunkOutput{
 		Name:       sourceSettings.Name,
@@ -72,6 +76,7 @@ func buildJiraOutput(sourceSettings *data.OutputSettings) *outputs.JiraAPI {
 		Url:             sourceSettings.Url,
 		User:            sourceSettings.User,
 		Password:        sourceSettings.Password,
+		Token:           sourceSettings.Token,
 		TlsVerify:       sourceSettings.TlsVerify,
 		Issuetype:       sourceSettings.IssueType,
 		ProjectKey:      strings.ToUpper(sourceSettings.ProjectKey),

@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/outputs"
+	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
+	"github.com/aquasecurity/postee/utils"
 )
 
 type MsgService struct {
-	scanInfo *data.ScanImageInfo
-	prevScan *data.ScanImageInfo
-	isNew    bool
 }
 
 func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
@@ -24,21 +24,52 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 
 	//TODO marshalling message back to bytes, change after merge with https://github.com/aquasecurity/postee/pull/150
 	input, _ := json.Marshal(in)
-	if err := scan.init(input); err != nil {
-		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
+
+	if ok, err := regoservice.DoesMatchRegoCriteria(in, route.InputFiles, route.Input); err != nil {
+		if !regoservice.IsUsedRegoFiles(route.InputFiles) {
+			utils.PrnInputLogs("Error while evaluating rego rule %s :%v for the input %s", route.Input, err, input)
+		} else {
+			utils.PrnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
+		}
+		return
+	} else if !ok {
+		if !regoservice.IsUsedRegoFiles(route.InputFiles) {
+			utils.PrnInputLogs("Input %s... doesn't match a REGO rule: %s", input, route.Input)
+		} else {
+			utils.PrnInputLogs("Input %s... doesn't match a REGO input files rule", input)
+		}
 		return
 	}
 
 	//TODO move logic below somewhere close to Jira output implementation
 	owners := ""
-	if len(scan.scanInfo.ApplicationScopeOwners) > 0 {
-		owners = strings.Join(scan.scanInfo.ApplicationScopeOwners, ";")
+	applicationScopeOwnersObj, ok := in["application_scope_owners"]
+	if ok {
+		applicationScopeOwners := make([]string, 0)
+
+		applicationScopeOwners = append(applicationScopeOwners, applicationScopeOwnersObj.([]string)...)
+
+		if len(applicationScopeOwners) > 0 {
+			owners = strings.Join(applicationScopeOwners, ";")
+		}
 	}
 
-	if scan.scanInfo.HasId() && !scan.isNew && !route.Plugins.PolicyShowAll {
-		log.Println("This scan's result is old:", scan.scanInfo.GetUniqueId())
-		return
+	if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 {
+		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
+		expired := calculateExpired(route.Plugins.UniqueMessageTimeoutSeconds)
+
+		wasStored, err := dbservice.MayBeStoreMessage(input, msgKey, expired)
+		if err != nil {
+			log.Printf("Error while storing input: %v", err)
+			return
+		}
+		if !wasStored {
+			log.Printf("The same message was received before: %s", msgKey)
+			return
+		}
+
 	}
+
 	posteeOpts := map[string]string{
 		"AquaServer": *AquaServer,
 	}
@@ -55,8 +86,8 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 		content["owners"] = owners
 	}
 
-	if route.Plugins.AggregateIssuesNumber > 0 && inpteval.IsAggregationSupported() {
-		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateIssuesNumber, false)
+	if route.Plugins.AggregateMessageNumber > 0 && inpteval.IsAggregationSupported() {
+		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateMessageNumber, false)
 		if len(aggregated) > 0 {
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
@@ -81,13 +112,27 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 }
 
 func send(otpt outputs.Output, cnt map[string]string) {
-	go otpt.Send(cnt)
+	go func() {
+		err := otpt.Send(cnt)
+		if err != nil {
+			log.Printf("Error while sending event: %v", err)
+		}
+	}()
+
 	err := dbservice.RegisterPlgnInvctn(otpt.GetName())
 	if err != nil {
 		log.Printf("Error while building aggregated content: %v", err)
 		return
 	}
 
+}
+func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
+	if UniqueMessageTimeoutSeconds == 0 {
+		return nil
+	}
+	timeToExpire := time.Duration(UniqueMessageTimeoutSeconds) * time.Second
+	expired := time.Now().UTC().Add(timeToExpire)
+	return &expired
 }
 
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
@@ -101,34 +146,4 @@ var AggregateScanAndGetQueue = func(outputName string, currentContent map[string
 		return nil
 	}
 	return aggregatedScans
-}
-
-func (scan *MsgService) init(data []byte) (err error) {
-	scan.scanInfo, err = parseImageInfo(data)
-	if err != nil {
-		return err
-	}
-	var prevScanSource []byte
-	prevScanSource, scan.isNew, err = dbservice.HandleCurrentInfo(scan.scanInfo)
-	if err != nil {
-		return err
-	}
-	if !scan.isNew {
-		return nil
-	}
-
-	if len(prevScanSource) > 0 {
-		scan.prevScan, err = parseImageInfo(prevScanSource)
-		return err
-	}
-	return nil
-}
-
-func parseImageInfo(source []byte) (*data.ScanImageInfo, error) {
-	scanInfo := new(data.ScanImageInfo)
-	err := json.Unmarshal(source, scanInfo)
-	if err != nil {
-		return nil, err
-	}
-	return scanInfo, nil
 }

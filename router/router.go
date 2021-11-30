@@ -53,7 +53,6 @@ var (
 
 	requireAuthorization = map[string]bool{
 		"servicenow": true,
-		"jira":       true,
 	}
 )
 
@@ -258,29 +257,26 @@ func (ctx *Router) load() error {
 	// TODO there should be some other way of doing that
 
 	dbservice.DbSizeLimit = tenant.DBMaxSize
-	dbservice.DbDueDate = tenant.DBRemoveOldData
 	if tenant.DBTestInterval == 0 {
 		tenant.DBTestInterval = 1
 	}
-	if dbservice.DbSizeLimit != 0 || dbservice.DbDueDate != 0 {
-		ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
-		go func() {
-			for {
-				select {
-				case <-ctx.stopTicker:
-					return
-				case <-ctx.ticker.C:
-					dbservice.CheckSizeLimit()
-					dbservice.CheckExpiredData()
-				}
+	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
+	go func() {
+		for {
+			select {
+			case <-ctx.stopTicker:
+				return
+			case <-ctx.ticker.C:
+				dbservice.CheckSizeLimit()
+				dbservice.CheckExpiredData()
 			}
-		}()
-	}
-	//----------------------------------------------------
+		}
+	}()
 
-	for i := range tenant.InputRoutes {
-		ctx.addRoute(&tenant.InputRoutes[i])
+	for i, r := range tenant.InputRoutes {
+		ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(&tenant.InputRoutes[i])
 	}
+
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)
 		if err != nil {
@@ -310,7 +306,7 @@ func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallback
 }
 
 func (ctx *Router) addRoute(r *routes.InputRoute) {
-	ctx.inputRoutes[r.Name] = routes.ConfigureAggrTimeout(r)
+	ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(r)
 }
 
 func (ctx *Router) deleteRoute(name string) error {
@@ -333,10 +329,12 @@ func (ctx *Router) listRoutes() []routes.InputRoute {
 			Input:   r.Input,
 			Outputs: data.CopyStringArray(r.Outputs),
 			Plugins: routes.Plugins{
-				AggregateIssuesNumber:   r.Plugins.AggregateIssuesNumber,
-				AggregateIssuesTimeout:  r.Plugins.AggregateIssuesTimeout,
-				PolicyShowAll:           r.Plugins.PolicyShowAll,
-				AggregateTimeoutSeconds: r.Plugins.AggregateTimeoutSeconds,
+				AggregateMessageNumber:      r.Plugins.AggregateMessageNumber,
+				AggregateMessageTimeout:     r.Plugins.AggregateMessageTimeout,
+				AggregateTimeoutSeconds:     r.Plugins.AggregateTimeoutSeconds,
+				UniqueMessageProps:          r.Plugins.UniqueMessageProps,
+				UniqueMessageTimeout:        r.Plugins.UniqueMessageTimeout,
+				UniqueMessageTimeoutSeconds: r.Plugins.UniqueMessageTimeoutSeconds,
 			},
 			Template: r.Template,
 		})
@@ -418,7 +416,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
-	if ok, err := regoservice.DoesMatchRegoCriteria(inMsg, r.Input); err != nil {
+	if ok, err := regoservice.DoesMatchRegoCriteria(inMsg, r.InputFiles, r.Input); err != nil {
 		utils.PrnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, in)
 		return
 	} else if !ok {
@@ -469,6 +467,15 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	if len(settings.Password) == 0 && requireAuthorization[settings.Type] {
 		return nil, xerrors.Errorf("password for %q is empty", settings.Name)
 	}
+	settings.Token = utils.GetEnvironmentVarOrPlain(settings.Token)
+	if settings.Type == "jira" {
+		if len(settings.User) == 0 {
+			return nil, xerrors.Errorf("user for %q is empty", settings.Name)
+		}
+		if len(settings.Token) == 0 && len(settings.Password) == 0 {
+			return nil, xerrors.Errorf("both password and token for %q are empty", settings.Name)
+		}
+	}
 
 	utils.Debug("Starting Output %q: %q\n", settings.Type, settings.Name)
 
@@ -489,6 +496,8 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		plg = buildWebhookOutput(settings)
 	case "splunk":
 		plg = buildSplunkOutput(settings)
+	case "stdout":
+		plg = buildStdoutOutput(settings)
 	default:
 		return nil, xerrors.Errorf("output %s has undefined or empty type: %q", settings.Name, settings.Type)
 	}

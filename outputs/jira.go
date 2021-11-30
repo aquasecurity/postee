@@ -13,10 +13,11 @@ import (
 	"github.com/aquasecurity/postee/layout"
 
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
-	"github.com/andygrunwald/go-jira"
+	"github.com/aquasecurity/go-jira"
 )
 
 type JiraAPI struct {
@@ -24,6 +25,7 @@ type JiraAPI struct {
 	Url             string
 	User            string
 	Password        string
+	Token           string
 	TlsVerify       bool
 	Issuetype       string
 	ProjectKey      string
@@ -140,18 +142,43 @@ func (jira *JiraAPI) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.JiraLayoutProvider)
 }
 
-func (ctx *JiraAPI) createClient() (*jira.Client, error) {
-	tp := jira.BasicAuthTransport{
-		Username: ctx.User,
-		Password: ctx.Password,
-	}
-
-	if !ctx.TlsVerify {
-		tp.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
+	if ctx.Token != "" {
+		if !isServerJira(ctx.Url) {
+			return nil, errors.New("Jira Cloud can't work with PAT")
 		}
+		if ctx.Password != "" {
+			log.Printf("Found both Password and PAT, using PAT to authenticate.")
+		}
+		tp := jira.BearerTokenAuthTransport{
+			Token: ctx.Token,
+		}
+		if !ctx.TlsVerify {
+			tp.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+		}
+		return tp.Client(), nil
+	} else {
+		tp := jira.BasicAuthTransport{
+			Username: ctx.User,
+			Password: ctx.Password,
+		}
+		if !ctx.TlsVerify {
+			tp.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+		}
+		return tp.Client(), nil
 	}
-	client, err := jira.NewClient(tp.Client(), ctx.Url)
+}
+
+func (ctx *JiraAPI) createClient() (*jira.Client, error) {
+	tpClient, err := ctx.buildTransportClient()
+	if err != nil {
+		return nil, fmt.Errorf("unable to create new JIRA client. %v", err)
+	}
+	client, err := jira.NewClient(tpClient, ctx.Url)
 	if err != nil {
 		return client, fmt.Errorf("unable to create new JIRA client. %v", err)
 	}
@@ -214,7 +241,8 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 		Name string `json:"name"`
 	}
 
-	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig)
+	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, isServerJira(ctx.Url))
+
 	if err != nil {
 		log.Printf("Failed to init issue: %s\n", err)
 		return err
@@ -287,7 +315,7 @@ func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira
 	return metaIssuetype, nil
 }
 
-func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string) (*jira.Issue, error) {
+func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jira.MetaIssueType, fieldsConfig map[string]string, useSrvApi bool) (*jira.Issue, error) {
 	issue := new(jira.Issue)
 	issueFields := new(jira.IssueFields)
 	issueFields.Unknowns = make(map[string]interface{})
@@ -372,7 +400,16 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 		case "priority":
 			issueFields.Unknowns[jiraKey] = jira.Priority{Name: value}
 		case "user":
-			users, resp, err := c.User.Find(value)
+			var users []jira.User
+			var resp *jira.Response
+			var err error
+
+			if useSrvApi {
+				users, resp, err = findUserOnJiraServer(c, value)
+			} else {
+				users, resp, err = c.User.Find(value)
+			}
+
 			if err != nil {
 				log.Printf("Get Jira User info error: %v", err)
 				continue
@@ -401,4 +438,25 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 	}
 	issue.Fields = issueFields
 	return issue, nil
+}
+func findUserOnJiraServer(c *jira.Client, email string) ([]jira.User, *jira.Response, error) {
+	req, _ := c.NewRequest("GET", fmt.Sprintf("/rest/api/2/user/search?username=%s", email), nil)
+
+	users := []jira.User{}
+
+	resp, err := c.Do(req, &users)
+	if err != nil {
+		log.Printf("%v", err)
+		return nil, resp, err
+	}
+	return users, resp, nil
+}
+func isServerJira(rawUrl string) bool {
+	jiraUrl, err := url.Parse(rawUrl)
+
+	if err == nil {
+		return !strings.HasSuffix(jiraUrl.Host, "atlassian.net")
+	}
+
+	return false
 }

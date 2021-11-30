@@ -17,6 +17,19 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		expectedOutputClass string
 	}{
 		{
+			"Default Stdout Output",
+			data.OutputSettings{
+				Name:   "stdout",
+				Type:   "stdout",
+				Enable: true,
+			},
+			map[string]interface{}{
+				"Name": "stdout",
+			},
+			false,
+			"*outputs.StdoutOutput",
+		},
+		{
 			"Simple Slack",
 			data.OutputSettings{
 				Name:   "my-slack",

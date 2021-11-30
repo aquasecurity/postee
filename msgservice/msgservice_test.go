@@ -85,8 +85,7 @@ func TestAggrEvalError(t *testing.T) {
 	demoRoute := &routes.InputRoute{}
 
 	demoRoute.Name = "demo-route"
-	demoRoute.Plugins.AggregateIssuesNumber = 2
-	demoRoute.Plugins.PolicyShowAll = true
+	demoRoute.Plugins.AggregateMessageNumber = 2
 
 	aggrEvalError := errors.New("aggregation eval error")
 

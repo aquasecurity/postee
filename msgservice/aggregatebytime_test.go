@@ -41,7 +41,6 @@ func TestAggregateByTimeout(t *testing.T) {
 	demoRoute := &routes.InputRoute{
 		Name: "demo-route1",
 		Plugins: routes.Plugins{
-			PolicyShowAll:           true,
 			AggregateTimeoutSeconds: aggregationSeconds,
 		},
 	}

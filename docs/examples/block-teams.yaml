@@ -1,0 +1,23 @@
+# This example will forward to MS Teams all "Block" audit events
+
+name: myserver
+aqua-server: https://myserver.com
+max-db-size: 1000       # Max size of DB. MB. if empty then unlimited
+delete-old-data: 100    # delete data older than N day(s).  If empty then we do not delete.
+db-verify-interval: 1   # hours. an Interval between tests of DB. Default: 1 hour
+
+routes:
+- name: team-drift
+  input: input.level = "block"
+  outputs: [my-teams]
+  template: raw-html
+
+outputs:
+- name: my-teams
+  type: teams
+  enable: true
+  url: https://outlook.office.com/webhook/<replace>
+
+templates:
+- name: raw-html                        #  Raw message json
+  rego-package:  postee.rawmessage.html #  HTLM template REGO package

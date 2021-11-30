@@ -1,52 +1,52 @@
 package dbservice
 
 import (
-	bolt "go.etcd.io/bbolt"
 	"os"
 	"testing"
 	"time"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 func TestExpiredDates(t *testing.T) {
 	dbPathReal := DbPath
-	realDueDate := DbDueDate
 	realDueTimeBase := dueTimeBase
 	defer func() {
 		os.Remove(DbPath)
 		DbPath = dbPathReal
-		DbDueDate = realDueDate
 		dueTimeBase = realDueTimeBase
 	}()
 	dueTimeBase = time.Nanosecond
 	DbPath = "test_webhooks.db"
 	tests := []struct {
-		title   string
-		limit   int
-		needRun bool
-		isNew   bool
+		title                       string
+		delay                       int
+		uniqueMessageTimeoutSeconds int
+		needRun                     bool
+		wasStored                   bool
 	}{
-		{"First scan", 0, false, true},
-		{"Second scan", 0, true, false},
-		{"Third scan", 1, true, true},
+		{"Add initial scan", 0, 1, false, true},
+		{"Add same scan again - not stored", 0, 0, true, false},
+		{"Add same scan again - after delay - stored", 1, 0, true, true},
 	}
-
-	DbDueDate = 1
-	CheckExpiredData()
 
 	for _, test := range tests {
 		t.Log(test.title)
-		DbDueDate = test.limit
 		if test.needRun {
+			time.Sleep(time.Duration(test.delay) * time.Second)
 			CheckExpiredData()
 		}
+		timeToExpire := time.Duration(test.uniqueMessageTimeoutSeconds) * time.Second
+		expired := time.Now().UTC().Add(timeToExpire)
 
-		_, isNew, err := HandleCurrentInfo(&AlpineImageResult)
+		wasStored, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, &expired)
+
 		if err != nil {
 			t.Fatal("First Add AlpineImageResult Error", err)
 		}
 
-		if isNew != test.isNew {
-			t.Errorf("Error handling! Want isNew: %t, rgot: %t", test.isNew, isNew)
+		if wasStored != test.wasStored {
+			t.Errorf("Error handling! Want wasStored: %t, got: %t", test.wasStored, wasStored)
 		}
 	}
 }
@@ -82,7 +82,7 @@ func TestDbSizeLimnit(t *testing.T) {
 			CheckSizeLimit()
 		}
 
-		_, isNew, err := HandleCurrentInfo(&AlpineImageResult)
+		isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 		if err != nil {
 			t.Fatal("First Add AlpineImageResult Error", err)
 		}
@@ -105,7 +105,7 @@ func TestWrongBuckets(t *testing.T) {
 	}()
 	DbPath = "test_webhooks.db"
 
-	_, _, err := HandleCurrentInfo(&AlpineImageResult)
+	_, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,13 +116,13 @@ func TestWrongBuckets(t *testing.T) {
 	CheckSizeLimit()
 
 	dbBucketName = "dbBucketName"
-	_, _, err = HandleCurrentInfo(&AlpineImageResult)
+	_, err = MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err == nil {
 		t.Error("No error for empty dbBucketExpiryDates")
 	}
 	dbBucketExpiryDates = "dbBucketExpiryDates"
 	dbBucketName = ""
-	_, _, err = HandleCurrentInfo(&AlpineImageResult)
+	_, err = MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err == nil {
 		t.Error("No error for empty dbBucketName")
 	}
@@ -169,7 +169,6 @@ func TestWithoutAccessToDb(t *testing.T) {
 	}
 	db.Close()
 	DbSizeLimit = 1
-	DbDueDate = 1
 	CheckSizeLimit()
 	CheckExpiredData()
 }

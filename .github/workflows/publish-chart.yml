@@ -3,7 +3,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'deploy/helm/postee/**'
+      - 'deploy/helm/**'
+      - 'deploy/kubernetes/**'
     tags:
       - "v*"
   workflow_dispatch:
@@ -11,27 +12,63 @@ env:
   HELM_REP: helm-charts
   GH_OWNER: aquasecurity
   CHART_DIR: deploy/helm/postee
+  GO_VERSION: "1.16"
+  KIND_VERSION: "v0.11.1"
+  KIND_IMAGE: "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
 jobs:
   publish:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Setup Kubernetes cluster (KIND)
+        uses: engineerd/setup-kind@v0.5.0
+        with:
+          version: ${{ env.KIND_VERSION }}
+          image: ${{ env.KIND_IMAGE }}
+      - name: Test connection to Kubernetes cluster
+        run: |
+          kubectl cluster-info
+      - name: Installing Kubernetes Postee manifest
+        run: |
+            kubectl create -f deploy/kubernetes
+      - name: Testing Kubernetes Postee manifest
+        run: |
+            kubectl wait --for=condition=Ready pod -l app=aqua-postee --timeout=150s
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
           version: v3.6.0
+      - name: Testing Helm Postee manifest
+        run: |
+            helm upgrade --install test deploy/helm/postee --debug
       - name: Install chart-releaser
         env:
           VERSION: 1.2.1
         run: |
           wget "https://github.com/helm/chart-releaser/releases/download/v${VERSION}/chart-releaser_${VERSION}_linux_amd64.tar.gz"
-          tar xzvf chart-releaser_${VERSION}_linux_amd64.tar.gz cr          
+          tar xzvf chart-releaser_${VERSION}_linux_amd64.tar.gz cr
+      - name: 'Action Get Latest Tag'
+        uses: 'actions-ecosystem/action-get-latest-tag@v1.4.1'
+        id: 'get-latest-tag'
+        with:
+          semver_only: true
+      - name: 'Determine default bump'
+        id: 'bump'
+        run: |
+          LATEST_TAG=${{ steps.get-latest-tag.outputs.tag }}
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+              echo "::set-output name=type::major"
+          else
+              echo "::set-output name=type::patch"
+          fi
       - name: Package helm chart
         run: |
-          RELEASE=$(echo ${{ github.ref }} | sed -e "s#refs/tags/##g" | sed -e 's/^v//')
+          RELEASE=${{ steps.get-latest-tag.outputs.tag }}
           echo "Release ${RELEASE}"
           helm package --app-version=${RELEASE} --version=${RELEASE} ${{ env.CHART_DIR }} -d .cr-release-packages
       - name: Upload helm chart

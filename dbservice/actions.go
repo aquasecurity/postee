@@ -1,74 +1,48 @@
 package dbservice
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/aquasecurity/postee/data"
-	bolt "go.etcd.io/bbolt"
 	"time"
+
+	bolt "go.etcd.io/bbolt"
 )
 
-func HandleCurrentInfo(scanInfo *data.ScanImageInfo) (prev []byte, isNew bool, err error) {
+func MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	currentId := scanInfo.GetUniqueId()
-	var prevId string
-	if scanInfo.PreviousDigest != "" {
-		prevId = data.BuildUniqueId(scanInfo.PreviousDigest, scanInfo.Image, scanInfo.Registry)
-	}
-
 	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
-		return nil, false, err
+		return false, err
 	}
 	defer db.Close()
 
 	if err = Init(db, dbBucketName); err != nil {
-		return
+		return false, err
 	}
 	if err = Init(db, dbBucketExpiryDates); err != nil {
-		return
+		return false, err
 	}
 
-	currentValue, err := dbSelect(db, dbBucketName, currentId)
+	currentValue, err := dbSelect(db, dbBucketName, messageKey)
 	if err != nil {
-		return
+		return false, err
 	}
 
 	if currentValue != nil {
-		savedScan := new(data.ScanImageInfo)
-		err = json.Unmarshal(currentValue, savedScan)
+		return false, nil
+	} else {
+		bMessageKey := []byte(messageKey)
+		err = dbInsert(db, dbBucketName, bMessageKey, message)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return false, err
 		}
-
-		if savedScan.Critical == scanInfo.Critical &&
-			savedScan.High == scanInfo.High &&
-			savedScan.Medium == scanInfo.Medium &&
-			savedScan.Low == scanInfo.Low &&
-			savedScan.Negligible == scanInfo.Negligible &&
-			savedScan.Malware == scanInfo.Malware {
-			return nil, false, nil
+		if expired != nil {
+			err = dbInsert(db, dbBucketExpiryDates, []byte(expired.Format(DateFmt)), bMessageKey)
+			if err != nil {
+				return false, err
+			}
 		}
+		return true, nil
 	}
 
-	currentBytes, _ := json.Marshal(scanInfo)
-	bCurrentId := []byte(currentId)
-	err = dbInsert(db, dbBucketName, bCurrentId, currentBytes)
-	if err != nil {
-		return nil, false, err
-	}
-	isNew = true
-
-	err = dbInsert(db, dbBucketExpiryDates, []byte(time.Now().UTC().Format(time.RFC3339Nano)), bCurrentId)
-	if err != nil {
-		return
-	}
-
-	if prevId != "" && prevId != currentId {
-		prev, _ = dbSelect(db, dbBucketName, prevId)
-	}
-	return
 }

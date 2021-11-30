@@ -1,5 +1,5 @@
 FROM node:alpine3.13 as vuebuilder
-ADD ./ui/frontend /frontend
+COPY ./ui/frontend /frontend
 WORKDIR /frontend
 
 RUN yarn install
@@ -8,11 +8,11 @@ RUN yarn build
 
 FROM golang:1.16-alpine as gobuilder
 
-ADD . /server
+COPY . /server
 WORKDIR /server/ui/backend
 RUN go build -o posteeui
 
-FROM alpine:alpine3.13
+FROM alpine:3.13
 EXPOSE 8000
 
 RUN mkdir /uiserver
@@ -30,5 +30,6 @@ RUN addgroup -g 1099 postee
 RUN adduser -D -g '' -G postee -u 1099 postee
 RUN chown -R postee:postee /server
 RUN chown -R postee:postee /config
+RUN chown -R postee:postee /uiserver
 USER postee
 ENTRYPOINT ["/uiserver/posteeui"]

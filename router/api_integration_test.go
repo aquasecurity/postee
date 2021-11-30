@@ -72,9 +72,6 @@ func TestAudit(t *testing.T) {
 		Name:     "test",
 		Outputs:  []string{"test-webhook"},
 		Template: "audit-json-template",
-		Plugins: routes.Plugins{
-			PolicyShowAll: true,
-		},
 	})
 	router.Send([]byte(msg))
 	got := <-received

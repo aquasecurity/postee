@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aquasecurity/postee/data"
 	"go.etcd.io/bbolt"
 )
 
@@ -35,9 +34,9 @@ var tests = []struct {
 		},
 	},
 	{
-		caseDesc: "HandleCurrentInfo",
+		caseDesc: "MayBeStoreMessage",
 		errPrvdr: func() error {
-			_, _, err := HandleCurrentInfo(&data.ScanImageInfo{})
+			_, err := MayBeStoreMessage(nil, "a-b-c", nil)
 			return err
 		},
 	},
