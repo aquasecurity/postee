@@ -64,9 +64,9 @@ func (ctx *JiraAPI) CloneSettings() *data.OutputSettings {
 		FixVersions:     data.CopyStringArray(ctx.FixVersions),
 		AffectsVersions: data.CopyStringArray(ctx.AffectsVersions),
 		Labels:          data.CopyStringArray(ctx.Labels),
-		//TODO Unknowns
-		Enable: true,
-		Type:   "Jira",
+		Unknowns:        cpyUnknowns(ctx.Unknowns),
+		Enable:          true,
+		Type:            "Jira",
 	}
 }
 
@@ -459,4 +459,12 @@ func isServerJira(rawUrl string) bool {
 	}
 
 	return false
+}
+
+func cpyUnknowns(source map[string]string) map[string]string {
+	dst := make(map[string]string)
+	for k, v := range source {
+		dst[k] = v
+	}
+	return dst
 }
