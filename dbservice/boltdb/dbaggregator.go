@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"encoding/json"
@@ -6,14 +6,14 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-func AggregateScans(output string,
+func (boltDb *BoltDb) AggregateScans(output string,
 	currentScan map[string]string,
 	scansPerTicket int,
 	ignoreTheQuantity bool) ([]map[string]string, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
 		return nil, err
 	}

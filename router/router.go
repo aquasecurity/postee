@@ -198,19 +198,17 @@ func (ctx *Router) load() error {
 		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
 	}
 
-	dbservice.DbSizeLimit = tenant.DBMaxSize
-	if tenant.DBTestInterval == 0 {
-		tenant.DBTestInterval = 1
-	}
-	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
+	dbservice.ConfigureDb(&tenant.DbSettings, tenant.Name)
+
+	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DbSettings.DBTestInterval))
 	go func() {
 		for {
 			select {
 			case <-ctx.stopTicker:
 				return
 			case <-ctx.ticker.C:
-				dbservice.CheckSizeLimit()
-				dbservice.CheckExpiredData()
+				dbservice.Db.CheckSizeLimit()
+				dbservice.Db.CheckExpiredData()
 			}
 		}
 	}()

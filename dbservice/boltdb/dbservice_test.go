@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"errors"
@@ -76,23 +76,24 @@ var (
 )
 
 func TestStoreMessage(t *testing.T) {
+	db := NewBoltDb()
 	var tests = []struct {
 		input *string
 	}{
 		{&AlpineImageResult},
 	}
 
-	dbPathReal := DbPath
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	for _, test := range tests {
 
 		// Handling of first scan
-		isNew, err := MayBeStoreMessage([]byte(*test.input), AlpineImageKey, nil)
+		isNew, err := db.MayBeStoreMessage([]byte(*test.input), AlpineImageKey, nil)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -101,7 +102,7 @@ func TestStoreMessage(t *testing.T) {
 		}
 
 		// Handling of second scan with the same data
-		isNew, err = MayBeStoreMessage([]byte(*test.input), AlpineImageKey, nil)
+		isNew, err = db.MayBeStoreMessage([]byte(*test.input), AlpineImageKey, nil)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -112,11 +113,12 @@ func TestStoreMessage(t *testing.T) {
 
 }
 func TestInitError(t *testing.T) {
+	db := NewBoltDb()
 	originalInit := Init
-	originalDbPath := DbPath
+	originalDbPath := db.DbPath
 	initErr := errors.New("init error")
 
-	DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	Init = func(db *bbolt.DB, bucket string) error {
 		return initErr
@@ -124,10 +126,10 @@ func TestInitError(t *testing.T) {
 
 	defer func() {
 		Init = originalInit
-		os.Remove(DbPath)
-		DbPath = originalDbPath
+		os.Remove(db.DbPath)
+		db.DbPath = originalDbPath
 	}()
-	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
+	isNew, err := db.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 
 	if isNew {
 		t.Errorf("Scan shouldn't be marked as new\n")
@@ -139,11 +141,12 @@ func TestInitError(t *testing.T) {
 
 }
 func TestSelectError(t *testing.T) {
+	db := NewBoltDb()
 	originalDbSelect := dbSelect
-	originalDbPath := DbPath
+	originalDbPath := db.DbPath
 	selectErr := errors.New("select error")
 
-	DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	dbSelect = func(db *bbolt.DB, bucket, key string) (result []byte, err error) {
 		return nil, selectErr
@@ -151,10 +154,10 @@ func TestSelectError(t *testing.T) {
 
 	defer func() {
 		dbSelect = originalDbSelect
-		os.Remove(DbPath)
-		DbPath = originalDbPath
+		os.Remove(db.DbPath)
+		db.DbPath = originalDbPath
 	}()
-	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
+	isNew, err := db.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 
 	if isNew {
 		t.Errorf("Scan shouldn't be marked as new\n")
@@ -170,7 +173,7 @@ func TestInsertError(t *testing.T) {
 		bucket string
 	}{
 		{"WebhookBucket"},
-		{"WebookExpiryDates"},
+		{"WebhookExpiryDates"},
 	}
 	for _, test := range tests {
 		testBucketInsert(t, test.bucket)
@@ -178,11 +181,12 @@ func TestInsertError(t *testing.T) {
 }
 
 func testBucketInsert(t *testing.T, testBucket string) {
+	db := NewBoltDb()
 	originalDbInsert := dbInsert
-	originalDbPath := DbPath
+	originalDbPath := db.DbPath
 	insertErr := errors.New("insert error")
 
-	DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	dbInsert = func(db *bbolt.DB, bucket string, key, value []byte) error {
 		if bucket == testBucket {
@@ -193,14 +197,14 @@ func testBucketInsert(t *testing.T, testBucket string) {
 
 	defer func() {
 		dbInsert = originalDbInsert
-		os.Remove(DbPath)
-		DbPath = originalDbPath
+		os.Remove(db.DbPath)
+		db.DbPath = originalDbPath
 	}()
-	//expired shouldn't be null to cause insert to 'WebookExpiryDates' bucket
+	//expired shouldn't be null to cause insert to 'WebhookExpiryDates' bucket
 	timeToExpire := time.Duration(1) * time.Second
 	expired := time.Now().UTC().Add(timeToExpire)
 
-	isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, &expired)
+	isNew, err := db.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, &expired)
 
 	if isNew {
 		t.Errorf("Scan shouldn't be marked as new\n")

@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"os"
@@ -6,14 +6,15 @@ import (
 )
 
 func TestApiKey(t *testing.T) {
-	dbPathReal := DbPath
+	db := NewBoltDb()
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
-	EnsureApiKey()
-	key, err := GetApiKey()
+	db.DbPath = "test_webhooks.db"
+	db.EnsureApiKey()
+	key, err := db.GetApiKey()
 	if err != nil {
 		t.Fatal("error while getting value of API key")
 	}
@@ -22,13 +23,14 @@ func TestApiKey(t *testing.T) {
 	}
 }
 func TestApiKeyWithoutInit(t *testing.T) {
-	dbPathReal := DbPath
+	db := NewBoltDb()
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
-	key, err := GetApiKey()
+	db.DbPath = "test_webhooks.db"
+	key, err := db.GetApiKey()
 	if err == nil {
 		t.Fatal("Error is expected")
 	}
@@ -37,16 +39,17 @@ func TestApiKeyWithoutInit(t *testing.T) {
 	}
 }
 func TestApiKeyRenewal(t *testing.T) {
-	dbPathReal := DbPath
+	db := NewBoltDb()
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 	var keys [2]string
 	for i := 0; i < 2; i++ {
-		EnsureApiKey()
-		key, err := GetApiKey()
+		db.EnsureApiKey()
+		key, err := db.GetApiKey()
 		if err != nil {
 			t.Fatal("error while getting value of API key")
 		}

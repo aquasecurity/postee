@@ -7,19 +7,25 @@ import (
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/dbservice/boltdb"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/routes"
 )
 
 func TestAggregateByTimeout(t *testing.T) {
+	db = boltdb.NewBoltDb()
+	oldDb := dbservice.Db
+	dbservice.Db = db
+	defer func() { dbservice.Db = oldDb }()
+
 	const aggregationSeconds = 3
 
-	dbPathReal := dbservice.DbPath
+	dbPathReal := db.DbPath
 	savedRunScheduler := RunScheduler
 	schedulerInvctCnt := 0
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 		RunScheduler = savedRunScheduler
 	}()
 	RunScheduler = func(
@@ -36,7 +42,7 @@ func TestAggregateByTimeout(t *testing.T) {
 		schedulerInvctCnt++
 	}
 
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	demoRoute := &routes.InputRoute{
 		Name: "demo-route1",

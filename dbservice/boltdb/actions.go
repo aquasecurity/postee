@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"time"
@@ -6,11 +6,11 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-func MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error) {
+func (boltDb *BoltDb) MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
 		return false, err
 	}

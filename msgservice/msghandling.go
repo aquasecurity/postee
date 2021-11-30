@@ -62,7 +62,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
 		expired := calculateExpired(route.Plugins.UniqueMessageTimeoutSeconds)
 
-		wasStored, err := dbservice.MayBeStoreMessage(input, msgKey, expired)
+		wasStored, err := dbservice.Db.MayBeStoreMessage(input, msgKey, expired)
 		if err != nil {
 			log.Printf("Error while storing input: %v", err)
 			return
@@ -123,7 +123,7 @@ func send(otpt outputs.Output, cnt map[string]string) {
 		}
 	}()
 
-	err := dbservice.RegisterPlgnInvctn(otpt.GetName())
+	err := dbservice.Db.RegisterPlgnInvctn(otpt.GetName())
 	if err != nil {
 		log.Printf("Error while building aggregated content: %v", err)
 		return
@@ -140,7 +140,7 @@ func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
 }
 
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
-	aggregatedScans, err := dbservice.AggregateScans(outputName, currentContent, counts, ignoreLength)
+	aggregatedScans, err := dbservice.Db.AggregateScans(outputName, currentContent, counts, ignoreLength)
 	if err != nil {
 		log.Printf("AggregateScans Error: %v", err)
 		return aggregatedScans

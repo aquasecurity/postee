@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/dbservice/boltdb"
 	"github.com/aquasecurity/postee/routes"
 )
 
@@ -14,6 +15,7 @@ var (
 	invalidJson = `{
 	image : "My Image"
 	}`
+	db = boltdb.NewBoltDb()
 )
 
 type FailingInptEval struct {
@@ -62,12 +64,12 @@ func TestInputs(t *testing.T) {
 
 }
 func validateInputValue(t *testing.T, caseDesc string, input []byte, shouldPass bool) {
-	dbPathReal := dbservice.DbPath
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -99,12 +101,12 @@ func validateInputValue(t *testing.T, caseDesc string, input []byte, shouldPass 
 
 }
 func TestEvalError(t *testing.T) {
-	dbPathReal := dbservice.DbPath
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -130,12 +132,15 @@ func TestEvalError(t *testing.T) {
 }
 
 func TestAggrEvalError(t *testing.T) {
-	dbPathReal := dbservice.DbPath
+	oldDb := dbservice.Db
+	dbservice.Db = db
+	defer func() { dbservice.Db = oldDb }()
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -164,12 +169,12 @@ func TestAggrEvalError(t *testing.T) {
 	}
 }
 func TestEmptyInput(t *testing.T) {
-	dbPathReal := dbservice.DbPath
+	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	db.DbPath = "test_webhooks.db"
 
 	srvUrl := ""
 

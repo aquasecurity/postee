@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"os"
@@ -8,9 +8,10 @@ import (
 )
 
 func TestSetNewDbPathFromEnv(t *testing.T) {
+	db := NewBoltDb()
 	envPathToDbOld := os.Getenv("PATH_TO_DB")
 	defer os.Setenv("PATH_TO_DB", envPathToDbOld)
-	dbPathOld := DbPath
+	dbPathOld := db.DbPath
 
 	defaultDbPath := "/server/database/webhooks.db"
 	var tests = []struct {
@@ -36,12 +37,12 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 				}
 				os.Chmod(baseDir, 0)
 			}
-			SetNewDbPathFromEnv()
+			db.SetNewDbPathFromEnv()
 			defer os.RemoveAll(baseDir)
-			defer ChangeDbPath(dbPathOld)
+			defer db.ChangeDbPath(dbPathOld)
 
-			if test.expectedDBPath != DbPath {
-				t.Errorf("[%s] Paths is not equals, expected: %s, got: %s", test.name, test.expectedDBPath, DbPath)
+			if test.expectedDBPath != db.DbPath {
+				t.Errorf("[%s] Paths is not equals, expected: %s, got: %s", test.name, test.expectedDBPath, db.DbPath)
 			}
 
 		})

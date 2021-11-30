@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"log"
@@ -11,25 +11,34 @@ import (
 var (
 	dbBucketName         = "WebhookBucket"
 	dbBucketAggregator   = "WebhookAggregator"
-	dbBucketExpiryDates  = "WebookExpiryDates"
-	DbBucketOutputStats  = "WebhookOutputStats"
-	DbBucketSharedConfig = "WebhookSharedConfig"
+	dbBucketExpiryDates  = "WebhookExpiryDates"
+	dbBucketOutputStats  = "WebhookOutputStats"
+	dbBucketSharedConfig = "WebhookSharedConfig"
 
 	DbSizeLimit = 0
-	dueTimeBase = time.Hour * time.Duration(24)
 	DateFmt     = time.RFC3339Nano
+	dueTimeBase = time.Hour * time.Duration(24)
 
-	DbPath = "/server/database/webhooks.db"
-	mutex  sync.Mutex
+	mutex sync.Mutex
 )
 
-func ChangeDbPath(newPath string) {
+type BoltDb struct {
+	DbPath string
+}
+
+func NewBoltDb() *BoltDb {
+	return &BoltDb{
+		DbPath: "/server/database/webhooks.db",
+	}
+}
+
+func (boltDb *BoltDb) ChangeDbPath(newPath string) {
 	mutex.Lock()
-	DbPath = newPath
+	boltDb.DbPath = newPath
 	mutex.Unlock()
 }
 
-func SetNewDbPathFromEnv() {
+func (boltDb *BoltDb) SetNewDbPathFromEnv() {
 	newPath := os.Getenv("PATH_TO_DB")
 	if newPath != "" {
 		if _, err := os.Stat(newPath); err != nil {
@@ -44,6 +53,10 @@ func SetNewDbPathFromEnv() {
 				return
 			}
 		}
-		ChangeDbPath(newPath)
+		boltDb.ChangeDbPath(newPath)
 	}
+}
+
+func (boltDb *BoltDb) SetDbSizeLimit(limit int) {
+	DbSizeLimit = limit
 }
