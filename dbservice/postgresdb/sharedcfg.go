@@ -12,7 +12,7 @@ import (
 var apiKeyName = "POSTEE_API_KEY"
 
 func (postgresDb *PostgresDb) EnsureApiKey() error {
-	db, err := psqlConnect(postgresDb.psqlInfo)
+	db, err := psqlConnect(postgresDb.ConnectUrl)
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (postgresDb *PostgresDb) EnsureApiKey() error {
 		return err
 	}
 
-	if err = insert(db, dbTableSharedConfig, postgresDb.id, "apikeyname", apiKeyName, "value", apiKey); err != nil {
+	if err = insert(db, dbTableSharedConfig, postgresDb.Id, "apikeyname", apiKeyName, "value", apiKey); err != nil {
 		return err
 	}
 
@@ -35,13 +35,13 @@ func (postgresDb *PostgresDb) EnsureApiKey() error {
 }
 
 func (postgresDb *PostgresDb) GetApiKey() (string, error) {
-	db, err := psqlConnect(postgresDb.psqlInfo)
+	db, err := psqlConnect(postgresDb.ConnectUrl)
 	if err != nil {
 		return "", err
 	}
 	defer db.Close()
 	value := ""
-	err = db.Get(&value, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "value", dbTableSharedConfig, "id", "apikeyname"), postgresDb.id, apiKeyName)
+	err = db.Get(&value, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "value", dbTableSharedConfig, "id", "apikeyname"), postgresDb.Id, apiKeyName)
 	if err != nil {
 		return "", err
 	}

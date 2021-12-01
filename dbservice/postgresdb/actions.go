@@ -7,7 +7,7 @@ import (
 )
 
 func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error) {
-	db, err := psqlConnect(postgresDb.psqlInfo)
+	db, err := psqlConnect(postgresDb.ConnectUrl)
 	if err != nil {
 		return false, err
 	}
@@ -22,7 +22,7 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 	}
 
 	currentValue := ""
-	if err = db.Get(&currentValue, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "messageValue", dbTableName, "id", "messageKey"), postgresDb.id, messageKey); err != nil {
+	if err = db.Get(&currentValue, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "messageValue", dbTableName, "id", "messageKey"), postgresDb.Id, messageKey); err != nil {
 		if err != sql.ErrNoRows {
 			return false, err
 		}
@@ -32,12 +32,12 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 		return false, nil
 	} else {
 
-		if err = insert(db, dbTableName, postgresDb.id, "messagekey", messageKey, "messagevalue", string(message)); err != nil {
+		if err = insert(db, dbTableName, postgresDb.Id, "messagekey", messageKey, "messagevalue", string(message)); err != nil {
 			return false, err
 		}
 		if expired != nil {
 
-			if err = insert(db, dbTableExpiryDates, postgresDb.id, "date", expired.Format(DateFmt), "messagekey", messageKey); err != nil {
+			if err = insert(db, dbTableExpiryDates, postgresDb.Id, "date", expired.Format(DateFmt), "messagekey", messageKey); err != nil {
 				return false, err
 			}
 		}

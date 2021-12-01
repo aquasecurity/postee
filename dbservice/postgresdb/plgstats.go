@@ -8,7 +8,7 @@ import (
 )
 
 func (postgresDb *PostgresDb) RegisterPlgnInvctn(name string) error {
-	db, err := psqlConnect(postgresDb.psqlInfo)
+	db, err := psqlConnect(postgresDb.ConnectUrl)
 	if err != nil {
 		return err
 	}
@@ -19,12 +19,12 @@ func (postgresDb *PostgresDb) RegisterPlgnInvctn(name string) error {
 		return err
 	}
 	amount := 0
-	err = db.Get(&amount, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "amount", dbTableOutputStats, "id", "outputName"), postgresDb.id, name)
+	err = db.Get(&amount, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "amount", dbTableOutputStats, "id", "outputName"), postgresDb.Id, name)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 	amount += 1
-	err = insertOutputStats(db, postgresDb.id, name, amount)
+	err = insertOutputStats(db, postgresDb.Id, name, amount)
 	if err != nil {
 		return err
 	}

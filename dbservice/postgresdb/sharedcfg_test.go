@@ -15,7 +15,7 @@ func TestApiKey(t *testing.T) {
 	savedInsert := insert
 	insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error { return nil }
 	savedPsqlConnect := psqlConnect
-	psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
 			log.Println("failed to open sqlmock database:", err)
@@ -43,7 +43,7 @@ func TestApiKey(t *testing.T) {
 
 func TestApiKeyWithoutInit(t *testing.T) {
 	savedPsqlConnect := psqlConnect
-	psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
 			log.Println("failed to open sqlmock database:", err)
@@ -73,7 +73,7 @@ func TestApiKeyRenewal(t *testing.T) {
 		return nil
 	}
 	savedPsqlConnect := psqlConnect
-	psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
 			log.Println("failed to open sqlmock database:", err)

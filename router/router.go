@@ -258,11 +258,11 @@ func (ctx *Router) load() error {
 	//----------------------------------------------------
 	// TODO there should be some other way of doing that
 
-	if err = dbservice.ConfigureDb(&tenant.DbSettings, tenant.Name); err != nil {
+	if err = dbservice.ConfigurateDb(tenant.Name, &tenant.DBTestInterval, tenant.DBMaxSize); err != nil {
 		return err
 	}
 
-	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DbSettings.DBTestInterval))
+	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
 	go func() {
 		for {
 			select {

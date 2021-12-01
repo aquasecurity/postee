@@ -55,7 +55,7 @@ func TestBucketInitialization(t *testing.T) {
 	savedInitTable := initTable
 	savedPsqlConnect := psqlConnect
 	initTable = func(db *sqlx.DB, tableName string) error { return expectedError }
-	psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, _, err := sqlxmock.Newx()
 		if err != nil {
 			log.Println("failed to open sqlmock database:", err)

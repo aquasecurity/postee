@@ -3,6 +3,7 @@ package postgresdb
 import (
 	"log"
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	sqlxmock "github.com/zhashkevych/go-sqlxmock"
@@ -10,6 +11,7 @@ import (
 
 func TestStoreMessage(t *testing.T) {
 	currentValueStoreMessage := ""
+	time := time.Now()
 
 	savedInitTable := initTable
 	initTable = func(db *sqlx.DB, tableName string) error { return nil }
@@ -19,7 +21,7 @@ func TestStoreMessage(t *testing.T) {
 		return nil
 	}
 	savedPsqlConnect := psqlConnect
-	psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
 			log.Println("failed to open sqlmock database:", err)
@@ -43,7 +45,7 @@ func TestStoreMessage(t *testing.T) {
 	for _, test := range tests {
 
 		// Handling of first scan
-		isNew, err := db.MayBeStoreMessage([]byte(*test.input), AlpineImageKey, nil)
+		isNew, err := db.MayBeStoreMessage([]byte(*test.input), AlpineImageKey, &time)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}

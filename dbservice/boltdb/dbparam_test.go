@@ -9,8 +9,8 @@ import (
 
 func TestSetNewDbPathFromEnv(t *testing.T) {
 	db := NewBoltDb()
-	envPathToDbOld := os.Getenv("PATH_TO_DB")
-	defer os.Setenv("PATH_TO_DB", envPathToDbOld)
+	envPathToDbOld := os.Getenv("PATH_TO_BOLTDB")
+	defer os.Setenv("PATH_TO_BOLTDB", envPathToDbOld)
 	dbPathOld := db.DbPath
 
 	defaultDbPath := "/server/database/webhooks.db"
@@ -20,7 +20,7 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 		changePermission bool
 		expectedDBPath   string
 	}{
-		{"Empty PATH_TO_DB", "", false, defaultDbPath},
+		{"Empty PATH_TO_BOLTDB", "", false, defaultDbPath},
 		{"Permission denied to create directory(default DbPath is used)", "/database/database.db", false, defaultDbPath},
 		{"New DbPath", "./base/base.db", false, "./base/base.db"},
 		{"Permission denied to check directory(default DbPath is used)", "webhook/database/webhooks.db", true, defaultDbPath},
@@ -28,7 +28,7 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			os.Setenv("PATH_TO_DB", test.envPathToDb)
+			os.Setenv("PATH_TO_BOLTDB", test.envPathToDb)
 			baseDir := strings.Split(filepath.Dir(test.envPathToDb), "/")[0]
 			if test.changePermission {
 				err := os.Mkdir(baseDir, os.ModeDir)

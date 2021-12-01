@@ -23,7 +23,7 @@ func TestExpiredDates(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			deleted := false
 			savedPsqlConnect := psqlConnect
-			psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, mock, err := sqlxmock.Newx()
 				if err != nil {
 					log.Println("failed to open sqlmock database:", err)
@@ -64,7 +64,7 @@ func TestSizeLimit(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			deleted := false
 			savedPsqlConnect := psqlConnect
-			psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, mock, err := sqlxmock.Newx()
 				if err != nil {
 					log.Println("failed to open sqlmock database:", err)

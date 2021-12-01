@@ -1,6 +1,7 @@
 package dbservice
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -12,22 +13,6 @@ var (
 	Db DbProvider
 )
 
-type DbSettings struct {
-	DBMaxSize       int `json:"max-db-size,omitempty"`
-	DBRemoveOldData int `json:"delete-old-data,omitempty"`
-	DBTestInterval  int `json:"db-verify-interval,omitempty"`
-
-	//PostgresDb
-	DbName     string `json:"dbname,omitempty"`
-	DbHostName string `json:"dbhostname,omitempty"`
-	DbPort     string `json:"dbport,omitempty"`
-	DbUser     string `json:"dbuser,omitempty"`
-	DbPassword string `json:"dbpassword,omitempty"`
-	DbSslMode  string `json:"dbsslmode,omitempty"`
-
-	//BoltDb
-	DbPath string `json:"dbpath,omitempty"`
-}
 type DbProvider interface {
 	MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error)
 	CheckSizeLimit()
@@ -39,28 +24,29 @@ type DbProvider interface {
 	SetDbSizeLimit(limit int)
 }
 
-func ConfigureDb(settings *DbSettings, id string) error {
-	if settings.DBTestInterval == 0 {
-		settings.DBTestInterval = 1
+func ConfigurateDb(id string, dBTestInterval *int, dbMaxSize int) error {
+	if *dBTestInterval == 0 {
+		*dBTestInterval = 1
 	}
 
-	if settings.DbName == "" && settings.DbHostName == "" && settings.DbUser == "" {
+	if os.Getenv("POSTGRES_URL") != "" {
+		if id == "" {
+			return errors.New("error configurate postgresDb: 'id' is empty")
+		}
+		postgresDb := postgresdb.NewPostgresDb(id, os.Getenv("POSTGRES_URL"))
+		if err := postgresdb.TestConnect(postgresDb.ConnectUrl); err != nil {
+			return err
+		}
+		Db = postgresDb
+	} else {
 		boltdb := boltdb.NewBoltDb()
-		if os.Getenv("PATH_TO_DB") != "" {
-			boltdb.SetNewDbPathFromEnv()
+		if os.Getenv("PATH_TO_BOLTDB") != "" {
+			if err := boltdb.SetNewDbPathFromEnv(); err != nil {
+				return err
+			}
 		}
 		Db = boltdb
-		return nil
-	} else {
-		db, err := postgresdb.NewPostgresDb(id, settings.DbName, settings.DbHostName, settings.DbPort, settings.DbUser, settings.DbPassword, settings.DbSslMode)
-		if err != nil {
-			return err
-		}
-		if err = db.TestConnect(); err != nil {
-			return err
-		}
-		Db = db
 	}
-	Db.SetDbSizeLimit(settings.DBMaxSize)
+	Db.SetDbSizeLimit(dbMaxSize)
 	return nil
 }
