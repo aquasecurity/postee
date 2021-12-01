@@ -198,7 +198,9 @@ func (ctx *Router) load() error {
 		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
 	}
 
-	dbservice.ConfigureDb(&tenant.DbSettings, tenant.Name)
+	if err = dbservice.ConfigureDb(&tenant.DbSettings, tenant.Name); err != nil {
+		return err
+	}
 
 	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DbSettings.DBTestInterval))
 	go func() {
