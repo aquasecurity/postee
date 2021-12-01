@@ -82,6 +82,11 @@ func (postgresDb *PostgresDb) SetDbSizeLimit(limit int) {
 	DbSizeLimit = limit
 }
 
+func (postgresDb *PostgresDb) TestConnect() error {
+	_, err := psqlConnect(postgresDb.psqlInfo)
+	return errors.New("Error postgresDb test connect: " + err.Error())
+}
+
 var psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
 	db, err := sqlx.Connect("postgres", psqlInfo)
 	if err != nil {

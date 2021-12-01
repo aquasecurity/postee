@@ -18,15 +18,15 @@ type DbSettings struct {
 	DBTestInterval  int `json:"db-verify-interval,omitempty"`
 
 	//PostgresDb
-	DbName     string
-	DbHostName string
-	DbPort     string
-	DbUser     string
-	DbPassword string
-	DbSslMode  string
+	DbName     string `json:"dbname,omitempty"`
+	DbHostName string `json:"dbhostname,omitempty"`
+	DbPort     string `json:"dbport,omitempty"`
+	DbUser     string `json:"dbuser,omitempty"`
+	DbPassword string `json:"dbpassword,omitempty"`
+	DbSslMode  string `json:"dbsslmode,omitempty"`
 
 	//BoltDb
-	DbPath string
+	DbPath string `json:"dbpath,omitempty"`
 }
 type DbProvider interface {
 	MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error)
@@ -54,6 +54,9 @@ func ConfigureDb(settings *DbSettings, id string) error {
 	} else {
 		db, err := postgresdb.NewPostgresDb(id, settings.DbName, settings.DbHostName, settings.DbPort, settings.DbUser, settings.DbPassword, settings.DbSslMode)
 		if err != nil {
+			return err
+		}
+		if err = db.TestConnect(); err != nil {
 			return err
 		}
 		Db = db
