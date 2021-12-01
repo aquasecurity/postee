@@ -19,7 +19,7 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 		return nil
 	}
 	savedPsqlConnect := psqlConnect
-	psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
 			log.Println("failed to open sqlmock database:", err)
@@ -60,7 +60,7 @@ func TestRegisterPlgnInvctnErrors(t *testing.T) {
 			savedInsertOutputStats := insertOutputStats
 			insertOutputStats = func(db *sqlx.DB, id, outputName string, amount int) error { return nil }
 			savedPsqlConnect := psqlConnect
-			psqlConnect = func(psqlInfo string) (*sqlx.DB, error) {
+			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, mock, err := sqlxmock.Newx()
 				if err != nil {
 					log.Println("failed to open sqlmock database:", err)

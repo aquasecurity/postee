@@ -1,7 +1,6 @@
 package boltdb
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -38,23 +37,22 @@ func (boltDb *BoltDb) ChangeDbPath(newPath string) {
 	mutex.Unlock()
 }
 
-func (boltDb *BoltDb) SetNewDbPathFromEnv() {
-	newPath := os.Getenv("PATH_TO_DB")
+func (boltDb *BoltDb) SetNewDbPathFromEnv() error {
+	newPath := os.Getenv("PATH_TO_BOLTDB")
 	if newPath != "" {
 		if _, err := os.Stat(newPath); err != nil {
 			if os.IsNotExist(err) {
 				err = os.MkdirAll(filepath.Dir(newPath), os.ModePerm)
 				if err != nil {
-					log.Printf("Can't create DateBase directory: %v, the default path is used", err)
-					return
+					return err
 				}
 			} else {
-				log.Printf("Can't check DateBase directory: %v, the default path is used", err)
-				return
+				return err
 			}
 		}
 		boltDb.ChangeDbPath(newPath)
 	}
+	return nil
 }
 
 func (boltDb *BoltDb) SetDbSizeLimit(limit int) {

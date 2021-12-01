@@ -11,7 +11,7 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 	scansPerTicket int,
 	ignoreTheQuantity bool) ([]map[string]string, error) {
 
-	db, err := psqlConnect(postgresDb.psqlInfo)
+	db, err := psqlConnect(postgresDb.ConnectUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 		aggregatedScans = append(aggregatedScans, currentScan)
 	}
 	currentValue := ""
-	if err = db.Get(&currentValue, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "saving", dbTableAggregator, "id", "output"), postgresDb.id, output); err != nil {
+	if err = db.Get(&currentValue, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "saving", dbTableAggregator, "id", "output"), postgresDb.Id, output); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
@@ -46,13 +46,13 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 		if err != nil {
 			return nil, err
 		}
-		if err = insert(db, dbTableAggregator, postgresDb.id, "output", output, "saving", string(saving)); err != nil {
+		if err = insert(db, dbTableAggregator, postgresDb.Id, "output", output, "saving", string(saving)); err != nil {
 
 			return nil, err
 		}
 		return nil, nil
 	}
-	if err = insert(db, dbTableAggregator, postgresDb.id, "output", output, "saving", ""); err != nil {
+	if err = insert(db, dbTableAggregator, postgresDb.Id, "output", output, "saving", ""); err != nil {
 		return nil, err
 	}
 	return aggregatedScans, nil
