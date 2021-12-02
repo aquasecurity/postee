@@ -185,15 +185,17 @@ result = res {
     text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
     urlText :=sprintf("See more: \u003c%s|%s\u003e", [href, text])
 
-    footers := [
-        {
+    footers := by_flag(
+        "", 
+        [{
             "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": urlText
             }
-        }
-    ]
+        }], 
+        aqua_server == "")
+
     res := flat_array([
         headers,
         vln_list("critical"), 

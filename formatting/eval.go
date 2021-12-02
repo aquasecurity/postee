@@ -27,7 +27,7 @@ func (legacyScnEvaluator *legacyScnEvaluator) Eval(in map[string]interface{}, se
 	return map[string]string{
 
 		"title":       title,
-		"description": layout.GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl+image_url_part),
+		"description": layout.GenTicketDescription(legacyScnEvaluator.layoutProvider, scan, nil, serverUrl, image_url_part),
 		"url":         serverUrl + image_url_part,
 	}, nil
 }
