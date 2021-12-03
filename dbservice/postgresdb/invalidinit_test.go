@@ -50,7 +50,7 @@ var tests = []struct {
 	},
 }
 
-func TestBucketInitialization(t *testing.T) {
+func TestTableInitialization(t *testing.T) {
 	expectedError := errors.New("weird error")
 	savedInitTable := initTable
 	savedPsqlConnect := psqlConnect
