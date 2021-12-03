@@ -8,9 +8,8 @@ import (
 
 var (
 	tableSchemas = map[string]string{
-		dbTableName:         "CREATE TABLE IF NOT EXISTS %s (id text, messagekey text,messagevalue text);",
+		dbTableName:         "CREATE TABLE IF NOT EXISTS %s (id text, date text, messagekey text,messagevalue text);",
 		dbTableAggregator:   "CREATE TABLE IF NOT EXISTS %s (id text, output text,saving text);",
-		dbTableExpiryDates:  "CREATE TABLE IF NOT EXISTS %s (id text, date text,messageKey text);",
 		dbTableOutputStats:  "CREATE TABLE IF NOT EXISTS %s (id text, outputname text,amount integer);",
 		dbTableSharedConfig: "CREATE TABLE IF NOT EXISTS %s (id text, apikeyname text,value text);",
 	}

@@ -36,31 +36,22 @@ func (postgresDb *PostgresDb) CheckExpiredData() {
 	connectUrl := postgresDb.ConnectUrl
 	db, err := psqlConnect(connectUrl)
 	if err != nil {
-		log.Println("CheckExpiredData: Can't open db, connectUrl: ", connectUrl)
+		log.Printf("CheckExpiredData: Can't open postgresDb: %v", err)
 		return
 	}
 	defer db.Close()
 
-	var scanStructs []struct {
-		Date   string `db:"date"`
-		TtlKey string `db:"messagekey"`
-	}
-	if err := db.Select(&scanStructs, fmt.Sprintf("SELECT (key AND ttlkey) FROM %s WHERE %s=$1", dbTableExpiryDates, "id"), postgresDb.Id); err != nil {
-		log.Printf("CheckExpiredData: Can't get %s table: %s", dbTableExpiryDates, err)
+	dates := []string{}
+	if err := db.Select(&dates, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 and %s != '')", "date", dbTableName, "id", "date"), postgresDb.Id); err != nil {
+		log.Printf("CheckExpiredData: Can't get dates from table: %s, err: %v", dbTableName, err)
 		return
 	}
 
 	max := time.Now().UTC().Format(DateFmt) //remove expired records
-	for _, scanStruct := range scanStructs {
-		if scanStruct.Date <= max {
-
-			if err = deleteRow(db, dbTableExpiryDates, postgresDb.Id, "messagekey", scanStruct.TtlKey); err != nil {
-				log.Printf("CheckExpiredData: Can't delete %s from table:%s", scanStruct.TtlKey, dbTableExpiryDates)
-				return
-			}
-
-			if err = deleteRow(db, dbTableName, postgresDb.Id, "messagekey", scanStruct.TtlKey); err != nil {
-				log.Printf("CheckExpiredData: Can't delete %s from table:%s", scanStruct.TtlKey, dbTableName)
+	for _, date := range dates {
+		if date <= max {
+			if err = deleteRow(db, dbTableName, postgresDb.Id, "date", date); err != nil {
+				log.Printf("CheckExpiredData: Can't delete %s from table:%s", date, dbTableName)
 				return
 			}
 		}

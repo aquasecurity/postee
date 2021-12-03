@@ -10,7 +10,6 @@ import (
 var (
 	dbTableName         = "WebhookTable"
 	dbTableAggregator   = "WebhookAggregator"
-	dbTableExpiryDates  = "WebhookExpiryDates"
 	dbTableOutputStats  = "WebhookOutputStats"
 	dbTableSharedConfig = "WebhookSharedConfig"
 

@@ -15,9 +15,9 @@ func TestStoreMessage(t *testing.T) {
 
 	savedInitTable := initTable
 	initTable = func(db *sqlx.DB, tableName string) error { return nil }
-	savedInsert := insert
-	insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error {
-		currentValueStoreMessage = value3
+	savedinsertInTableName := insertInTableName
+	insertInTableName = func(db *sqlx.DB, id, date, messageKey, messageValue string) error {
+		currentValueStoreMessage = messageValue
 		return nil
 	}
 	savedPsqlConnect := psqlConnect
@@ -32,7 +32,7 @@ func TestStoreMessage(t *testing.T) {
 	}
 	defer func() {
 		initTable = savedInitTable
-		insert = savedInsert
+		insertInTableName = savedinsertInTableName
 		psqlConnect = savedPsqlConnect
 	}()
 

@@ -17,10 +17,6 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 		return false, err
 	}
 
-	if err = initTable(db, dbTableExpiryDates); err != nil {
-		return false, err
-	}
-
 	currentValue := ""
 	if err = db.Get(&currentValue, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "messageValue", dbTableName, "id", "messageKey"), postgresDb.Id, messageKey); err != nil {
 		if err != sql.ErrNoRows {
@@ -31,13 +27,12 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 	if currentValue != "" {
 		return false, nil
 	} else {
-
-		if err = insert(db, dbTableName, postgresDb.Id, "messagekey", messageKey, "messagevalue", string(message)); err != nil {
-			return false, err
-		}
 		if expired != nil {
-
-			if err = insert(db, dbTableExpiryDates, postgresDb.Id, "date", expired.Format(DateFmt), "messagekey", messageKey); err != nil {
+			if err = insertInTableName(db, postgresDb.Id, expired.Format(DateFmt), messageKey, string(message)); err != nil {
+				return false, err
+			}
+		} else {
+			if err = insertInTableName(db, postgresDb.Id, "", messageKey, string(message)); err != nil {
 				return false, err
 			}
 		}

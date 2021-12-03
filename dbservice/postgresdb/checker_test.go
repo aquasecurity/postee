@@ -28,7 +28,7 @@ func TestExpiredDates(t *testing.T) {
 				if err != nil {
 					log.Println("failed to open sqlmock database:", err)
 				}
-				rows := sqlxmock.NewRows([]string{"date", "messagekey"}).AddRow(test.time, "ttlKeyTest")
+				rows := sqlxmock.NewRows([]string{"date"}).AddRow(test.time)
 				mock.ExpectQuery("SELECT").WillReturnRows(rows)
 				return db, err
 			}
