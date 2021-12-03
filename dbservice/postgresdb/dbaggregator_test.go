@@ -50,8 +50,6 @@ func TestAggregateScans(t *testing.T) {
 
 	saving := ""
 	for i := 0; i < len(tests); i++ {
-		savedInitTable := initTable
-		initTable = func(db *sqlx.DB, tableName string) error { return nil }
 		savedInsert := insert
 		insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error {
 			saving = value3
@@ -68,7 +66,6 @@ func TestAggregateScans(t *testing.T) {
 			return db, err
 		}
 		defer func() {
-			initTable = savedInitTable
 			insert = savedInsert
 			psqlConnect = savedPsqlConnect
 		}()

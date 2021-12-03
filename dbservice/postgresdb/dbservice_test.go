@@ -78,7 +78,8 @@ var (
 )
 
 func TestInitError(t *testing.T) {
-	initErr := errors.New("init error")
+	initTablesErr := errors.New("init tables error")
+	testConnectErr := errors.New("test connect error")
 
 	savedPsqlConnect := psqlConnect
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
@@ -86,20 +87,24 @@ func TestInitError(t *testing.T) {
 		if err != nil {
 			log.Println("failed to open sqlmock database:", err)
 		}
-		mock.ExpectExec("CREATE").WillReturnError(initErr)
+		mock.ExpectExec("CREATE").WillReturnError(initTablesErr)
 		return db, err
 	}
-	defer func() {
-		psqlConnect = savedPsqlConnect
-	}()
-	isNew, err := db.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 
-	if isNew {
-		t.Errorf("Scan shouldn't be marked as new\n")
+	err := InitPostgresDb("connectUrl")
+	if err.Error() != initTablesErr.Error() {
+		t.Errorf("Unexpected error: expected %s, got %s \n", initTablesErr, err)
 	}
 
-	if err.Error() != initErr.Error() {
-		t.Errorf("Unexpected error: expected %s, got %s \n", initErr, err)
+	savedTestConnect := testConnect
+	testConnect = func(connectUrl string) (*sqlx.DB, error) { return nil, testConnectErr }
+	defer func() {
+		psqlConnect = savedPsqlConnect
+		testConnect = savedTestConnect
+	}()
+	err = InitPostgresDb("ConnectUrl")
+	if err.Error() != testConnectErr.Error() {
+		t.Errorf("Unexpected error: expected %s, got %s \n", testConnectErr, err)
 	}
 }
 

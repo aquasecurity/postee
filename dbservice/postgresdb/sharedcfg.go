@@ -17,10 +17,6 @@ func (postgresDb *PostgresDb) EnsureApiKey() error {
 		return err
 	}
 	defer db.Close()
-	err = initTable(db, dbTableSharedConfig)
-	if err != nil {
-		return err
-	}
 
 	apiKey, err := generateApiKey(32)
 	if err != nil {

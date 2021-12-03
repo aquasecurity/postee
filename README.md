@@ -466,7 +466,7 @@ The Postee container uses BoltDB to store information about previously scanned i
 This is used to prevent resending messages that were already sent before.
 The size of the database can grow over time. Every image that is saved in the database uses 20K of storage.  
  
-Postee supports ‘PATH_TO_BOLTDB’ environment variable to change the bolt database directory. To use, set the ‘PATH_TO_BOLTDB’ environment variable to point to the bolt database file, for example: PATH_TO_BOLTDB="./database/webhook.db". By default, the directory for the bolt database file is “/server/database/webhook.db”.
+Postee supports ‘PATH_TO_DB’ environment variable to change the bolt database directory. To use, set the ‘PATH_TO_DB’ environment variable to point to the bolt database file, for example: PATH_TO_DB="./database/webhook.db". By default, the directory for the bolt database file is “/server/database/webhook.db”.
 
 If you would like to persist the database file between restarts of the Postee container, then you should
 use a persistent storage option to mount the "/server/database" directory of the container.

@@ -11,8 +11,6 @@ import (
 
 func TestRegisterPlgnInvctn(t *testing.T) {
 	receivedKey := 0
-	savedInitTable := initTable
-	initTable = func(db *sqlx.DB, tableName string) error { return nil }
 	savedInsertOutputStats := insertOutputStats
 	insertOutputStats = func(db *sqlx.DB, id, outputName string, amount int) error {
 		receivedKey = amount
@@ -29,7 +27,6 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 		return db, err
 	}
 	defer func() {
-		initTable = savedInitTable
 		insertOutputStats = savedInsertOutputStats
 		psqlConnect = savedPsqlConnect
 	}()
@@ -55,8 +52,6 @@ func TestRegisterPlgnInvctnErrors(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			savedInitTable := initTable
-			initTable = func(db *sqlx.DB, tableName string) error { return nil }
 			savedInsertOutputStats := insertOutputStats
 			insertOutputStats = func(db *sqlx.DB, id, outputName string, amount int) error { return nil }
 			savedPsqlConnect := psqlConnect
@@ -70,7 +65,6 @@ func TestRegisterPlgnInvctnErrors(t *testing.T) {
 			}
 			defer func() {
 				psqlConnect = savedPsqlConnect
-				initTable = savedInitTable
 				insertOutputStats = savedInsertOutputStats
 			}()
 			err := db.RegisterPlgnInvctn("testName")

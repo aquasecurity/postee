@@ -17,10 +17,6 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 	}
 	defer db.Close()
 
-	if err = initTable(db, dbTableAggregator); err != nil {
-		return nil, err
-	}
-
 	aggregatedScans := make([]map[string]string, 0, scansPerTicket)
 	if len(currentScan) > 0 {
 		aggregatedScans = append(aggregatedScans, currentScan)

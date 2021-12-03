@@ -24,17 +24,17 @@ type DbProvider interface {
 	SetDbSizeLimit(limit int)
 }
 
-func ConfigurateDb(id string, dBTestInterval *int, dbMaxSize int) error {
+func ConfigureDb(tenantId string, dBTestInterval *int, dbMaxSize int) error {
 	if *dBTestInterval == 0 {
 		*dBTestInterval = 1
 	}
 
 	if os.Getenv("POSTGRES_URL") != "" {
-		if id == "" {
-			return errors.New("error configurate postgresDb: 'id' is empty")
+		if tenantId == "" {
+			return errors.New("error configurate postgresDb: 'tenantId' is empty")
 		}
-		postgresDb := postgresdb.NewPostgresDb(id, os.Getenv("POSTGRES_URL"))
-		if err := postgresdb.TestConnect(postgresDb.ConnectUrl); err != nil {
+		postgresDb := postgresdb.NewPostgresDb(tenantId, os.Getenv("POSTGRES_URL"))
+		if err := postgresdb.InitPostgresDb(postgresDb.ConnectUrl); err != nil {
 			return err
 		}
 		Db = postgresDb
