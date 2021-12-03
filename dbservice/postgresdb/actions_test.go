@@ -11,10 +11,7 @@ import (
 
 func TestStoreMessage(t *testing.T) {
 	currentValueStoreMessage := ""
-	time := time.Now()
 
-	savedInitTable := initTable
-	initTable = func(db *sqlx.DB, tableName string) error { return nil }
 	savedinsertInTableName := insertInTableName
 	insertInTableName = func(db *sqlx.DB, id, date, messageKey, messageValue string) error {
 		currentValueStoreMessage = messageValue
@@ -31,21 +28,22 @@ func TestStoreMessage(t *testing.T) {
 		return db, err
 	}
 	defer func() {
-		initTable = savedInitTable
 		insertInTableName = savedinsertInTableName
 		psqlConnect = savedPsqlConnect
 	}()
 
 	var tests = []struct {
 		input *string
+		t     *time.Time
 	}{
-		{&AlpineImageResult},
+		{&AlpineImageResult, nil},
+		{&AlpineImageResult, &time.Time{}},
 	}
 
 	for _, test := range tests {
 
 		// Handling of first scan
-		isNew, err := db.MayBeStoreMessage([]byte(*test.input), AlpineImageKey, &time)
+		isNew, err := db.MayBeStoreMessage([]byte(*test.input), AlpineImageKey, test.t)
 		if err != nil {
 			t.Errorf("Error: %s\n", err)
 		}
@@ -61,6 +59,7 @@ func TestStoreMessage(t *testing.T) {
 		if isNew {
 			t.Errorf("A old scan wasn't found!\n")
 		}
+		currentValueStoreMessage = ""
 	}
 
 }

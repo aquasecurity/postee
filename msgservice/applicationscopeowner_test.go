@@ -25,11 +25,11 @@ func TestApplicationScopeOwner(t *testing.T) {
 	db = boltdb.NewBoltDb()
 	oldDb := dbservice.Db
 	dbservice.Db = db
-	defer func() { dbservice.Db = oldDb }()
 	dbPathReal := db.DbPath
 	defer func() {
 		os.Remove(db.DbPath)
 		db.DbPath = dbPathReal
+		dbservice.Db = oldDb
 	}()
 	db.DbPath = "test_webhooks.db"
 

@@ -2,7 +2,6 @@ package boltdb
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"time"
 
@@ -31,7 +30,6 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 		c := b.Cursor()
 		size := 0
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			fmt.Println(string(v))
 			size += len(v)
 		}
 		if size > DbSizeLimit {

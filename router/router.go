@@ -198,7 +198,7 @@ func (ctx *Router) load() error {
 		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
 	}
 
-	if err = dbservice.ConfigurateDb(tenant.Name, &tenant.DBTestInterval, tenant.DBMaxSize); err != nil {
+	if err = dbservice.ConfigureDb(tenant.Name, &tenant.DBTestInterval, tenant.DBMaxSize); err != nil {
 		return err
 	}
 

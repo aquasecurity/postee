@@ -1,10 +1,7 @@
 package postgresdb
 
 import (
-	"errors"
 	"time"
-
-	"github.com/jmoiron/sqlx"
 )
 
 var (
@@ -32,21 +29,4 @@ func NewPostgresDb(id, connectUrl string) *PostgresDb {
 
 func (postgresDb *PostgresDb) SetDbSizeLimit(limit int) {
 	DbSizeLimit = limit
-}
-
-var TestConnect = func(connectUrl string) error {
-	db, err := psqlConnect(connectUrl)
-	if err != nil {
-		return errors.New("Error postgresDb test connect: " + err.Error())
-	}
-	defer db.Close()
-	return nil
-}
-
-var psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-	db, err := sqlx.Connect("postgres", connectUrl)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
 }

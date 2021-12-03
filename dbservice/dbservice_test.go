@@ -28,7 +28,7 @@ func TestConfigurateBoltDbPath(t *testing.T) {
 			os.Setenv("PATH_TO_BOLTDB", test.dbPath)
 
 			testInterval := 2
-			if err := ConfigurateDb("id", &testInterval, 1); err != nil {
+			if err := ConfigureDb("id", &testInterval, 1); err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
 			if testInterval != 2 {
@@ -50,30 +50,28 @@ func TestConfiguratePostgresDbUrlAndId(t *testing.T) {
 		expectedError error
 	}{
 		{"happy configuration", "postgresql://user:secret@localhost", "test-id", nil},
-		{"bad id", "postgresql://user:secret@localhost", "", errors.New("error configurate postgresDb: 'id' is empty")},
+		{"bad id", "postgresql://user:secret@localhost", "", errors.New("error configurate postgresDb: 'tenantId' is empty")},
 		{"bad url", "badUrl", "test-id", errors.New("badUrl error")},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			testConnectSaved := postgresdb.TestConnect
-			postgresdb.TestConnect = func(connectUrl string) error {
+			initPostgresDbSaved := postgresdb.InitPostgresDb
+			postgresdb.InitPostgresDb = func(connectUrl string) error {
 				if connectUrl == "badUrl" {
 					return errors.New("badUrl error")
 				}
 				return nil
 			}
-			defer func() {
-				postgresdb.TestConnect = testConnectSaved
-			}()
 			oldUrlEnv := os.Getenv("POSTGRES_URL")
 			defer func() {
+				postgresdb.InitPostgresDb = initPostgresDbSaved
 				os.Setenv("POSTGRES_URL", oldUrlEnv)
 			}()
 			os.Setenv("POSTGRES_URL", test.url)
 
 			testInterval := 0
-			err := ConfigurateDb(test.id, &testInterval, 1)
+			err := ConfigureDb(test.id, &testInterval, 1)
 			if err != nil {
 				if err.Error() != test.expectedError.Error() {
 					t.Errorf("Unexpected error, expected: %s, got: %s", test.expectedError, err)

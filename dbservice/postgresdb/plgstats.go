@@ -14,10 +14,6 @@ func (postgresDb *PostgresDb) RegisterPlgnInvctn(name string) error {
 	}
 	defer db.Close()
 
-	err = initTable(db, dbTableOutputStats)
-	if err != nil {
-		return err
-	}
 	amount := 0
 	err = db.Get(&amount, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "amount", dbTableOutputStats, "id", "outputName"), postgresDb.Id, name)
 	if err != nil && err != sql.ErrNoRows {

@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func TestConnectFunc(t *testing.T) {
+func TestConnectFuncError(t *testing.T) {
 	expectedError := "Error postgresDb test connect: connect error"
 	savedpsqlConnect := psqlConnect
 	defer func() {
@@ -16,8 +16,16 @@ func TestConnectFunc(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		return nil, errors.New("connect error")
 	}
-	err := TestConnect("url")
+	_, err := testConnect("url")
 	if err.Error() != expectedError {
 		t.Errorf("error text connect, expectedError: %v, got: %v", expectedError, err)
+	}
+}
+
+func TestPsqlConnectError(t *testing.T) {
+	expectedError := `missing "=" after "test_trivy_psql_connect_dbName" in connection info string"`
+	_, err := psqlConnect("test_trivy_psql_connect_dbName")
+	if err.Error() != expectedError {
+		t.Errorf("Unexpected error, expected: '%v', got: '%v'", expectedError, err)
 	}
 }

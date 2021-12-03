@@ -13,12 +13,9 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 	}
 	defer db.Close()
 
-	if err = initTable(db, dbTableName); err != nil {
-		return false, err
-	}
-
 	currentValue := ""
-	if err = db.Get(&currentValue, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "messageValue", dbTableName, "id", "messageKey"), postgresDb.Id, messageKey); err != nil {
+	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "messageValue", dbTableName, "id", "messageKey")
+	if err = db.Get(&currentValue, sqlQuery, postgresDb.Id, messageKey); err != nil {
 		if err != sql.ErrNoRows {
 			return false, err
 		}

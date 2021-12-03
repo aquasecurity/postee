@@ -10,8 +10,6 @@ import (
 )
 
 func TestApiKey(t *testing.T) {
-	savedInitTable := initTable
-	initTable = func(db *sqlx.DB, tableName string) error { return nil }
 	savedInsert := insert
 	insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error { return nil }
 	savedPsqlConnect := psqlConnect
@@ -25,7 +23,6 @@ func TestApiKey(t *testing.T) {
 		return db, err
 	}
 	defer func() {
-		initTable = savedInitTable
 		insert = savedInsert
 		psqlConnect = savedPsqlConnect
 	}()
@@ -65,8 +62,6 @@ func TestApiKeyWithoutInit(t *testing.T) {
 
 func TestApiKeyRenewal(t *testing.T) {
 	receivedKey := ""
-	savedInitTable := initTable
-	initTable = func(db *sqlx.DB, tableName string) error { return nil }
 	savedInsert := insert
 	insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error {
 		receivedKey = value3
@@ -83,7 +78,6 @@ func TestApiKeyRenewal(t *testing.T) {
 		return db, err
 	}
 	defer func() {
-		initTable = savedInitTable
 		insert = savedInsert
 		psqlConnect = savedPsqlConnect
 	}()
