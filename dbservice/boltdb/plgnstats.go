@@ -3,6 +3,7 @@ package boltdb
 import (
 	"strconv"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -15,13 +16,13 @@ func (boltDb *BoltDb) RegisterPlgnInvctn(name string) error {
 		return err
 	}
 	defer db.Close()
-	err = Init(db, dbBucketOutputStats)
+	err = Init(db, dbparam.DbBucketOutputStats)
 	if err != nil {
 		return err
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(dbBucketOutputStats))
+		bucket := tx.Bucket([]byte(dbparam.DbBucketOutputStats))
 		var i int
 		v := bucket.Get([]byte(name))
 

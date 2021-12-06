@@ -5,18 +5,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	"github.com/jmoiron/sqlx"
 	sqlxmock "github.com/zhashkevych/go-sqlxmock"
 )
 
 func TestExpiredDates(t *testing.T) {
 	tests := []struct {
-		name       string
-		time       time.Time
-		wasDeleted bool
+		name        string
+		deleteError bool
+		wasDeleted  bool
 	}{
-		{"Time before Now", time.Now().UTC().Add(time.Duration(1) * time.Hour), false},
-		{"Time after Now", time.Now().UTC().Add(time.Duration(-1) * time.Hour), true},
+		{"happy delete rows", false, true},
+		{"bad delete rows", true, false},
 	}
 
 	for _, test := range tests {
@@ -24,22 +25,22 @@ func TestExpiredDates(t *testing.T) {
 			deleted := false
 			savedPsqlConnect := psqlConnect
 			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-				db, mock, err := sqlxmock.Newx()
+				db, _, err := sqlxmock.Newx()
 				if err != nil {
 					log.Println("failed to open sqlmock database:", err)
 				}
-				rows := sqlxmock.NewRows([]string{"date"}).AddRow(test.time)
-				mock.ExpectQuery("SELECT").WillReturnRows(rows)
 				return db, err
 			}
-			savedDeleteRow := deleteRow
-			deleteRow = func(db *sqlx.DB, table, id, columnName, value string) error {
-				deleted = true
+			savedDeleteRow := deleteRowsByIdAndTime
+			deleteRowsByIdAndTime = func(db *sqlx.DB, table, id string, t time.Time) error {
+				if !test.deleteError {
+					deleted = true
+				}
 				return nil
 			}
 			defer func() {
 				psqlConnect = savedPsqlConnect
-				deleteRow = savedDeleteRow
+				deleteRowsByIdAndTime = savedDeleteRow
 			}()
 			db.CheckExpiredData()
 			if deleted != test.wasDeleted {
@@ -82,7 +83,7 @@ func TestSizeLimit(t *testing.T) {
 				psqlConnect = savedPsqlConnect
 				deleteRowsById = savedDeleteRowsById
 			}()
-			db.SetDbSizeLimit(test.sizeLimit)
+			dbparam.DbSizeLimit = test.sizeLimit
 			db.CheckSizeLimit()
 			if deleted != test.wasDeleted {
 				t.Errorf("error deleted rows")

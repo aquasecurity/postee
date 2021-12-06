@@ -48,11 +48,11 @@ func TestAggregateScans(t *testing.T) {
 		},
 	}
 
-	saving := ""
+	savingTest := []byte{}
 	for i := 0; i < len(tests); i++ {
-		savedInsert := insert
-		insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error {
-			saving = value3
+		savedInsertInTableAggregator := insertInTableAggregator
+		insertInTableAggregator = func(db *sqlx.DB, id, output string, saving []byte) error {
+			savingTest = saving
 			return nil
 		}
 		savedPsqlConnect := psqlConnect
@@ -61,12 +61,12 @@ func TestAggregateScans(t *testing.T) {
 			if err != nil {
 				log.Println("failed to open sqlmock database:", err)
 			}
-			rows := sqlxmock.NewRows([]string{"saving"}).AddRow(saving)
+			rows := sqlxmock.NewRows([]string{"saving"}).AddRow(savingTest)
 			mock.ExpectQuery("SELECT").WillReturnRows(rows)
 			return db, err
 		}
 		defer func() {
-			insert = savedInsert
+			insertInTableAggregator = savedInsertInTableAggregator
 			psqlConnect = savedPsqlConnect
 		}()
 

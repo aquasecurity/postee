@@ -1,11 +1,9 @@
 package boltdb
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
-	"io"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -23,17 +21,17 @@ func (boltDb *BoltDb) EnsureApiKey() error {
 	}
 	defer db.Close()
 
-	err = Init(db, dbBucketOutputStats)
+	err = Init(db, dbparam.DbBucketOutputStats)
 	if err != nil {
 		return err
 	}
 
-	newApiKey, err := generateApiKey(32)
+	newApiKey, err := dbparam.GenerateApiKey(32)
 	if err != nil {
 		return err
 	}
 
-	err = dbInsert(db, dbBucketSharedConfig, []byte(apiKeyName), []byte(newApiKey))
+	err = dbInsert(db, dbparam.DbBucketSharedConfig, []byte(apiKeyName), []byte(newApiKey))
 
 	return err
 }
@@ -45,7 +43,7 @@ func (boltDb *BoltDb) GetApiKey() (string, error) {
 	}
 	defer db.Close()
 	err = db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(dbBucketSharedConfig))
+		bucket := tx.Bucket([]byte(dbparam.DbBucketSharedConfig))
 		if bucket == nil {
 			return errors.New("no bucket") //no bucket
 		}
@@ -58,14 +56,5 @@ func (boltDb *BoltDb) GetApiKey() (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return apiKey, nil
-
-}
-func generateApiKey(length int) (string, error) {
-	k := make([]byte, length)
-	if _, err := io.ReadFull(rand.Reader, k); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(k), nil
 }

@@ -5,11 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 
 func (boltDb *BoltDb) CheckSizeLimit() {
-	if DbSizeLimit == 0 {
+	if dbparam.DbSizeLimit == 0 {
 		return
 	}
 	mutex.Lock()
@@ -23,7 +24,7 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 	defer db.Close()
 
 	if err := db.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(dbBucketName))
+		b := tx.Bucket([]byte(dbparam.DbBucketName))
 		if b == nil {
 			return nil
 		}
@@ -32,8 +33,8 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			size += len(v)
 		}
-		if size > DbSizeLimit {
-			return tx.DeleteBucket([]byte(dbBucketName))
+		if size > dbparam.DbSizeLimit {
+			return tx.DeleteBucket([]byte(dbparam.DbBucketName))
 		}
 		return nil
 	}); err != nil {
@@ -59,7 +60,7 @@ func (boltDb *BoltDb) CheckExpiredData() {
 		return
 	}
 
-	if err := dbDelete(db, dbBucketName, expired); err != nil {
+	if err := dbDelete(db, dbparam.DbBucketName, expired); err != nil {
 		log.Println("Can't remove expired data: ", err)
 	}
 }
@@ -69,13 +70,13 @@ func (boltDb *BoltDb) getExpired(db *bolt.DB) (keys [][]byte, err error) {
 	ttlKeys := [][]byte{}
 
 	if err = db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(dbBucketExpiryDates))
+		b := tx.Bucket([]byte(dbparam.DbBucketExpiryDates))
 		if b == nil {
 			return nil
 		}
 		c := b.Cursor()
 
-		max := []byte(time.Now().UTC().Format(DateFmt)) //remove expired records
+		max := []byte(time.Now().UTC().Format(dbparam.DateFmt)) //remove expired records
 		for k, v := c.First(); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 			keys = append(keys, v)
 			ttlKeys = append(ttlKeys, k)
@@ -85,7 +86,7 @@ func (boltDb *BoltDb) getExpired(db *bolt.DB) (keys [][]byte, err error) {
 		return nil, err
 	}
 
-	if err = dbDelete(db, dbBucketExpiryDates, ttlKeys); err != nil {
+	if err = dbDelete(db, dbparam.DbBucketExpiryDates, ttlKeys); err != nil {
 		return nil, err
 	}
 

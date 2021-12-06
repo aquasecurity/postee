@@ -2,11 +2,12 @@ package dbservice
 
 import (
 	"errors"
-	"os"
 	"time"
 
 	"github.com/aquasecurity/postee/dbservice/boltdb"
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	"github.com/aquasecurity/postee/dbservice/postgresdb"
+	"github.com/aquasecurity/postee/utils"
 )
 
 var (
@@ -21,32 +22,34 @@ type DbProvider interface {
 	RegisterPlgnInvctn(name string) error
 	EnsureApiKey() error
 	GetApiKey() (string, error)
-	SetDbSizeLimit(limit int)
 }
 
-func ConfigureDb(tenantId string, dBTestInterval *int, dbMaxSize int) error {
+func ConfigureDb(pathToDb, postgresUrl, tenantId string, dBTestInterval *int, dbMaxSize int) error {
 	if *dBTestInterval == 0 {
 		*dBTestInterval = 1
 	}
 
-	if os.Getenv("POSTGRES_URL") != "" {
+	postgresUrl = utils.GetEnvironmentVarOrPlain(postgresUrl)
+	pathToDb = utils.GetEnvironmentVarOrPlain(pathToDb)
+
+	if postgresUrl != "" {
 		if tenantId == "" {
 			return errors.New("error configurate postgresDb: 'tenantId' is empty")
 		}
-		postgresDb := postgresdb.NewPostgresDb(tenantId, os.Getenv("POSTGRES_URL"))
+		postgresDb := postgresdb.NewPostgresDb(tenantId, postgresUrl)
 		if err := postgresdb.InitPostgresDb(postgresDb.ConnectUrl); err != nil {
 			return err
 		}
 		Db = postgresDb
 	} else {
 		boltdb := boltdb.NewBoltDb()
-		if os.Getenv("PATH_TO_BOLTDB") != "" {
-			if err := boltdb.SetNewDbPathFromEnv(); err != nil {
+		if pathToDb != "" {
+			if err := boltdb.SetNewDbPath(pathToDb); err != nil {
 				return err
 			}
 		}
 		Db = boltdb
 	}
-	Db.SetDbSizeLimit(dbMaxSize)
+	dbparam.DbSizeLimit = dbMaxSize
 	return nil
 }

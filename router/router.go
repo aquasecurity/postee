@@ -258,7 +258,7 @@ func (ctx *Router) load() error {
 	//----------------------------------------------------
 	// TODO there should be some other way of doing that
 
-	if err = dbservice.ConfigureDb(tenant.Name, &tenant.DBTestInterval, tenant.DBMaxSize); err != nil {
+	if err = dbservice.ConfigureDb("$PATH_TO_DB", "$POSTGRES_URL", tenant.Name, &tenant.DBTestInterval, tenant.DBMaxSize); err != nil {
 		return err
 	}
 

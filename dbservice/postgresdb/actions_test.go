@@ -10,10 +10,10 @@ import (
 )
 
 func TestStoreMessage(t *testing.T) {
-	currentValueStoreMessage := ""
+	currentValueStoreMessage := []byte{}
 
 	savedinsertInTableName := insertInTableName
-	insertInTableName = func(db *sqlx.DB, id, date, messageKey, messageValue string) error {
+	insertInTableName = func(db *sqlx.DB, id, messageKey string, messageValue []byte, date *time.Time) error {
 		currentValueStoreMessage = messageValue
 		return nil
 	}
@@ -59,7 +59,7 @@ func TestStoreMessage(t *testing.T) {
 		if isNew {
 			t.Errorf("A old scan wasn't found!\n")
 		}
-		currentValueStoreMessage = ""
+		currentValueStoreMessage = []byte{}
 	}
 
 }

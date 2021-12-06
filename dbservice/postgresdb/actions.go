@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 )
 
 func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error) {
@@ -14,7 +16,7 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 	defer db.Close()
 
 	currentValue := ""
-	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "messageValue", dbTableName, "id", "messageKey")
+	sqlQuery := fmt.Sprintf("SELECT messageValue FROM %s WHERE (id=$1 AND messageKey=$2)", dbparam.DbBucketName)
 	if err = db.Get(&currentValue, sqlQuery, postgresDb.Id, messageKey); err != nil {
 		if err != sql.ErrNoRows {
 			return false, err
@@ -25,11 +27,11 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 		return false, nil
 	} else {
 		if expired != nil {
-			if err = insertInTableName(db, postgresDb.Id, expired.Format(DateFmt), messageKey, string(message)); err != nil {
+			if err = insertInTableName(db, postgresDb.Id, messageKey, message, expired); err != nil {
 				return false, err
 			}
 		} else {
-			if err = insertInTableName(db, postgresDb.Id, "", messageKey, string(message)); err != nil {
+			if err = insertInTableName(db, postgresDb.Id, messageKey, message, nil); err != nil {
 				return false, err
 			}
 		}

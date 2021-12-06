@@ -1,15 +1,18 @@
 package postgresdb
 
 import (
+	"fmt"
+
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	"github.com/jmoiron/sqlx"
 )
 
 var (
 	tableSchemas = []string{
-		"CREATE TABLE IF NOT EXISTS webhooktable (id varchar(32), date varchar(32), messagekey varchar(256),messagevalue text);",
-		"CREATE TABLE IF NOT EXISTS webhookaggregator (id varchar(32), output varchar(32), saving text);",
-		"CREATE TABLE IF NOT EXISTS webhookoutputstats (id varchar(32), outputname varchar(32), amount integer);",
-		"CREATE TABLE IF NOT EXISTS webhooksharedconfig (id varchar(32), apikeyname varchar(14),value varchar(64));",
+		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (id varchar(32), date timestamp, messagekey varchar(256), messagevalue bytea);", dbparam.DbBucketName),
+		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (id varchar(32), output varchar(32), saving bytea);", dbparam.DbBucketAggregator),
+		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (id varchar(32), outputname varchar(32), amount integer);", dbparam.DbBucketOutputStats),
+		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (id varchar(32), apikeyname varchar(14),value varchar(64));", dbparam.DbBucketSharedConfig),
 	}
 )
 

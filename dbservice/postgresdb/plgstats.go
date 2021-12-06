@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	_ "github.com/lib/pq"
 )
 
@@ -15,7 +16,8 @@ func (postgresDb *PostgresDb) RegisterPlgnInvctn(name string) error {
 	defer db.Close()
 
 	amount := 0
-	err = db.Get(&amount, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "amount", dbTableOutputStats, "id", "outputName"), postgresDb.Id, name)
+	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (id=$1 AND %s=$2)", "amount", dbparam.DbBucketOutputStats, "outputName")
+	err = db.Get(&amount, sqlQuery, postgresDb.Id, name)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
