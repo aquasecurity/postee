@@ -4,31 +4,36 @@ import (
 	"errors"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/aquasecurity/postee/dbservice/postgresdb"
 )
 
-func TestConfigurateBoltDbPath(t *testing.T) {
+func TestConfigurateBoltDbPathUsedEnv(t *testing.T) {
 	tests := []struct {
 		name         string
 		dbPath       string
+		dbPathInEnv  string
 		expectedPath string
 	}{
-		{"happy configuration BoltDB with dbPath", "database/webhooks.db", "database/webhooks.db"},
-		{"happy configuration BoltDB with empty dbPath", "", "/server/database/webhooks.db"},
+		{"happy configuration BoltDB with dbPath", "database/webhooks.db", "", "database/webhooks.db"},
+		{"happy configuration BoltDB with env", "$PATH_TO_DB", "database/envPath/webhooks.db", "database/envPath/webhooks.db"},
+		{"happy configuration BoltDB with empty dbPath", "", "", "/server/database/webhooks.db"},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			oldPathEnv := os.Getenv("PATH_TO_BOLTDB")
-			defer func() {
-				os.Setenv("PATH_TO_BOLTDB", oldPathEnv)
-			}()
-			os.Setenv("PATH_TO_BOLTDB", test.dbPath)
+			if test.dbPathInEnv != "" {
+				oldPathEnv := os.Getenv("PATH_TO_DB")
+				defer func() {
+					os.Setenv("PATH_TO_DB", oldPathEnv)
+				}()
+				os.Setenv("PATH_TO_DB", test.dbPathInEnv)
+			}
 
 			testInterval := 2
-			if err := ConfigureDb("id", &testInterval, 1); err != nil {
+			if err := ConfigureDb(test.dbPath, "", "", &testInterval, 1); err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
 			if testInterval != 2 {
@@ -46,12 +51,14 @@ func TestConfiguratePostgresDbUrlAndId(t *testing.T) {
 	tests := []struct {
 		name          string
 		url           string
+		urlInEnv      string
 		id            string
 		expectedError error
 	}{
-		{"happy configuration", "postgresql://user:secret@localhost", "test-id", nil},
-		{"bad id", "postgresql://user:secret@localhost", "", errors.New("error configurate postgresDb: 'tenantId' is empty")},
-		{"bad url", "badUrl", "test-id", errors.New("badUrl error")},
+		{"happy configuration postgres with url", "postgresql://user:secret@localhost", "", "test-id", nil},
+		{"happy configuration postgres with env", "$POSTGRES_URL", "postgresql://user:secret@localhost", "test-id", nil},
+		{"bad id", "postgresql://user:secret@localhost", "", "", errors.New("error configurate postgresDb: 'tenantId' is empty")},
+		{"bad url", "badUrl", "", "test-id", errors.New("badUrl error")},
 	}
 
 	for _, test := range tests {
@@ -64,14 +71,14 @@ func TestConfiguratePostgresDbUrlAndId(t *testing.T) {
 				return nil
 			}
 			oldUrlEnv := os.Getenv("POSTGRES_URL")
+			os.Setenv("POSTGRES_URL", test.urlInEnv)
 			defer func() {
 				postgresdb.InitPostgresDb = initPostgresDbSaved
 				os.Setenv("POSTGRES_URL", oldUrlEnv)
 			}()
-			os.Setenv("POSTGRES_URL", test.url)
 
 			testInterval := 0
-			err := ConfigureDb(test.id, &testInterval, 1)
+			err := ConfigureDb("", test.url, test.id, &testInterval, 1)
 			if err != nil {
 				if err.Error() != test.expectedError.Error() {
 					t.Errorf("Unexpected error, expected: %s, got: %s", test.expectedError, err)
@@ -80,8 +87,14 @@ func TestConfiguratePostgresDbUrlAndId(t *testing.T) {
 				if testInterval != 1 {
 					t.Error("test interval error, expected: 1, got: ", testInterval)
 				}
-				if test.url != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("ConnectUrl").Interface() {
-					t.Errorf("url's do not match, expected: %s, got: %s", test.url, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("ConnectUrl").Interface())
+				if strings.HasPrefix(test.url, "$") {
+					if test.urlInEnv != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("ConnectUrl").Interface() {
+						t.Errorf("url's do not match, expected: %s, got: %s", test.url, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("ConnectUrl").Interface())
+					}
+				} else {
+					if test.url != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("ConnectUrl").Interface() {
+						t.Errorf("url's do not match, expected: %s, got: %s", test.url, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("ConnectUrl").Interface())
+					}
 				}
 				if test.id != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("Id").Interface() {
 					t.Errorf("id's do not match, expected: %s, got: %s", test.url, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("Id").Interface())

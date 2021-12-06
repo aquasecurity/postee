@@ -5,19 +5,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 
 func TestExpiredDates(t *testing.T) {
 	boltDb := NewBoltDb()
 	dbPathReal := boltDb.DbPath
-	realDueTimeBase := dueTimeBase
+	realDueTimeBase := dbparam.DueTimeBase
 	defer func() {
 		os.Remove(boltDb.DbPath)
 		boltDb.DbPath = dbPathReal
-		dueTimeBase = realDueTimeBase
+		dbparam.DueTimeBase = realDueTimeBase
 	}()
-	dueTimeBase = time.Nanosecond
+	dbparam.DueTimeBase = time.Nanosecond
 	boltDb.DbPath = "test_webhooks.db"
 	tests := []struct {
 		title                       string
@@ -55,11 +56,11 @@ func TestExpiredDates(t *testing.T) {
 func TestDbSizeLimnit(t *testing.T) {
 	boltDb := NewBoltDb()
 	dbPathReal := boltDb.DbPath
-	realSizeLimit := DbSizeLimit
+	realSizeLimit := dbparam.DbSizeLimit
 	defer func() {
 		os.Remove(boltDb.DbPath)
 		boltDb.DbPath = dbPathReal
-		DbSizeLimit = realSizeLimit
+		dbparam.DbSizeLimit = realSizeLimit
 	}()
 	boltDb.DbPath = "test_webhooks.db"
 
@@ -74,12 +75,12 @@ func TestDbSizeLimnit(t *testing.T) {
 		{"Third scan", 1, true, true},
 	}
 
-	DbSizeLimit = 1
+	dbparam.DbSizeLimit = 1
 	boltDb.CheckSizeLimit()
 
 	for _, test := range tests {
 		t.Log(test.title)
-		DbSizeLimit = test.limit
+		dbparam.DbSizeLimit = test.limit
 		if test.needRun {
 			boltDb.CheckSizeLimit()
 		}
@@ -97,12 +98,12 @@ func TestDbSizeLimnit(t *testing.T) {
 
 func TestWrongBuckets(t *testing.T) {
 	boltDb := NewBoltDb()
-	savedDbBucketName := dbBucketName
-	savedDbBucketExpiryDates := dbBucketExpiryDates
+	savedDbBucketName := dbparam.DbBucketName
+	savedDbBucketExpiryDates := dbparam.DbBucketExpiryDates
 	dbPathReal := boltDb.DbPath
 	defer func() {
-		dbBucketName = savedDbBucketName
-		dbBucketExpiryDates = savedDbBucketExpiryDates
+		dbparam.DbBucketName = savedDbBucketName
+		dbparam.DbBucketExpiryDates = savedDbBucketExpiryDates
 		os.Remove(boltDb.DbPath)
 		boltDb.DbPath = dbPathReal
 	}()
@@ -113,18 +114,18 @@ func TestWrongBuckets(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	DbSizeLimit = 1
-	dbBucketName = ""
-	dbBucketExpiryDates = ""
+	dbparam.DbSizeLimit = 1
+	dbparam.DbBucketName = ""
+	dbparam.DbBucketExpiryDates = ""
 	boltDb.CheckSizeLimit()
 
-	dbBucketName = "dbBucketName"
+	dbparam.DbBucketName = "dbBucketName"
 	_, err = boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err == nil {
 		t.Error("No error for empty dbBucketExpiryDates")
 	}
-	dbBucketExpiryDates = "dbBucketExpiryDates"
-	dbBucketName = ""
+	dbparam.DbBucketExpiryDates = "dbBucketExpiryDates"
+	dbparam.DbBucketName = ""
 	_, err = boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err == nil {
 		t.Error("No error for empty dbBucketName")
@@ -173,7 +174,7 @@ func TestWithoutAccessToDb(t *testing.T) {
 		return
 	}
 	db.Close()
-	DbSizeLimit = 1
+	dbparam.DbSizeLimit = 1
 	boltDb.CheckSizeLimit()
 	boltDb.CheckExpiredData()
 }

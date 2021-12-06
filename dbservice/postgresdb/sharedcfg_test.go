@@ -10,8 +10,8 @@ import (
 )
 
 func TestApiKey(t *testing.T) {
-	savedInsert := insert
-	insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error { return nil }
+	savedInsertInTableSharedConfig := insertInTableSharedConfig
+	insertInTableSharedConfig = func(db *sqlx.DB, id, apikeyname, value string) error { return nil }
 	savedPsqlConnect := psqlConnect
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
@@ -23,7 +23,7 @@ func TestApiKey(t *testing.T) {
 		return db, err
 	}
 	defer func() {
-		insert = savedInsert
+		insertInTableSharedConfig = savedInsertInTableSharedConfig
 		psqlConnect = savedPsqlConnect
 	}()
 
@@ -62,9 +62,9 @@ func TestApiKeyWithoutInit(t *testing.T) {
 
 func TestApiKeyRenewal(t *testing.T) {
 	receivedKey := ""
-	savedInsert := insert
-	insert = func(db *sqlx.DB, table, id, columnName2, value2, columnName3, value3 string) error {
-		receivedKey = value3
+	savedInsertInTableSharedConfig := insertInTableSharedConfig
+	insertInTableSharedConfig = func(db *sqlx.DB, id, apikeyname, value string) error {
+		receivedKey = value
 		return nil
 	}
 	savedPsqlConnect := psqlConnect
@@ -78,7 +78,7 @@ func TestApiKeyRenewal(t *testing.T) {
 		return db, err
 	}
 	defer func() {
-		insert = savedInsert
+		insertInTableSharedConfig = savedInsertInTableSharedConfig
 		psqlConnect = savedPsqlConnect
 	}()
 

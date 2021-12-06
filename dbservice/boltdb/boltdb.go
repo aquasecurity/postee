@@ -4,20 +4,9 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 var (
-	dbBucketName         = "WebhookBucket"
-	dbBucketAggregator   = "WebhookAggregator"
-	dbBucketExpiryDates  = "WebhookExpiryDates"
-	dbBucketOutputStats  = "WebhookOutputStats"
-	dbBucketSharedConfig = "WebhookSharedConfig"
-
-	DbSizeLimit = 0
-	DateFmt     = time.RFC3339Nano
-	dueTimeBase = time.Hour * time.Duration(24)
-
 	mutex sync.Mutex
 )
 
@@ -37,8 +26,7 @@ func (boltDb *BoltDb) ChangeDbPath(newPath string) {
 	mutex.Unlock()
 }
 
-func (boltDb *BoltDb) SetNewDbPathFromEnv() error {
-	newPath := os.Getenv("PATH_TO_BOLTDB")
+func (boltDb *BoltDb) SetNewDbPath(newPath string) error {
 	if newPath != "" {
 		if _, err := os.Stat(newPath); err != nil {
 			if os.IsNotExist(err) {
@@ -53,8 +41,4 @@ func (boltDb *BoltDb) SetNewDbPathFromEnv() error {
 		boltDb.ChangeDbPath(newPath)
 	}
 	return nil
-}
-
-func (boltDb *BoltDb) SetDbSizeLimit(limit int) {
-	DbSizeLimit = limit
 }

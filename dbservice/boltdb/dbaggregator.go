@@ -3,6 +3,7 @@ package boltdb
 import (
 	"encoding/json"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -19,7 +20,7 @@ func (boltDb *BoltDb) AggregateScans(output string,
 	}
 	defer db.Close()
 
-	err = Init(db, dbBucketAggregator)
+	err = Init(db, dbparam.DbBucketAggregator)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +29,7 @@ func (boltDb *BoltDb) AggregateScans(output string,
 	if len(currentScan) > 0 {
 		aggregatedScans = append(aggregatedScans, currentScan)
 	}
-	currentValue, err := dbSelect(db, dbBucketAggregator, output)
+	currentValue, err := dbSelect(db, dbparam.DbBucketAggregator, output)
 	if err != nil {
 		return nil, err
 	}
@@ -48,12 +49,12 @@ func (boltDb *BoltDb) AggregateScans(output string,
 			return nil, err
 		}
 
-		err = dbInsert(db, dbBucketAggregator, []byte(output), saving)
+		err = dbInsert(db, dbparam.DbBucketAggregator, []byte(output), saving)
 		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
-	dbInsert(db, dbBucketAggregator, []byte(output), nil)
+	dbInsert(db, dbparam.DbBucketAggregator, []byte(output), nil)
 	return aggregatedScans, nil
 }

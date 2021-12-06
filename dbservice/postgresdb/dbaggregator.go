@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 )
 
 func (postgresDb *PostgresDb) AggregateScans(output string,
@@ -21,14 +23,15 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 	if len(currentScan) > 0 {
 		aggregatedScans = append(aggregatedScans, currentScan)
 	}
-	currentValue := ""
-	if err = db.Get(&currentValue, fmt.Sprintf("SELECT %s FROM %s WHERE (%s=$1 AND %s=$2)", "saving", dbTableAggregator, "id", "output"), postgresDb.Id, output); err != nil {
+	currentValue := []byte{}
+	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (id=$1 AND %s=$2)", "saving", dbparam.DbBucketAggregator, "output")
+	if err = db.Get(&currentValue, sqlQuery, postgresDb.Id, output); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
 	}
 
-	if currentValue != "" {
+	if len(currentValue) > 0 {
 		var savedScans []map[string]string
 		err = json.Unmarshal([]byte(currentValue), &savedScans)
 		if err != nil {
@@ -42,13 +45,13 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 		if err != nil {
 			return nil, err
 		}
-		if err = insert(db, dbTableAggregator, postgresDb.Id, "output", output, "saving", string(saving)); err != nil {
+		if err = insertInTableAggregator(db, postgresDb.Id, output, saving); err != nil {
 
 			return nil, err
 		}
 		return nil, nil
 	}
-	if err = insert(db, dbTableAggregator, postgresDb.Id, "output", output, "saving", ""); err != nil {
+	if err = insertInTableAggregator(db, postgresDb.Id, output, nil); err != nil {
 		return nil, err
 	}
 	return aggregatedScans, nil
