@@ -42,8 +42,8 @@ func TestConfigurateBoltDbPathUsedEnv(t *testing.T) {
 			if test.expectedPath != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("DbPath").Interface() {
 				t.Errorf("paths do not match, expected: %s, got: %s", test.expectedPath, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("DbPath").Interface())
 			}
-
 		})
+		defer os.RemoveAll("database/")
 	}
 }
 
