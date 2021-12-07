@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/dbparam"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/msgservice"
 	"github.com/aquasecurity/postee/v2/outputs"
@@ -255,14 +257,23 @@ func (ctx *Router) load() error {
 	}
 
 	ctx.setAquaServerUrl(tenant.AquaServer)
-	//----------------------------------------------------
-	// TODO there should be some other way of doing that
 
-	if err = dbservice.ConfigureDb("$PATH_TO_DB", "$POSTGRES_URL", tenant.Name, &tenant.DBTestInterval, tenant.DBMaxSize); err != nil {
+	postgresUrl := os.Getenv("$POSTGRES_URL")
+	pathToDb := os.Getenv("$PATH_TO_DB")
+
+	if err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name); err != nil {
 		return err
 	}
 
-	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
+	dbparam.DbSizeLimit = tenant.DBMaxSize
+
+	actualDbTestInterval := tenant.DBTestInterval
+
+	if tenant.DBTestInterval == 0 {
+		actualDbTestInterval = 1
+	}
+
+	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(actualDbTestInterval))
 	go func() {
 		for {
 			select {

@@ -5,9 +5,7 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/dbservice/boltdb"
-	"github.com/aquasecurity/postee/dbservice/dbparam"
 	"github.com/aquasecurity/postee/dbservice/postgresdb"
-	"github.com/aquasecurity/postee/utils"
 )
 
 var (
@@ -24,17 +22,11 @@ type DbProvider interface {
 	GetApiKey() (string, error)
 }
 
-func ConfigureDb(pathToDb, postgresUrl, tenantName string, dBTestInterval *int, dbMaxSize int) error {
-	if *dBTestInterval == 0 {
-		*dBTestInterval = 1
-	}
-
-	postgresUrl = utils.GetEnvironmentVarOrPlain(postgresUrl)
-	pathToDb = utils.GetEnvironmentVarOrPlain(pathToDb)
+func ConfigureDb(pathToDb, postgresUrl, tenantName string) error {
 
 	if postgresUrl != "" {
 		if tenantName == "" {
-			return errors.New("error configurate postgresDb: 'tenantName' is empty")
+			return errors.New("error configuring postgres: 'tenantName' is empty")
 		}
 		postgresDb := postgresdb.NewPostgresDb(tenantName, postgresUrl)
 		if err := postgresdb.InitPostgresDb(postgresDb.ConnectUrl); err != nil {
@@ -50,6 +42,5 @@ func ConfigureDb(pathToDb, postgresUrl, tenantName string, dBTestInterval *int, 
 		}
 		Db = boltdb
 	}
-	dbparam.DbSizeLimit = dbMaxSize
 	return nil
 }
