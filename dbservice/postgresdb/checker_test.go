@@ -31,8 +31,8 @@ func TestExpiredDates(t *testing.T) {
 				}
 				return db, err
 			}
-			savedDeleteRow := deleteRowsByIdAndTime
-			deleteRowsByIdAndTime = func(db *sqlx.DB, id string, t time.Time) error {
+			savedDeleteRow := deleteRowsByTenantNameAndTime
+			deleteRowsByTenantNameAndTime = func(db *sqlx.DB, tenantName string, t time.Time) error {
 				if !test.deleteError {
 					deleted = true
 				}
@@ -40,7 +40,7 @@ func TestExpiredDates(t *testing.T) {
 			}
 			defer func() {
 				psqlConnect = savedPsqlConnect
-				deleteRowsByIdAndTime = savedDeleteRow
+				deleteRowsByTenantNameAndTime = savedDeleteRow
 			}()
 			db.CheckExpiredData()
 			if deleted != test.wasDeleted {
@@ -74,14 +74,14 @@ func TestSizeLimit(t *testing.T) {
 				mock.ExpectQuery("SELECT").WillReturnRows(rows)
 				return db, err
 			}
-			savedDeleteRowsById := deleteRowsById
-			deleteRowsById = func(db *sqlx.DB, table, id string) error {
+			savedDeleteRowsByTenantName := deleteRowsByTenantName
+			deleteRowsByTenantName = func(db *sqlx.DB, table, tenantName string) error {
 				deleted = true
 				return nil
 			}
 			defer func() {
 				psqlConnect = savedPsqlConnect
-				deleteRowsById = savedDeleteRowsById
+				deleteRowsByTenantName = savedDeleteRowsByTenantName
 			}()
 			dbparam.DbSizeLimit = test.sizeLimit
 			db.CheckSizeLimit()

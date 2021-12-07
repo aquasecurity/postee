@@ -75,7 +75,7 @@ var (
 		]
 	}`
 
-	db = NewPostgresDb("id", "postgresql://user:secret@localhost/dbname?sslmode=disable")
+	db = NewPostgresDb("tenantName", "postgresql://user:secret@localhost/dbname?sslmode=disable")
 )
 
 func TestInitError(t *testing.T) {
@@ -109,13 +109,13 @@ func TestInitError(t *testing.T) {
 	}
 }
 
-func TestDeleteRowsByIdAndTime(t *testing.T) {
+func TestDeleteRowsByTenantNameAndTime(t *testing.T) {
 	t.Log("happy delete row")
 	savedPsqlConnect := psqlConnect
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-		savedDeleteRow := deleteRowsByIdAndTime
+		savedDeleteRow := deleteRowsByTenantNameAndTime
 		defer func() {
-			deleteRowsByIdAndTime = savedDeleteRow
+			deleteRowsByTenantNameAndTime = savedDeleteRow
 		}()
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -129,7 +129,7 @@ func TestDeleteRowsByIdAndTime(t *testing.T) {
 	}()
 
 	psqlDb, _ := psqlConnect(db.ConnectUrl)
-	err := deleteRowsByIdAndTime(psqlDb, "id", time.Now())
+	err := deleteRowsByTenantNameAndTime(psqlDb, "tenantName", time.Now())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -137,9 +137,9 @@ func TestDeleteRowsByIdAndTime(t *testing.T) {
 	t.Log("bad delete row")
 	deleteError := errors.New("delete - error")
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-		savedDeleteRow := deleteRowsByIdAndTime
+		savedDeleteRow := deleteRowsByTenantNameAndTime
 		defer func() {
-			deleteRowsByIdAndTime = savedDeleteRow
+			deleteRowsByTenantNameAndTime = savedDeleteRow
 		}()
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -149,18 +149,18 @@ func TestDeleteRowsByIdAndTime(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = deleteRowsByIdAndTime(psqlDb, "id", time.Now())
+	err = deleteRowsByTenantNameAndTime(psqlDb, "tenantName", time.Now())
 	if deleteError != err {
 		t.Errorf("Unexpected error, expected: %v, got: %v", deleteError, err)
 	}
 }
-func TestDeleteRowsById(t *testing.T) {
-	t.Log("happy delete rows by id")
+func TestDeleteRowsByTenantName(t *testing.T) {
+	t.Log("happy delete rows by tenantName")
 	savedPsqlConnect := psqlConnect
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-		savedDeleteRowsById := deleteRowsById
+		savedDeleteRowsByTenantName := deleteRowsByTenantName
 		defer func() {
-			deleteRowsById = savedDeleteRowsById
+			deleteRowsByTenantName = savedDeleteRowsByTenantName
 		}()
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -174,7 +174,7 @@ func TestDeleteRowsById(t *testing.T) {
 	}()
 
 	psqlDb, _ := psqlConnect(db.ConnectUrl)
-	err := deleteRowsById(psqlDb, "table", "id")
+	err := deleteRowsByTenantName(psqlDb, "table", "tenantName")
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -182,9 +182,9 @@ func TestDeleteRowsById(t *testing.T) {
 	t.Log("bad delete row")
 	deleteError := errors.New("delete - error")
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-		savedDeleteRowsById := deleteRowsById
+		savedDeleteRowsByTenantName := deleteRowsByTenantName
 		defer func() {
-			deleteRowsById = savedDeleteRowsById
+			deleteRowsByTenantName = savedDeleteRowsByTenantName
 		}()
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -194,7 +194,7 @@ func TestDeleteRowsById(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = deleteRowsById(psqlDb, "table", "id")
+	err = deleteRowsByTenantName(psqlDb, "table", "tenantName")
 	if deleteError != err {
 		t.Errorf("Unexpected error, expected: %v, got: %v", deleteError, err)
 	}
@@ -218,7 +218,7 @@ func TestInsertInTableSharedConfig(t *testing.T) {
 	}()
 
 	psqlDb, _ := psqlConnect(db.ConnectUrl)
-	err := insertInTableSharedConfig(psqlDb, "id", "value2", "value3")
+	err := insertInTableSharedConfig(psqlDb, "tenantName", "value2", "value3")
 	if err != nil {
 		t.Errorf("Unexpected error in 'insertInTableSharedConfig': %v", err)
 	}
@@ -235,7 +235,7 @@ func TestInsertInTableSharedConfig(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableSharedConfig(psqlDb, "id", "value2", "value3")
+	err = insertInTableSharedConfig(psqlDb, "tenantName", "value2", "value3")
 	if err != nil {
 		t.Errorf("Unexpected error in 'insertInTableSharedConfig': %v", err)
 	}
@@ -251,13 +251,13 @@ func TestInsertInTableSharedConfig(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableSharedConfig(psqlDb, "id", "value2", "value3")
+	err = insertInTableSharedConfig(psqlDb, "tenantName", "value2", "value3")
 	if err != selectError {
 		t.Errorf("Unexpected error in 'insertInTableSharedConfig', expected: %v, got: %v", selectError, err)
 	}
 
 	t.Log("select 2 rows")
-	select2RowsError := "error insert in postgresDb. Table:WebhookSharedConfig where id=id, apikeyname=value2, have 2 rows"
+	select2RowsError := "error insert in postgresDb. Table:WebhookSharedConfig where tenantName=tenantName, apikeyname=value2, have 2 rows"
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -268,7 +268,7 @@ func TestInsertInTableSharedConfig(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableSharedConfig(psqlDb, "id", "value2", "value3")
+	err = insertInTableSharedConfig(psqlDb, "tenantName", "value2", "value3")
 	if err.Error() != select2RowsError {
 		t.Errorf("Unexpected error in 'insertInTableSharedConfig', expected: %v, got: %v", select2RowsError, err)
 	}
@@ -286,7 +286,7 @@ func TestInsertInTableSharedConfig(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableSharedConfig(psqlDb, "id", "value2", "value3")
+	err = insertInTableSharedConfig(psqlDb, "tenantName", "value2", "value3")
 	if err != badInsertError {
 		t.Errorf("Unexpected error in 'insertInTableSharedConfig', expected: %v, got: %v", badInsertError, err)
 	}
@@ -304,7 +304,7 @@ func TestInsertInTableSharedConfig(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableSharedConfig(psqlDb, "id", "value2", "value3")
+	err = insertInTableSharedConfig(psqlDb, "tenantName", "value2", "value3")
 	if err != badUpdateError {
 		t.Errorf("Unexpected error in 'insertInTableSharedConfig', expected: %v, got: %v", badUpdateError, err)
 	}
@@ -328,7 +328,7 @@ func TestInsertInTableAggregator(t *testing.T) {
 	}()
 
 	psqlDb, _ := psqlConnect(db.ConnectUrl)
-	err := insertInTableAggregator(psqlDb, "id", "value2", []byte("value3"))
+	err := insertInTableAggregator(psqlDb, "tenantName", "value2", []byte("value3"))
 	if err != nil {
 		t.Errorf("Unexpected error in 'insert': %v", err)
 	}
@@ -345,7 +345,7 @@ func TestInsertInTableAggregator(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableAggregator(psqlDb, "id", "value2", []byte("value3"))
+	err = insertInTableAggregator(psqlDb, "tenantName", "value2", []byte("value3"))
 	if err != nil {
 		t.Errorf("Unexpected error in 'insertInTableAggregator': %v", err)
 	}
@@ -361,13 +361,13 @@ func TestInsertInTableAggregator(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableAggregator(psqlDb, "id", "value2", []byte("value3"))
+	err = insertInTableAggregator(psqlDb, "tenantName", "value2", []byte("value3"))
 	if err != selectError {
 		t.Errorf("Unexpected error in 'insertInTableAggregator', expected: %v, got: %v", selectError, err)
 	}
 
 	t.Log("select 2 rows")
-	select2RowsError := "error insert in postgresDb. Table:WebhookAggregator where id=id, output=value2, have 2 rows"
+	select2RowsError := "error insert in postgresDb. Table:WebhookAggregator where tenantName=tenantName, output=value2, have 2 rows"
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -378,7 +378,7 @@ func TestInsertInTableAggregator(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableAggregator(psqlDb, "id", "value2", []byte("value3"))
+	err = insertInTableAggregator(psqlDb, "tenantName", "value2", []byte("value3"))
 	if err.Error() != select2RowsError {
 		t.Errorf("Unexpected error in 'insertInTableAggregator', expected: %v, got: %v", select2RowsError, err)
 	}
@@ -396,7 +396,7 @@ func TestInsertInTableAggregator(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableAggregator(psqlDb, "id", "value2", []byte("value3"))
+	err = insertInTableAggregator(psqlDb, "tenantName", "value2", []byte("value3"))
 	if err != badInsertError {
 		t.Errorf("Unexpected error in 'insertInTableAggregator', expected: %v, got: %v", badInsertError, err)
 	}
@@ -414,7 +414,7 @@ func TestInsertInTableAggregator(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableAggregator(psqlDb, "id", "value2", []byte("value3"))
+	err = insertInTableAggregator(psqlDb, "tenantName", "value2", []byte("value3"))
 	if err != badUpdateError {
 		t.Errorf("Unexpected error in 'insertInTableAggregator', expected: %v, got: %v", badUpdateError, err)
 	}
@@ -438,7 +438,7 @@ func TestInsertOutputStats(t *testing.T) {
 	}()
 
 	psqlDb, _ := psqlConnect(db.ConnectUrl)
-	err := insertOutputStats(psqlDb, "id", "outputName", 1)
+	err := insertOutputStats(psqlDb, "tenantName", "outputName", 1)
 	if err != nil {
 		t.Errorf("Unexpected error in 'insertOutputStats': %v", err)
 	}
@@ -455,7 +455,7 @@ func TestInsertOutputStats(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertOutputStats(psqlDb, "id", "outputName", 1)
+	err = insertOutputStats(psqlDb, "tenantName", "outputName", 1)
 	if err != nil {
 		t.Errorf("Unexpected error in 'insertOutputStats': %v", err)
 	}
@@ -471,13 +471,13 @@ func TestInsertOutputStats(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertOutputStats(psqlDb, "id", "outputName", 1)
+	err = insertOutputStats(psqlDb, "tenantName", "outputName", 1)
 	if err != selectError {
 		t.Errorf("Unexpected error in 'insertOutputStats', expected: %v, got: %v", selectError, err)
 	}
 
 	t.Log("select 2 rows")
-	select2RowsError := "error insert in postgresDb. Table:WebhookOutputStats where id=id, outputName=outputName, have 2 rows"
+	select2RowsError := "error insert in postgresDb. Table:WebhookOutputStats where tenantName=tenantName, outputName=outputName, have 2 rows"
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -488,7 +488,7 @@ func TestInsertOutputStats(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertOutputStats(psqlDb, "id", "outputName", 1)
+	err = insertOutputStats(psqlDb, "tenantName", "outputName", 1)
 	if err.Error() != select2RowsError {
 		t.Errorf("Unexpected error in 'insertOutputStats', expected: %v, got: %v", select2RowsError, err)
 	}
@@ -506,7 +506,7 @@ func TestInsertOutputStats(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertOutputStats(psqlDb, "id", "outputName", 1)
+	err = insertOutputStats(psqlDb, "tenantName", "outputName", 1)
 	if err != badInsertError {
 		t.Errorf("Unexpected error in 'insertOutputStats', expected: %v, got: %v", badInsertError, err)
 	}
@@ -524,7 +524,7 @@ func TestInsertOutputStats(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertOutputStats(psqlDb, "id", "outputName", 1)
+	err = insertOutputStats(psqlDb, "tenantName", "outputName", 1)
 	if err != badUpdateError {
 		t.Errorf("Unexpected error in 'insertOutputStats', expected: %v, got: %v", badUpdateError, err)
 	}
@@ -548,7 +548,7 @@ func TestInsertInTableName(t *testing.T) {
 	}()
 
 	psqlDb, _ := psqlConnect(db.ConnectUrl)
-	err := insertInTableName(psqlDb, "id", "messageKey", []byte("messageValue"), nil)
+	err := insertInTableName(psqlDb, "tenantName", "messageKey", []byte("messageValue"), nil)
 	if err != nil {
 		t.Errorf("Unexpected error in 'insertInTableName': %v", err)
 	}
@@ -565,7 +565,7 @@ func TestInsertInTableName(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableName(psqlDb, "id", "messageKey", []byte("messageValue"), nil)
+	err = insertInTableName(psqlDb, "tenantName", "messageKey", []byte("messageValue"), nil)
 	if err != nil {
 		t.Errorf("Unexpected error in 'insertInTableName': %v", err)
 	}
@@ -581,13 +581,13 @@ func TestInsertInTableName(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableName(psqlDb, "id", "messageKey", []byte("messageValue"), nil)
+	err = insertInTableName(psqlDb, "tenantName", "messageKey", []byte("messageValue"), nil)
 	if err != selectError {
 		t.Errorf("Unexpected error in 'insertInTableName', expected: %v, got: %v", selectError, err)
 	}
 
 	t.Log("select 2 rows")
-	select2RowsError := "error insert in postgresDb. Table:WebhookBucket where id=id, messageKey=messageKey, have 2 rows"
+	select2RowsError := "error insert in postgresDb. Table:WebhookBucket where tenantName=tenantName, messageKey=messageKey, have 2 rows"
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
@@ -598,7 +598,7 @@ func TestInsertInTableName(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableName(psqlDb, "id", "messageKey", []byte("messageValue"), nil)
+	err = insertInTableName(psqlDb, "tenantName", "messageKey", []byte("messageValue"), nil)
 	if err.Error() != select2RowsError {
 		t.Errorf("Unexpected error in 'insertInTableName', expected: %v, got: %v", select2RowsError, err)
 	}
@@ -616,7 +616,7 @@ func TestInsertInTableName(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableName(psqlDb, "id", "messageKey", []byte("messageValue"), nil)
+	err = insertInTableName(psqlDb, "tenantName", "messageKey", []byte("messageValue"), nil)
 	if err != badInsertError {
 		t.Errorf("Unexpected error in 'insertInTableName', expected: %v, got: %v", badInsertError, err)
 	}
@@ -634,7 +634,7 @@ func TestInsertInTableName(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = insertInTableName(psqlDb, "id", "messageKey", []byte("messageValue"), nil)
+	err = insertInTableName(psqlDb, "tenantName", "messageKey", []byte("messageValue"), nil)
 	if err != badUpdateError {
 		t.Errorf("Unexpected error in 'insertInTableName', expected: %v, got: %v", badUpdateError, err)
 	}

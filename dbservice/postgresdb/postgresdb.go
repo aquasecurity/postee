@@ -2,12 +2,12 @@ package postgresdb
 
 type PostgresDb struct {
 	ConnectUrl string
-	Id         string
+	TenantName string
 }
 
-func NewPostgresDb(id, connectUrl string) *PostgresDb {
+func NewPostgresDb(tenantName, connectUrl string) *PostgresDb {
 	return &PostgresDb{
 		ConnectUrl: connectUrl,
-		Id:         id,
+		TenantName: tenantName,
 	}
 }

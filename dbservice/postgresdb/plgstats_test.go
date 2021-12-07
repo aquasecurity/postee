@@ -12,7 +12,7 @@ import (
 func TestRegisterPlgnInvctn(t *testing.T) {
 	receivedKey := 0
 	savedInsertOutputStats := insertOutputStats
-	insertOutputStats = func(db *sqlx.DB, id, outputName string, amount int) error {
+	insertOutputStats = func(db *sqlx.DB, tenantName, outputName string, amount int) error {
 		receivedKey = amount
 		return nil
 	}
@@ -53,7 +53,7 @@ func TestRegisterPlgnInvctnErrors(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			savedInsertOutputStats := insertOutputStats
-			insertOutputStats = func(db *sqlx.DB, id, outputName string, amount int) error { return nil }
+			insertOutputStats = func(db *sqlx.DB, tenantName, outputName string, amount int) error { return nil }
 			savedPsqlConnect := psqlConnect
 			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, mock, err := sqlxmock.Newx()

@@ -27,8 +27,8 @@ func (postgresDb *PostgresDb) CheckSizeLimit() {
 		return
 	}
 	if size > dbparam.DbSizeLimit {
-		if err = deleteRowsById(db, dbparam.DbBucketName, postgresDb.Id); err != nil {
-			log.Printf("CheckSizeLimit: Can't delete id's: %s from table: %s", postgresDb.Id, dbparam.DbBucketName)
+		if err = deleteRowsByTenantName(db, dbparam.DbBucketName, postgresDb.TenantName); err != nil {
+			log.Printf("CheckSizeLimit: Can't delete tenantName's: %s from table: %s", postgresDb.TenantName, dbparam.DbBucketName)
 			return
 		}
 	}
@@ -44,7 +44,7 @@ func (postgresDb *PostgresDb) CheckExpiredData() {
 	defer db.Close()
 
 	max := time.Now().UTC() //remove expired records
-	if err = deleteRowsByIdAndTime(db, postgresDb.Id, max); err != nil {
+	if err = deleteRowsByTenantNameAndTime(db, postgresDb.TenantName, max); err != nil {
 		log.Printf("CheckExpiredData: Can't delete dates from table:%s, err: %v", dbparam.DbBucketName, err)
 	}
 }

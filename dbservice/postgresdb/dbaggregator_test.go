@@ -51,7 +51,7 @@ func TestAggregateScans(t *testing.T) {
 	savingTest := []byte{}
 	for i := 0; i < len(tests); i++ {
 		savedInsertInTableAggregator := insertInTableAggregator
-		insertInTableAggregator = func(db *sqlx.DB, id, output string, saving []byte) error {
+		insertInTableAggregator = func(db *sqlx.DB, tenantName, output string, saving []byte) error {
 			savingTest = saving
 			return nil
 		}

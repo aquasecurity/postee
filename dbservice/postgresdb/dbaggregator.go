@@ -24,8 +24,8 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 		aggregatedScans = append(aggregatedScans, currentScan)
 	}
 	currentValue := []byte{}
-	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (id=$1 AND %s=$2)", "saving", dbparam.DbBucketAggregator, "output")
-	if err = db.Get(&currentValue, sqlQuery, postgresDb.Id, output); err != nil {
+	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "saving", dbparam.DbBucketAggregator, "output")
+	if err = db.Get(&currentValue, sqlQuery, postgresDb.TenantName, output); err != nil {
 		if err != sql.ErrNoRows {
 			return nil, err
 		}
@@ -45,13 +45,13 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 		if err != nil {
 			return nil, err
 		}
-		if err = insertInTableAggregator(db, postgresDb.Id, output, saving); err != nil {
+		if err = insertInTableAggregator(db, postgresDb.TenantName, output, saving); err != nil {
 
 			return nil, err
 		}
 		return nil, nil
 	}
-	if err = insertInTableAggregator(db, postgresDb.Id, output, nil); err != nil {
+	if err = insertInTableAggregator(db, postgresDb.TenantName, output, nil); err != nil {
 		return nil, err
 	}
 	return aggregatedScans, nil
