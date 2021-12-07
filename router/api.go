@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/routes"
 )
 
@@ -27,20 +28,20 @@ func WithDefaultConfig() error {
 }
 func WithFileConfig(cfgPath string) error {
 	Instance().Terminate()
-	//	dbservice.DbPath = defaultDbPath
+	dbservice.ConfigureDb(defaultDbPath, "", "")
 	return Instance().ApplyFileCfg(cfgPath, true)
 }
 
 func WithNewConfig(tenantName string) { //tenant name
 	Instance().Terminate()
-	//	dbservice.DbPath = defaultDbPath
+	dbservice.ConfigureDb(defaultDbPath, "", "")
 	Instance().initCfg(true)
 }
 
 //initialize instance with custom db location
 func WithNewConfigAndDbPath(tenantName, dbPath string) { //tenant name
 	Instance().Terminate()
-	//	dbservice.DbPath = dbPath
+	dbservice.ConfigureDb(defaultDbPath, "", "")
 	Instance().initCfg(true)
 }
 
@@ -50,7 +51,7 @@ func WithDefaultConfigAndDbPath(dbPath string) error {
 
 func WithFileConfigAndDbPath(cfgPath, dbPath string) error {
 	Instance().Terminate()
-	//	dbservice.DbPath = dbPath
+	dbservice.ConfigureDb(dbPath, "", "")
 	return Instance().ApplyFileCfg(cfgPath, true)
 }
 
