@@ -24,7 +24,7 @@ type DbProvider interface {
 	GetApiKey() (string, error)
 }
 
-func ConfigureDb(pathToDb, postgresUrl, tenantId string, dBTestInterval *int, dbMaxSize int) error {
+func ConfigureDb(pathToDb, postgresUrl, tenantName string, dBTestInterval *int, dbMaxSize int) error {
 	if *dBTestInterval == 0 {
 		*dBTestInterval = 1
 	}
@@ -33,10 +33,10 @@ func ConfigureDb(pathToDb, postgresUrl, tenantId string, dBTestInterval *int, db
 	pathToDb = utils.GetEnvironmentVarOrPlain(pathToDb)
 
 	if postgresUrl != "" {
-		if tenantId == "" {
-			return errors.New("error configurate postgresDb: 'tenantId' is empty")
+		if tenantName == "" {
+			return errors.New("error configurate postgresDb: 'tenantName' is empty")
 		}
-		postgresDb := postgresdb.NewPostgresDb(tenantId, postgresUrl)
+		postgresDb := postgresdb.NewPostgresDb(tenantName, postgresUrl)
 		if err := postgresdb.InitPostgresDb(postgresDb.ConnectUrl); err != nil {
 			return err
 		}

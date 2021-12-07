@@ -47,18 +47,18 @@ func TestConfigurateBoltDbPathUsedEnv(t *testing.T) {
 	}
 }
 
-func TestConfiguratePostgresDbUrlAndId(t *testing.T) {
+func TestConfiguratePostgresDbUrlAndTenantName(t *testing.T) {
 	tests := []struct {
 		name          string
 		url           string
 		urlInEnv      string
-		id            string
+		tenantName    string
 		expectedError error
 	}{
-		{"happy configuration postgres with url", "postgresql://user:secret@localhost", "", "test-id", nil},
-		{"happy configuration postgres with env", "$POSTGRES_URL", "postgresql://user:secret@localhost", "test-id", nil},
-		{"bad id", "postgresql://user:secret@localhost", "", "", errors.New("error configurate postgresDb: 'tenantId' is empty")},
-		{"bad url", "badUrl", "", "test-id", errors.New("badUrl error")},
+		{"happy configuration postgres with url", "postgresql://user:secret@localhost", "", "test-tenantName", nil},
+		{"happy configuration postgres with env", "$POSTGRES_URL", "postgresql://user:secret@localhost", "test-tenantName", nil},
+		{"bad tenantName", "postgresql://user:secret@localhost", "", "", errors.New("error configurate postgresDb: 'tenantName' is empty")},
+		{"bad url", "badUrl", "", "test-tenantName", errors.New("badUrl error")},
 	}
 
 	for _, test := range tests {
@@ -78,7 +78,7 @@ func TestConfiguratePostgresDbUrlAndId(t *testing.T) {
 			}()
 
 			testInterval := 0
-			err := ConfigureDb("", test.url, test.id, &testInterval, 1)
+			err := ConfigureDb("", test.url, test.tenantName, &testInterval, 1)
 			if err != nil {
 				if err.Error() != test.expectedError.Error() {
 					t.Errorf("Unexpected error, expected: %s, got: %s", test.expectedError, err)
@@ -96,8 +96,8 @@ func TestConfiguratePostgresDbUrlAndId(t *testing.T) {
 						t.Errorf("url's do not match, expected: %s, got: %s", test.url, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("ConnectUrl").Interface())
 					}
 				}
-				if test.id != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("Id").Interface() {
-					t.Errorf("id's do not match, expected: %s, got: %s", test.url, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("Id").Interface())
+				if test.tenantName != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("TenantName").Interface() {
+					t.Errorf("tenantName's do not match, expected: %s, got: %s", test.url, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("TenantName").Interface())
 				}
 			}
 		})

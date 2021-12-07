@@ -13,7 +13,7 @@ func TestStoreMessage(t *testing.T) {
 	currentValueStoreMessage := []byte{}
 
 	savedinsertInTableName := insertInTableName
-	insertInTableName = func(db *sqlx.DB, id, messageKey string, messageValue []byte, date *time.Time) error {
+	insertInTableName = func(db *sqlx.DB, tenantName, messageKey string, messageValue []byte, date *time.Time) error {
 		currentValueStoreMessage = messageValue
 		return nil
 	}
@@ -61,5 +61,4 @@ func TestStoreMessage(t *testing.T) {
 		}
 		currentValueStoreMessage = []byte{}
 	}
-
 }

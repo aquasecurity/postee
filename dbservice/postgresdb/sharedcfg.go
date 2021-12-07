@@ -21,10 +21,9 @@ func (postgresDb *PostgresDb) EnsureApiKey() error {
 		return err
 	}
 
-	if err = insertInTableSharedConfig(db, postgresDb.Id, apiKeyName, apiKey); err != nil {
+	if err = insertInTableSharedConfig(db, postgresDb.TenantName, apiKeyName, apiKey); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -35,11 +34,10 @@ func (postgresDb *PostgresDb) GetApiKey() (string, error) {
 	}
 	defer db.Close()
 	value := ""
-	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (id=$1 AND %s=$2)", "value", dbparam.DbBucketSharedConfig, "apikeyname")
-	err = db.Get(&value, sqlQuery, postgresDb.Id, apiKeyName)
+	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "value", dbparam.DbBucketSharedConfig, "apikeyname")
+	err = db.Get(&value, sqlQuery, postgresDb.TenantName, apiKeyName)
 	if err != nil {
 		return "", err
 	}
 	return value, nil
-
 }

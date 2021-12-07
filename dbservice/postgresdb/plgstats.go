@@ -16,16 +16,15 @@ func (postgresDb *PostgresDb) RegisterPlgnInvctn(name string) error {
 	defer db.Close()
 
 	amount := 0
-	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (id=$1 AND %s=$2)", "amount", dbparam.DbBucketOutputStats, "outputName")
-	err = db.Get(&amount, sqlQuery, postgresDb.Id, name)
+	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "amount", dbparam.DbBucketOutputStats, "outputName")
+	err = db.Get(&amount, sqlQuery, postgresDb.TenantName, name)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 	amount += 1
-	err = insertOutputStats(db, postgresDb.Id, name, amount)
+	err = insertOutputStats(db, postgresDb.TenantName, name, amount)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
