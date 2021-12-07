@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/router"
 	"github.com/aquasecurity/postee/utils"
 	"github.com/aquasecurity/postee/webserver"
@@ -72,10 +71,6 @@ func main() {
 
 		if os.Getenv("POSTEE_CFG") != "" {
 			cfgfile = os.Getenv("POSTEE_CFG")
-		}
-
-		if os.Getenv("PATH_TO_DB") != "" {
-			dbservice.SetNewDbPathFromEnv()
 		}
 
 		err := router.Instance().ApplyFileCfg(cfgfile, false)

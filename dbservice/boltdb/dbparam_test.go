@@ -1,4 +1,4 @@
-package dbservice
+package boltdb
 
 import (
 	"os"
@@ -8,18 +8,17 @@ import (
 )
 
 func TestSetNewDbPathFromEnv(t *testing.T) {
-	envPathToDbOld := os.Getenv("PATH_TO_DB")
-	defer os.Setenv("PATH_TO_DB", envPathToDbOld)
-	dbPathOld := DbPath
+	db := NewBoltDb()
+	dbPathOld := db.DbPath
 
 	defaultDbPath := "/server/database/webhooks.db"
 	var tests = []struct {
 		name             string
-		envPathToDb      string
+		pathToDb         string
 		changePermission bool
 		expectedDBPath   string
 	}{
-		{"Empty PATH_TO_DB", "", false, defaultDbPath},
+		{"Empty pathToDb", "", false, defaultDbPath},
 		{"Permission denied to create directory(default DbPath is used)", "/database/database.db", false, defaultDbPath},
 		{"New DbPath", "./base/base.db", false, "./base/base.db"},
 		{"Permission denied to check directory(default DbPath is used)", "webhook/database/webhooks.db", true, defaultDbPath},
@@ -27,8 +26,7 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			os.Setenv("PATH_TO_DB", test.envPathToDb)
-			baseDir := strings.Split(filepath.Dir(test.envPathToDb), "/")[0]
+			baseDir := strings.Split(filepath.Dir(test.pathToDb), "/")[0]
 			if test.changePermission {
 				err := os.Mkdir(baseDir, os.ModeDir)
 				if err != nil {
@@ -36,12 +34,12 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 				}
 				os.Chmod(baseDir, 0)
 			}
-			SetNewDbPathFromEnv()
+			db.SetNewDbPath(test.pathToDb)
 			defer os.RemoveAll(baseDir)
-			defer ChangeDbPath(dbPathOld)
+			defer db.ChangeDbPath(dbPathOld)
 
-			if test.expectedDBPath != DbPath {
-				t.Errorf("[%s] Paths is not equals, expected: %s, got: %s", test.name, test.expectedDBPath, DbPath)
+			if test.expectedDBPath != db.DbPath {
+				t.Errorf("[%s] Paths is not equals, expected: %s, got: %s", test.name, test.expectedDBPath, db.DbPath)
 			}
 
 		})

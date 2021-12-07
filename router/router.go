@@ -256,10 +256,10 @@ func (ctx *Router) load() error {
 	//----------------------------------------------------
 	// TODO there should be some other way of doing that
 
-	dbservice.DbSizeLimit = tenant.DBMaxSize
-	if tenant.DBTestInterval == 0 {
-		tenant.DBTestInterval = 1
+	if err = dbservice.ConfigureDb("$PATH_TO_DB", "$POSTGRES_URL", tenant.Name, &tenant.DBTestInterval, tenant.DBMaxSize); err != nil {
+		return err
 	}
+
 	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(tenant.DBTestInterval))
 	go func() {
 		for {
@@ -267,8 +267,8 @@ func (ctx *Router) load() error {
 			case <-ctx.stopTicker:
 				return
 			case <-ctx.ticker.C:
-				dbservice.CheckSizeLimit()
-				dbservice.CheckExpiredData()
+				dbservice.Db.CheckSizeLimit()
+				dbservice.Db.CheckExpiredData()
 			}
 		}
 	}()

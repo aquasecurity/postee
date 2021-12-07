@@ -1,26 +1,28 @@
-package dbservice
+package boltdb
 
 import (
 	"os"
 	"strconv"
 	"testing"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 
 func TestRegisterPlgnInvctn(t *testing.T) {
-	dbPathReal := DbPath
+	dbBolt := NewBoltDb()
+	dbPathReal := dbBolt.DbPath
 	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
+		os.Remove(dbBolt.DbPath)
+		dbBolt.DbPath = dbPathReal
 	}()
-	DbPath = "test_webhooks.db"
+	dbBolt.DbPath = "test_webhooks.db"
 	expectedCnt := 3
 	keyToTest := "test"
 	for i := 0; i < expectedCnt; i++ {
-		RegisterPlgnInvctn(keyToTest)
+		dbBolt.RegisterPlgnInvctn(keyToTest)
 	}
-	r, err := getPlgnStats()
+	r, err := getPlgnStats(dbBolt)
 	if err != nil {
 		t.Fatal("error while getting value of API key")
 	}
@@ -30,16 +32,16 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 
 }
 
-func getPlgnStats() (r map[string]int, err error) {
+func getPlgnStats(dbBolt *BoltDb) (r map[string]int, err error) {
 	r = make(map[string]int)
 
-	db, err := bolt.Open(DbPath, 0444, nil)
+	db, err := bolt.Open(dbBolt.DbPath, 0444, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 	err = db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DbBucketOutputStats))
+		bucket := tx.Bucket([]byte(dbparam.DbBucketOutputStats))
 		if bucket == nil {
 			return nil //no bucket - empty stats will be returned
 		}

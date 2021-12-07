@@ -1,41 +1,39 @@
-package dbservice
+package postgresdb
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 
-	bolt "go.etcd.io/bbolt"
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 )
 
-func AggregateScans(output string,
+func (postgresDb *PostgresDb) AggregateScans(output string,
 	currentScan map[string]string,
 	scansPerTicket int,
 	ignoreTheQuantity bool) ([]map[string]string, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := psqlConnect(postgresDb.ConnectUrl)
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 
-	err = Init(db, dbBucketAggregator)
-	if err != nil {
-		return nil, err
-	}
-
 	aggregatedScans := make([]map[string]string, 0, scansPerTicket)
 	if len(currentScan) > 0 {
 		aggregatedScans = append(aggregatedScans, currentScan)
 	}
-	currentValue, err := dbSelect(db, dbBucketAggregator, output)
-	if err != nil {
-		return nil, err
+	currentValue := []byte{}
+	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "saving", dbparam.DbBucketAggregator, "output")
+	if err = db.Get(&currentValue, sqlQuery, postgresDb.TenantName, output); err != nil {
+		if err != sql.ErrNoRows {
+			return nil, err
+		}
 	}
 
 	if len(currentValue) > 0 {
 		var savedScans []map[string]string
-		err = json.Unmarshal(currentValue, &savedScans)
+		err = json.Unmarshal([]byte(currentValue), &savedScans)
 		if err != nil {
 			return nil, err
 		}
@@ -47,13 +45,14 @@ func AggregateScans(output string,
 		if err != nil {
 			return nil, err
 		}
+		if err = insertInTableAggregator(db, postgresDb.TenantName, output, saving); err != nil {
 
-		err = dbInsert(db, dbBucketAggregator, []byte(output), saving)
-		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
-	dbInsert(db, dbBucketAggregator, []byte(output), nil)
+	if err = insertInTableAggregator(db, postgresDb.TenantName, output, nil); err != nil {
+		return nil, err
+	}
 	return aggregatedScans, nil
 }

@@ -5,6 +5,7 @@ import (
 )
 
 type TenantSettings struct {
+	Name            string              `json:"name,omitempty"`
 	AquaServer      string              `json:"aqua-server,omitempty"`
 	DBMaxSize       int                 `json:"max-db-size,omitempty"`
 	DBRemoveOldData int                 `json:"delete-old-data,omitempty"`

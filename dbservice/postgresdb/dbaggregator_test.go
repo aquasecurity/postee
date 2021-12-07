@@ -1,8 +1,11 @@
-package dbservice
+package postgresdb
 
 import (
-	"os"
+	"log"
 	"testing"
+
+	"github.com/jmoiron/sqlx"
+	sqlxmock "github.com/zhashkevych/go-sqlxmock"
 )
 
 func TestAggregateScans(t *testing.T) {
@@ -13,7 +16,7 @@ func TestAggregateScans(t *testing.T) {
 		scan4 = map[string]string{"title": "t4", "description": "d4"}
 	)
 
-	var tests = [...]struct {
+	var tests = []struct {
 		output         string
 		currentScan    map[string]string
 		scansPerTicket int
@@ -45,16 +48,30 @@ func TestAggregateScans(t *testing.T) {
 		},
 	}
 
-	dbPathReal := DbPath
-	defer func() {
-		os.Remove(DbPath)
-		DbPath = dbPathReal
-	}()
-	DbPath = "test_webhooks.db"
-
+	savingTest := []byte{}
 	for i := 0; i < len(tests); i++ {
+		savedInsertInTableAggregator := insertInTableAggregator
+		insertInTableAggregator = func(db *sqlx.DB, tenantName, output string, saving []byte) error {
+			savingTest = saving
+			return nil
+		}
+		savedPsqlConnect := psqlConnect
+		psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+			db, mock, err := sqlxmock.Newx()
+			if err != nil {
+				log.Println("failed to open sqlmock database:", err)
+			}
+			rows := sqlxmock.NewRows([]string{"saving"}).AddRow(savingTest)
+			mock.ExpectQuery("SELECT").WillReturnRows(rows)
+			return db, err
+		}
+		defer func() {
+			insertInTableAggregator = savedInsertInTableAggregator
+			psqlConnect = savedPsqlConnect
+		}()
+
 		test := tests[i]
-		aggregated, err := AggregateScans(test.output, test.currentScan, test.scansPerTicket, false)
+		aggregated, err := db.AggregateScans(test.output, test.currentScan, test.scansPerTicket, false)
 		if err != nil {
 			t.Errorf("AggregateScans Error: %v", err)
 			continue
@@ -76,7 +93,7 @@ func TestAggregateScans(t *testing.T) {
 	}
 
 	// Test of existence last scan in DB
-	lastScan, err := AggregateScans("jira", nil, 0, false)
+	lastScan, err := db.AggregateScans("jira", nil, 0, false)
 	if err != nil {
 		t.Fatalf("AggregateScans Error: %v", err)
 	}

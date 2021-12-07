@@ -1,27 +1,28 @@
-package dbservice
+package boltdb
 
 import (
 	"strconv"
 
+	"github.com/aquasecurity/postee/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 
-func RegisterPlgnInvctn(name string) error {
+func (boltDb *BoltDb) RegisterPlgnInvctn(name string) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	err = Init(db, DbBucketOutputStats)
+	err = Init(db, dbparam.DbBucketOutputStats)
 	if err != nil {
 		return err
 	}
 
 	err = db.Update(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(DbBucketOutputStats))
+		bucket := tx.Bucket([]byte(dbparam.DbBucketOutputStats))
 		var i int
 		v := bucket.Get([]byte(name))
 
