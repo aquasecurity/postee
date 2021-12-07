@@ -32,7 +32,7 @@ func TestExpiredDates(t *testing.T) {
 				return db, err
 			}
 			savedDeleteRow := deleteRowsByIdAndTime
-			deleteRowsByIdAndTime = func(db *sqlx.DB, table, id string, t time.Time) error {
+			deleteRowsByIdAndTime = func(db *sqlx.DB, id string, t time.Time) error {
 				if !test.deleteError {
 					deleted = true
 				}

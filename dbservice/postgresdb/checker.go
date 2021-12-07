@@ -44,7 +44,7 @@ func (postgresDb *PostgresDb) CheckExpiredData() {
 	defer db.Close()
 
 	max := time.Now().UTC() //remove expired records
-	if err = deleteRowsByIdAndTime(db, dbparam.DbBucketName, postgresDb.Id, max); err != nil {
+	if err = deleteRowsByIdAndTime(db, postgresDb.Id, max); err != nil {
 		log.Printf("CheckExpiredData: Can't delete dates from table:%s, err: %v", dbparam.DbBucketName, err)
 	}
 }

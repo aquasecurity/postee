@@ -129,7 +129,7 @@ func TestDeleteRowsByIdAndTime(t *testing.T) {
 	}()
 
 	psqlDb, _ := psqlConnect(db.ConnectUrl)
-	err := deleteRowsByIdAndTime(psqlDb, "table", "id", time.Now())
+	err := deleteRowsByIdAndTime(psqlDb, "id", time.Now())
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -149,7 +149,7 @@ func TestDeleteRowsByIdAndTime(t *testing.T) {
 		return db, err
 	}
 	psqlDb, _ = psqlConnect(db.ConnectUrl)
-	err = deleteRowsByIdAndTime(psqlDb, "table", "id", time.Now())
+	err = deleteRowsByIdAndTime(psqlDb, "id", time.Now())
 	if deleteError != err {
 		t.Errorf("Unexpected error, expected: %v, got: %v", deleteError, err)
 	}
