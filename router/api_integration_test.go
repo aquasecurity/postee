@@ -80,3 +80,49 @@ func TestAudit(t *testing.T) {
 	got := <-received
 	assert.Equal(t, string(got), want, "unexpected response")
 }
+
+/*
+TODO figure out how to run integration test with Postgres DB
+func TestAuditWithPostgres(t *testing.T) {
+	received := make(chan ([]byte))
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("Failed ioutil.ReadAll: %s\n", err)
+			received <- []byte{}
+			return
+		}
+
+		received <- body
+
+		defer r.Body.Close()
+	}))
+	defer ts.Close()
+
+	router.WithPostgresParams("my-postee", "posteedb", "localhost", "", "postee", "postee123", "")
+
+	err := router.AddTemplate(&data.Template{
+		Name: "audit-json-template",
+		Body: rego,
+	})
+	if err != nil {
+		t.Logf("Error: %v", err)
+		return
+	}
+	router.AddOutput(&data.OutputSettings{
+		Name:   "test-webhook",
+		Type:   "webhook",
+		Enable: true,
+		Url:    ts.URL,
+	})
+
+	router.AddRoute(&routes.InputRoute{
+		Name:     "test",
+		Outputs:  []string{"test-webhook"},
+		Template: "audit-json-template",
+	})
+	router.Send([]byte(msg))
+	got := <-received
+	assert.Equal(t, string(got), want, "unexpected response")
+}*/

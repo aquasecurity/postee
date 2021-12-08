@@ -2,6 +2,8 @@ package router
 
 import (
 	"bytes"
+	"fmt"
+	"net/url"
 	"os"
 
 	"github.com/aquasecurity/postee/v2/data"
@@ -53,6 +55,19 @@ func WithFileConfigAndDbPath(cfgPath, dbPath string) error {
 	Instance().Terminate()
 	dbservice.ConfigureDb(dbPath, "", "")
 	return Instance().ApplyFileCfg(cfgPath, true)
+}
+
+func WithPostgresParams(tenantName, dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) {
+	postgresUrl := buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode)
+	Instance().Terminate()
+	dbservice.ConfigureDb("", postgresUrl, tenantName)
+	Instance().initCfg(true)
+}
+
+func WithPostgresUrl(tenantName, postgresUrl string) {
+	Instance().Terminate()
+	dbservice.ConfigureDb("", postgresUrl, tenantName)
+	Instance().initCfg(true)
 }
 
 func AquaServerUrl(aquaServerUrl string) { //optional
@@ -160,4 +175,27 @@ func ListTemplates() []string {
 func Send(b []byte) {
 	//Instance().Send(b)
 	Instance().handle(bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''}))
+}
+
+func buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) string {
+	hostname := dbHostName
+
+	if dbPort != "" {
+		hostname += fmt.Sprintf(":%s", dbPort)
+	}
+
+	rawQuery := ""
+
+	if dbSslMode != "" {
+		rawQuery = fmt.Sprintf("sslmode=%s", dbSslMode)
+	}
+
+	url := url.URL{
+		Scheme:   "postgres",
+		Host:     hostname,
+		Path:     dbName,
+		User:     url.UserPassword(dbUser, dbPassword),
+		RawQuery: rawQuery,
+	}
+	return url.String()
 }
