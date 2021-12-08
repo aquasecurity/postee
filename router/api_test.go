@@ -72,3 +72,45 @@ func TestListOutput(t *testing.T) {
 
 //TODO templates
 //TODO routes
+
+func TestBuildPosgresUrl(t *testing.T) {
+	tests := []struct {
+		caseDesc    string
+		username    string
+		password    string
+		port        string
+		dbName      string
+		dbHostName  string
+		dbSslMode   string
+		expectedUrl string
+	}{
+		{
+			"all parameters specified",
+			"admin",
+			"admin",
+			"5433",
+			"postee",
+			"localhost",
+			"prefer",
+			"postgres://admin:admin@localhost:5433/postee?sslmode=prefer",
+		},
+		{
+			"minimal parameters",
+			"admin",
+			"admin",
+			"",
+			"postee",
+			"localhost",
+			"",
+			"postgres://admin:admin@localhost/postee",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.caseDesc, func(t *testing.T) {
+			url := buildPostgresUrl(test.dbName, test.dbHostName, test.port, test.username, test.password, test.dbSslMode)
+			assert.Equal(t, test.expectedUrl, url)
+		})
+	}
+
+}
