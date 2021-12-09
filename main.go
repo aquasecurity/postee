@@ -91,7 +91,11 @@ func main() {
 
 		Daemonize()
 	}
-	rootCmd.Execute()
+	err := rootCmd.Execute()
+	if err != nil {
+		log.Printf("Can't start command %v", err)
+		return
+	}
 }
 
 func Daemonize() {

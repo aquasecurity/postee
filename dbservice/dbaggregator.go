@@ -54,6 +54,9 @@ func AggregateScans(output string,
 		}
 		return nil, nil
 	}
-	dbInsert(db, dbBucketAggregator, []byte(output), nil)
+	err = dbInsert(db, dbBucketAggregator, []byte(output), nil)
+	if err != nil {
+		return nil, err
+	}
 	return aggregatedScans, nil
 }

@@ -133,7 +133,7 @@ func TestInitError(t *testing.T) {
 		t.Errorf("Scan shouldn't be marked as new\n")
 	}
 
-	if err != initErr {
+	if !errors.Is(err, initErr) {
 		t.Errorf("Unexpected error: expected %s, got %s \n", initErr, err)
 	}
 
@@ -160,7 +160,7 @@ func TestSelectError(t *testing.T) {
 		t.Errorf("Scan shouldn't be marked as new\n")
 	}
 
-	if err != selectErr {
+	if !errors.Is(err, selectErr) {
 		t.Errorf("Unexpected error: expected %s, got %s \n", selectErr, err)
 	}
 
@@ -206,7 +206,7 @@ func testBucketInsert(t *testing.T, testBucket string) {
 		t.Errorf("Scan shouldn't be marked as new\n")
 	}
 
-	if err != insertErr {
+	if !errors.Is(err, insertErr) {
 		t.Errorf("Unexpected error: expected %s, got %s \n", insertErr, err)
 	}
 }

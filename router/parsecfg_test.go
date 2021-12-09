@@ -25,7 +25,11 @@ playing_playlist: {{ action }} playlist {{ playlist_name }}`
 		os.Remove(cfgfn)
 	}()
 
-	ioutil.WriteFile(cfgfn, []byte(invalidYaml), 0644)
+	errWriteFile := ioutil.WriteFile(cfgfn, []byte(invalidYaml), 0644)
+	if errWriteFile != nil {
+		t.Errorf("Error in WriteFile")
+	}
+
 	_, err := Parsev2cfg(cfgfn)
 
 	if err == nil {
