@@ -28,7 +28,10 @@
     "vue-template-compiler": "^2.6.11"
   },
   "resolutions": {
-    "set-value": "4.0.1"
+    "set-value": "4.0.1",
+    "ansi-regex": "5.0.1",
+    "glob-parent": "5.1.2",
+    "nth-check": "2.0.1"
   },
   "eslintConfig": {
     "root": true,
