@@ -259,11 +259,6 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	return nil
 }
 
-/*func (ctx *JiraAPI) login(client *jira.Client) error {
-	_, err := client.Authentication.AcquireSessionCookie(ctx.User, ctx.Password)
-	return err
-}*/
-
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {
 	i, res, err := client.Issue.Create(issue)
 

@@ -27,7 +27,7 @@ playing_playlist: {{ action }} playlist {{ playlist_name }}`
 
 	errWriteFile := ioutil.WriteFile(cfgfn, []byte(invalidYaml), 0644)
 	if errWriteFile != nil {
-		t.Errorf("Error in WriteFile")
+		t.Errorf("Error in WriteFile: %s", errWriteFile)
 	}
 
 	_, err := Parsev2cfg(cfgfn)

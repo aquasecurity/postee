@@ -61,7 +61,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	if ok := utils.PathExists(keyPem); ok != true {
 		err := utils.GenerateCertificate(keyPem, certPem)
 		if err != nil {
-			log.Printf("GenerateCertificate error: %s \n", err)
+			log.Printf("GenerateCertificate error: %v \n", err)
 		}
 	}
 
@@ -74,7 +74,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	}
 	err := dbservice.EnsureApiKey()
 	if err != nil {
-		log.Printf("EnsureApiKey error: %s \n", err)
+		log.Printf("EnsureApiKey error: %v \n", err)
 	}
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")

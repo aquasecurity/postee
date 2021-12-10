@@ -99,7 +99,7 @@ func (ctx *Router) Terminate() {
 	for _, pl := range ctx.outputs {
 		err := pl.Terminate()
 		if err != nil {
-			log.Printf("failed to Terminate : %v", err)
+			log.Printf("failed to terminate output: %v", err)
 		}
 	}
 	log.Printf("Outputs terminated")

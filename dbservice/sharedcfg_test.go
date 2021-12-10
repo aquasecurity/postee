@@ -50,7 +50,7 @@ func TestApiKeyRenewal(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		err := EnsureApiKey()
 		if err != nil {
-			t.Fatal("error EnsureApiKey")
+			t.Errorf("error EnsureApiKey: %s", err)
 		}
 		key, err := GetApiKey()
 		if err != nil {
