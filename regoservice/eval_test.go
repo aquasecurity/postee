@@ -233,3 +233,43 @@ func parseJson(in *string) map[string]interface{} {
 	}
 	return r
 }
+
+func TestBuildImageUrlPart(t *testing.T) {
+	data := make(map[string]interface{})
+	tests := []struct {
+		name          string
+		image         string
+		registry      string
+		expectedUrl   string
+		expectedError string
+	}{
+		{"happy build url, with html character requiring encoding", "alpine:3.2", "Aqua", "Aqua/alpine%3A3.2", ""},
+		{"happy build url, without html character requiring encoding", "alpine", "Aqua", "Aqua/alpine", ""},
+		{"bad image", "", "Aqua", "", "property image is not found"},
+		{"bad registry", "alpine:3.2", "", "", "property registry is not found"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.image != "" {
+				data["image"] = test.image
+			}
+			if test.registry != "" {
+				data["registry"] = test.registry
+			}
+			defer func() {
+				data = make(map[string]interface{})
+			}()
+			image_url_part, err := buildImageUrlPart(data)
+			if err != nil {
+				if err.Error() != test.expectedError {
+					t.Errorf("unexpected error: %v", err)
+				}
+			}
+			if image_url_part != test.expectedUrl {
+				t.Errorf("bad url, expected: %s, got: %s", test.expectedUrl, image_url_part)
+			}
+		})
+
+	}
+
+}
