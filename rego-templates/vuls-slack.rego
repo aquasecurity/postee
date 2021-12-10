@@ -105,6 +105,8 @@ malware_list := l {
 
 ###########################################################################################################
 title = sprintf("%s vulnerability scan report", [input.image]) # title is string
+registry = input.registry
+image = input.image
 
 aggregation_pkg := "postee.vuls.slack.aggregation"
 

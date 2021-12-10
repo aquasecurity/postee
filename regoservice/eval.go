@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/open-policy-agent/opa/rego"
@@ -67,10 +68,15 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		return nil, err
 	}
 
+	image_url_part, err := buildImageUrlPart(data)
+	if err != nil {
+		return nil, err
+	}
+
 	return map[string]string{
 		"title":       title,
 		"description": description,
-		"url":         serverUrl,
+		"url":         serverUrl + image_url_part,
 	}, nil
 
 }
@@ -92,6 +98,18 @@ func getFirstElement(context map[string]interface{}, key string) interface{} {
 		}
 	}
 	return nil
+}
+
+func buildImageUrlPart(data map[string]interface{}) (string, error) {
+	image, err := asStringOrJson(data, "image")
+	if err != nil {
+		return "", err
+	}
+	registry, err := asStringOrJson(data, "registry")
+	if err != nil {
+		return "", err
+	}
+	return registry + "/" + url.QueryEscape(image), nil
 }
 
 func asStringOrJson(data map[string]interface{}, prop string) (string, error) {

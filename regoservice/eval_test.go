@@ -13,6 +13,8 @@ var (
 package rego1
 title:="Audit event received"
 result:=sprintf("Audit event received from %s", [input.user])	
+image:="Audit-image-received"
+registry:="Audit-registry-received"
 `
 	regoJson = `
 package rego1
@@ -20,6 +22,8 @@ title:="Audit event received"
 result:={
 	"assignee": input.user
 }
+image:="Audit-image-received"
+registry:="Audit-registry-received"
 `
 	regoWithoutResult = `
 package rego1
@@ -37,6 +41,8 @@ default input = false
 package postee.rego1
 title:="Audit event received"
 result:=sprintf("Audit event received from %s", [input.user])	
+image:="Audit-image-received"
+registry:="Audit-registry-received"
 `
 
 	input = `{
@@ -72,6 +78,7 @@ func TestEval(t *testing.T) {
 			expectedValues: map[string]string{
 				"title":       "Audit event received",
 				"description": "Audit event received from demo",
+				"url":         "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
@@ -82,6 +89,7 @@ func TestEval(t *testing.T) {
 			expectedValues: map[string]string{
 				"title":       "Audit event received",
 				"description": "Audit event received from demo",
+				"url":         "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
@@ -92,6 +100,7 @@ func TestEval(t *testing.T) {
 			expectedValues: map[string]string{
 				"title":       "Audit event received",
 				"description": `{"assignee":"demo"}`,
+				"url":         "Audit-registry-received/Audit-image-received",
 			},
 		},
 		/* cases which should fail are below*/
