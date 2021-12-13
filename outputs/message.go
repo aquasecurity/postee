@@ -18,7 +18,7 @@ func buildShortMessage(server, urls string, provider layout.LayoutProvider) stri
 			builder.WriteString(provider.P(provider.A(link, link)))
 		}
 	} else {
-		builder.WriteString(provider.P("Please configure Aqua server url to see entire message."))
+		builder.WriteString(provider.P("Please configure Aqua server url to get link to entire scan results."))
 		builder.WriteString(provider.P(provider.A(posteeDocsUrl, posteeDocsUrl)))
 	}
 	return builder.String()

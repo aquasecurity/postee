@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/open-policy-agent/opa/rego"
@@ -15,6 +14,7 @@ import (
 const (
 	result_prop          = "result"
 	title_prop           = "title"
+	url_prop             = "url"
 	aggregation_pkg_prop = "aggregation_pkg"
 )
 
@@ -68,7 +68,7 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		return nil, err
 	}
 
-	image_url_part, err := buildImageUrlPart(data)
+	image_url_part, err := asStringOrJson(data, url_prop)
 	if err != nil {
 		return nil, err
 	}
@@ -98,18 +98,6 @@ func getFirstElement(context map[string]interface{}, key string) interface{} {
 		}
 	}
 	return nil
-}
-
-func buildImageUrlPart(data map[string]interface{}) (string, error) {
-	image, err := asStringOrJson(data, "image")
-	if err != nil {
-		return "", err
-	}
-	registry, err := asStringOrJson(data, "registry")
-	if err != nil {
-		return "", err
-	}
-	return registry + "/" + url.QueryEscape(image), nil
 }
 
 func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
