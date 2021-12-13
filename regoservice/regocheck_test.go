@@ -19,14 +19,20 @@ func TestOpaRego(t *testing.T) {
 	if err != nil {
 		t.Errorf("error create file: %v", err)
 	}
-	correctFile.WriteString(fmt.Sprintf(module, rego))
+	_, err = correctFile.WriteString(fmt.Sprintf(module, rego))
+	if err != nil {
+		t.Fatal(err)
+	}
 	defer os.Remove("correctInputFiles.rego")
 	defer correctFile.Close()
 	incorrectFile, err := os.Create("incorrectInputFiles.rego")
 	if err != nil {
 		t.Errorf("error create file: %v", err)
 	}
-	incorrectFile.WriteString(fmt.Sprintf(module, incorrectRego))
+	_, err = incorrectFile.WriteString(fmt.Sprintf(module, incorrectRego))
+	if err != nil {
+		t.Errorf("error create file: %v", err)
+	}
 	defer os.Remove("incorrectInputFiles.rego")
 	defer incorrectFile.Close()
 
