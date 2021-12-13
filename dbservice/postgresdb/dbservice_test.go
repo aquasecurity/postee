@@ -639,3 +639,113 @@ func TestInsertInTableName(t *testing.T) {
 		t.Errorf("Unexpected error in 'insertInTableName', expected: %v, got: %v", badUpdateError, err)
 	}
 }
+
+func TestInsertCfgCacheSource(t *testing.T) {
+	t.Log("happy insert")
+	savedPsqlConnect := psqlConnect
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+		db, mock, err := sqlxmock.Newx()
+		if err != nil {
+			log.Println("failed to open sqlmock database:", err)
+		}
+		rows := sqlxmock.NewRows([]string{"count"}).AddRow(0)
+		mock.ExpectQuery("SELECT").WillReturnRows(rows)
+		mock.ExpectExec("INSERT").WillReturnResult(sqlxmock.NewResult(1, 1))
+		return db, err
+	}
+	defer func() {
+		psqlConnect = savedPsqlConnect
+	}()
+
+	psqlDb, _ := psqlConnect(db.ConnectUrl)
+	err := insertCfgCacheSource(psqlDb, "tenantName", "cfgFile")
+	if err != nil {
+		t.Errorf("Unexpected error in 'insertCfgCacheSource': %v", err)
+	}
+
+	t.Log("happy update")
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+		db, mock, err := sqlxmock.Newx()
+		if err != nil {
+			log.Println("failed to open sqlmock database:", err)
+		}
+		rows := sqlxmock.NewRows([]string{"count"}).AddRow(1)
+		mock.ExpectQuery("SELECT").WillReturnRows(rows)
+		mock.ExpectExec("UPDATE").WillReturnResult(sqlxmock.NewResult(1, 1))
+		return db, err
+	}
+	psqlDb, _ = psqlConnect(db.ConnectUrl)
+	err = insertCfgCacheSource(psqlDb, "tenantName", "cfgFile")
+	if err != nil {
+		t.Errorf("Unexpected error in 'insertCfgCacheSource': %v", err)
+	}
+
+	t.Log("select error")
+	selectError := errors.New("select error")
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+		db, mock, err := sqlxmock.Newx()
+		if err != nil {
+			log.Println("failed to open sqlmock database:", err)
+		}
+		mock.ExpectQuery("SELECT").WillReturnError(selectError)
+		return db, err
+	}
+	psqlDb, _ = psqlConnect(db.ConnectUrl)
+	err = insertCfgCacheSource(psqlDb, "tenantName", "cfgFile")
+	if err != selectError {
+		t.Errorf("Unexpected error in 'insertCfgCacheSource', expected: %v, got: %v", selectError, err)
+	}
+
+	t.Log("select 2 rows")
+	select2RowsError := "error insert in postgresDb. Table:WebhookCfgCacheSource where tenantName=tenantName, have 2 rows"
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+		db, mock, err := sqlxmock.Newx()
+		if err != nil {
+			log.Println("failed to open sqlmock database:", err)
+		}
+		rows := sqlxmock.NewRows([]string{"count"}).AddRow(2)
+		mock.ExpectQuery("SELECT").WillReturnRows(rows)
+		return db, err
+	}
+	psqlDb, _ = psqlConnect(db.ConnectUrl)
+	err = insertCfgCacheSource(psqlDb, "tenantName", "cfgFile")
+	if err.Error() != select2RowsError {
+		t.Errorf("Unexpected error in 'insertCfgCacheSource', expected: %v, got: %v", select2RowsError, err)
+	}
+
+	t.Log("bad insert")
+	badInsertError := errors.New("bad insert")
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+		db, mock, err := sqlxmock.Newx()
+		if err != nil {
+			log.Println("failed to open sqlmock database:", err)
+		}
+		rows := sqlxmock.NewRows([]string{"count"}).AddRow(0)
+		mock.ExpectQuery("SELECT").WillReturnRows(rows)
+		mock.ExpectExec("INSERT").WillReturnError(badInsertError)
+		return db, err
+	}
+	psqlDb, _ = psqlConnect(db.ConnectUrl)
+	err = insertCfgCacheSource(psqlDb, "tenantName", "cfgFile")
+	if err != badInsertError {
+		t.Errorf("Unexpected error in 'insertCfgCacheSource', expected: %v, got: %v", badInsertError, err)
+	}
+
+	t.Log("bad update")
+	badUpdateError := errors.New("bad update")
+	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+		db, mock, err := sqlxmock.Newx()
+		if err != nil {
+			log.Println("failed to open sqlmock database:", err)
+		}
+		rows := sqlxmock.NewRows([]string{"count"}).AddRow(1)
+		mock.ExpectQuery("SELECT").WillReturnRows(rows)
+		mock.ExpectExec("UPDATE").WillReturnError(badUpdateError)
+		return db, err
+	}
+	psqlDb, _ = psqlConnect(db.ConnectUrl)
+	err = insertCfgCacheSource(psqlDb, "tenantName", "cfgFile")
+	if err != badUpdateError {
+		t.Errorf("Unexpected error in 'insertCfgCacheSource', expected: %v, got: %v", badUpdateError, err)
+	}
+}

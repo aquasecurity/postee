@@ -13,6 +13,7 @@ var (
 		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (tenantName varchar(32), output varchar(32), saving bytea);", dbparam.DbBucketAggregator),
 		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (tenantName varchar(32), outputname varchar(32), amount integer);", dbparam.DbBucketOutputStats),
 		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (tenantName varchar(32), apikeyname varchar(14),value varchar(64));", dbparam.DbBucketSharedConfig),
+		fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (tenantName varchar(32), configfile text);", dbparam.DbTableCfgCacheSource),
 	}
 )
 

@@ -8,11 +8,12 @@ import (
 )
 
 var (
-	DbBucketName         = "WebhookBucket"
-	DbBucketAggregator   = "WebhookAggregator"
-	DbBucketExpiryDates  = "WebhookExpiryDates"
-	DbBucketOutputStats  = "WebhookOutputStats"
-	DbBucketSharedConfig = "WebhookSharedConfig"
+	DbBucketName          = "WebhookBucket"
+	DbBucketAggregator    = "WebhookAggregator"
+	DbBucketExpiryDates   = "WebhookExpiryDates"
+	DbBucketOutputStats   = "WebhookOutputStats"
+	DbBucketSharedConfig  = "WebhookSharedConfig"
+	DbTableCfgCacheSource = "WebhookCfgCacheSource"
 
 	DbSizeLimit = 0
 	DateFmt     = time.RFC3339Nano
