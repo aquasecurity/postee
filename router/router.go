@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"strings"
 	"sync"
@@ -321,6 +322,13 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
 
 	ctx.setAquaServerUrl(tenant.AquaServer)
+
+	postgresUrl := os.Getenv("POSTGRES_URL")
+	pathToDb := os.Getenv("PATH_TO_DB")
+
+	if err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name); err != nil {
+		return err
+	}
 
 	dbparam.DbSizeLimit = tenant.DBMaxSize
 
