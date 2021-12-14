@@ -3,6 +3,7 @@ package outputs
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 
@@ -66,6 +67,11 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 	if !strings.HasPrefix(body, "[") {
 		body = "[" + body + "]"
 	}
+
+	if !json.Valid([]byte(body)) {
+		return errors.New("wrong template selected, choose a correct template")
+	}
+
 	rawBlock := make([]data.SlackBlock, 0)
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
