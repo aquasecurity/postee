@@ -156,11 +156,11 @@ func (ctx *Router) Send(data []byte) {
 	ctx.queue <- data
 }
 func (ctx *Router) deleteTemplate(name string, removeFromRoutes bool) error {
-	_, ok := ctx.outputs[name]
+	_, ok := ctx.templates[name]
 	if !ok {
 		return xerrors.Errorf("template %s is not found", name)
 	}
-	delete(ctx.outputs, name)
+	delete(ctx.templates, name)
 
 	if removeFromRoutes {
 		for _, route := range ctx.inputRoutes {
@@ -256,8 +256,8 @@ func (ctx *Router) load() error {
 
 	ctx.setAquaServerUrl(tenant.AquaServer)
 
-	postgresUrl := os.Getenv("$POSTGRES_URL")
-	pathToDb := os.Getenv("$PATH_TO_DB")
+	postgresUrl := os.Getenv("POSTGRES_URL")
+	pathToDb := os.Getenv("PATH_TO_DB")
 
 	if err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name); err != nil {
 		return err
