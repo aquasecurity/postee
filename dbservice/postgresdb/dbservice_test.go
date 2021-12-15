@@ -189,8 +189,8 @@ var insertFuncs = []string{
 func TestInsert(t *testing.T) {
 	tests := []struct {
 		name          string
-		wasQuaryError bool
-		quaryRows     int
+		wasQueryError bool
+		queryRows     int
 		exec          string
 		wasExecError  bool
 		expectedError error
@@ -198,7 +198,6 @@ func TestInsert(t *testing.T) {
 		{" happy insert", false, 0, "INSERT", false, nil},
 		{" happy update", false, 1, "UPDATE", false, nil},
 		{" select error", true, 0, "INSERT", false, errors.New("select error")},
-		//{" select 2 rows", false, 2, "INSERT", false, errors.New("error insert in postgresDb. Table:WebhookCfgCacheSource where tenantName=tenantName, have 2 rows")},
 		{" bad insert", false, 0, "INSERT", true, errors.New("bad insert error")},
 		{" bad update", false, 1, "UPDATE", true, errors.New("bad update error")},
 	}
@@ -211,10 +210,10 @@ func TestInsert(t *testing.T) {
 					if err != nil {
 						log.Println("failed to open sqlmock database:", err)
 					}
-					if test.wasQuaryError {
+					if test.wasQueryError {
 						mock.ExpectQuery("SELECT").WillReturnError(test.expectedError)
 					} else {
-						rows := sqlxmock.NewRows([]string{"count"}).AddRow(test.quaryRows)
+						rows := sqlxmock.NewRows([]string{"count"}).AddRow(test.queryRows)
 						mock.ExpectQuery("SELECT").WillReturnRows(rows)
 					}
 					if test.wasExecError {
@@ -231,7 +230,7 @@ func TestInsert(t *testing.T) {
 				psqlDb, _ := psqlConnect(db.ConnectUrl)
 				err := runInsertFunc(psqlDb, insertFunc)
 				if err != nil {
-					if test.expectedError == nil || err.Error() != test.expectedError.Error() {
+					if !errors.Is(err, test.expectedError) {
 						t.Errorf("Unexpected error in %s, expected: %v, got: %v", insertFunc, test.expectedError, err)
 					}
 				}
