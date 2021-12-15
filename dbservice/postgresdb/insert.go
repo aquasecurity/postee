@@ -98,3 +98,28 @@ var insertOutputStats = func(db *sqlx.DB, tenantName, outputName string, amount 
 	}
 	return nil
 }
+
+var insertCfgCacheSource = func(db *sqlx.DB, tenantName, cfgFile string) error {
+	var i int
+	sqlQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE tenantName=$1", dbparam.DbTableCfgCacheSource)
+	err := db.Get(&i, sqlQuery, tenantName)
+	if err != nil {
+		return err
+	}
+	if i == 0 {
+		sqlQuery = fmt.Sprintf("INSERT INTO %s (tenantName, configfile) VALUES ($1, $2);", dbparam.DbTableCfgCacheSource)
+		_, err := db.Exec(sqlQuery, tenantName, cfgFile)
+		if err != nil {
+			return err
+		}
+	} else if i == 1 {
+		sqlQuery = fmt.Sprintf("UPDATE %s SET configfile=$1 WHERE tenantName=$2;", dbparam.DbTableCfgCacheSource)
+		_, err = db.Exec(sqlQuery, cfgFile, tenantName)
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("error insert in postgresDb. Table:%s where tenantName=%s, have %d rows", dbparam.DbTableCfgCacheSource, tenantName, i)
+	}
+	return nil
+}
