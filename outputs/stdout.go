@@ -2,9 +2,10 @@ package outputs
 
 import (
 	"fmt"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
 	"os"
+
+	"github.com/aquasecurity/postee/v2/formatting"
+	"github.com/aquasecurity/postee/v2/layout"
 )
 
 type StdoutOutput struct {

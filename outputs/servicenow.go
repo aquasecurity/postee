@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
-	servicenow "github.com/aquasecurity/postee/servicenow"
+	"github.com/aquasecurity/postee/v2/formatting"
+	"github.com/aquasecurity/postee/v2/layout"
+	servicenow "github.com/aquasecurity/postee/v2/servicenow"
 )
 
 type ServiceNowOutput struct {

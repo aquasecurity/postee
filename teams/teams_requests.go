@@ -3,9 +3,10 @@ package teams_api
 import (
 	"bytes"
 	"fmt"
-	"github.com/aquasecurity/postee/utils"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/aquasecurity/postee/v2/utils"
 )
 
 func CreateMessageByWebhook(webhook, content string) error {

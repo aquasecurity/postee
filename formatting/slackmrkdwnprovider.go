@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/aquasecurity/postee/data"
 	"log"
+
+	"github.com/aquasecurity/postee/v2/data"
 )
 
 func getMrkdwnText(text string) string {

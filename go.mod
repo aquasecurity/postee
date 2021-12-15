@@ -1,4 +1,4 @@
-module github.com/aquasecurity/postee
+module github.com/aquasecurity/postee/v2
 
 go 1.15
 
