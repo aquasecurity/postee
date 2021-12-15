@@ -20,7 +20,10 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 	expectedCnt := 3
 	keyToTest := "test"
 	for i := 0; i < expectedCnt; i++ {
-		dbBolt.RegisterPlgnInvctn(keyToTest)
+		err := dbBolt.RegisterPlgnInvctn(keyToTest)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	r, err := getPlgnStats(dbBolt)
 	if err != nil {

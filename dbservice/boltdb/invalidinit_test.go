@@ -85,7 +85,7 @@ func TestBucketInitialization(t *testing.T) {
 			continue
 		}
 		err := test.errPrvdr()
-		if err != expectedError {
+		if !errors.Is(err, expectedError) {
 			t.Errorf("Unexpected error for %s call, expected %v, got %v", test.caseDesc, expectedError, err)
 		}
 

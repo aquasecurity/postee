@@ -13,7 +13,10 @@ func TestApiKey(t *testing.T) {
 		db.DbPath = dbPathReal
 	}()
 	db.DbPath = "test_webhooks.db"
-	db.EnsureApiKey()
+	err := db.EnsureApiKey()
+	if err != nil {
+		t.Fatal("error EnsureApiKey")
+	}
 	key, err := db.GetApiKey()
 	if err != nil {
 		t.Fatal("error while getting value of API key")
@@ -48,7 +51,10 @@ func TestApiKeyRenewal(t *testing.T) {
 	db.DbPath = "test_webhooks.db"
 	var keys [2]string
 	for i := 0; i < 2; i++ {
-		db.EnsureApiKey()
+		err := db.EnsureApiKey()
+		if err != nil {
+			t.Errorf("error EnsureApiKey: %s", err)
+		}
 		key, err := db.GetApiKey()
 		if err != nil {
 			t.Fatal("error while getting value of API key")

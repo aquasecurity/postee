@@ -59,7 +59,10 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	keyPem := filepath.Join(rootDir, "key.pem")
 
 	if ok := utils.PathExists(keyPem); ok != true {
-		utils.GenerateCertificate(keyPem, certPem)
+		err := utils.GenerateCertificate(keyPem, certPem)
+		if err != nil {
+			log.Printf("GenerateCertificate error: %v \n", err)
+		}
 	}
 
 	if os.Getenv("AQUAALERT_CERT_PEM") != "" {
@@ -69,7 +72,10 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	if os.Getenv("AQUAALERT_KEY_PEM") != "" {
 		keyPem = os.Getenv("AQUAALERT_KEY_PEM")
 	}
-	dbservice.Db.EnsureApiKey()
+	err := dbservice.Db.EnsureApiKey()
+	if err != nil {
+		log.Printf("EnsureApiKey error: %v \n", err)
+	}
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/tenant/{route}", ctx.sessionHandler(ctx.tenantHandler)).Methods("POST")
@@ -122,12 +128,18 @@ func (ctx *WebServer) writeResponse(w http.ResponseWriter, httpStatus int, v int
 	w.WriteHeader(httpStatus)
 	if v != nil {
 		result, _ := json.Marshal(v)
-		w.Write(result)
+		_, err := w.Write(result)
+		if err != nil {
+			log.Printf("Write error: %s \n", err)
+		}
 	}
 }
 
 func (ctx *WebServer) writeResponseError(w http.ResponseWriter, httpError int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpError)
-	json.NewEncoder(w).Encode(err)
+	errEncode := json.NewEncoder(w).Encode(err)
+	if errEncode != nil {
+		log.Printf("Encode error: %s \n", errEncode)
+	}
 }

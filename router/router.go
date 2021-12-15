@@ -118,7 +118,10 @@ func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
 
 	for _, pl := range ctx.outputs {
-		pl.Terminate()
+		err := pl.Terminate()
+		if err != nil {
+			log.Printf("failed to terminate output: %v", err)
+		}
 	}
 	log.Printf("Outputs terminated")
 
@@ -512,7 +515,10 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	default:
 		return nil, xerrors.Errorf("output %s has undefined or empty type: %q", settings.Name, settings.Type)
 	}
-	plg.Init()
+	err := plg.Init()
+	if err != nil {
+		log.Printf("failed to Init : %v", err)
+	}
 
 	return plg, nil
 }

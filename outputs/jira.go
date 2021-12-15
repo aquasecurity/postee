@@ -176,11 +176,11 @@ func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	tpClient, err := ctx.buildTransportClient()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new JIRA client. %v", err)
+		return nil, fmt.Errorf("unable to create new JIRA client. %w", err)
 	}
 	client, err := jira.NewClient(tpClient, ctx.Url)
 	if err != nil {
-		return client, fmt.Errorf("unable to create new JIRA client. %v", err)
+		return client, fmt.Errorf("unable to create new JIRA client. %w", err)
 	}
 	return client, nil
 }
@@ -198,12 +198,12 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
-		return fmt.Errorf("failed to create meta project: %s", err)
+		return fmt.Errorf("failed to create meta project: %w", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
-		return fmt.Errorf("failed to create meta issue type: %s", err)
+		return fmt.Errorf("failed to create meta issue type: %w", err)
 	}
 
 	ctx.Summary = content["title"]
@@ -294,7 +294,7 @@ func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Iss
 func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error) {
 	meta, _, err := c.Issue.GetCreateMeta(project)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get create meta : %s", err)
+		return nil, fmt.Errorf("failed to get create meta : %w", err)
 	}
 
 	// get right project
