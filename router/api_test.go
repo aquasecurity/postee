@@ -43,6 +43,8 @@ var template = &data.Template{
 
 func TestAddOutput(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddOutput(outputSettings)
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 	assert.Contains(t, Instance().outputs, "my-slack")
@@ -53,6 +55,8 @@ func TestAddOutput(t *testing.T) {
 
 func TestDeleteOutput(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddOutput(outputSettings)
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 	AddRoute(&routes.InputRoute{Name: "my-route", Outputs: []string{"my-slack", "my-jira"}})
@@ -65,8 +69,10 @@ func TestDeleteOutput(t *testing.T) {
 }
 func TestEditOutput(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
 	modifiedUrl := "https://hooks.slack.com/services/TAAAA/XXX/"
 	expectedError := errors.New("output badName is not found")
+
 	AddOutput(outputSettings)
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 
@@ -86,6 +92,8 @@ func TestEditOutput(t *testing.T) {
 }
 func TestListOutput(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddOutput(outputSettings)
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 
@@ -98,11 +106,12 @@ func TestListOutput(t *testing.T) {
 	assert.Equal(t, "my-slack", r.Name, "check name failed")
 	assert.Equal(t, "slack", r.Type, "check type failed")
 	assert.True(t, r.Enable, "output must be enabled")
-
 }
 
 func TestAddRoute(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddRoute(inputRoute)
 	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
 	assert.Contains(t, Instance().inputRoutes, "my-route")
@@ -111,6 +120,9 @@ func TestAddRoute(t *testing.T) {
 }
 
 func TestDeleteRoute(t *testing.T) {
+	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddRoute(inputRoute)
 	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
 
@@ -120,8 +132,10 @@ func TestDeleteRoute(t *testing.T) {
 
 func TestEditRoute(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
 	modifiedTemplate := "vuls-slack"
 	expectedError := errors.New("output badName is not found")
+
 	AddRoute(inputRoute)
 	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
 
@@ -145,6 +159,8 @@ func TestEditRoute(t *testing.T) {
 
 func TestListRoute(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddRoute(inputRoute)
 	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
 
@@ -161,6 +177,8 @@ func TestListRoute(t *testing.T) {
 
 func TestAddTemplate(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddTemplate(template)
 	assert.Equal(t, 1, len(Instance().templates), "one template expected")
 	assert.Contains(t, Instance().templates, "legacy")
@@ -169,6 +187,7 @@ func TestAddTemplate(t *testing.T) {
 
 func TestAddTemplateFromFile(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
 	regoString := `package postee
 	default hello = false
 
@@ -192,6 +211,8 @@ hello {
 
 func TestDeleteTemplate(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddTemplate(template)
 	assert.Equal(t, 1, len(Instance().templates), "one template expected")
 	AddRoute(&routes.InputRoute{Name: "my-route", Template: "legacy"})
@@ -204,7 +225,9 @@ func TestDeleteTemplate(t *testing.T) {
 
 func TestEditTemplate(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
 	expectedError := errors.New("template badName is not found")
+
 	AddTemplate(template)
 	assert.Equal(t, 1, len(Instance().templates), "one template expected")
 	assert.Equal(t, "*formatting.legacyScnEvaluator", fmt.Sprintf("%T", Instance().templates["legacy"]), "legacyScnEvaluator expected")
@@ -230,6 +253,8 @@ func TestEditTemplate(t *testing.T) {
 
 func TestListTemplate(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
+
 	AddTemplate(template)
 	assert.Equal(t, 1, len(Instance().templates), "one route expected")
 
@@ -242,38 +267,21 @@ func TestListTemplate(t *testing.T) {
 	assert.Equal(t, "legacy", templ, "check name failed")
 }
 
-func TestNewConfig(t *testing.T) {
+func TestSetInputCallbackFunc(t *testing.T) {
 	Instance().cleanInstance()
+	defer Instance().cleanInstance()
 
-	fmt.Println(Instance())
+	inputCallbackFunc := InputCallbackFunc(func(inputMessage map[string]interface{}) bool { return false })
 
-	tests := []struct {
-		funcName       string
-		tenantName     string
-		dbPath         string
-		expectedDbPath string
-	}{
-		{},
-	}
-	WithNewConfig("tenantName")
-	//WithNewConfigAndDbPath()
-	for _, test := range tests {
-		t.Run("test "+test.funcName, func(t *testing.T) {
-			savedPathToDb := os.Getenv("PATH_TO_DB")
-			os.Setenv("PATH_TO_DB", test.dbPath)
-			defer os.Setenv("PATH_TO_DB", savedPathToDb)
-			runFunc(test.funcName, "", test.dbPath, test.tenantName)
+	AddRoute(inputRoute)
+	assert.Equal(t, 0, len(Instance().inputCallBacks), "no inputCallBack expected")
 
-			assert.Equal(t, 0, len(Instance().templates), "one template expected")
-			assert.Equal(t, 0, len(Instance().outputs), "one output expected")
-			assert.Equal(t, 0, len(Instance().inputRoutes), "one route expected")
-		})
-
-	}
-
+	SetInputCallbackFunc("my-route", inputCallbackFunc)
+	assert.Equal(t, 1, len(Instance().inputCallBacks), "one inputCallBack expected")
 }
 
 func TestConfigFuncs(t *testing.T) {
+	Instance().cleanInstance()
 	tests := []struct {
 		funcName     string
 		cfgPath      string
@@ -291,11 +299,12 @@ func TestConfigFuncs(t *testing.T) {
 		{"WithFileConfigAndDbPath", "test/cfg.yaml", "", false, "raw", "my-slack", "route1", "database/webhooks.db", ""},
 		{"WithNewConfig", "", "", true, "", "", "", "./webhooks.db", ""},
 		{"WithNewConfigAndDbPath", "test/cfg.yaml", "", true, "", "", "", "./webhooks.db", ""},
+		{"WithPostgresParams", "", "ParamsName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
+		{"WithPostgresUrl", "", "ParamsName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
 	}
 	for _, test := range tests {
 		t.Run("test "+test.funcName, func(t *testing.T) {
-			Instance().cleanInstance()
-
+			defer Instance().cleanInstance()
 			savedPathToDb := os.Getenv("PATH_TO_DB")
 			savedPostgresUrl := os.Getenv("POSTGRES_URL")
 			os.Setenv("PATH_TO_DB", test.dbPath)
@@ -305,7 +314,7 @@ func TestConfigFuncs(t *testing.T) {
 				os.Setenv("POSTGRES_URL", savedPostgresUrl)
 			}()
 
-			err := runFunc(test.funcName, test.cfgPath, test.dbPath, test.tenantName)
+			err := runFunc(test.funcName, test.cfgPath, test.dbPath, test.tenantName, test.psqlUrl)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -359,7 +368,7 @@ outputs:
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
 
-func runFunc(funcName, cfgPath, dbPath, tenantName string) error {
+func runFunc(funcName, cfgPath, dbPath, tenantName, psqlUrl string) error {
 	switch funcName {
 	case "WithFileConfig":
 		createTestCfg(cfgPath)
@@ -400,6 +409,22 @@ func runFunc(funcName, cfgPath, dbPath, tenantName string) error {
 			os.RemoveAll(filepath.Dir(dbPath))
 			os.RemoveAll(filepath.Dir(defaultConfigPath))
 		}()
+		return nil
+	case "WithPostgresParams":
+		savedInitPostgresDb := postgresdb.InitPostgresDb
+		postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
+		defer func() {
+			postgresdb.InitPostgresDb = savedInitPostgresDb
+		}()
+		WithPostgresParams(tenantName, "ParamsDbName", "ParamsDbHostName", "ParamsPort", "ParamsUser", "ParamsPassword", "ParamsSslMode")
+		return nil
+	case "WithPostgresUrl":
+		savedInitPostgresDb := postgresdb.InitPostgresDb
+		postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
+		defer func() {
+			postgresdb.InitPostgresDb = savedInitPostgresDb
+		}()
+		WithPostgresUrl(tenantName, psqlUrl)
 		return nil
 	}
 
