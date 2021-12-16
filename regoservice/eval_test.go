@@ -136,7 +136,10 @@ func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input 
 	testRego := "rego1.rego"
 	buildinRegoTemplates = []string{testRego}
 
-	ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
+	errWrite := ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
+	if errWrite != nil {
+		t.Fatal(errWrite)
+	}
 
 	defer func() {
 		buildinRegoTemplates = buildinRegoTemplatesSaved
@@ -179,7 +182,10 @@ func evaluateExternalRego(t *testing.T, caseDesc string, regoRule *string, input
 	commonRegoFilename := "common.rego"
 	commonRegoTemplates = []string{commonRegoFilename}
 
-	ioutil.WriteFile(commonRegoFilename, []byte(commonRego), 0644)
+	err := ioutil.WriteFile(commonRegoFilename, []byte(commonRego), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	defer func() {
 		commonRegoTemplates = commonRegoTemplatesSaved

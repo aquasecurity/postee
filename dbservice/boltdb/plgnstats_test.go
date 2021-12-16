@@ -22,7 +22,7 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 	for i := 0; i < expectedCnt; i++ {
 		err := dbBolt.RegisterPlgnInvctn(keyToTest)
 		if err != nil {
-			t.Errorf("Unexpected RegisterPlgnInvctn error: %v", err)
+			t.Fatal(err)
 		}
 	}
 	r, err := getPlgnStats(dbBolt)

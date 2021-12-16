@@ -16,6 +16,7 @@ import (
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/dbservice/dbparam"
+	"github.com/aquasecurity/postee/dbservice/postgresdb"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/msgservice"
 	"github.com/aquasecurity/postee/outputs"
@@ -34,18 +35,19 @@ const (
 )
 
 type Router struct {
-	mutexScan      sync.Mutex
-	quit           chan struct{}
-	queue          chan []byte
-	ticker         *time.Ticker
-	stopTicker     chan struct{}
-	cfgfile        string
-	aquaServer     string
-	outputs        map[string]outputs.Output
-	inputRoutes    map[string]*routes.InputRoute
-	templates      map[string]data.Inpteval
-	synchronous    bool
-	inputCallBacks map[string][]InputCallbackFunc
+	mutexScan              sync.Mutex
+	quit                   chan struct{}
+	queue                  chan []byte
+	ticker                 *time.Ticker
+	stopTicker             chan struct{}
+	cfgfile                string
+	aquaServer             string
+	outputs                map[string]outputs.Output
+	inputRoutes            map[string]*routes.InputRoute
+	templates              map[string]data.Inpteval
+	synchronous            bool
+	inputCallBacks         map[string][]InputCallbackFunc
+	databaseCfgCacheSource *data.TenantSettings
 }
 
 var (
@@ -61,11 +63,12 @@ var (
 func Instance() *Router {
 	initCtx.Do(func() {
 		routerCtx = &Router{
-			mutexScan:   sync.Mutex{},
-			outputs:     make(map[string]outputs.Output),
-			inputRoutes: make(map[string]*routes.InputRoute),
-			templates:   make(map[string]data.Inpteval),
-			synchronous: false,
+			mutexScan:              sync.Mutex{},
+			outputs:                make(map[string]outputs.Output),
+			inputRoutes:            make(map[string]*routes.InputRoute),
+			templates:              make(map[string]data.Inpteval),
+			synchronous:            false,
+			databaseCfgCacheSource: &data.TenantSettings{},
 		}
 	})
 	return routerCtx
@@ -102,7 +105,7 @@ func (ctx *Router) ApplyFileCfg(cfgfile string, synchronous bool) error {
 
 	ctx.initCfg(synchronous)
 
-	err := ctx.load()
+	err := ctx.load(false)
 	if err != nil {
 		return err
 	}
@@ -118,7 +121,10 @@ func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
 
 	for _, pl := range ctx.outputs {
-		pl.Terminate()
+		err := pl.Terminate()
+		if err != nil {
+			log.Printf("failed to terminate output: %v", err)
+		}
 	}
 	log.Printf("Outputs terminated")
 
@@ -155,6 +161,19 @@ func (ctx *Router) cleanInstance() {
 func (ctx *Router) Send(data []byte) {
 	ctx.queue <- data
 }
+
+func (ctx *Router) addTemplate(template *data.Template) error {
+	if err := ctx.initTemplate(template); err != nil {
+		return err
+	}
+
+	ctx.databaseCfgCacheSource.Templates = append(ctx.databaseCfgCacheSource.Templates, *template)
+	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (ctx *Router) deleteTemplate(name string, removeFromRoutes bool) error {
 	_, ok := ctx.templates[name]
 	if !ok {
@@ -170,7 +189,21 @@ func (ctx *Router) deleteTemplate(name string, removeFromRoutes bool) error {
 		}
 	}
 
+	removeTemplateFromCfgCacheSource(ctx.databaseCfgCacheSource, name)
+	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
+		return err
+	}
 	return nil
+}
+
+func removeTemplateFromCfgCacheSource(outputs *data.TenantSettings, templateName string) {
+	filtered := make([]data.Template, 0)
+	for _, template := range outputs.Templates {
+		if template.Name != templateName {
+			filtered = append(filtered, template)
+		}
+	}
+	outputs.Templates = filtered
 }
 
 func (ctx *Router) initTemplate(template *data.Template) error {
@@ -241,17 +274,30 @@ func (ctx *Router) setAquaServerUrl(url string) {
 		}
 		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", url, slash)
 	}
-
+	ctx.databaseCfgCacheSource.AquaServer = url
+	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
+		log.Printf("Can't save cfgSource Source: %v", err)
+	}
 }
 
-func (ctx *Router) load() error {
+func (ctx *Router) load(loadCfgFromPostgres bool) error {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
 	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
-	tenant, err := Parsev2cfg(ctx.cfgfile)
 
-	if err != nil {
-		return err
+	var tenant = &data.TenantSettings{}
+	var err error
+	if loadCfgFromPostgres {
+		tenant, err = ctx.loadCfgCacheSourceFromPostgres()
+		if err != nil {
+			return err
+		}
+	} else {
+		tenant, err = Parsev2cfg(ctx.cfgfile)
+		if err != nil {
+			return err
+		}
+		ctx.databaseCfgCacheSource = tenant
 	}
 
 	ctx.setAquaServerUrl(tenant.AquaServer)
@@ -318,6 +364,10 @@ func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallback
 
 func (ctx *Router) addRoute(r *routes.InputRoute) {
 	ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(r)
+	ctx.databaseCfgCacheSource.InputRoutes = append(ctx.databaseCfgCacheSource.InputRoutes, *r)
+	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
+		log.Printf("Can't save cfgSource Source: %v", err)
+	}
 }
 
 func (ctx *Router) deleteRoute(name string) error {
@@ -328,6 +378,11 @@ func (ctx *Router) deleteRoute(name string) error {
 	r.StopScheduler()
 	delete(ctx.inputRoutes, name)
 	delete(ctx.inputCallBacks, name)
+
+	removeRouteFromCfgCacheSource(ctx.databaseCfgCacheSource, name)
+	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -353,6 +408,16 @@ func (ctx *Router) listRoutes() []routes.InputRoute {
 	return list
 }
 
+func removeRouteFromCfgCacheSource(outputs *data.TenantSettings, routeName string) {
+	filtered := make([]routes.InputRoute, 0)
+	for _, route := range outputs.InputRoutes {
+		if route.Name != routeName {
+			filtered = append(filtered, route)
+		}
+	}
+	outputs.InputRoutes = filtered
+}
+
 func (ctx *Router) addOutput(settings *data.OutputSettings) error {
 	if settings.Enable {
 		plg, err := buildAndInitOtpt(settings, ctx.aquaServer)
@@ -363,6 +428,11 @@ func (ctx *Router) addOutput(settings *data.OutputSettings) error {
 
 		ctx.outputs[settings.Name] = plg
 
+	}
+
+	ctx.databaseCfgCacheSource.Outputs = append(ctx.databaseCfgCacheSource.Outputs, *settings)
+	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
+		return err
 	}
 	return nil
 }
@@ -378,6 +448,10 @@ func (ctx *Router) deleteOutput(outputName string, removeFromRoutes bool) error 
 		for _, route := range ctx.inputRoutes {
 			removeOutputFromRoute(route, outputName)
 		}
+	}
+	removeOutputFromCfgCacheSource(ctx.databaseCfgCacheSource, outputName)
+	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
+		return err
 	}
 
 	return nil
@@ -397,6 +471,45 @@ func removeOutputFromRoute(r *routes.InputRoute, outputName string) {
 		}
 	}
 	r.Outputs = filtered
+}
+
+func removeOutputFromCfgCacheSource(outputs *data.TenantSettings, outputName string) {
+	filtered := make([]data.OutputSettings, 0)
+	for _, output := range outputs.Outputs {
+		if output.Name != outputName {
+			filtered = append(filtered, output)
+		}
+	}
+	outputs.Outputs = filtered
+}
+
+func (ctx *Router) saveCfgCacheSourceInPostgres() error {
+	cfg := ctx.databaseCfgCacheSource
+	if postgresDb, ok := dbservice.Db.(*postgresdb.PostgresDb); ok {
+		cfgFile, err := json.Marshal(cfg)
+		if err != nil {
+			return err
+		}
+		if err = postgresdb.UpdateCfgCacheSource(postgresDb, string(cfgFile)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (ctx *Router) loadCfgCacheSourceFromPostgres() (*data.TenantSettings, error) {
+	cfg := &data.TenantSettings{}
+	if postgresDb, ok := dbservice.Db.(*postgresdb.PostgresDb); ok {
+		cfgFile, err := postgresdb.GetCfgCacheSource(postgresDb)
+		if err != nil {
+			return cfg, err
+		}
+		err = json.Unmarshal([]byte(cfgFile), &cfg)
+		if err != nil {
+			return cfg, err
+		}
+	}
+	return cfg, nil
 }
 
 type service interface {
@@ -512,7 +625,10 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	default:
 		return nil, xerrors.Errorf("output %s has undefined or empty type: %q", settings.Name, settings.Type)
 	}
-	plg.Init()
+	err := plg.Init()
+	if err != nil {
+		log.Printf("failed to Init : %v", err)
+	}
 
 	return plg, nil
 }

@@ -62,12 +62,14 @@ func WithPostgresParams(tenantName, dbName, dbHostName, dbPort, dbUser, dbPasswo
 	Instance().Terminate()
 	dbservice.ConfigureDb("", postgresUrl, tenantName)
 	Instance().initCfg(true)
+	Instance().load(true)
 }
 
 func WithPostgresUrl(tenantName, postgresUrl string) {
 	Instance().Terminate()
 	dbservice.ConfigureDb("", postgresUrl, tenantName)
 	Instance().initCfg(true)
+	Instance().load(true)
 }
 
 func AquaServerUrl(aquaServerUrl string) { //optional
@@ -128,7 +130,7 @@ func UpdateRoute(route *routes.InputRoute) error {
 
 //-------------------Templates-------------------
 func AddTemplate(template *data.Template) error {
-	return Instance().initTemplate(template)
+	return Instance().addTemplate(template)
 }
 
 //helper method
@@ -153,7 +155,7 @@ func UpdateTemplate(template *data.Template) error {
 		return err
 	}
 
-	return Instance().initTemplate(template)
+	return Instance().addTemplate(template)
 }
 
 func DeleteTemplate(name string) error {

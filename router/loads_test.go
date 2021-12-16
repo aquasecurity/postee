@@ -148,7 +148,10 @@ func TestLoads(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	demoCtx.ApplyFileCfg(wrap.cfgPath, false)
+	err := demoCtx.ApplyFileCfg(wrap.cfgPath, false)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {
@@ -186,7 +189,11 @@ func TestReload(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	demoCtx.ApplyFileCfg(wrap.cfgPath, false)
+
+	errStart := demoCtx.ApplyFileCfg(wrap.cfgPath, false)
+	if errStart != nil {
+		t.Fatal(errStart)
+	}
 
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {

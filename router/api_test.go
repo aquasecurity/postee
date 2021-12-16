@@ -607,3 +607,45 @@ func TestBuildPosgresUrl(t *testing.T) {
 	}
 
 }
+
+func TestSaveLoadCfgInPostgres(t *testing.T) {
+	savedCfgInPsql := ""
+	expectedCfgJson := `{"name":"tenantName","aqua-server":"https://myserver.aquasec.com","outputs":null,"routes":null,"templates":null}`
+	router := Router{
+		databaseCfgCacheSource: &data.TenantSettings{
+			Name:       "tenantName",
+			AquaServer: "https://myserver.aquasec.com",
+		},
+	}
+	dbservice.Db = postgresdb.NewPostgresDb("tenantName", "connectUrl")
+	savedUpdateCfgCacheSource := postgresdb.UpdateCfgCacheSource
+	postgresdb.UpdateCfgCacheSource = func(postgresDb *postgresdb.PostgresDb, cfgfile string) error {
+		savedCfgInPsql = cfgfile
+		return nil
+	}
+	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
+	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) {
+		return savedCfgInPsql, nil
+	}
+	defer func() {
+		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCacheSource
+		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
+	}()
+
+	if err := router.saveCfgCacheSourceInPostgres(); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if expectedCfgJson != savedCfgInPsql {
+		t.Errorf("cfg marshal error, expected: %s, got: %s", expectedCfgJson, savedCfgInPsql)
+	}
+	tenant, err := router.loadCfgCacheSourceFromPostgres()
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+	if router.databaseCfgCacheSource.Name != tenant.Name {
+		t.Errorf("names are not equals, expected: %s, got: %s", router.databaseCfgCacheSource.Name, tenant.Name)
+	}
+	if router.databaseCfgCacheSource.AquaServer != tenant.AquaServer {
+		t.Errorf("AquaServers are not equals, expected: %s, got: %s", router.databaseCfgCacheSource.AquaServer, tenant.AquaServer)
+	}
+}

@@ -16,8 +16,9 @@ func TestSheduler(t *testing.T) {
 	demoRoute.Plugins.AggregateTimeoutSeconds = 3
 
 	demoSend := func(plg outputs.Output, cnt map[string]string) {
-		if err := plg.Send(cnt); err != nil {
-			t.Errorf("Unexpected send error: %v", err)
+		err := plg.Send(cnt)
+		if err != nil {
+			t.Fatal("error Send")
 		}
 	}
 	demoAggregate := func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {

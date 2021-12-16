@@ -33,7 +33,7 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 					t.Errorf("Can't create dir: %s", baseDir)
 				}
 				if err := os.Chmod(baseDir, 0); err != nil {
-					t.Errorf("Can't change permission: %v", err)
+					t.Errorf("Can't change the mode dir in %s: %s", baseDir, err)
 				}
 			}
 			if err := db.SetNewDbPath(test.pathToDb); err != nil {
