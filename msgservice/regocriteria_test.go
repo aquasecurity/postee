@@ -103,7 +103,9 @@ func validateRegoInput(t *testing.T, caseDesc string, input map[string]interface
 	if err != nil {
 		t.Error("Can't create regoFile.rego file")
 	}
-	regoFile.WriteString(regoCriteria)
+	if _, err := regoFile.WriteString(regoCriteria); err != nil {
+		t.Errorf("Can't write string: %v", err)
+	}
 	defer os.Remove("regoFile.rego")
 	defer regoFile.Close()
 

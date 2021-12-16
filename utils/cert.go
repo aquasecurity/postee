@@ -94,7 +94,9 @@ func generateCertificate(hosts []string, keyFile string, certFile string) error 
 		return err
 	}
 
-	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
+	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
+		return err
+	}
 	certOut.Close()
 
 	keyOut, err := os.OpenFile(keyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
@@ -102,7 +104,9 @@ func generateCertificate(hosts []string, keyFile string, certFile string) error 
 		return err
 	}
 
-	pem.Encode(keyOut, pemBlockForKey(priv))
+	if err := pem.Encode(keyOut, pemBlockForKey(priv)); err != nil {
+		return err
+	}
 	keyOut.Close()
 	return nil
 }

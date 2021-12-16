@@ -30,10 +30,29 @@ var outputSettings = &data.OutputSettings{
 	Enable: true,
 }
 
+var outputSettingsTeams = &data.OutputSettings{
+	Type:   "teams",
+	Name:   "ms-teams",
+	Url:    "https://outlook.office.com/webhook/",
+	Enable: true,
+}
+
 var inputRoute = &routes.InputRoute{
 	Name:     "my-route",
 	Outputs:  []string{"my-slack"},
 	Template: "legacy-slack",
+}
+
+var inputRouteJira = &routes.InputRoute{
+	Name:     "my-jira",
+	Outputs:  []string{"my-jira"},
+	Template: "legacy-jira",
+}
+
+var inputRouteHtml = &routes.InputRoute{
+	Name:     "my-html",
+	Outputs:  []string{"my-html"},
+	Template: "legacy",
 }
 
 var template = &data.Template{
@@ -41,11 +60,20 @@ var template = &data.Template{
 	LegacyScanRenderer: "html",
 }
 
+var templateSlack = &data.Template{
+	Name:               "legacy-slack",
+	LegacyScanRenderer: "slack",
+}
+
 func TestAddOutput(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().outputs) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
-	AddOutput(outputSettings)
+	if err := AddOutput(outputSettings); err != nil {
+		t.Errorf("Can't add output: %v", err)
+	}
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 	assert.Contains(t, Instance().outputs, "my-slack")
 	assert.Equal(t, "my-slack", Instance().outputs["my-slack"].GetName(), "check name failed")
@@ -54,33 +82,52 @@ func TestAddOutput(t *testing.T) {
 }
 
 func TestDeleteOutput(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputRoutes) > 0 || len(Instance().outputs) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
-	AddOutput(outputSettings)
-	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
-	AddRoute(&routes.InputRoute{Name: "my-route", Outputs: []string{"my-slack", "my-jira"}})
+	if err := AddOutput(outputSettings); err != nil {
+		t.Errorf("Can't add output: %v", err)
+	}
+	if err := AddOutput(outputSettingsTeams); err != nil {
+		t.Errorf("Can't add output: %v", err)
+	}
+	assert.Equal(t, 2, len(Instance().outputs), "two output expected")
+
+	AddRoute(&routes.InputRoute{Name: "my-route", Outputs: []string{"my-slack", "ms-teams"}})
 	assert.Equal(t, 2, len(Instance().inputRoutes["my-route"].Outputs), "two output expected")
 
-	DeleteOutput("my-slack")
-	assert.Equal(t, 0, len(Instance().outputs), "no outputs expected")
-	assert.Equal(t, 1, len(Instance().inputRoutes["my-route"].Outputs), "one output expected")
+	if err := DeleteOutput("my-slack"); err != nil {
+		t.Errorf("Can't delte output: %v", err)
+	}
+	assert.Equal(t, 1, len(Instance().outputs), "one outputs expected")
+	assert.NotContains(t, Instance().outputs, "my-slack")
+
+	assert.Equal(t, 1, len(Instance().inputRoutes["my-route"].Outputs), "one output in inputRoute expected")
+	assert.NotContains(t, Instance().inputRoutes["my-route"].Outputs, "my-slack")
 
 }
 func TestEditOutput(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().outputs) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 	modifiedUrl := "https://hooks.slack.com/services/TAAAA/XXX/"
 	expectedError := errors.New("output badName is not found")
 
-	AddOutput(outputSettings)
+	if err := AddOutput(outputSettings); err != nil {
+		t.Errorf("Can't add output: %v", err)
+	}
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 
 	s := Instance().outputs["my-slack"].CloneSettings()
 
 	s.Url = modifiedUrl
 
-	UpdateOutput(s)
+	if err := UpdateOutput(s); err != nil {
+		t.Errorf("Can't update output: %v", err)
+	}
 
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 	assert.Equal(t, modifiedUrl, Instance().outputs["my-slack"].(*outputs.SlackOutput).Url, "url is updated")
@@ -91,7 +138,9 @@ func TestEditOutput(t *testing.T) {
 	}
 }
 func TestListOutput(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().outputs) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
 	AddOutput(outputSettings)
@@ -109,7 +158,9 @@ func TestListOutput(t *testing.T) {
 }
 
 func TestAddRoute(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputRoutes) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
 	AddRoute(inputRoute)
@@ -120,18 +171,25 @@ func TestAddRoute(t *testing.T) {
 }
 
 func TestDeleteRoute(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputRoutes) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
 	AddRoute(inputRoute)
-	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
+	AddRoute(inputRouteJira)
+	AddRoute(inputRouteHtml)
+	assert.Equal(t, 3, len(Instance().inputRoutes), "three route expected")
 
 	DeleteRoute("my-route")
-	assert.Equal(t, 0, len(Instance().inputRoutes), "no routes expected")
+	assert.Equal(t, 2, len(Instance().inputRoutes), "two routes expected")
+	assert.NotContains(t, Instance().inputRoutes, "my-route")
 }
 
 func TestEditRoute(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputRoutes) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 	modifiedTemplate := "vuls-slack"
 	expectedError := errors.New("output badName is not found")
@@ -158,13 +216,18 @@ func TestEditRoute(t *testing.T) {
 }
 
 func TestListRoute(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputRoutes) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
+
+	routes := ListRoutes()
+	assert.Equal(t, 0, len(routes), "no route expected")
 
 	AddRoute(inputRoute)
 	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
 
-	routes := ListRoutes()
+	routes = ListRoutes()
 
 	assert.Equal(t, 1, len(routes), "one route expected")
 
@@ -176,7 +239,9 @@ func TestListRoute(t *testing.T) {
 }
 
 func TestAddTemplate(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().templates) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
 	AddTemplate(template)
@@ -186,7 +251,9 @@ func TestAddTemplate(t *testing.T) {
 }
 
 func TestAddTemplateFromFile(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().templates) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 	regoString := `package postee
 	default hello = false
@@ -210,21 +277,27 @@ hello {
 }
 
 func TestDeleteTemplate(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputRoutes) > 0 || len(Instance().templates) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
 	AddTemplate(template)
-	assert.Equal(t, 1, len(Instance().templates), "one template expected")
+	AddTemplate(templateSlack)
+	assert.Equal(t, 2, len(Instance().templates), "two template expected")
 	AddRoute(&routes.InputRoute{Name: "my-route", Template: "legacy"})
 	assert.Equal(t, "legacy", Instance().inputRoutes["my-route"].Template, "one template expected")
 
 	DeleteTemplate("legacy")
-	assert.Equal(t, 0, len(Instance().templates), "no templates expected")
+	assert.Equal(t, 1, len(Instance().templates), "one templates expected")
+	assert.NotContains(t, Instance().templates, "legacy")
 	assert.Equal(t, "", Instance().inputRoutes["my-route"].Template, "no template expected")
 }
 
 func TestEditTemplate(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().templates) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 	expectedError := errors.New("template badName is not found")
 
@@ -252,7 +325,9 @@ func TestEditTemplate(t *testing.T) {
 }
 
 func TestListTemplate(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().templates) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
 	AddTemplate(template)
@@ -268,7 +343,9 @@ func TestListTemplate(t *testing.T) {
 }
 
 func TestSetInputCallbackFunc(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputCallBacks) > 0 {
+		Instance().cleanInstance()
+	}
 	defer Instance().cleanInstance()
 
 	inputCallbackFunc := InputCallbackFunc(func(inputMessage map[string]interface{}) bool { return false })
@@ -281,10 +358,12 @@ func TestSetInputCallbackFunc(t *testing.T) {
 }
 
 func TestConfigFuncs(t *testing.T) {
-	Instance().cleanInstance()
+	if len(Instance().inputRoutes) > 0 || len(Instance().outputs) > 0 || len(Instance().templates) > 0 {
+		Instance().cleanInstance()
+	}
 	tests := []struct {
 		funcName     string
-		cfgPath      string
+		f            func() error
 		tenantName   string
 		clearCfg     bool
 		templateName string
@@ -293,18 +372,22 @@ func TestConfigFuncs(t *testing.T) {
 		dbPath       string
 		psqlUrl      string
 	}{
-		{"WithDefaultConfig", "", "", false, "raw", "my-slack", "route1", "/server/database/webhooks.db", ""},
-		{"WithFileConfig", "test/cfg.yaml", "", false, "raw", "my-slack", "route1", "/server/database/webhooks.db", ""},
-		{"WithDefaultConfigAndDbPath", "", "", false, "raw", "my-slack", "route1", "database/webhooks.db", ""},
-		{"WithFileConfigAndDbPath", "test/cfg.yaml", "", false, "raw", "my-slack", "route1", "database/webhooks.db", ""},
-		{"WithNewConfig", "", "", true, "", "", "", "./webhooks.db", ""},
-		{"WithNewConfigAndDbPath", "test/cfg.yaml", "", true, "", "", "", "./webhooks.db", ""},
-		{"WithPostgresParams", "", "ParamsName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
-		{"WithPostgresUrl", "", "ParamsName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
+		{"WithDefaultConfig", withDefaultConfigTest, "", false, "raw", "my-slack", "route1", "/server/database/webhooks.db", ""},
+		{"WithFileConfig", withFileConfigTest, "", false, "raw", "my-slack", "route1", "/server/database/webhooks.db", ""},
+		{"WithDefaultConfigAndDbPath", withDefaultConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "database/webhooks.db", ""},
+		{"WithFileConfigAndDbPath", withFileConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "database/webhooks.db", ""},
+		{"WithNewConfig", withNewConfigTest, "", true, "", "", "", "./webhooks.db", ""},
+		{"WithNewConfigAndDbPath", withNewConfigAndDbPathTest, "", true, "", "", "", "./webhooks.db", ""},
+		{"WithPostgresParams", withPostgresParamsTest, "ParamsTenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
+		{"WithPostgresUrl", withPostgresUrlTest, "tenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
 	}
 	for _, test := range tests {
 		t.Run("test "+test.funcName, func(t *testing.T) {
-			defer Instance().cleanInstance()
+			defer func() {
+				Instance().cleanInstance()
+				dbservice.Db = nil
+			}()
+
 			savedPathToDb := os.Getenv("PATH_TO_DB")
 			savedPostgresUrl := os.Getenv("POSTGRES_URL")
 			os.Setenv("PATH_TO_DB", test.dbPath)
@@ -314,7 +397,7 @@ func TestConfigFuncs(t *testing.T) {
 				os.Setenv("POSTGRES_URL", savedPostgresUrl)
 			}()
 
-			err := runFunc(test.funcName, test.cfgPath, test.dbPath, test.tenantName, test.psqlUrl)
+			err := test.f()
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
@@ -347,7 +430,12 @@ func TestConfigFuncs(t *testing.T) {
 	}
 }
 
-var cfg = `Name: tenant
+var (
+	cfgPath    = "test/cfg.yaml"
+	tenantName = "tenantName"
+	dbPath     = "test/cfg.yaml"
+
+	cfg = `Name: tenant
 
 routes:
 - name: route1
@@ -367,68 +455,95 @@ outputs:
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+)
 
-func runFunc(funcName, cfgPath, dbPath, tenantName, psqlUrl string) error {
-	switch funcName {
-	case "WithFileConfig":
-		createTestCfg(cfgPath)
-		WithFileConfig(cfgPath)
-		defer func() {
-			os.Remove(defaultDbPath)
-			os.RemoveAll(filepath.Dir(cfgPath))
-		}()
-		return nil
-	case "WithDefaultConfig":
-		createTestCfg(defaultConfigPath)
-		WithDefaultConfig()
-		defer func() {
-			os.Remove(defaultDbPath)
-			os.RemoveAll(filepath.Dir(defaultConfigPath))
-		}()
-		return nil
-	case "WithNewConfig":
-		WithNewConfig(tenantName)
-		os.Remove(defaultDbPath)
-		return nil
-	case "WithNewConfigAndDbPath":
-		WithNewConfigAndDbPath(tenantName, dbPath)
-		os.Remove(defaultDbPath)
-		return nil
-	case "WithFileConfigAndDbPath":
-		createTestCfg(cfgPath)
-		WithFileConfigAndDbPath(cfgPath, dbPath)
-		defer func() {
-			os.RemoveAll(filepath.Dir(dbPath))
-			os.RemoveAll(filepath.Dir(cfgPath))
-		}()
-		return nil
-	case "WithDefaultConfigAndDbPath":
-		createTestCfg(defaultConfigPath)
-		WithDefaultConfigAndDbPath(dbPath)
-		defer func() {
-			os.RemoveAll(filepath.Dir(dbPath))
-			os.RemoveAll(filepath.Dir(defaultConfigPath))
-		}()
-		return nil
-	case "WithPostgresParams":
-		savedInitPostgresDb := postgresdb.InitPostgresDb
-		postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
-		defer func() {
-			postgresdb.InitPostgresDb = savedInitPostgresDb
-		}()
-		WithPostgresParams(tenantName, "ParamsDbName", "ParamsDbHostName", "ParamsPort", "ParamsUser", "ParamsPassword", "ParamsSslMode")
-		return nil
-	case "WithPostgresUrl":
-		savedInitPostgresDb := postgresdb.InitPostgresDb
-		postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
-		defer func() {
-			postgresdb.InitPostgresDb = savedInitPostgresDb
-		}()
-		WithPostgresUrl(tenantName, psqlUrl)
-		return nil
+var withDefaultConfigTest = func() error {
+	if err := createTestCfg(defaultConfigPath); err != nil {
+		return err
 	}
+	if err := WithDefaultConfig(); err != nil {
+		return err
+	}
+	defer func() {
+		os.Remove(defaultDbPath)
+		os.RemoveAll(filepath.Dir(defaultConfigPath))
+	}()
+	return nil
+}
 
-	return errors.New("don't have func: " + funcName)
+var withFileConfigTest = func() error {
+	if err := createTestCfg(cfgPath); err != nil {
+		return err
+	}
+	if err := WithFileConfig(cfgPath); err != nil {
+		return err
+	}
+	defer func() {
+		os.Remove(defaultDbPath)
+		os.RemoveAll(filepath.Dir(cfgPath))
+	}()
+	return nil
+}
+
+var withNewConfigTest = func() error {
+	WithNewConfig(tenantName)
+	os.Remove(defaultDbPath)
+	return nil
+}
+
+var withNewConfigAndDbPathTest = func() error {
+	WithNewConfigAndDbPath(tenantName, dbPath)
+	os.Remove(dbPath)
+	return nil
+}
+
+var withFileConfigAndDbPathTest = func() error {
+	if err := createTestCfg(cfgPath); err != nil {
+		return err
+	}
+	if err := WithFileConfigAndDbPath(cfgPath, dbPath); err != nil {
+		return err
+	}
+	defer func() {
+		os.RemoveAll(filepath.Dir(dbPath))
+		os.RemoveAll(filepath.Dir(cfgPath))
+	}()
+	return nil
+}
+
+var withDefaultConfigAndDbPathTest = func() error {
+	if err := createTestCfg(defaultConfigPath); err != nil {
+		return err
+	}
+	if err := WithDefaultConfigAndDbPath(dbPath); err != nil {
+		return err
+	}
+	defer func() {
+		os.RemoveAll(filepath.Dir(dbPath))
+		os.RemoveAll(filepath.Dir(defaultConfigPath))
+	}()
+	return nil
+}
+
+var withPostgresParamsTest = func() error {
+	savedInitPostgresDb := postgresdb.InitPostgresDb
+	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
+	defer func() {
+		postgresdb.InitPostgresDb = savedInitPostgresDb
+	}()
+	WithPostgresParams("ParamsTenantName", "ParamsDbName", "ParamsDbHostName", "ParamsPort", "ParamsUser", "ParamsPassword", "ParamsSslMode")
+	return nil
+}
+
+var withPostgresUrlTest = func() error {
+	savedInitPostgresDb := postgresdb.InitPostgresDb
+	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
+	defer func() {
+		postgresdb.InitPostgresDb = savedInitPostgresDb
+	}()
+	psqlUrl := "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"
+	WithPostgresUrl(tenantName, psqlUrl)
+	return nil
 }
 
 func createTestCfg(cfgPath string) error {

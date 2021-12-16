@@ -58,7 +58,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	certPem := filepath.Join(rootDir, "cert.pem")
 	keyPem := filepath.Join(rootDir, "key.pem")
 
-	if ok := utils.PathExists(keyPem); ok != true {
+	if ok := utils.PathExists(keyPem); !ok {
 		utils.GenerateCertificate(keyPem, certPem)
 	}
 
@@ -122,12 +122,18 @@ func (ctx *WebServer) writeResponse(w http.ResponseWriter, httpStatus int, v int
 	w.WriteHeader(httpStatus)
 	if v != nil {
 		result, _ := json.Marshal(v)
-		w.Write(result)
+		_, err := w.Write(result)
+		if err != nil {
+			log.Printf("Can't write response: %v", err)
+		}
 	}
 }
 
 func (ctx *WebServer) writeResponseError(w http.ResponseWriter, httpError int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(httpError)
-	json.NewEncoder(w).Encode(err)
+	err = json.NewEncoder(w).Encode(err)
+	if err != nil {
+		log.Printf("Can't json Encode error: %v", err)
+	}
 }

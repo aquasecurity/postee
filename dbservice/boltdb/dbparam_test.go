@@ -32,9 +32,13 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't create dir: %s", baseDir)
 				}
-				os.Chmod(baseDir, 0)
+				if err := os.Chmod(baseDir, 0); err != nil {
+					t.Errorf("Can't change permission: %v", err)
+				}
 			}
-			db.SetNewDbPath(test.pathToDb)
+			if err := db.SetNewDbPath(test.pathToDb); err != nil {
+				t.Errorf("Can't set new dbPath: %v", err)
+			}
 			defer os.RemoveAll(baseDir)
 			defer db.ChangeDbPath(dbPathOld)
 

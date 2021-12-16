@@ -152,19 +152,34 @@ func TestDbDelete(t *testing.T) {
 	value := []byte("value")
 	bucket := "b"
 
-	dbInsert(db, bucket, key, value)
-	dbDelete(db, bucket, [][]byte{key})
-	dbDelete(db, bucket, [][]byte{key})
+	err = dbInsert(db, bucket, key, value)
+	if err != nil {
+		t.Errorf("Can't insert in db: %v", err)
+	}
+	err = dbDelete(db, bucket, [][]byte{key})
+	if err != nil {
+		t.Errorf("Can't delete from db: %v", err)
+	}
+	err = dbDelete(db, bucket, [][]byte{key})
+	if err != nil {
+		t.Errorf("Can't delete from db: %v", err)
+	}
 
 	bucket = ""
-	dbInsert(db, bucket, key, value)
+	err = dbInsert(db, bucket, key, value)
+	if err != nil {
+		t.Errorf("Can't insert in db: %v", err)
+	}
 }
 
 func TestWithoutAccessToDb(t *testing.T) {
 	boltDb := NewBoltDb()
 	dbPathReal := boltDb.DbPath
 	defer func() {
-		os.Remove(boltDb.DbPath)
+		err := os.Remove(boltDb.DbPath)
+		if err != nil {
+			t.Errorf("Can't remove db: %v", err)
+		}
 		boltDb.DbPath = dbPathReal
 	}()
 	boltDb.DbPath = "test_webhooks.db"
