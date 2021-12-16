@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -33,8 +32,8 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "webhooksrv",
-	Short: fmt.Sprintf("Aqua Container Security Webhook server\n"),
-	Long:  fmt.Sprintf("Aqua Container Security Webhook server\n"),
+	Short: "Aqua Container Security Webhook server\n",
+	Long:  "Aqua Container Security Webhook server\n",
 }
 
 func init() {
@@ -92,9 +91,10 @@ func main() {
 	}
 	err := rootCmd.Execute()
 	if err != nil {
-		log.Printf("Can't start command %v", err)
+		log.Printf("Execute error %v", err)
 		return
 	}
+
 }
 
 func Daemonize() {

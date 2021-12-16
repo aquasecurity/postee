@@ -12,9 +12,6 @@ import (
 )
 
 var (
-	invalidJson = `{
-	image : "My Image"
-	}`
 	db = boltdb.NewBoltDb()
 )
 

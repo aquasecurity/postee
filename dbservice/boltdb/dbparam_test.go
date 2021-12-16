@@ -37,7 +37,6 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 					t.Errorf("Can't change the mode dir in %s: %s", baseDir, err)
 				}
 			}
-			db.SetNewDbPath(test.pathToDb)
 			defer os.RemoveAll(baseDir)
 			defer db.ChangeDbPath(dbPathOld)
 

@@ -55,6 +55,9 @@ func (boltDb *BoltDb) AggregateScans(output string,
 		}
 		return nil, nil
 	}
-	dbInsert(db, dbparam.DbBucketAggregator, []byte(output), nil)
+	err = dbInsert(db, dbparam.DbBucketAggregator, []byte(output), nil)
+	if err != nil {
+		return nil, err
+	}
 	return aggregatedScans, nil
 }

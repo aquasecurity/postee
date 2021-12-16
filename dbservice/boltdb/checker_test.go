@@ -179,7 +179,10 @@ func TestWithoutAccessToDb(t *testing.T) {
 	boltDb := NewBoltDb()
 	dbPathReal := boltDb.DbPath
 	defer func() {
-		os.Remove(boltDb.DbPath)
+		err := os.Remove(boltDb.DbPath)
+		if err != nil {
+			t.Errorf("Can't remove db: %v", err)
+		}
 		boltDb.DbPath = dbPathReal
 	}()
 	boltDb.DbPath = "test_webhooks.db"

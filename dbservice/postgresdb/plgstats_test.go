@@ -34,7 +34,9 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 	expectedCnt := 3
 	keyToTest := "test"
 	for i := 0; i < expectedCnt; i++ {
-		db.RegisterPlgnInvctn(keyToTest)
+		if err := db.RegisterPlgnInvctn(keyToTest); err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 	}
 	if receivedKey != expectedCnt {
 		t.Errorf("Persisted count doesn't match expected. Expected %d, got %d\n", receivedKey, expectedCnt)

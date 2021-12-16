@@ -61,12 +61,15 @@ func TestAudit(t *testing.T) {
 		t.Logf("Error: %v", err)
 		return
 	}
-	router.AddOutput(&data.OutputSettings{
+	err = router.AddOutput(&data.OutputSettings{
 		Name:   "test-webhook",
 		Type:   "webhook",
 		Enable: true,
 		Url:    ts.URL,
 	})
+	if err != nil {
+		return
+	}
 
 	router.AddRoute(&routes.InputRoute{
 		Name:     "test",
