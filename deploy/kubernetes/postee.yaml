@@ -269,9 +269,9 @@ spec:
             - name: POSTEE_UI_UPDATE_URL
               value: "http://postee-svc:8080"
             - name: POSTEE_ADMIN_USER
-              value: demo
+              value: admin
             - name: POSTEE_ADMIN_PASSWORD
-              value: demo
+              value: admin
           ports:
             - containerPort: 8000
               protocol: TCP
