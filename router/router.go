@@ -103,9 +103,50 @@ func (ctx *Router) ApplyFileCfg(cfgfile string, synchronous bool) error {
 
 	ctx.cfgfile = cfgfile
 
+	tenant, err := Parsev2cfg(ctx.cfgfile)
+	if err != nil {
+		return err
+	}
+
+	postgresUrl := os.Getenv("POSTGRES_URL")
+	pathToDb := os.Getenv("PATH_TO_DB")
+
+	if err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name); err != nil {
+		return err
+	}
+
 	ctx.initCfg(synchronous)
 
-	err := ctx.load(false)
+	err = ctx.initTenantSettings(tenant)
+	if err != nil {
+		return err
+	}
+
+	if !ctx.synchronous {
+		go ctx.listen()
+	}
+
+	return nil
+}
+
+func (ctx *Router) ApplyPostgresCfg(tenantName string, synchronous bool) error {
+	log.Printf("Starting Router....")
+
+	postgresUrl := os.Getenv("POSTGRES_URL")
+	pathToDb := os.Getenv("PATH_TO_DB")
+
+	if err := dbservice.ConfigureDb(pathToDb, postgresUrl, tenantName); err != nil {
+		return err
+	}
+
+	ctx.initCfg(synchronous)
+
+	tenant, err := ctx.loadCfgCacheSourceFromPostgres()
+	if err != nil {
+		return err
+	}
+
+	err = ctx.initTenantSettings(tenant)
 	if err != nil {
 		return err
 	}
@@ -280,34 +321,12 @@ func (ctx *Router) setAquaServerUrl(url string) {
 	}
 }
 
-func (ctx *Router) load(loadCfgFromPostgres bool) error {
+func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
 	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
 
-	var tenant = &data.TenantSettings{}
-	var err error
-	if loadCfgFromPostgres {
-		tenant, err = ctx.loadCfgCacheSourceFromPostgres()
-		if err != nil {
-			return err
-		}
-	} else {
-		tenant, err = Parsev2cfg(ctx.cfgfile)
-		if err != nil {
-			return err
-		}
-		ctx.databaseCfgCacheSource = tenant
-	}
-
 	ctx.setAquaServerUrl(tenant.AquaServer)
-
-	postgresUrl := os.Getenv("POSTGRES_URL")
-	pathToDb := os.Getenv("PATH_TO_DB")
-
-	if err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name); err != nil {
-		return err
-	}
 
 	dbparam.DbSizeLimit = tenant.DBMaxSize
 
@@ -345,7 +364,7 @@ func (ctx *Router) load(loadCfgFromPostgres bool) error {
 	for _, settings := range tenant.Outputs {
 		utils.Debug("%#v\n", anonymizeSettings(&settings))
 
-		err = ctx.addOutput(&settings)
+		err := ctx.addOutput(&settings)
 
 		if err != nil {
 			log.Printf("Can not initialize output %s: %v \n", settings.Name, err)
@@ -354,6 +373,7 @@ func (ctx *Router) load(loadCfgFromPostgres bool) error {
 		}
 
 	}
+	ctx.databaseCfgCacheSource = tenant
 	return nil
 }
 func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallbackFunc) {
