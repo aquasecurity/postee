@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,7 +10,9 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/dbservice"
 	"github.com/aquasecurity/postee/dbservice/boltdb"
+	"github.com/aquasecurity/postee/dbservice/postgresdb"
 	"github.com/aquasecurity/postee/msgservice"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/routes"
@@ -221,5 +224,84 @@ func TestServiceGetters(t *testing.T) {
 	scanner := getScanService()
 	if _, ok := scanner.(*msgservice.MsgService); !ok {
 		t.Error("getScanService() doesn't return an instance of scanservice.ScanService")
+	}
+}
+
+func TestApplyPostgresCfg(t *testing.T) {
+	testTenantSerrings := data.TenantSettings{
+		Name:            "TenantName",
+		AquaServer:      "https://demolab.aquasec.com",
+		DBMaxSize:       13,
+		DBRemoveOldData: 7,
+		InputRoutes: []routes.InputRoute{
+			{
+				Name:     "route",
+				Outputs:  []string{"slack", "teams"},
+				Template: "legacy",
+			},
+		},
+		Outputs: []data.OutputSettings{
+			{
+				Name:   "slack",
+				Type:   "slack",
+				Url:    "https://hooks.slack.com/services/TAAAA/BBB/",
+				Enable: true,
+			},
+			{
+				Name:   "teams",
+				Type:   "teams",
+				Url:    "https://outlook.office.com/webhook/",
+				Enable: true,
+			},
+		},
+		Templates: []data.Template{
+			{
+				Name:               "legacy",
+				LegacyScanRenderer: "html",
+			},
+		},
+	}
+	wrap := ctxWrapper{}
+	wrap.init()
+	demoCtx := wrap.instance
+
+	savedDb := dbservice.Db
+	dbservice.Db = &postgresdb.PostgresDb{}
+
+	savedPostgresUrl := os.Getenv("POSTGRES_URL")
+	os.Setenv("POSTGRES_URL", "postgres://User:Password@DbHostName:Port/DbName?sslmode=SslMode")
+
+	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
+	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) {
+		cfg, _ := json.Marshal(testTenantSerrings)
+		return string(cfg), nil
+	}
+
+	savedUpdateCfgCacheSource := postgresdb.UpdateCfgCacheSource
+	postgresdb.UpdateCfgCacheSource = func(postgresDb *postgresdb.PostgresDb, cfgfile string) error { return nil }
+
+	savedInitPostgresDb := postgresdb.InitPostgresDb
+	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
+	defer func() {
+		wrap.teardown()
+		dbservice.Db = savedDb
+		os.Setenv("POSTGRES_URL", savedPostgresUrl)
+		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
+		postgresdb.InitPostgresDb = savedInitPostgresDb
+		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCacheSource
+	}()
+
+	err := demoCtx.ApplyPostgresCfg("tenantName", false)
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	expectedOutputsCnt := 2
+	if len(demoCtx.outputs) != expectedOutputsCnt {
+		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(Instance().outputs))
+	}
+
+	if testTenantSerrings.Outputs[0].Name != Instance().databaseCfgCacheSource.Outputs[0].Name {
+		t.Errorf("Output names are not equals, expected: %s, got: %s", testTenantSerrings.Outputs[0].Name, Instance().databaseCfgCacheSource.Outputs[0].Name)
 	}
 }
