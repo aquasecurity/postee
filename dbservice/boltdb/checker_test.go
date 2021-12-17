@@ -1,6 +1,7 @@
 package boltdb
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -154,14 +155,35 @@ func TestDbDelete(t *testing.T) {
 	value := []byte("value")
 	bucket := "b"
 
+	key1 := []byte("key1")
+	value1 := []byte("value1")
+	bucket1 := "b1"
+
 	err = dbInsert(db, bucket, key, value)
 	if err != nil {
 		t.Fatal("TestDbDelete dbInsert: ", err)
 	}
-	err = dbDelete(db, bucket, [][]byte{key})
+	err = dbInsert(db, bucket1, key1, value1)
+	if err != nil {
+		t.Errorf("Can't insert in db: %v", err)
+	}
+
+	selectValue, err := dbSelect(db, bucket, string(key))
 	if err != nil {
 		t.Fatal("TestDbDelete dbInsert: ", err)
 	}
+	if !bytes.Equal(value, selectValue) {
+		t.Errorf("bad insert/select, expected: %s, got: %s", value, selectValue)
+	}
+
+	selectValue1, err := dbSelect(db, bucket1, string(key1))
+	if err != nil {
+		t.Errorf("Can't delete from db: %v", err)
+	}
+	if !bytes.Equal(value1, selectValue1) {
+		t.Errorf("bad insert/select, expected: %s, got: %s", value1, selectValue1)
+	}
+
 	err = dbDelete(db, bucket, [][]byte{key})
 	if err != nil {
 		t.Fatal("TestDbDelete dbInsert: ", err)
@@ -173,6 +195,15 @@ func TestDbDelete(t *testing.T) {
 	if errors.Is(err, expectedError) {
 		t.Errorf("Unexpected error: expected %s, got %s \n", expectedError, err)
 	}
+
+	selectValue1AfterDel, err := dbSelect(db, bucket1, string(key1))
+	if err != nil {
+		t.Errorf("Can't delete from db: %v", err)
+	}
+	if !bytes.Equal(value1, selectValue1AfterDel) {
+		t.Errorf("bad insert/select, expected: %s, got: %s", value1, selectValue1AfterDel)
+	}
+
 }
 
 func TestWithoutAccessToDb(t *testing.T) {

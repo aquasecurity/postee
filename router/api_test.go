@@ -10,9 +10,9 @@ import (
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/dbservice/boltdb"
+	"github.com/aquasecurity/postee/dbservice/boltdb" //nolint - used to get db type in TestConfigFuncs
 	"github.com/aquasecurity/postee/dbservice/postgresdb"
-	"github.com/aquasecurity/postee/outputs"
+	"github.com/aquasecurity/postee/outputs" //nolint - used to get Output type in TestEditOutput
 	"github.com/aquasecurity/postee/routes"
 	"github.com/stretchr/testify/assert"
 )
@@ -422,7 +422,6 @@ func TestConfigFuncs(t *testing.T) {
 				assert.Equal(t, test.psqlUrl, postgresDb.ConnectUrl, "url configured")
 				assert.Equal(t, test.tenantName, postgresDb.TenantName, "tenantName configured")
 			}
-
 			if boltDb, ok := dbservice.Db.(*boltdb.BoltDb); ok {
 				assert.Equal(t, test.dbPath, boltDb.DbPath, "dbPath configured")
 			}

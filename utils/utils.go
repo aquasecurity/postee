@@ -30,7 +30,7 @@ func InitDebug() {
 }
 
 func Debug(format string, v ...interface{}) {
-	if !dbg {
+	if dbg {
 		log.Printf(format, v...)
 	}
 }
