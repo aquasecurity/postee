@@ -1,6 +1,7 @@
 package boltdb
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,11 +18,12 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 		pathToDb         string
 		changePermission bool
 		expectedDBPath   string
+		expectedErr      error
 	}{
-		{"Empty pathToDb", "", false, defaultDbPath},
-		{"Permission denied to create directory(default DbPath is used)", "/database/database.db", false, defaultDbPath},
-		{"New DbPath", "./base/base.db", false, "./base/base.db"},
-		{"Permission denied to check directory(default DbPath is used)", "webhook/database/webhooks.db", true, defaultDbPath},
+		{"Empty pathToDb", "", false, defaultDbPath, nil},
+		{"Permission denied to create directory(default DbPath is used)", "/database/database.db", false, defaultDbPath, errors.New("mkdir /database: permission denied")},
+		{"New DbPath", "./base/base.db", false, "./base/base.db", nil},
+		{"Permission denied to check directory(default DbPath is used)", "webhook/database/webhooks.db", true, defaultDbPath, errors.New("stat webhook/database/webhooks.db: permission denied")},
 	}
 
 	for _, test := range tests {
@@ -36,8 +38,8 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 					t.Errorf("Can't change the mode dir in %s: %s", baseDir, err)
 				}
 			}
-			if err := db.SetNewDbPath(test.pathToDb); err != nil {
-				t.Errorf("Can't set new dbPath: %v", err)
+			if err := db.SetNewDbPath(test.pathToDb); err != nil && errors.Is(err, test.expectedErr) {
+				t.Errorf("unexpected error setNewDbPath, expected: %v, got: %v", test.expectedErr, err)
 			}
 			defer os.RemoveAll(baseDir)
 			defer db.ChangeDbPath(dbPathOld)
