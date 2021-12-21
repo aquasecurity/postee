@@ -325,7 +325,7 @@ func TestEditTemplate(t *testing.T) {
 }
 
 func TestListTemplate(t *testing.T) {
-	if len(Instance().templates) > 0 || Instance().templates == nil {
+	if len(Instance().templates) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
