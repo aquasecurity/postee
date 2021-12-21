@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"path"
 	"strings"
 	"sync"
@@ -75,16 +74,15 @@ func Instance() *Router {
 }
 func (ctx *Router) ReloadConfig() {
 	ctx.Terminate()
-	err := ctx.ApplyFileCfg(ctx.cfgfile, ctx.synchronous)
+
+	err := ctx.ApplyFileCfg(ctx.cfgfile, "", ctx.cfgfile, ctx.synchronous)
 
 	if err != nil {
 		log.Printf("Unable to start router: %s", err)
 	}
 }
 
-func (ctx *Router) initCfg(synchronous bool) {
-	ctx.cleanInstance()
-
+func (ctx *Router) cleanChannels(synchronous bool) {
 	ctx.synchronous = synchronous
 
 	if !ctx.synchronous {
@@ -98,7 +96,7 @@ func (ctx *Router) initCfg(synchronous bool) {
 	}
 }
 
-func (ctx *Router) ApplyFileCfg(cfgfile string, synchronous bool) error {
+func (ctx *Router) ApplyFileCfg(cfgfile, postgresUrl, pathToDb string, synchronous bool) error {
 	log.Printf("Starting Router....")
 
 	ctx.cfgfile = cfgfile
@@ -108,45 +106,40 @@ func (ctx *Router) ApplyFileCfg(cfgfile string, synchronous bool) error {
 		return err
 	}
 
-	postgresUrl := os.Getenv("POSTGRES_URL")
-	pathToDb := os.Getenv("PATH_TO_DB")
-
 	if err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name); err != nil {
 		return err
 	}
 
-	ctx.initCfg(synchronous)
-
-	err = ctx.initTenantSettings(tenant)
+	err = ctx.applyTenantCfg(tenant, synchronous)
 	if err != nil {
 		return err
 	}
-
-	if !ctx.synchronous {
-		go ctx.listen()
-	}
-
 	return nil
 }
 
-func (ctx *Router) ApplyPostgresCfg(tenantName string, synchronous bool) error {
+func (ctx *Router) ApplyPostgresCfg(tenantName, postgresUrl string, synchronous bool) error {
 	log.Printf("Starting Router....")
 
-	postgresUrl := os.Getenv("POSTGRES_URL")
-	pathToDb := os.Getenv("PATH_TO_DB")
-
-	if err := dbservice.ConfigureDb(pathToDb, postgresUrl, tenantName); err != nil {
+	if err := dbservice.ConfigureDb("", postgresUrl, tenantName); err != nil {
 		return err
 	}
-
-	ctx.initCfg(synchronous)
 
 	tenant, err := ctx.loadCfgCacheSourceFromPostgres()
 	if err != nil {
 		return err
 	}
+	err = ctx.applyTenantCfg(tenant, synchronous)
+	if err != nil {
+		return err
+	}
+	return nil
 
-	err = ctx.initTenantSettings(tenant)
+}
+func (ctx *Router) applyTenantCfg(tenant *data.TenantSettings, synchronous bool) error {
+	ctx.cleanInstance()
+	ctx.cleanChannels(synchronous)
+
+	err := ctx.initTenantSettings(tenant)
 	if err != nil {
 		return err
 	}
@@ -156,6 +149,7 @@ func (ctx *Router) ApplyPostgresCfg(tenantName string, synchronous bool) error {
 	}
 
 	return nil
+
 }
 
 func (ctx *Router) Terminate() {

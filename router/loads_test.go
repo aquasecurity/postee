@@ -159,7 +159,10 @@ func TestLoads(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	demoCtx.ApplyFileCfg(wrap.cfgPath, false)
+	err := demoCtx.ApplyFileCfg(wrap.cfgPath, "", "", false)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {
@@ -197,7 +200,11 @@ func TestReload(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	demoCtx.ApplyFileCfg(wrap.cfgPath, false)
+
+	errStart := demoCtx.ApplyFileCfg(wrap.cfgPath, "", "", false)
+	if errStart != nil {
+		t.Fatal(errStart)
+	}
 
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {
@@ -269,8 +276,7 @@ func TestApplyPostgresCfg(t *testing.T) {
 	savedDb := dbservice.Db
 	dbservice.Db = &postgresdb.PostgresDb{}
 
-	savedPostgresUrl := os.Getenv("POSTGRES_URL")
-	os.Setenv("POSTGRES_URL", "postgres://User:Password@DbHostName:Port/DbName?sslmode=SslMode")
+	postgresUrl := "postgres://User:Password@DbHostName:Port/DbName?sslmode=SslMode"
 
 	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
 	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) {
@@ -286,13 +292,12 @@ func TestApplyPostgresCfg(t *testing.T) {
 	defer func() {
 		wrap.teardown()
 		dbservice.Db = savedDb
-		os.Setenv("POSTGRES_URL", savedPostgresUrl)
 		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
 		postgresdb.InitPostgresDb = savedInitPostgresDb
 		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCacheSource
 	}()
 
-	err := demoCtx.ApplyPostgresCfg("tenantName", false)
+	err := demoCtx.ApplyPostgresCfg("tenantName", postgresUrl, false)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}

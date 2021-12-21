@@ -30,22 +30,22 @@ func WithDefaultConfig() error {
 }
 func WithFileConfig(cfgPath string) error {
 	Instance().Terminate()
-	os.Setenv("POSTGRES_URL", "")
-	os.Setenv("PATH_TO_DB", defaultDbPath)
-	return Instance().ApplyFileCfg(cfgPath, true)
+	return Instance().ApplyFileCfg(cfgPath, "", defaultDbPath, true)
 }
 
 func WithNewConfig(tenantName string) { //tenant name
 	Instance().Terminate()
 	dbservice.ConfigureDb(defaultDbPath, "", "")
-	Instance().initCfg(true)
+	Instance().cleanInstance()
+	Instance().cleanChannels(true)
 }
 
 //initialize instance with custom db location
 func WithNewConfigAndDbPath(tenantName, dbPath string) { //tenant name
 	Instance().Terminate()
 	dbservice.ConfigureDb(dbPath, "", "")
-	Instance().initCfg(true)
+	Instance().cleanInstance()
+	Instance().cleanChannels(true)
 }
 
 func WithDefaultConfigAndDbPath(dbPath string) error {
@@ -54,24 +54,18 @@ func WithDefaultConfigAndDbPath(dbPath string) error {
 
 func WithFileConfigAndDbPath(cfgPath, dbPath string) error {
 	Instance().Terminate()
-	os.Setenv("POSTGRES_URL", "")
-	os.Setenv("PATH_TO_DB", dbPath)
-	return Instance().ApplyFileCfg(cfgPath, true)
+	return Instance().ApplyFileCfg(cfgPath, "", defaultDbPath, true)
 }
 
 func WithPostgresParams(tenantName, dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) {
 	postgresUrl := buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode)
 	Instance().Terminate()
-	os.Setenv("POSTGRES_URL", postgresUrl)
-	os.Setenv("PATH_TO_DB", "")
-	Instance().ApplyPostgresCfg(tenantName, true)
+	Instance().ApplyPostgresCfg(tenantName, postgresUrl, true)
 }
 
 func WithPostgresUrl(tenantName, postgresUrl string) {
 	Instance().Terminate()
-	os.Setenv("POSTGRES_URL", postgresUrl)
-	os.Setenv("PATH_TO_DB", "")
-	Instance().ApplyPostgresCfg(tenantName, true)
+	Instance().ApplyPostgresCfg(tenantName, postgresUrl, true)
 }
 
 func AquaServerUrl(aquaServerUrl string) { //optional
