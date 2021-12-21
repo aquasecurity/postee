@@ -86,7 +86,10 @@ func AddOutput(output *data.OutputSettings) error {
 	return Instance().addOutput(output)
 }
 func UpdateOutput(output *data.OutputSettings) error {
-	Instance().deleteOutput(output.Name, false)
+	err := Instance().deleteOutput(output.Name, false)
+	if err != nil {
+		return err
+	}
 	return Instance().addOutput(output)
 }
 func ListOutputs() []data.OutputSettings {

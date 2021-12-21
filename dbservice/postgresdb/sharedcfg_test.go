@@ -27,7 +27,9 @@ func TestApiKey(t *testing.T) {
 		psqlConnect = savedPsqlConnect
 	}()
 
-	db.EnsureApiKey()
+	if err := db.EnsureApiKey(); err != nil {
+		t.Errorf("Unexpected EnsureApiKey error: %v", err)
+	}
 
 	key, err := db.GetApiKey()
 	if err != nil {
@@ -84,7 +86,9 @@ func TestApiKeyRenewal(t *testing.T) {
 
 	var keys [2]string
 	for i := 0; i < 2; i++ {
-		db.EnsureApiKey()
+		if err := db.EnsureApiKey(); err != nil {
+			t.Errorf("Unexpected EnsureApiKey error: %v", err)
+		}
 		key, err := db.GetApiKey()
 		if err != nil {
 			t.Fatal("error while getting value of API key")
