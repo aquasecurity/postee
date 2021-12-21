@@ -22,8 +22,24 @@
 
 # Table of Contents
 - [Abstract](#abstract)
-- [Usage](#usage)
+- [Installation](#installation)
+  - [Docker](#docker)
+  - [Kubernetes](#kubernetes)
+  - [Helm](#helm)
+  - [From Source](#from-source)
 - [Postee Configuration File](#postee-configuration-file)
+  - [General Settings](#general-settings)
+  - [Routes](#routes)
+    - [Route Plugins](#route-plugins)
+  - [Templates](#templates)
+  - [Outputs](#outputs)
+    - [ServiceNow](#serviceNow)
+    - [Jira](#jira)
+    - [Email](#email)
+    - [Slack](#slack)
+    - [MsTeams](#ms-teams)
+    - [Splunk](#splunk)
+    - [Generic Webhook](#generic-webhook)
 - [Configure the Aqua Server with Webhook Integration](#configure-the-aqua-server-with-webhook-integration)
 - [Customizing Templates](#customizing-templates)
 - [Postee UI](#postee-ui)
@@ -37,7 +53,7 @@ Primary use of Postee is to act as a notification component for Aqua Security pr
 
 ![Postee v2 scheme](/postee-v2-scheme.png)
 
-## Usage
+## Installation
 
 To run Postee you will first need to configure the [Postee Configuration File](#postee-configuration-file), which contains all the message routing logic. 
 After the configuration file is ready, you can run the official Postee container image: **aquasec/postee:latest**, or compile it from source. 
@@ -79,27 +95,34 @@ export POSTEE_CFG=<path to cfg.yaml>
 ```
 
 ## Postee Configuration File
-When Postee receives a message it will process it based on routing rules and send it to the appropriate target. How does it know how to do that? Well, this information is defined in Postee's configuration file, [cfg.yaml](https://github.com/aquasecurity/postee/blob/main/cfg.yaml), which contains the following definitions: 
+
+When Postee receives a message it will process it based on routing rules and send it to the appropriate target. How does it know how to do that? Well, this information is defined in Postee's configuration file, [cfg.yaml](https://github.com/aquasecurity/postee/blob/main/cfg.yaml), which contains the following definitions:
+
 1. General settings
 2. Routes
 3. Templates
 4. Outputs
 
-See examples of common Postee configuration files here: [Examples](docs/examples)
+> NOTE See examples of common Postee configuration files here: [Examples](docs/examples)
 
 ### General settings
+
 General settings are specified at the root level of cfg.yaml. They include general configuration that applies to the Postee application.
+
+<details>
+<summary>Details</summary>
 
 Key | Description | Possible Values | Example Value
 --- | --- | --- | ---
 *aqua-server*|Aqua Platform URL. This is used for some of the integrations to will include a link to the Aqua UI| Aqua Platform valid URL | https://server.my.aqua
 *db-verify-interval*|Specify time interval (in hours) for Postee to perform database cleanup jobs. Default: 1 hour| any integer value  | 1
 *max-db-size*|The maximum size of Postee database (in MB). Once reached to size limit, Postee will delete old cached messages. If empty then Postee database will have unlimited size| any integer value | 200
+</details>
 
 ### Routes 
 A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the output(s) that the message should be delivered to.
 
-The most important part of a route is the input definition. We use the Rego language to define what are the conditions for an incoming message to be handled by a certain route.
+The most important part of a route is the **input definition using the Rego language** to define what are the conditions for an incoming message to be handled by a certain route.
 
 > NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
 
@@ -107,6 +130,8 @@ After defining the route's input condition, what is left is to define the templa
 
 The below table describes the fields to define a route:
 
+<details>
+<summary>Details</summary>
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
@@ -115,6 +140,7 @@ Key | Description | Possible Values | Example
 *input-files*|One or more files with Rego rules| Set of Rego language files | ["Policy-Registry.rego", "Policy-Min-Vulnerability.rego"] 
 *outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
+</details>
 
 The `rego-filters` folder contains examples of policy related functions. You can use the examples. To do this, you need to change the input data in the arrays of rego files and fill in the config file. If you want to use an other folder, set the 'REGO_FILTERS_PATH' environment variable to point to it. When using 2 or more files, they will be combined by "OR".
 To combine policy related functions by "AND", use the `Policy-Related-Features.rego` file, change the input data, and fill in the required function in allow.
@@ -154,9 +180,13 @@ input: |
   input.vulnerability_summary.critical>0
 ```
 
-See more route samples [HERE](./docs/routes.md)
-#### Route plugins section
-'Plugins' section contains configuration for useful Postee features. 
+> NOTE See more route samples configuration [HERE](./docs/routes.md)
+#### Route plugins
+
+'Plugins' section contains configuration for useful Postee features.
+
+<details>
+<summary>Details</summary>
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
@@ -164,7 +194,7 @@ Key | Description | Possible Values | Example
 *aggregate-message-timeout*|number of seconds, minutes, hours to aggregate|Maximum is 24 hours Xs or Xm or Xh | 1h
 *unique-message-props*|Optional. Comma separated list of properties which uniquely identifies an event message. If message with same property values is received more than once, consequitive messages will be ignored. | Array of properties that their value uniquely identifies a message | To avoid duplicate scanning messages you can use the following properties: ```unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"]```
 *unique-message-timeout*|Optional. Used along with *unique-message-props*, has no effect if unique props are not specified. Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted | 1d
-
+</details>
 
 ### Templates
 Templates are used to format input messages before sending them to the output. For example - before sending a message to Microsoft Teams there is a need to format the input JSON into an HTML. This is done using a template.
@@ -172,34 +202,66 @@ Templates are used to format input messages before sending them to the output. F
 Each template has a 'name' field, which is used by the route to assign the template to input and output. 
 In addition to name, a template will have **one** of the 4 below keys:
 
+<details>
+<summary>Details</summary>
+
 Key | Description | Example
 --- | --- | ---
 *rego-package*|Postee loads bundle of templates from `rego-templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego-templates' directory.| `postee.vuls.html`
 *body*| Specify inline template. Relative small templates can be added to config directly | input
 *url*| Load from url. Rego template can be loaded from url.| http://myserver.com/rego.txt
 *legacy-scan-renderer*| Legacy templates are introduced to support Postee V1 renderers. Available values are  "jira", "slack", "html". "jira" should be used for jira integration, "slack" is for slack and "html" is for everything else. | html
-
+</details>
 
 ### Outputs
-Outputs are remote services that messages should be sent to. Each output has two mandatory fields, which are 'name' and 'type':
+Outputs are remote services that messages should be sent to. Each output has two mandatory fields, which are 'name' and 'type'.
+
+<details>
+<summary>Details</summary>
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
 *name* | Unique name of the output. This name is used in the route definition. | Any string | teams-output
 *type* | The type of the output | You can choose from the following types: email, jira, slack, teams, webhook, splunk, serviceNow | email
-
+</details>
 
 Depending on the 'type', additional parameters are required.
 
-### ServiceNow integration parameters
+### ServiceNow
+
+<details>
+<summary>Details</summary>
+
 Key | Description | Possible Values
 --- | --- | ---
 *user* | ServiceNow user name | 
 *password* | User API key / password |
 *instance* | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
 *board* | ServiceNow board name to open tickets on. Default is "incident" |
+</details>
 
-### Jira integration parameters
+### Jira
+
+Follow these steps to set up JIRA integration:
+1. Get a new token for user:
+    * Login to Jira Cloud.
+Go to the user profile API tokens (JIRA Cloud users can find it here: https://id.atlassian.com/manage-profile/security/api-tokens).
+Click on the Create API Token. A new API token for the user is created.
+    * Login to Jira Server/Data center
+Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created. 
+2. Fill jira output in cfg.yaml:
+    * Jira Cloud:
+        * User: your email.
+        * Password: your API token.
+    * Jira Server/Data center:
+        * User: your UserName.
+        * Password: your Password.\
+        or
+        * Token: your Personal Access Tokens.
+
+<details>
+<summary>Details</summary>
+
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Jira project url |
@@ -213,6 +275,7 @@ Key | Description | Possible Values
 *issuetype*| Optional: issue type, e.g., Bug |
 *labels*| Optional: comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
 *sprint*| Optional: Sprint name, e.g., "3.5 Sprint 8" |
+</details>
 
 For Jira you can also specify custom fields that will be populated with values.
 Use the `unknowns` parameter in cfg.yaml for custom fields.
@@ -230,7 +293,11 @@ unknowns:
      mycustom-url: https://tour.golang.org/moretypes/7
 ```
 
-### Email integration parameters
+### Email
+
+<details>
+<summary>Details</summary>
+
 Key | Description | Possible Values
 --- | --- | ---
 *use-mx* | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
@@ -240,35 +307,75 @@ Key | Description | Possible Values
 *port* | SMTP port |
 *sender* |  Sender's email address |
 *recipients*|  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
+</details>
 
-### Slack integration parameters
+### Slack
+
+Getting the Slack webhooks [Create a Slack Custom App](https://api.slack.com/messaging/webhooks).
+
+Copy webhook url to the Postee config
+
+<details>
+<summary>Details</summary>
+
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Slack WebHook URL (includes the access key) |
+</details>
 
+### MS Teams
 
-### MS Teams integration parameters
+Open your Microsoft Teams client. Click on the "..." near the channel you would like to send notifications to.
+
+Choose "Connectors". The connectors window will open. Look for the "Incoming Webhook" connector (it is under the "All" category).
+
+Click "Add" near the Incoming Webhook connector. Click "Add" again. Provide a name and click "Create".
+
+You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
+
+<details>
+<summary>Details</summary>
+
 Key | Description | Possible Values
 --- | --- | ---
 *url* | MS Teams WebHook URL |
+</details>
 
-### Splunk integration parameters
+### Splunk
+
+You will need to care about an HTTP Event Collector in Splunk Enterprise or Splunk Cloud.
+
+This can usually be found in the Splunk console under "Settings -> Data Inputs -> HTTP Event Collector -> Add New".
+
+Once you create an HTTP Event Collector you will receive a token. You should provide this token, together with the Splunk HTTP Collector
+URL, as part of the cfg.yaml settings.
+
+<details>
+<summary>Details</summary>
+
 Key | Description | Possible Values
 --- | --- | ---
 *token* | The Splunk HTTP event collector token | 
 *url* | URL to Splunk HTTP event collector (e.g. http://server:8088) |
 *size-limit* | Optional. Maximum scan length, in bytes. Default: 10000 | 10000
+</details>
 
-### Generic Webhook integration parameters
+### Generic Webhook
+
+<details>
+<summary>Details</summary>
+
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Webhook URL |
+</details>
 
 ## Configure the Aqua Server with Webhook Integration
 Postee can be integrated with Aqua Console to deliver vulnerability and audit messages to target systems.
 
 You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
 Navigate to the **Image Scan Results Webhook** page, under the "Settings" menu.
+
 ![Screenshot](webhook-integration.png)
 
 Click "Enable sending image scan results to webhook", and specify the URL of Postee.
@@ -306,13 +413,18 @@ To create your own template, you should create a new file under the 'rego-templa
 [Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) for the actual template code.
 
 Message payload is referenced as `input` when template is rendered. The result variable should be used to store the output message, which is the result of the template formatting. 
-The following variables should be defined in the custom Rego template:
+
+The following variables should be defined in the custom Rego template.
+
+<details>
+<summary>Details</summary>
 
 Key | Description |Type
 --- | --- | ---
 *result* | message body| Can be either string or json
 *title* | message title| string
 *aggregation_pkg*|reference to package used to aggregate messages (when aggregate-message-timeout or aggregate-message-number options are used). If it's missed then aggregation feature is not supported| valid rego package
+</details>
 
 So the simplest example of Rego template would look like:
 ```rego
@@ -359,48 +471,4 @@ outputs:
   user: $JIRA_USERNAME
   token: $JIRA_SERVER_TOKEN         
 ```
-
-### Getting the JIRA connection details
-
-Follow these steps to set up JIRA integration:
-1. Get a new token for user:
-    * Login to Jira Cloud.
-Go to the user profile API tokens (JIRA Cloud users can find it here: https://id.atlassian.com/manage-profile/security/api-tokens).
-Click on the Create API Token. A new API token for the user is created.
-    * Login to Jira Server/Data center
-Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created. 
-2. Fill jira output in cfg.yaml:
-    * Jira Cloud:
-        * User: your email.
-        * Password: your API token.
-    * Jira Server/Data center:
-        * User: your UserName.
-        * Password: your Password.\
-        or
-        * Token: your Personal Access Tokens.
-
-### Getting the Slack connection details: [Slack Custom App](https://api.slack.com/)
-1. Visit api.slack.com
-2. Press "Create custom app"
-3. Fill app name and select slack workspace
-4. Open "Incoming webhooks" tab
-5. Enable "Incoming webhooks"
-6. Add webhook to workspace
-7. On next screen pick slack channel and click allow
-8. Copy webhook url to the Postee config
-
-### Getting the MS Teams connection details
-Open your Microsoft Teams client. Click on the "..." near the channel you would like to send notifications to.
-Choose "Connectors". The connectors window will open.
-Look for the "Incoming Webhook" connector (it is under the "All" category).
-Click "Add" near the Incoming Webhook connector. Click "Add" again.
-Provide a name and click "Create".
-You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
-
-### Configure the Splunk Integration
-You will need to carate an HTTP Event Collector in Splunk Enterprise or Splunk Cloud.
-This can usually be found in the Splunk console under "Settings -> Data Inputs -> HTTP Event Collector -> Add New".
-Once you create an HTTP Event Collector you will receive a token. You should provide this token, together with the Splunk HTTP Collector
-URL, as part of the cfg.yaml settings.
-
 
