@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/aquasecurity/postee/data"
@@ -80,6 +81,7 @@ func TestAudit(t *testing.T) {
 		},
 	})
 	router.Send([]byte(msg))
+	defer os.Remove("webhooks.db")
 	got := <-received
 	assert.Equal(t, string(got), want, "unexpected response")
 }

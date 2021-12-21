@@ -76,7 +76,13 @@ func Instance() *Router {
 func (ctx *Router) ReloadConfig() {
 	ctx.Terminate()
 
-	err := ctx.ApplyFileCfg(ctx.cfgfile, "", ctx.cfgfile, ctx.synchronous)
+	tenant, err := Parsev2cfg(ctx.cfgfile)
+	if err != nil {
+		log.Printf("Failed to parse cfg file %s", err)
+		return
+	}
+
+	err = ctx.applyTenantCfg(tenant, ctx.synchronous)
 
 	if err != nil {
 		log.Printf("Unable to start router: %s", err)
