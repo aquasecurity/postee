@@ -2,6 +2,7 @@ package postgresdb
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -18,7 +19,7 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 	currentValue := ""
 	sqlQuery := fmt.Sprintf("SELECT messageValue FROM %s WHERE (tenantName=$1 AND messageKey=$2)", dbparam.DbBucketName)
 	if err = db.Get(&currentValue, sqlQuery, postgresDb.TenantName, messageKey); err != nil {
-		if err != sql.ErrNoRows {
+		if !errors.Is(err, sql.ErrNoRows) {
 			return false, err
 		}
 	}
