@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 const defaultSizeLimit = 10000
@@ -42,18 +42,18 @@ func (splunk *SplunkOutput) CloneSettings() *data.OutputSettings {
 
 func (splunk *SplunkOutput) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
-	log.Printf("Starting Splunk output %q....", splunk.Name)
+	log.Logger.Infof("Starting Splunk output %q....", splunk.Name)
 	return nil
 }
 
 func (splunk *SplunkOutput) Send(d map[string]string) error {
-	log.Printf("Sending a message to %q", splunk.Name)
+	log.Logger.Infof("Sending a message to %q", splunk.Name)
 
 	if splunk.EventLimit == 0 {
 		splunk.EventLimit = defaultSizeLimit
 	}
 	if splunk.EventLimit < defaultSizeLimit {
-		log.Printf("[WARNING] %q has a short limit %d (default %d)",
+		log.Logger.Warnf("%q has a short limit %d (default %d)",
 			splunk.Name, splunk.EventLimit, defaultSizeLimit)
 	}
 
@@ -64,7 +64,7 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 	scanInfo := new(data.ScanImageInfo)
 	err := json.Unmarshal([]byte(d["description"]), scanInfo)
 	if err != nil {
-		log.Printf("sending to %q error: %v", splunk.Name, err)
+		log.Logger.Errorf("sending to %q error: %v", splunk.Name, err)
 		return err
 	}
 
@@ -76,7 +76,7 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 	for {
 		fields, err = json.Marshal(scanInfo)
 		if err != nil {
-			log.Printf("sending to %q error: %v", splunk.Name, err)
+			log.Logger.Errorf("sending to %q error: %v", splunk.Name, err)
 			return err
 		}
 		if len(fields) < splunk.EventLimit-constLimit {
@@ -95,7 +95,7 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 		default:
 			msg := fmt.Sprintf("Scan result for %q is large for %q , its size if %d (limit %d)",
 				scanInfo.Image, splunk.Name, len(fields), splunk.EventLimit)
-			log.Print(msg)
+			log.Logger.Infof(msg)
 			return errors.New(msg)
 		}
 	}
@@ -119,15 +119,15 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 	if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("Splunk sending error: failed response status %q. Body: %q", resp.Status, string(b))
+		log.Logger.Errorf("Splunk sending error: failed response status %q. Body: %q", resp.Status, string(b))
 		return errors.New("failed response status for Splunk sending")
 	}
-	log.Printf("Sending a message to %q was successful!", splunk.Name)
+	log.Logger.Infof("Sending a message to %q was successful!", splunk.Name)
 	return nil
 }
 
 func (splunk *SplunkOutput) Terminate() error {
-	log.Printf("Splunk output %q terminated", splunk.Name)
+	log.Logger.Infof("Splunk output %q terminated", splunk.Name)
 	return nil
 }
 

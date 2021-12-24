@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/log"
 	"github.com/open-policy-agent/opa/rego"
 )
 
@@ -78,7 +78,7 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 
 func getFirstElement(context map[string]interface{}, key string) interface{} {
 	for _, v := range context {
-		log.Printf("checking: %s ...\n", key)
+		log.Logger.Infof("checking: %s ...\n", key)
 		childCtx, ok := v.(map[string]interface{})
 		if !ok {
 			return nil
@@ -229,7 +229,7 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 		}
 	} else {
 		//it's ok skip aggregation package - no aggregation features will be available
-		log.Printf("No aggregation package configured!!!")
+		log.Logger.Infof("No aggregation package configured!!!")
 	}
 	return aggrQuery, nil
 }

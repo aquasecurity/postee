@@ -2,7 +2,6 @@ package postgresdb
 
 import (
 	"database/sql"
-	"log"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -20,7 +19,7 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
-			log.Println("failed to open sqlmock database:", err)
+			t.Errorf("failed to open sqlmock database: %v", err)
 		}
 		rows := sqlxmock.NewRows([]string{"amount"}).AddRow(receivedKey)
 		mock.ExpectQuery("SELECT").WillReturnRows(rows)
@@ -60,7 +59,7 @@ func TestRegisterPlgnInvctnErrors(t *testing.T) {
 			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, mock, err := sqlxmock.Newx()
 				if err != nil {
-					log.Println("failed to open sqlmock database:", err)
+					t.Errorf("failed to open sqlmock database: %v", err)
 				}
 				mock.ExpectQuery("SELECT").WillReturnError(test.errIn)
 				return db, err

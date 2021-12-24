@@ -3,13 +3,13 @@ package outputs
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 type WebhookOutput struct {
@@ -31,37 +31,36 @@ func (webhook *WebhookOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (webhook *WebhookOutput) Init() error {
-	log.Printf("Starting Webhook output %q, for sending to %q",
+	log.Logger.Infof("Starting Webhook output %q, for sending to %q",
 		webhook.Name, webhook.Url)
 	return nil
 }
 
 func (webhook *WebhookOutput) Send(content map[string]string) error {
-	log.Printf("Sending webhook to %q", webhook.Url)
+	log.Logger.Infof("Sending webhook to %q", webhook.Url)
 	data := content["description"] //it's not supposed to work with legacy renderer
 	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
-		log.Printf("Sending webhook Error: %v", err)
+		log.Logger.Errorf("Sending webhook Error: %v", err)
 		return err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Printf("Sending %q Error: %v", webhook.Name, err)
+		log.Logger.Errorf("Sending %q Error: %v", webhook.Name, err)
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		msg := "sending webhook wrong status: %q. Body: %s"
-		log.Printf(msg, resp.StatusCode, body)
 		return fmt.Errorf(msg, resp.StatusCode, body)
 	}
-	log.Printf("Sending Webhook to %q was successful!", webhook.Name)
+	log.Logger.Infof("Sending Webhook to %q was successful!", webhook.Name)
 	return nil
 }
 
 func (webhook *WebhookOutput) Terminate() error {
-	log.Printf("Webhook output %q terminated.", webhook.Name)
+	log.Logger.Infof("Webhook output %q terminated.", webhook.Name)
 	return nil
 }
 

@@ -2,7 +2,6 @@ package postgresdb
 
 import (
 	"errors"
-	"log"
 	"testing"
 	"time"
 
@@ -86,7 +85,7 @@ func TestInitError(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
-			log.Println("failed to open sqlmock database:", err)
+			t.Errorf("failed to open sqlmock database: %v", err)
 		}
 		mock.ExpectExec("CREATE").WillReturnError(initTablesErr)
 		return db, err
@@ -127,7 +126,7 @@ func TestDeleteRowsByTenantNameAndTime(t *testing.T) {
 				}()
 				db, mock, err := sqlxmock.Newx()
 				if err != nil {
-					log.Println("failed to open sqlmock database:", err)
+					t.Errorf("failed to open sqlmock database: %v", err)
 				}
 				if test.wasError {
 					mock.ExpectExec("DELETE").WillReturnError(test.expectedError)
@@ -161,7 +160,7 @@ func TestDeleteRowsByTenantName(t *testing.T) {
 			}()
 			db, mock, err := sqlxmock.Newx()
 			if err != nil {
-				log.Println("failed to open sqlmock database:", err)
+				t.Errorf("failed to open sqlmock database: %v", err)
 			}
 			if test.wasError {
 				mock.ExpectExec("DELETE").WillReturnError(test.expectedError)
@@ -208,7 +207,7 @@ func TestInsert(t *testing.T) {
 				psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 					db, mock, err := sqlxmock.Newx()
 					if err != nil {
-						log.Println("failed to open sqlmock database:", err)
+						t.Errorf("failed to open sqlmock database: %v", err)
 					}
 					if test.wasQueryError {
 						mock.ExpectQuery("SELECT").WillReturnError(test.expectedError)
@@ -256,7 +255,7 @@ func TestInsertErrorSelect2Rows(t *testing.T) {
 			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, mock, err := sqlxmock.Newx()
 				if err != nil {
-					log.Println("failed to open sqlmock database:", err)
+					t.Errorf("failed to open sqlmock database: %v", err)
 				}
 				rows := sqlxmock.NewRows([]string{"count"}).AddRow(2)
 				mock.ExpectQuery("SELECT").WillReturnRows(rows)

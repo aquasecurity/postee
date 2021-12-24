@@ -2,7 +2,6 @@ package postgresdb
 
 import (
 	"database/sql"
-	"log"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -16,7 +15,7 @@ func TestApiKey(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
-			log.Println("failed to open sqlmock database:", err)
+			t.Errorf("failed to open sqlmock database: %v", err)
 		}
 		rows := sqlxmock.NewRows([]string{"value"}).AddRow("key")
 		mock.ExpectQuery("SELECT").WillReturnRows(rows)
@@ -45,7 +44,7 @@ func TestApiKeyWithoutInit(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
-			log.Println("failed to open sqlmock database:", err)
+			t.Errorf("failed to open sqlmock database: %v", err)
 		}
 		mock.ExpectQuery("SELECT").WillReturnError(sql.ErrNoRows)
 		return db, err
@@ -73,7 +72,7 @@ func TestApiKeyRenewal(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
-			log.Println("failed to open sqlmock database:", err)
+			t.Errorf("failed to open sqlmock database: %v", err)
 		}
 		rows := sqlxmock.NewRows([]string{"value"}).AddRow(receivedKey)
 		mock.ExpectQuery("SELECT").WillReturnRows(rows)

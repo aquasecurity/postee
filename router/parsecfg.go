@@ -3,9 +3,9 @@ package router
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 
 	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/log"
 	"github.com/ghodss/yaml"
 )
 
@@ -28,7 +28,6 @@ const (
 func Parsev2cfg(cfgpath string) (*data.TenantSettings, error) {
 	b, err := ioutil.ReadFile(cfgpath)
 	if err != nil {
-		log.Printf("Failed to open file %s, %s", cfgpath, err)
 		return nil, err
 	}
 
@@ -38,7 +37,6 @@ func Parsev2cfg(cfgpath string) (*data.TenantSettings, error) {
 	err = yaml.Unmarshal(b, tenant)
 
 	if err != nil {
-		log.Printf("Failed yaml.Unmarshal, %s", err)
 		return nil, err
 	}
 
@@ -47,6 +45,6 @@ func Parsev2cfg(cfgpath string) (*data.TenantSettings, error) {
 }
 func checkV1Cfg(data []byte, cfgpath string) {
 	if bytes.Index(data, []byte(v1Marker)) > -1 {
-		log.Printf(v1Warning, cfgpath)
+		log.Logger.Warnf(v1Warning, cfgpath)
 	}
 }

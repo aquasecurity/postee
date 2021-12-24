@@ -2,10 +2,10 @@ package postgresdb
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
+	"github.com/aquasecurity/postee/log"
 )
 
 func (postgresDb *PostgresDb) CheckSizeLimit() {
@@ -16,19 +16,19 @@ func (postgresDb *PostgresDb) CheckSizeLimit() {
 	connectUrl := postgresDb.ConnectUrl
 	db, err := psqlConnect(connectUrl)
 	if err != nil {
-		log.Println("CheckSizeLimit: Can't open db, connectUrl: ", connectUrl)
+		log.Logger.Errorf("CheckSizeLimit: Can't open db, connectUrl: %s", connectUrl)
 		return
 	}
 	defer db.Close()
 
 	size := 0
 	if err = db.Get(&size, fmt.Sprintf("SELECT pg_total_relation_size('%s');", dbparam.DbBucketName)); err != nil {
-		log.Printf("CheckSizeLimit: Can't get db size")
+		log.Logger.Error("CheckSizeLimit: Can't get db size")
 		return
 	}
 	if size > dbparam.DbSizeLimit {
 		if err = deleteRowsByTenantName(db, dbparam.DbBucketName, postgresDb.TenantName); err != nil {
-			log.Printf("CheckSizeLimit: Can't delete tenantName's: %s from table: %s", postgresDb.TenantName, dbparam.DbBucketName)
+			log.Logger.Errorf("CheckSizeLimit: Can't delete tenantName's: %s from table: %s", postgresDb.TenantName, dbparam.DbBucketName)
 			return
 		}
 	}
@@ -38,13 +38,13 @@ func (postgresDb *PostgresDb) CheckExpiredData() {
 	connectUrl := postgresDb.ConnectUrl
 	db, err := psqlConnect(connectUrl)
 	if err != nil {
-		log.Printf("CheckExpiredData: Can't open postgresDb: %v", err)
+		log.Logger.Errorf("CheckExpiredData: Can't open postgresDb: %v", err)
 		return
 	}
 	defer db.Close()
 
 	max := time.Now().UTC() //remove expired records
 	if err = deleteRowsByTenantNameAndTime(db, postgresDb.TenantName, max); err != nil {
-		log.Printf("CheckExpiredData: Can't delete dates from table:%s, err: %v", dbparam.DbBucketName, err)
+		log.Logger.Errorf("CheckExpiredData: Can't delete dates from table:%s, err: %v", dbparam.DbBucketName, err)
 	}
 }
