@@ -343,7 +343,7 @@ func TestListTemplate(t *testing.T) {
 }
 
 func TestSetInputCallbackFunc(t *testing.T) {
-	if len(Instance().inputCallBacks) > 0 {
+	if len(Instance().inputCallBacks) > 0 || Instance().inputCallBacks == nil {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -372,12 +372,12 @@ func TestConfigFuncs(t *testing.T) {
 		dbPath       string
 		psqlUrl      string
 	}{
-		{"WithDefaultConfig", withDefaultConfigTest, "", false, "raw", "my-slack", "route1", "/server/database/webhooks.db", ""},
-		{"WithFileConfig", withFileConfigTest, "", false, "raw", "my-slack", "route1", "/server/database/webhooks.db", ""},
-		{"WithDefaultConfigAndDbPath", withDefaultConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "database/webhooks.db", ""},
-		{"WithFileConfigAndDbPath", withFileConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "database/webhooks.db", ""},
+		{"WithDefaultConfig", withDefaultConfigTest, "", false, "raw", "my-slack", "route1", "./webhooks.db", ""},
+		{"WithFileConfig", withFileConfigTest, "", false, "raw", "my-slack", "route1", "./webhooks.db", ""},
+		{"WithDefaultConfigAndDbPath", withDefaultConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "test/webhooks.db", ""},
+		{"WithFileConfigAndDbPath", withFileConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "test/webhooks.db", ""},
 		{"WithNewConfig", withNewConfigTest, "", true, "", "", "", "./webhooks.db", ""},
-		{"WithNewConfigAndDbPath", withNewConfigAndDbPathTest, "", true, "", "", "", "./webhooks.db", ""},
+		{"WithNewConfigAndDbPath", withNewConfigAndDbPathTest, "", true, "", "", "", "test/webhooks.db", ""},
 		{"WithPostgresParams", withPostgresParamsTest, "ParamsTenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
 		{"WithPostgresUrl", withPostgresUrlTest, "tenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
 	}
@@ -386,15 +386,6 @@ func TestConfigFuncs(t *testing.T) {
 			defer func() {
 				Instance().cleanInstance()
 				dbservice.Db = nil
-			}()
-
-			savedPathToDb := os.Getenv("PATH_TO_DB")
-			savedPostgresUrl := os.Getenv("POSTGRES_URL")
-			os.Setenv("PATH_TO_DB", test.dbPath)
-			os.Setenv("POSTGRES_URL", test.psqlUrl)
-			defer func() {
-				os.Setenv("PATH_TO_DB", savedPathToDb)
-				os.Setenv("POSTGRES_URL", savedPostgresUrl)
 			}()
 
 			err := test.f()
@@ -432,7 +423,7 @@ func TestConfigFuncs(t *testing.T) {
 var (
 	cfgPath    = "test/cfg.yaml"
 	tenantName = "tenantName"
-	dbPath     = "test/cfg.yaml"
+	dbPath     = "test/webhooks.db"
 
 	cfg = `Name: tenant
 
@@ -486,13 +477,13 @@ var withFileConfigTest = func() error {
 
 var withNewConfigTest = func() error {
 	WithNewConfig(tenantName)
-	os.Remove(defaultDbPath)
+	defer os.RemoveAll(filepath.Dir(dbPath))
 	return nil
 }
 
 var withNewConfigAndDbPathTest = func() error {
 	WithNewConfigAndDbPath(tenantName, dbPath)
-	os.Remove(dbPath)
+	defer os.RemoveAll(filepath.Dir(dbPath))
 	return nil
 }
 

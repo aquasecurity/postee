@@ -54,7 +54,7 @@ func WithDefaultConfigAndDbPath(dbPath string) error {
 
 func WithFileConfigAndDbPath(cfgPath, dbPath string) error {
 	Instance().Terminate()
-	return Instance().ApplyFileCfg(cfgPath, "", defaultDbPath, true)
+	return Instance().ApplyFileCfg(cfgPath, "", dbPath, true)
 }
 
 func WithPostgresParams(tenantName, dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) {
