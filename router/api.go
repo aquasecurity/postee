@@ -33,19 +33,25 @@ func WithFileConfig(cfgPath string) error {
 	return Instance().ApplyFileCfg(cfgPath, "", defaultDbPath, true)
 }
 
-func WithNewConfig(tenantName string) { //tenant name
+func WithNewConfig(tenantName string) error { //tenant name
 	Instance().Terminate()
-	dbservice.ConfigureDb(defaultDbPath, "", "")
+	if err := dbservice.ConfigureDb(defaultDbPath, "", ""); err != nil {
+		return err
+	}
 	Instance().cleanInstance()
 	Instance().cleanChannels(true)
+	return nil
 }
 
 //initialize instance with custom db location
-func WithNewConfigAndDbPath(tenantName, dbPath string) { //tenant name
+func WithNewConfigAndDbPath(tenantName, dbPath string) error { //tenant name
 	Instance().Terminate()
-	dbservice.ConfigureDb(dbPath, "", "")
+	if err := dbservice.ConfigureDb(dbPath, "", ""); err != nil {
+		return err
+	}
 	Instance().cleanInstance()
 	Instance().cleanChannels(true)
+	return nil
 }
 
 func WithDefaultConfigAndDbPath(dbPath string) error {
@@ -57,15 +63,21 @@ func WithFileConfigAndDbPath(cfgPath, dbPath string) error {
 	return Instance().ApplyFileCfg(cfgPath, "", dbPath, true)
 }
 
-func WithPostgresParams(tenantName, dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) {
+func WithPostgresParams(tenantName, dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) error {
 	postgresUrl := buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode)
 	Instance().Terminate()
-	Instance().ApplyPostgresCfg(tenantName, postgresUrl, true)
+	if err := Instance().ApplyPostgresCfg(tenantName, postgresUrl, true); err != nil {
+		return err
+	}
+	return nil
 }
 
-func WithPostgresUrl(tenantName, postgresUrl string) {
+func WithPostgresUrl(tenantName, postgresUrl string) error {
 	Instance().Terminate()
-	Instance().ApplyPostgresCfg(tenantName, postgresUrl, true)
+	if err := Instance().ApplyPostgresCfg(tenantName, postgresUrl, true); err != nil {
+		return nil
+	}
+	return nil
 }
 
 func AquaServerUrl(aquaServerUrl string) { //optional

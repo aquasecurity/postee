@@ -1,7 +1,7 @@
 package dbservice
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/aquasecurity/postee/dbservice/boltdb"
@@ -10,6 +10,8 @@ import (
 
 var (
 	Db DbProvider
+
+	errConfigPsqlEmptyTenantName = fmt.Errorf("error configuring postgres: 'tenantName' is empty")
 )
 
 type DbProvider interface {
@@ -26,7 +28,7 @@ func ConfigureDb(pathToDb, postgresUrl, tenantName string) error {
 
 	if postgresUrl != "" {
 		if tenantName == "" {
-			return errors.New("error configuring postgres: 'tenantName' is empty")
+			return errConfigPsqlEmptyTenantName
 		}
 		postgresDb := postgresdb.NewPostgresDb(tenantName, postgresUrl)
 		if err := postgresdb.InitPostgresDb(postgresDb.ConnectUrl); err != nil {
