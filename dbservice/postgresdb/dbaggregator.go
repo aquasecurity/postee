@@ -3,6 +3,7 @@ package postgresdb
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
@@ -26,7 +27,7 @@ func (postgresDb *PostgresDb) AggregateScans(output string,
 	currentValue := []byte{}
 	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "saving", dbparam.DbBucketAggregator, "output")
 	if err = db.Get(&currentValue, sqlQuery, postgresDb.TenantName, output); err != nil {
-		if err != sql.ErrNoRows {
+		if !errors.Is(err, sql.ErrNoRows) {
 			return nil, err
 		}
 	}

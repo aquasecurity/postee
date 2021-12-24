@@ -2,6 +2,7 @@ package postgresdb
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"testing"
 
@@ -70,7 +71,7 @@ func TestRegisterPlgnInvctnErrors(t *testing.T) {
 				insertOutputStats = savedInsertOutputStats
 			}()
 			err := db.RegisterPlgnInvctn("testName")
-			if err != test.expectedErr {
+			if !errors.Is(err, test.expectedErr) {
 				t.Errorf("Errors no contains: expected: %v, got: %v", test.expectedErr, err)
 			}
 		})
