@@ -269,9 +269,9 @@ spec:
             - name: POSTEE_UI_UPDATE_URL
               value: "http://postee-svc:8080"
             - name: POSTEE_ADMIN_USER
-              value: demo
+              value: admin
             - name: POSTEE_ADMIN_PASSWORD
-              value: demo
+              value: admin
           ports:
             - containerPort: 8000
               protocol: TCP
@@ -287,6 +287,18 @@ spec:
             requests:
               cpu: 200m
               memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
       volumes:
         - name: postee-db
           persistentVolumeClaim:
