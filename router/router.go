@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	"github.com/aquasecurity/postee/dbservice/dbparam"
 	"github.com/aquasecurity/postee/dbservice/postgresdb"
 	"github.com/aquasecurity/postee/formatting"
+	"github.com/aquasecurity/postee/log"
 	"github.com/aquasecurity/postee/msgservice"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/regoservice"
@@ -77,14 +77,14 @@ func (ctx *Router) ReloadConfig() {
 
 	tenant, err := Parsev2cfg(ctx.cfgfile)
 	if err != nil {
-		log.Printf("Failed to parse cfg file %s", err)
+		log.Logger.Errorf("Failed to parse cfg file %s", err)
 		return
 	}
 
 	err = ctx.applyTenantCfg(tenant, ctx.synchronous)
 
 	if err != nil {
-		log.Printf("Unable to start router: %s", err)
+		log.Logger.Errorf("Unable to start router: %s", err)
 	}
 }
 
@@ -103,7 +103,7 @@ func (ctx *Router) cleanChannels(synchronous bool) {
 }
 
 func (ctx *Router) ApplyFileCfg(cfgfile, postgresUrl, pathToDb string, synchronous bool) error {
-	log.Printf("Starting Router....")
+	log.Logger.Info("Starting Router....")
 
 	ctx.cfgfile = cfgfile
 
@@ -124,7 +124,7 @@ func (ctx *Router) ApplyFileCfg(cfgfile, postgresUrl, pathToDb string, synchrono
 }
 
 func (ctx *Router) ApplyPostgresCfg(tenantName, postgresUrl string, synchronous bool) error {
-	log.Printf("Starting Router....")
+	log.Logger.Info("Starting Router....")
 
 	if err := dbservice.ConfigureDb("", postgresUrl, tenantName); err != nil {
 		return err
@@ -159,32 +159,32 @@ func (ctx *Router) applyTenantCfg(tenant *data.TenantSettings, synchronous bool)
 }
 
 func (ctx *Router) Terminate() {
-	log.Printf("Terminating Router....")
+	log.Logger.Info("Terminating Router....")
 
 	for _, pl := range ctx.outputs {
 		err := pl.Terminate()
 		if err != nil {
-			log.Printf("failed to terminate output: %v", err)
+			log.Logger.Errorf("failed to terminate output: %v", err)
 		}
 	}
-	log.Printf("Outputs terminated")
+	log.Logger.Info("Outputs terminated")
 
 	for _, route := range ctx.inputRoutes {
 		route.StopScheduler()
 	}
-	log.Printf("Route schedulers stopped")
+	log.Logger.Info("Route schedulers stopped")
 
-	log.Printf("ctx.quit %v\n", ctx.quit)
+	log.Logger.Infof("ctx.quit %v\n", ctx.quit)
 
 	if ctx.quit != nil {
 		ctx.quit <- struct{}{}
 	}
 
-	log.Printf("quit notified")
+	log.Logger.Info("quit notified")
 
 	if ctx.ticker != nil {
 		ctx.stopTicker <- struct{}{}
-		log.Printf("stopTicker notified")
+		log.Logger.Info("stopTicker notified")
 	}
 
 	ctx.cleanInstance()
@@ -248,7 +248,7 @@ func removeTemplateFromCfgCacheSource(outputs *data.TenantSettings, templateName
 }
 
 func (ctx *Router) initTemplate(template *data.Template) error {
-	log.Printf("Configuring template %s \n", template.Name)
+	log.Logger.Infof("Configuring template %s \n", template.Name)
 
 	if template.LegacyScanRenderer != "" {
 		inpteval, err := formatting.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
@@ -256,7 +256,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Printf("Configured with legacy renderer %s \n", template.LegacyScanRenderer)
+		log.Logger.Infof("Configured with legacy renderer %s \n", template.LegacyScanRenderer)
 	}
 
 	if template.RegoPackage != "" {
@@ -265,10 +265,10 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Printf("Configured with Rego package %s\n", template.RegoPackage)
+		log.Logger.Infof("Configured with Rego package %s\n", template.RegoPackage)
 	}
 	if template.Url != "" {
-		log.Printf("Configured with url: %s\n", template.Url)
+		log.Logger.Infof("Configured with url: %s\n", template.Url)
 
 		r, err := http.NewRequest("GET", template.Url, nil)
 		if err != nil {
@@ -317,14 +317,14 @@ func (ctx *Router) setAquaServerUrl(url string) {
 	}
 	ctx.databaseCfgCacheSource.AquaServer = url
 	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		log.Printf("Can't save cfgSource Source: %v", err)
+		log.Logger.Errorf("Can't save cfgSource Source: %v", err)
 	}
 }
 
 func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
-	log.Printf("Loading alerts configuration file %s ....\n", ctx.cfgfile)
+	log.Logger.Infof("Loading alerts configuration file %s ....\n", ctx.cfgfile)
 
 	ctx.setAquaServerUrl(tenant.AquaServer)
 
@@ -356,7 +356,7 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)
 		if err != nil {
-			log.Printf("Can not initialize template %s: %v \n", t.Name, err)
+			log.Logger.Errorf("Can not initialize template %s: %v \n", t.Name, err)
 		}
 	}
 
@@ -366,9 +366,9 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 		err := ctx.addOutput(&settings)
 
 		if err != nil {
-			log.Printf("Can not initialize output %s: %v \n", settings.Name, err)
+			log.Logger.Errorf("Can not initialize output %s: %v \n", settings.Name, err)
 		} else {
-			log.Printf("Output %s is configured", settings.Name)
+			log.Logger.Infof("Output %s is configured", settings.Name)
 		}
 
 	}
@@ -386,7 +386,7 @@ func (ctx *Router) addRoute(r *routes.InputRoute) {
 	ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(r)
 	ctx.databaseCfgCacheSource.InputRoutes = append(ctx.databaseCfgCacheSource.InputRoutes, *r)
 	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		log.Printf("Can't save cfgSource Source: %v", err)
+		log.Logger.Errorf("Can't save cfgSource Source: %v", err)
 	}
 }
 
@@ -547,11 +547,11 @@ var getHttpClient = func() *http.Client {
 func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	r, ok := ctx.inputRoutes[routeName]
 	if !ok || r == nil {
-		log.Printf("There isn't route %q", routeName)
+		log.Logger.Errorf("There isn't route %q", routeName)
 		return
 	}
 	if len(r.Outputs) == 0 {
-		log.Printf("route %q has no outputs", routeName)
+		log.Logger.Errorf("route %q has no outputs", routeName)
 		return
 	}
 	inMsg := map[string]interface{}{}
@@ -578,16 +578,16 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
-			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
+			log.Logger.Errorf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
 		if !ok {
-			log.Printf("route %q contains reference to undefined or misconfigured template %q.",
+			log.Logger.Errorf("route %q contains reference to undefined or misconfigured template %q.",
 				routeName, r.Template)
 			continue
 		}
-		log.Printf("route %q is associated with template %q", routeName, r.Template)
+		log.Logger.Infof("route %q is associated with template %q", routeName, r.Template)
 
 		if ctx.synchronous {
 			getScanService().MsgHandling(inMsg, pl, r, tmpl, &ctx.aquaServer)
@@ -647,7 +647,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	}
 	err := plg.Init()
 	if err != nil {
-		log.Printf("failed to Init : %v", err)
+		log.Logger.Errorf("failed to Init : %v", err)
 	}
 
 	return plg, nil

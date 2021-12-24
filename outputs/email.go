@@ -3,7 +3,6 @@ package outputs
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/smtp"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/log"
 )
 
 var (
@@ -49,7 +49,7 @@ func (email *EmailOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (email *EmailOutput) Init() error {
-	log.Printf("Starting Email output %q...", email.Name)
+	log.Logger.Infof("Starting Email output %q...", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
@@ -57,7 +57,7 @@ func (email *EmailOutput) Init() error {
 }
 
 func (email *EmailOutput) Terminate() error {
-	log.Printf("Email output terminated\n")
+	log.Logger.Infof("Email output terminated\n")
 	return nil
 }
 
@@ -88,11 +88,11 @@ func (email *EmailOutput) Send(content map[string]string) error {
 	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
 	err := smtp.SendMail(email.Host+":"+strconv.Itoa(email.Port), auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
-		log.Println("SendMail Error:", err)
-		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
+		log.Logger.Error("SendMail Error:", err)
+		log.Logger.Errorf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
 		return err
 	}
-	log.Println("Email was sent successfully!")
+	log.Logger.Infof("Email was sent successfully!")
 	return nil
 }
 
@@ -100,13 +100,13 @@ func sendViaMxServers(from, subj, msg string, recipients []string) {
 	for _, rcpt := range recipients {
 		at := strings.LastIndex(rcpt, "@")
 		if at < 0 {
-			log.Printf("%q isn't email", rcpt)
+			log.Logger.Errorf("%q isn't email", rcpt)
 			continue
 		}
 		host := rcpt[at+1:]
 		mxs, err := net.LookupMX(host)
 		if err != nil {
-			log.Print(err)
+			log.Logger.Error(err)
 			continue
 		}
 		for _, mx := range mxs {
@@ -117,11 +117,11 @@ func sendViaMxServers(from, subj, msg string, recipients []string) {
 					"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n", rcpt, from, subj, msg)
 
 			if err := smtp.SendMail(mx.Host+":25", nil, from, []string{rcpt}, []byte(message)); err != nil {
-				log.Printf("SendMail error to %q via %q", rcpt, mx.Host)
-				log.Print(err)
+				log.Logger.Errorf("SendMail error to %q via %q", rcpt, mx.Host)
+				log.Logger.Error(err)
 				continue
 			}
-			log.Printf("The message to %q was sent successful via %q!", rcpt, mx.Host)
+			log.Logger.Infof("The message to %q was sent successful via %q!", rcpt, mx.Host)
 			break
 		}
 	}

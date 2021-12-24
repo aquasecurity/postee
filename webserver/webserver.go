@@ -3,13 +3,13 @@ package webserver
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
 
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/log"
 	"github.com/aquasecurity/postee/router"
 	"github.com/aquasecurity/postee/utils"
 	"github.com/gorilla/mux"
@@ -37,12 +37,12 @@ func (ctx *WebServer) withApiKey(next http.HandlerFunc) http.HandlerFunc {
 		correctKey, err := dbservice.Db.GetApiKey()
 
 		if err != nil || correctKey == "" {
-			log.Printf("reload API key is either empty or there is an error: %s \n", err)
+			log.Logger.Errorf("reload API key is either empty or there is an error: %s \n", err)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		}
 
 		if key := r.URL.Query().Get("key"); key != correctKey {
-			log.Printf("reload API received an incorrect key %q", key)
+			log.Logger.Errorf("reload API received an incorrect key %q", key)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -52,16 +52,16 @@ func (ctx *WebServer) withApiKey(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (ctx *WebServer) Start(host, tlshost string) {
-	log.Printf("Starting WebServer....")
+	log.Logger.Info("Starting WebServer....")
 
 	rootDir, _ := utils.GetRootDir()
 	certPem := filepath.Join(rootDir, "cert.pem")
 	keyPem := filepath.Join(rootDir, "key.pem")
 
-	if ok := utils.PathExists(keyPem); ok != true {
+	if ok := utils.PathExists(keyPem); !ok {
 		err := utils.GenerateCertificate(keyPem, certPem)
 		if err != nil {
-			log.Printf("GenerateCertificate error: %v \n", err)
+			log.Logger.Errorf("GenerateCertificate error: %v \n", err)
 		}
 	}
 
@@ -74,7 +74,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	}
 	err := dbservice.Db.EnsureApiKey()
 	if err != nil {
-		log.Printf("EnsureApiKey error: %v \n", err)
+		log.Logger.Errorf("EnsureApiKey error: %v \n", err)
 	}
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
@@ -85,17 +85,17 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	ctx.router.HandleFunc("/reload", ctx.withApiKey(ctx.reload)).Methods("GET")
 
 	go func() {
-		log.Printf("Listening for HTTP on %s ", host)
-		log.Fatal(http.ListenAndServe(host, ctx.router))
+		log.Logger.Infof("Listening for HTTP on %s ", host)
+		log.Logger.Fatal(http.ListenAndServe(host, ctx.router))
 	}()
 	go func() {
-		log.Printf("Listening for HTTPS on %s", tlshost)
-		log.Fatal(http.ListenAndServeTLS(tlshost, certPem, keyPem, ctx.router))
+		log.Logger.Infof("Listening for HTTPS on %s", tlshost)
+		log.Logger.Fatal(http.ListenAndServeTLS(tlshost, certPem, keyPem, ctx.router))
 	}()
 }
 
 func (ctx *WebServer) Terminate() {
-	log.Printf("Terminating WebServer....")
+	log.Logger.Info("Terminating WebServer....")
 	close(ctx.quit)
 }
 
@@ -108,7 +108,7 @@ func (ctx *WebServer) sessionHandler(f func(http.ResponseWriter, *http.Request))
 func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("Failed ioutil.ReadAll: %s\n", err)
+		log.Logger.Errorf("Failed ioutil.ReadAll: %s\n", err)
 		ctx.writeResponseError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -130,7 +130,7 @@ func (ctx *WebServer) writeResponse(w http.ResponseWriter, httpStatus int, v int
 		result, _ := json.Marshal(v)
 		_, err := w.Write(result)
 		if err != nil {
-			log.Printf("Write error: %s \n", err)
+			log.Logger.Errorf("Write error: %s \n", err)
 		}
 	}
 }
@@ -140,6 +140,6 @@ func (ctx *WebServer) writeResponseError(w http.ResponseWriter, httpError int, e
 	w.WriteHeader(httpError)
 	errEncode := json.NewEncoder(w).Encode(err)
 	if errEncode != nil {
-		log.Printf("Encode error: %s \n", errEncode)
+		log.Logger.Errorf("Encode error: %s \n", errEncode)
 	}
 }

@@ -1,7 +1,6 @@
 package postgresdb
 
 import (
-	"log"
 	"testing"
 	"time"
 
@@ -27,7 +26,7 @@ func TestExpiredDates(t *testing.T) {
 			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, _, err := sqlxmock.Newx()
 				if err != nil {
-					log.Println("failed to open sqlmock database:", err)
+					t.Errorf("failed to open sqlmock database: %v", err)
 				}
 				return db, err
 			}
@@ -68,7 +67,7 @@ func TestSizeLimit(t *testing.T) {
 			psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, mock, err := sqlxmock.Newx()
 				if err != nil {
-					log.Println("failed to open sqlmock database:", err)
+					t.Errorf("failed to open sqlmock database: %v", err)
 				}
 				rows := sqlxmock.NewRows([]string{"size"}).AddRow(test.size)
 				mock.ExpectQuery("SELECT").WillReturnRows(rows)

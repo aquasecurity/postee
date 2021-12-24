@@ -2,10 +2,12 @@ package utils
 
 import (
 	"errors"
-	"log"
+
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/aquasecurity/postee/log"
 )
 
 var (
@@ -31,7 +33,7 @@ func InitDebug() {
 
 func Debug(format string, v ...interface{}) {
 	if dbg {
-		log.Printf(format, v...)
+		log.Logger.DebugF(format, v...)
 	}
 }
 
@@ -65,5 +67,5 @@ func PrnInputLogs(msg string, v ...interface{}) {
 			}
 		}
 	}
-	log.Printf(msg, v...)
+	log.Logger.Errorf(msg, v...)
 }

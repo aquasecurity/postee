@@ -1,7 +1,6 @@
 package postgresdb
 
 import (
-	"log"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -14,7 +13,7 @@ func TestUpdateCfgCacheSource(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
-			log.Println("failed to open sqlmock database:", err)
+			t.Errorf("failed to open sqlmock database: %v", err)
 		}
 		rows := sqlxmock.NewRows([]string{"cfgFile"}).AddRow(cfgFile)
 		mock.ExpectQuery("SELECT").WillReturnRows(rows)

@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
+
+	"github.com/aquasecurity/postee/log"
 )
 
 func SendToUrl(url string, data []byte) error {
 	r := bytes.NewReader(data)
 	resp, err := http.Post(url, "application/json", r)
 	if err != nil {
-		log.Printf("Slack API error: %v", err)
+		log.Logger.Errorf("Slack API error: %v", err)
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {

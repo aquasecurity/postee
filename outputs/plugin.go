@@ -2,11 +2,11 @@ package outputs
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/log"
 )
 
 const (
@@ -28,7 +28,7 @@ func getHandledRecipients(recipients []string, content *map[string]string, outpu
 		if r == ApplicationScopeOwner {
 			owners, err := getAppScopeOwners(content)
 			if err != nil {
-				log.Printf("get application scope owners error for %q: %v", outputName, err)
+				log.Logger.Errorf("get application scope owners error for %q: %v", outputName, err)
 				continue
 			}
 			result = append(result, owners...)

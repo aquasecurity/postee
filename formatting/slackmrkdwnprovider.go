@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"github.com/aquasecurity/postee/data"
-	"log"
+	"github.com/aquasecurity/postee/log"
 )
 
 func getMrkdwnText(text string) string {
@@ -18,7 +19,7 @@ func getMrkdwnText(text string) string {
 	}
 	result, err := json.Marshal(block)
 	if err != nil {
-		log.Printf("SlackMrkdwnProvider Error: %v", err)
+		log.Logger.Errorf("SlackMrkdwnProvider Error: %v", err)
 		return ""
 	}
 	result = append(result, ',')
@@ -76,7 +77,7 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 				if fields.Fields != nil {
 					block, err := json.Marshal(fields)
 					if err != nil {
-						log.Printf("SlackMrkdwnProvider Error: %v", err)
+						log.Logger.Errorf("SlackMrkdwnProvider Error: %v", err)
 						return ""
 					}
 					builder.Write(block)
@@ -127,7 +128,7 @@ func (mrkdwn *SlackMrkdwnProvider) Table(rows [][]string) string {
 	}
 	result, err := json.Marshal(fields)
 	if err != nil {
-		log.Printf("SlackMrkdwnProvider Error: %v", err)
+		log.Logger.Errorf("SlackMrkdwnProvider Error: %v", err)
 		return ""
 	}
 	builder.Write(result)

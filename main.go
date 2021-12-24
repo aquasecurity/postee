@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -11,6 +10,8 @@ import (
 	"github.com/aquasecurity/postee/utils"
 	"github.com/aquasecurity/postee/webserver"
 	"github.com/spf13/cobra"
+
+	"github.com/aquasecurity/postee/log"
 )
 
 const (
@@ -78,7 +79,7 @@ func main() {
 		err := router.Instance().ApplyFileCfg(cfgfile, postgresUrl, pathToDb, false)
 
 		if err != nil {
-			log.Printf("Can't start alert manager %v", err)
+			log.Logger.Errorf("Can't start alert manager %v", err)
 			return
 		}
 
@@ -91,7 +92,7 @@ func main() {
 	}
 	err := rootCmd.Execute()
 	if err != nil {
-		log.Printf("Can't start command %v", err)
+		log.Logger.Errorf("Can't start command %v", err)
 		return
 	}
 }
@@ -103,7 +104,7 @@ func Daemonize() {
 
 	go func() {
 		sig := <-sigs
-		log.Println(sig)
+		log.Logger.Info(sig)
 		done <- true
 	}()
 
