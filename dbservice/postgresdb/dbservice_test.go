@@ -137,7 +137,7 @@ func TestDeleteRowsByTenantNameAndTime(t *testing.T) {
 			}
 			psqlDb, _ := psqlConnect(db.ConnectUrl)
 			err := deleteRowsByTenantNameAndTime(psqlDb, "tenantName", time.Now())
-			if test.expectedError != err {
+			if !errors.Is(test.expectedError, err) {
 				t.Errorf("Unexpected error, expected: %v, got: %v", test.expectedError, err)
 			}
 		})
@@ -171,7 +171,7 @@ func TestDeleteRowsByTenantName(t *testing.T) {
 		}
 		psqlDb, _ := psqlConnect(db.ConnectUrl)
 		err := deleteRowsByTenantName(psqlDb, "table", "tenantName")
-		if test.expectedError != err {
+		if !errors.Is(test.expectedError, err) {
 			t.Errorf("Unexpected error, expected: %v, got: %v", test.expectedError, err)
 		}
 	}
