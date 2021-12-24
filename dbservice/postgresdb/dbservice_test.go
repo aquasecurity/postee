@@ -92,7 +92,7 @@ func TestInitError(t *testing.T) {
 	}
 
 	err := InitPostgresDb("connectUrl")
-	if err.Error() != initTablesErr.Error() {
+	if !errors.Is(err, initTablesErr) {
 		t.Errorf("Unexpected error: expected %s, got %s \n", initTablesErr, err)
 	}
 
@@ -103,7 +103,7 @@ func TestInitError(t *testing.T) {
 		testConnect = savedTestConnect
 	}()
 	err = InitPostgresDb("ConnectUrl")
-	if err.Error() != testConnectErr.Error() {
+	if !errors.Is(err, testConnectErr) {
 		t.Errorf("Unexpected error: expected %s, got %s \n", testConnectErr, err)
 	}
 }

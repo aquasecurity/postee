@@ -52,7 +52,9 @@ func TestAudit(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	router.WithNewConfig("test")
+	if err := router.WithNewConfig("test"); err != nil {
+		t.Errorf("Unexpected WithNewConfig error: %v", err)
+	}
 
 	err := router.AddTemplate(&data.Template{
 		Name: "audit-json-template",

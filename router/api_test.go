@@ -476,13 +476,17 @@ var withFileConfigTest = func() error {
 }
 
 var withNewConfigTest = func() error {
-	WithNewConfig(tenantName)
+	if err := WithNewConfig(tenantName); err != nil {
+		return err
+	}
 	defer os.RemoveAll(filepath.Dir(dbPath))
 	return nil
 }
 
 var withNewConfigAndDbPathTest = func() error {
-	WithNewConfigAndDbPath(tenantName, dbPath)
+	if err := WithNewConfigAndDbPath(tenantName, dbPath); err != nil {
+		return err
+	}
 	defer os.RemoveAll(filepath.Dir(dbPath))
 	return nil
 }
