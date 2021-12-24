@@ -461,7 +461,9 @@ func (ctx *Router) deleteOutput(outputName string, removeFromRoutes bool) error 
 	if !ok {
 		return xerrors.Errorf("output %s is not found", outputName)
 	}
-	output.Terminate()
+	if err := output.Terminate(); err != nil {
+		return err
+	}
 	delete(ctx.outputs, outputName)
 
 	if removeFromRoutes {
