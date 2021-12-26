@@ -70,7 +70,7 @@ jobs:
           hide-progress: false
           format: 'table'
           exit-code: '1'
-         env:
+        env:
           AQUA_KEY: ${{ secrets.AQUA_KEY }}
           AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
           TRIVY_RUN_AS_PLUGIN: 'aqua'
