@@ -35,20 +35,13 @@ Check that all the pods are in Running state:
 
 `kubectl get pods -n postee`
 
-**NOTE**
-Update the file cfg.yaml is located under `deploy/helm/postee/cfg-files/cfg.yaml`
-
-`helm upgrade postee aquasecurity/postee -f custom_rules.yaml -n postee`
-
-helm install falcosidekick falcosecurity/falcosidekick --set config.kubeless.namespace=kubeless --set config.kubeless.function=delete-pod -n falco
-
 We check the logs:
 
 kubectl logs deployment/my-posteeui -n postee | head
 
 kubectl logs statefulsets/my-postee -n postee | head
 
-## Delete
+## Delete Chart
 
 ```bash
 helm -n postee delete my-postee

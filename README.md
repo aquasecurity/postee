@@ -44,6 +44,7 @@
 - [Customizing Templates](#customizing-templates)
 - [Postee UI](#postee-ui)
 - [Misc](#misc)
+- [Troubleshooting](./troubleshooting-of-rego-templates.md)
 
 
 ## Abstract
@@ -126,7 +127,7 @@ A route is used to control message flows. Each route includes the input message 
 
 The most important part of a route is the **input definition using the Rego language** to define what are the conditions for an incoming message to be handled by a certain route.
 
-![settings](docs/img/postee-routes.png)
+![settings](docs/img/postee-email-route.png)
 
 > NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
 
@@ -205,7 +206,9 @@ Templates are used to format input messages before sending them to the output. F
 
 Each template has a 'name' field, which is used by the route to assign the template to input and output.
 
-![settings](docs/img/postee-templates.png)
+> Use the default Legacy template "html" for general output
+
+![settings](docs/img/postee-template-default.png)
 
 In addition to name, a template will have **one** of the 4 below keys:
 

@@ -41,7 +41,8 @@ jobs:
             kubectl create -f deploy/kubernetes
       - name: Testing Kubernetes Postee manifest
         run: |
-            kubectl wait --for=condition=Ready pod -l app=aqua-postee --timeout=150s
+            kubectl wait --for=condition=Ready pod -l app=postee --timeout=150s
+            kubectl wait --for=condition=Ready pod -l app=postee-ui --timeout=150s
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:
