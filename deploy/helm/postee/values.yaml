@@ -48,9 +48,9 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  portSsl: 8443
+  portSsl: 8445
   targetPortSsl: 8445
-  port: 8080
+  port: 8082
   targetPort: 8082
 
 uiService:

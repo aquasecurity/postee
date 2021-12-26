@@ -126,7 +126,7 @@ A route is used to control message flows. Each route includes the input message 
 
 The most important part of a route is the **input definition using the Rego language** to define what are the conditions for an incoming message to be handled by a certain route.
 
-![settings](docs/img/postee-route.png)
+![settings](docs/img/postee-routes.png)
 
 > NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
 
@@ -403,11 +403,12 @@ Click on the "Webhook" item, and specify the URL of Postee.
 Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to 
 forward appropriate messages to target systems.
 
-The URL is in the following formats:
-**HTTPS**: https://<Postee IP or DNS>:8445
-or
-**HTTP**: http://<Postee IP or DNS>:8082
+The **Postee URL** is in the following formats:
 
+> `https://<Postee IP or DNS>:8445`
+> `http://<Postee IP or DNS>:8082`
+
+For more details about the Postee URL installed using kubernetes [click here](./deploy/kubernetes/README.md)
 ### Validate the Integration
 
 To validate that the integration is working, you can scan a new image for security vulnerabilities from the Aqua Server UI (Images > Add Image > Specify Image Name > Add).

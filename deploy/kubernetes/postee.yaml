@@ -90,11 +90,11 @@ metadata:
 spec:
   ports:
     - name: https
-      port: 8443
+      port: 8445
       protocol: TCP
       targetPort: 8445
     - name: http
-      port: 8080
+      port: 8082
       protocol: TCP
       targetPort: 8082
   selector:
@@ -267,7 +267,7 @@ spec:
             - name: POSTEE_UI_PORT
               value: "8000"
             - name: POSTEE_UI_UPDATE_URL
-              value: "http://postee-svc:8080"
+              value: "http://postee-svc:8082"
             - name: POSTEE_ADMIN_USER
               value: admin
             - name: POSTEE_ADMIN_PASSWORD
