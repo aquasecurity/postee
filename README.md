@@ -28,7 +28,7 @@
   - [Helm](#helm)
   - [From Source](#from-source)
 - [Postee Configuration File](#postee-configuration-file)
-  - [General Settings](#general-settings)
+  - [Settings](#settings)
   - [Routes](#routes)
     - [Route Plugins](#route-plugins)
   - [Templates](#templates)
@@ -105,9 +105,11 @@ When Postee receives a message it will process it based on routing rules and sen
 
 > NOTE See examples of common Postee configuration files here: [Examples](docs/examples)
 
-### General settings
+### Settings
 
 General settings are specified at the root level of cfg.yaml. They include general configuration that applies to the Postee application.
+
+![settings](docs/img/postee-settings.png)
 
 <details>
 <summary>Details</summary>
@@ -119,10 +121,12 @@ Key | Description | Possible Values | Example Value
 *max-db-size*|The maximum size of Postee database (in MB). Once reached to size limit, Postee will delete old cached messages. If empty then Postee database will have unlimited size| any integer value | 200
 </details>
 
-### Routes 
+### Routes
 A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the output(s) that the message should be delivered to.
 
 The most important part of a route is the **input definition using the Rego language** to define what are the conditions for an incoming message to be handled by a certain route.
+
+![settings](docs/img/postee-route.png)
 
 > NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
 
@@ -199,7 +203,10 @@ Key | Description | Possible Values | Example
 ### Templates
 Templates are used to format input messages before sending them to the output. For example - before sending a message to Microsoft Teams there is a need to format the input JSON into an HTML. This is done using a template.
 
-Each template has a 'name' field, which is used by the route to assign the template to input and output. 
+Each template has a 'name' field, which is used by the route to assign the template to input and output.
+
+![settings](docs/img/postee-templates.png)
+
 In addition to name, a template will have **one** of the 4 below keys:
 
 <details>
@@ -213,8 +220,12 @@ Key | Description | Example
 *legacy-scan-renderer*| Legacy templates are introduced to support Postee V1 renderers. Available values are  "jira", "slack", "html". "jira" should be used for jira integration, "slack" is for slack and "html" is for everything else. | html
 </details>
 
+> More details about Templates implementation [here](https://github.com/aquasecurity/postee/tree/main/rego-templates)
+
 ### Outputs
 Outputs are remote services that messages should be sent to. Each output has two mandatory fields, which are 'name' and 'type'.
+
+![settings](docs/img/postee-outputs.png)
 
 <details>
 <summary>Details</summary>
@@ -391,7 +402,6 @@ Click on the "Webhook" item, and specify the URL of Postee.
 
 Now every audit event in Aqua will be sent to Postee. You can configure routes and input message conditions in Postee cfg.yaml to 
 forward appropriate messages to target systems.
-
 
 The URL is in the following formats:
 **HTTPS**: https://<Postee IP or DNS>:8445
