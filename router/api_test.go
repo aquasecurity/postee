@@ -99,7 +99,7 @@ func TestDeleteOutput(t *testing.T) {
 	assert.Equal(t, 2, len(Instance().inputRoutes["my-route"].Outputs), "two output expected")
 
 	if err := DeleteOutput("my-slack"); err != nil {
-		t.Errorf("Can't delte output: %v", err)
+		t.Errorf("Can't delete output: %v", err)
 	}
 	assert.Equal(t, 1, len(Instance().outputs), "one outputs expected")
 	assert.NotContains(t, Instance().outputs, "my-slack")
@@ -403,7 +403,6 @@ func TestConfigFuncs(t *testing.T) {
 	for _, test := range tests {
 		t.Run("test "+test.funcName, func(t *testing.T) {
 			defer func() {
-				Instance().cleanInstance()
 				dbservice.Db = nil
 			}()
 
