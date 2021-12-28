@@ -16,6 +16,7 @@ const (
 	warnLevel   = colorYellow + "   [WARN]   " + colorReset
 	errorLevel  = colorRed + "   [ERROR]   " + colorReset
 	debugLevel  = colorPurple + "   [DEBUG]   " + colorReset
+	fatalLevel  = colorRed + "   [FATAL]   " + colorReset
 )
 
 type StdOutLogger struct {
@@ -42,6 +43,10 @@ func (stdOutLogger StdOutLogger) Debug(args ...interface{}) {
 	stdOutLogger.logger.Print(debugLevel + getMessage("", args))
 }
 
+func (stdOutLogger StdOutLogger) Fatal(args ...interface{}) {
+	stdOutLogger.logger.Fatal(fatalLevel + getMessage("", args))
+}
+
 func (stdOutLogger StdOutLogger) Infof(template string, args ...interface{}) {
 	stdOutLogger.logger.Print(infoLevel + getMessage(template, args))
 }
@@ -54,16 +59,12 @@ func (stdOutLogger StdOutLogger) Warnf(template string, args ...interface{}) {
 	stdOutLogger.logger.Print(warnLevel + getMessage(template, args))
 }
 
-func (stdOutLogger StdOutLogger) DebugF(template string, args ...interface{}) {
+func (stdOutLogger StdOutLogger) Debugf(template string, args ...interface{}) {
 	stdOutLogger.logger.Print(debugLevel + getMessage(template, args))
 }
 
-func (stdOutLogger StdOutLogger) Fatal(args ...interface{}) {
-	stdOutLogger.logger.Fatal(args...)
-}
-
 func (stdOutLogger StdOutLogger) Fatalf(template string, args ...interface{}) {
-	stdOutLogger.logger.Fatalf(template, args...)
+	stdOutLogger.logger.Fatal(fatalLevel + getMessage(template, args))
 }
 
 func getMessage(template string, fmtArgs []interface{}) string {
