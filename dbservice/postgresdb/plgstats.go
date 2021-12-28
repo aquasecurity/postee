@@ -2,6 +2,7 @@ package postgresdb
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
@@ -18,7 +19,7 @@ func (postgresDb *PostgresDb) RegisterPlgnInvctn(name string) error {
 	amount := 0
 	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "amount", dbparam.DbBucketOutputStats, "outputName")
 	err = db.Get(&amount, sqlQuery, postgresDb.TenantName, name)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err
 	}
 	amount += 1

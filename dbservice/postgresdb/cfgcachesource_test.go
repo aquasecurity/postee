@@ -26,7 +26,9 @@ func TestUpdateCfgCacheSource(t *testing.T) {
 		insertCfgCacheSource = savedInsertCfgCacheSource
 	}()
 
-	UpdateCfgCacheSource(db, "cfgFile")
+	if err := UpdateCfgCacheSource(db, "cfgFile"); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
 
 	cfg, err := GetCfgCacheSource(db)
 	if err != nil {

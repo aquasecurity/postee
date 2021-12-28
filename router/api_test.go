@@ -1,7 +1,7 @@
 package router
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -114,7 +114,7 @@ func TestEditOutput(t *testing.T) {
 	}
 	defer Instance().cleanInstance()
 	modifiedUrl := "https://hooks.slack.com/services/TAAAA/XXX/"
-	expectedError := errors.New("output badName is not found")
+	expectedError := "output badName is not found"
 
 	if err := AddOutput(outputSettings); err != nil {
 		t.Errorf("Can't add output: %v", err)
@@ -133,7 +133,7 @@ func TestEditOutput(t *testing.T) {
 	assert.Equal(t, modifiedUrl, Instance().outputs["my-slack"].(*outputs.SlackOutput).Url, "url is updated")
 
 	err := UpdateOutput(&data.OutputSettings{Name: "badName"})
-	if err != nil && errors.Is(err, expectedError) {
+	if err != nil && err.Error() != expectedError {
 		t.Errorf("unexpected error, expected: %v, got: %v", expectedError, err)
 	}
 }
@@ -143,7 +143,9 @@ func TestListOutput(t *testing.T) {
 	}
 	defer Instance().cleanInstance()
 
-	AddOutput(outputSettings)
+	if err := AddOutput(outputSettings); err != nil {
+		t.Errorf("Unexpected AddOutput error: %v", err)
+	}
 	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
 
 	outputs := ListOutputs()
@@ -181,7 +183,9 @@ func TestDeleteRoute(t *testing.T) {
 	AddRoute(inputRouteHtml)
 	assert.Equal(t, 3, len(Instance().inputRoutes), "three route expected")
 
-	DeleteRoute("my-route")
+	if err := DeleteRoute("my-route"); err != nil {
+		t.Errorf("Unexpected DeleteRoute error: %v", err)
+	}
 	assert.Equal(t, 2, len(Instance().inputRoutes), "two routes expected")
 	assert.NotContains(t, Instance().inputRoutes, "my-route")
 }
@@ -192,7 +196,7 @@ func TestEditRoute(t *testing.T) {
 	}
 	defer Instance().cleanInstance()
 	modifiedTemplate := "vuls-slack"
-	expectedError := errors.New("output badName is not found")
+	expectedError := "output badName is not found"
 
 	AddRoute(inputRoute)
 	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
@@ -204,13 +208,15 @@ func TestEditRoute(t *testing.T) {
 		*Instance().inputRoutes["my-route"] = savedTempalate
 	}()
 
-	UpdateRoute(r)
+	if err := UpdateRoute(r); err != nil {
+		t.Errorf("Unexpected AddTemplate error: %v", err)
+	}
 
 	assert.Equal(t, 1, len(Instance().inputRoutes), "one route expected")
 	assert.Equal(t, modifiedTemplate, Instance().inputRoutes["my-route"].Template, "template is updated")
 
 	err := UpdateRoute(&routes.InputRoute{Name: "badName"})
-	if err != nil && errors.Is(err, expectedError) {
+	if err != nil && err.Error() != expectedError {
 		t.Errorf("unexpected error, expected: %v, got: %v", expectedError, err)
 	}
 }
@@ -244,7 +250,9 @@ func TestAddTemplate(t *testing.T) {
 	}
 	defer Instance().cleanInstance()
 
-	AddTemplate(template)
+	if err := AddTemplate(template); err != nil {
+		t.Errorf("Unexpected AddTemplate error: %v", err)
+	}
 	assert.Equal(t, 1, len(Instance().templates), "one template expected")
 	assert.Contains(t, Instance().templates, "legacy")
 	assert.Equal(t, "*formatting.legacyScnEvaluator", fmt.Sprintf("%T", Instance().templates["legacy"]), "check name failed")
@@ -282,13 +290,20 @@ func TestDeleteTemplate(t *testing.T) {
 	}
 	defer Instance().cleanInstance()
 
-	AddTemplate(template)
-	AddTemplate(templateSlack)
+	if err := AddTemplate(template); err != nil {
+		t.Errorf("Unexpected AddTemplate error: %v", err)
+	}
+
+	if err := AddTemplate(templateSlack); err != nil {
+		t.Errorf("Unexpected AddTemplate error: %v", err)
+	}
 	assert.Equal(t, 2, len(Instance().templates), "two template expected")
 	AddRoute(&routes.InputRoute{Name: "my-route", Template: "legacy"})
 	assert.Equal(t, "legacy", Instance().inputRoutes["my-route"].Template, "one template expected")
 
-	DeleteTemplate("legacy")
+	if err := DeleteTemplate("legacy"); err != nil {
+		t.Errorf("Unexpected DeleteTemplate error: %v", err)
+	}
 	assert.Equal(t, 1, len(Instance().templates), "one templates expected")
 	assert.NotContains(t, Instance().templates, "legacy")
 	assert.Equal(t, "", Instance().inputRoutes["my-route"].Template, "no template expected")
@@ -299,9 +314,11 @@ func TestEditTemplate(t *testing.T) {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
-	expectedError := errors.New("template badName is not found")
+	expectedError := "template badName is not found"
 
-	AddTemplate(template)
+	if err := AddTemplate(template); err != nil {
+		t.Errorf("Unexpected AddTemplate error: %v", err)
+	}
 	assert.Equal(t, 1, len(Instance().templates), "one template expected")
 	assert.Equal(t, "*formatting.legacyScnEvaluator", fmt.Sprintf("%T", Instance().templates["legacy"]), "legacyScnEvaluator expected")
 
@@ -319,7 +336,7 @@ func TestEditTemplate(t *testing.T) {
 	assert.Equal(t, "*regoservice.regoEvaluator", fmt.Sprintf("%T", Instance().templates["legacy"]), "ScanRenderer is updated")
 
 	err = UpdateTemplate(&data.Template{Name: "badName"})
-	if err != nil && errors.Is(err, expectedError) {
+	if err != nil && err.Error() != expectedError {
 		t.Errorf("unexpected error, expected: %v, got: %v", expectedError, err)
 	}
 }
@@ -330,7 +347,9 @@ func TestListTemplate(t *testing.T) {
 	}
 	defer Instance().cleanInstance()
 
-	AddTemplate(template)
+	if err := AddTemplate(template); err != nil {
+		t.Errorf("Unexpected AddTemplate error: %v", err)
+	}
 	assert.Equal(t, 1, len(Instance().templates), "one route expected")
 
 	templates := ListTemplates()
@@ -378,8 +397,8 @@ func TestConfigFuncs(t *testing.T) {
 		{"WithFileConfigAndDbPath", withFileConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "test/webhooks.db", ""},
 		{"WithNewConfig", withNewConfigTest, "", true, "", "", "", "./webhooks.db", ""},
 		{"WithNewConfigAndDbPath", withNewConfigAndDbPathTest, "", true, "", "", "", "test/webhooks.db", ""},
-		{"WithPostgresParams", withPostgresParamsTest, "ParamsTenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
-		{"WithPostgresUrl", withPostgresUrlTest, "tenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"},
+		{"WithPostgresParams", withPostgresParamsTest, "ParamsTenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:543/ParamsDbName?sslmode=ParamsSslMode"},
+		{"WithPostgresUrl", withPostgresUrlTest, "tenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:543/ParamsDbName?sslmode=ParamsSslMode"},
 	}
 	for _, test := range tests {
 		t.Run("test "+test.funcName, func(t *testing.T) {
@@ -476,13 +495,17 @@ var withFileConfigTest = func() error {
 }
 
 var withNewConfigTest = func() error {
-	WithNewConfig(tenantName)
+	if err := WithNewConfig(tenantName); err != nil {
+		return err
+	}
 	defer os.RemoveAll(filepath.Dir(dbPath))
 	return nil
 }
 
 var withNewConfigAndDbPathTest = func() error {
-	WithNewConfigAndDbPath(tenantName, dbPath)
+	if err := WithNewConfigAndDbPath(tenantName, dbPath); err != nil {
+		return err
+	}
 	defer os.RemoveAll(filepath.Dir(dbPath))
 	return nil
 }
@@ -518,21 +541,35 @@ var withDefaultConfigAndDbPathTest = func() error {
 var withPostgresParamsTest = func() error {
 	savedInitPostgresDb := postgresdb.InitPostgresDb
 	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
+	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
+	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) {
+		j, _ := json.Marshal(outputSettings)
+		return string(j), nil
+	}
 	defer func() {
 		postgresdb.InitPostgresDb = savedInitPostgresDb
+		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
 	}()
-	WithPostgresParams("ParamsTenantName", "ParamsDbName", "ParamsDbHostName", "ParamsPort", "ParamsUser", "ParamsPassword", "ParamsSslMode")
+	err := WithPostgresParams("ParamsTenantName", "ParamsDbName", "ParamsDbHostName", "543", "ParamsUser", "ParamsPassword", "ParamsSslMode")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 var withPostgresUrlTest = func() error {
 	savedInitPostgresDb := postgresdb.InitPostgresDb
 	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
+	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
+	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) { return "", nil }
 	defer func() {
 		postgresdb.InitPostgresDb = savedInitPostgresDb
+		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
 	}()
-	psqlUrl := "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:ParamsPort/ParamsDbName?sslmode=ParamsSslMode"
-	WithPostgresUrl(tenantName, psqlUrl)
+	psqlUrl := "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:543/ParamsDbName?sslmode=ParamsSslMode"
+	if err := WithPostgresUrl(tenantName, psqlUrl); err != nil {
+		return err
+	}
 	return nil
 }
 

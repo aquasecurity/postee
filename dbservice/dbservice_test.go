@@ -45,7 +45,7 @@ func TestConfiguratePostgresDbUrlAndTenantName(t *testing.T) {
 		expectedError error
 	}{
 		{"happy configuration postgres with url", "postgresql://user:secret@localhost", "test-tenantName", nil},
-		{"bad tenantName", "postgresql://user:secret@localhost", "", errors.New("error configuring postgres: 'tenantName' is empty")},
+		{"bad tenantName", "postgresql://user:secret@localhost", "", errConfigPsqlEmptyTenantName},
 		{"bad url", "badUrl", "test-tenantName", errors.New("badUrl error")},
 	}
 
@@ -54,7 +54,7 @@ func TestConfiguratePostgresDbUrlAndTenantName(t *testing.T) {
 			initPostgresDbSaved := postgresdb.InitPostgresDb
 			postgresdb.InitPostgresDb = func(connectUrl string) error {
 				if connectUrl == "badUrl" {
-					return errors.New("badUrl error")
+					return test.expectedError
 				}
 				return nil
 			}
@@ -64,7 +64,7 @@ func TestConfiguratePostgresDbUrlAndTenantName(t *testing.T) {
 
 			err := ConfigureDb("", test.url, test.tenantName)
 			if err != nil {
-				if err.Error() != test.expectedError.Error() {
+				if !errors.Is(err, test.expectedError) {
 					t.Errorf("Unexpected error, expected: %s, got: %s", test.expectedError, err)
 				}
 			} else {
