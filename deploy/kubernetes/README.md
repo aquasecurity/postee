@@ -15,6 +15,12 @@ kubectl create -f https://raw.githubusercontent.com/aquasecurity/postee/main/dep
 kubectl create -f https://raw.githubusercontent.com/aquasecurity/postee/main/deploy/kubernetes/hostPath/postee-pv.yaml
 ```
 
+To edit the default Postee-UI user
+
+```
+kubectl -n postee set env deployment/my-posteeui -e POSTEE_ADMIN_USER=testabc -e POSTEE_ADMIN_PASSWORD=password
+```
+
 The Postee endpoint
 ```
 http://postee-svc.default.svc.cluster.local:8082

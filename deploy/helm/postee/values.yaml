@@ -7,8 +7,8 @@ posteeConfigPath: "cfg-files/*"
 
 posteUi:
   port: 8000
-  user: admin
-  pass: admin
+  user: ""
+  pass: ""
   image: aquasec/postee-ui
   tag: "latest"
 

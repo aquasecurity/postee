@@ -188,6 +188,10 @@ spec:
               mountPath: /server/database
             - name: rego-template
               mountPath: /server/rego-template/custom
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1099
           resources:
             limits:
               cpu: 500m
@@ -252,7 +256,7 @@ spec:
           command:
             - /bin/chown
             - -R
-            - "1099"
+            - "10001"
             - /config
           volumeMounts:
             - name: postee-config
@@ -280,6 +284,11 @@ spec:
               mountPath: /server/database
             - name: postee-config
               mountPath: /config
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
           resources:
             limits:
               cpu: 500m
