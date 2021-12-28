@@ -2,7 +2,7 @@ package log
 
 import "github.com/aquasecurity/postee/log/stdoutlogger"
 
-var Logger LoggerType = stdoutlogger.NewLogger()
+var Logger LoggerType = initDefaultLogger()
 
 type LoggerType interface {
 	Info(args ...interface{})
@@ -12,14 +12,13 @@ type LoggerType interface {
 	Warn(args ...interface{})
 	Warnf(template string, args ...interface{})
 	Debug(args ...interface{})
-	DebugF(template string, args ...interface{})
+	Debugf(template string, args ...interface{})
 	Fatal(args ...interface{})
 	Fatalf(template string, args ...interface{})
 }
 
-func InitDefaultLogger() {
-	logType := stdoutlogger.NewLogger()
-	Logger = logType
+func initDefaultLogger() LoggerType {
+	return stdoutlogger.NewLogger()
 }
 
 func SetLogger(loggerType LoggerType) {

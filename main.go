@@ -79,7 +79,7 @@ func main() {
 		err := router.Instance().ApplyFileCfg(cfgfile, postgresUrl, pathToDb, false)
 
 		if err != nil {
-			log.Logger.Errorf("Can't start alert manager %v", err)
+			log.Logger.Fatalf("Can't start alert manager: %v", err)
 			return
 		}
 
@@ -92,7 +92,7 @@ func main() {
 	}
 	err := rootCmd.Execute()
 	if err != nil {
-		log.Printf("Execute error %v", err)
+		log.Logger.Fatalf("Can't start command: %v", err)
 		return
 	}
 
