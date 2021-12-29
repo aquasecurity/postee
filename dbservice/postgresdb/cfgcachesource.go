@@ -1,10 +1,14 @@
 package postgresdb
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
 )
+
+const emptyCfg = `{}`
 
 var UpdateCfgCacheSource = func(postgresDb *PostgresDb, cfgfile string) error {
 	connectUrl := postgresDb.ConnectUrl
@@ -29,7 +33,10 @@ var GetCfgCacheSource = func(postgresDb *PostgresDb) (string, error) {
 	cfgFile := ""
 	sqlQuery := fmt.Sprintf("SELECT configfile FROM %s WHERE tenantName=$1", dbparam.DbTableCfgCacheSource)
 	if err = db.Get(&cfgFile, sqlQuery, postgresDb.TenantName); err != nil {
-		return "", err
+		if errors.Is(err, sql.ErrNoRows) {
+			return emptyCfg, nil
+		}
+		return "", fmt.Errorf("error getting cfg cache source: %v", err)
 	}
 	return cfgFile, nil
 }
