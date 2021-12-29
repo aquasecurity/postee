@@ -4,12 +4,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
 )
 
-const emptyCfg = `{"outputs":[],"routes":[],"templates":[]}`
+const emptyCfg = `{}`
 
 var UpdateCfgCacheSource = func(postgresDb *PostgresDb, cfgfile string) error {
 	connectUrl := postgresDb.ConnectUrl
@@ -35,7 +34,6 @@ var GetCfgCacheSource = func(postgresDb *PostgresDb) (string, error) {
 	sqlQuery := fmt.Sprintf("SELECT configfile FROM %s WHERE tenantName=$1", dbparam.DbTableCfgCacheSource)
 	if err = db.Get(&cfgFile, sqlQuery, postgresDb.TenantName); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Printf("WARNING: %s doesn't include tenantName: %s, empty cfg is used", dbparam.DbTableCfgCacheSource, postgresDb.TenantName)
 			return emptyCfg, nil
 		}
 		return "", fmt.Errorf("error getting cfg cache source: %v", err)
