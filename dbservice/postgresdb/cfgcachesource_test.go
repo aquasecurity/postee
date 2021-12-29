@@ -1,6 +1,8 @@
 package postgresdb
 
 import (
+	"database/sql"
+	"errors"
 	"log"
 	"testing"
 
@@ -38,4 +40,45 @@ func TestUpdateCfgCacheSource(t *testing.T) {
 	if cfgFile != cfg {
 		t.Errorf("CfgFiles not equals, expected: %s, got: %s", cfgFile, cfg)
 	}
+}
+
+func TestGetCfgCacheSourceErrors(t *testing.T) {
+	tests := []struct {
+		name        string
+		err         error
+		expectedCfg string
+		expectedErr string
+	}{
+		{"Norows error", sql.ErrNoRows, "{}", ""},
+		{"select error", errors.New("select error"), "", "error getting cfg cache source: select error"},
+	}
+	for _, test := range tests {
+		savedPsqlConnect := psqlConnect
+		psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
+			db, mock, err := sqlxmock.Newx()
+			if err != nil {
+				log.Println("failed to open sqlmock database:", err)
+			}
+			mock.ExpectQuery("SELECT").WillReturnError(test.err)
+			return db, err
+		}
+		savedInsertCfgCacheSource := insertCfgCacheSource
+		insertCfgCacheSource = func(db *sqlx.DB, tenantName, cfgFile string) error { return nil }
+		defer func() {
+			psqlConnect = savedPsqlConnect
+			insertCfgCacheSource = savedInsertCfgCacheSource
+		}()
+
+		cfg, err := GetCfgCacheSource(db)
+		if test.expectedErr != "" || err != nil {
+			if err.Error() != test.expectedErr {
+				t.Errorf("Unexpected err, expected: %v, got: %v", test.expectedErr, err)
+			}
+		}
+
+		if cfg != test.expectedCfg {
+			t.Errorf("Bad cfg, expected: %s, got: %s", test.expectedCfg, cfg)
+		}
+	}
+
 }
