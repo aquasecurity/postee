@@ -78,7 +78,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 	rawBlock := make([]data.SlackBlock, 0)
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
-		log.Logger.Errorf("Unmarshal slack sending error: %v", err)
+		log.Logger.Errorf("Unable to parse json: %v", err)
 		return err
 	}
 

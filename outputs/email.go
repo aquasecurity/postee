@@ -89,11 +89,11 @@ func (email *EmailOutput) Send(content map[string]string) error {
 	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
 	err := smtp.SendMail(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
-		log.Logger.Error("SendMail Error:", err)
+		log.Logger.Error("Placeholder is missed: ", err)
 		log.Logger.Errorf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
 		return err
 	}
-	log.Logger.Infof("Email was sent successfully!")
+	log.Logger.Debug("Email was sent successfully!")
 	return nil
 }
 
@@ -101,7 +101,7 @@ func sendViaMxServers(from, port, subj, msg string, recipients []string) {
 	for _, rcpt := range recipients {
 		at := strings.LastIndex(rcpt, "@")
 		if at < 0 {
-			log.Logger.Errorf("%q isn't email", rcpt)
+			log.Logger.Errorf("%q isn't valid email", rcpt)
 			continue
 		}
 		host := rcpt[at+1:]
@@ -122,7 +122,7 @@ func sendViaMxServers(from, port, subj, msg string, recipients []string) {
 				log.Logger.Error(err)
 				continue
 			}
-			log.Logger.Infof("The message to %q was sent successful via %q!", rcpt, mx.Host)
+			log.Logger.Debugf("The message to %q was sent successful via %q!", rcpt, mx.Host)
 			break
 		}
 	}
