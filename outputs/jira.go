@@ -121,7 +121,7 @@ func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
 }
 
 func (ctx *JiraAPI) Terminate() error {
-	log.Logger.Infof("Jira output terminated\n")
+	log.Logger.Infof("Jira output terminated")
 	return nil
 }
 
@@ -244,7 +244,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, isServerJira(ctx.Url))
 
 	if err != nil {
-		log.Logger.Errorf("Failed to init issue: %s\n", err)
+		log.Logger.Errorf("Failed to init issue: %s", err)
 		return err
 	}
 
@@ -273,7 +273,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	i, err := ctx.openIssue(client, issue)
 	if err != nil {
-		log.Logger.Errorf("Failed to open jira issue, %s\n", err)
+		log.Logger.Errorf("Failed to open jira issue, %s", err)
 		return err
 	}
 	log.Logger.Infof("Created new jira issue %s", i.ID)
@@ -367,7 +367,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 		case "number":
 			val, err := strconv.Atoi(value)
 			if err != nil {
-				fmt.Printf("Failed convert value(string) to int: %s\n", err)
+				fmt.Printf("Failed convert value(string) to int: %s", err)
 			}
 			issueFields.Unknowns[jiraKey] = val
 

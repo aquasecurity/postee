@@ -1,6 +1,11 @@
 package log
 
-import "github.com/aquasecurity/postee/log/stdoutlogger"
+import (
+	"log"
+	"os"
+
+	"github.com/aquasecurity/postee/log/zaplogger"
+)
 
 var Logger LoggerType = initDefaultLogger()
 
@@ -18,9 +23,24 @@ type LoggerType interface {
 }
 
 func initDefaultLogger() LoggerType {
-	return stdoutlogger.NewLogger()
+	debug := false
+	disable := false
+
+	if os.Getenv("POSTEE_DEBUG") != "" {
+		debug = true
+	}
+
+	if os.Getenv("POSTEE_QUIET") != "" {
+		disable = true
+	}
+
+	logger, err := zaplogger.NewLogger(debug, disable)
+	if err != nil {
+		log.Fatalf("failed to initialize a logger: %v", err)
+	}
+	return logger
 }
 
-func SetLogger(loggerType LoggerType) {
-	Logger = loggerType
+func SetLogger(logger LoggerType) {
+	Logger = logger
 }

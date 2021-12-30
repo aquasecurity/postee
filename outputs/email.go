@@ -57,7 +57,7 @@ func (email *EmailOutput) Init() error {
 }
 
 func (email *EmailOutput) Terminate() error {
-	log.Logger.Infof("Email output terminated\n")
+	log.Logger.Infof("Email output terminated")
 	return nil
 }
 

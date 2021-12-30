@@ -37,7 +37,7 @@ var RunScheduler = func(
 				if len(queue) > 0 {
 					aggregated, err := inpteval.BuildAggregatedContent(queue)
 					if err != nil {
-						log.Logger.Errorf("Unable to build aggregated contents %v\n", err)
+						log.Logger.Errorf("Unable to build aggregated contents %v", err)
 					}
 					fnSend(output, aggregated)
 				}
