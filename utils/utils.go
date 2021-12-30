@@ -22,21 +22,6 @@ func GetEnvironmentVarOrPlain(value string) string {
 	return value
 }
 
-func InitDebug() {
-	if os.Getenv("AQUAALERT_DEBUG") != "" {
-		dbg = true
-	}
-	if os.Getenv("POSTEE_DEBUG") != "" {
-		dbg = true
-	}
-}
-
-func Debug(format string, v ...interface{}) {
-	if dbg {
-		log.Logger.Debugf(format, v...)
-	}
-}
-
 func GetEnv(name string) (string, error) {
 	value := os.Getenv(name)
 	if len(value) > 0 {

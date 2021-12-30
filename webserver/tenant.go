@@ -6,7 +6,6 @@ import (
 
 	"github.com/aquasecurity/postee/v2/log"
 	"github.com/aquasecurity/postee/v2/router"
-	"github.com/aquasecurity/postee/v2/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -26,7 +25,7 @@ func (ctx *WebServer) tenantHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer r.Body.Close()
-	utils.Debug("%s\n\n", string(body))
+	log.Logger.Debugf("%s\n\n", string(body))
 	router.Instance().HandleRoute(route, body)
 	ctx.writeResponse(w, http.StatusOK, "")
 }

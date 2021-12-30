@@ -370,7 +370,7 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 	}
 
 	for _, settings := range tenant.Outputs {
-		utils.Debug("%#v", anonymizeSettings(&settings))
+		log.Logger.Debugf("%#v", anonymizeSettings(&settings))
 
 		err := ctx.addOutput(&settings)
 
@@ -617,7 +617,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		}
 	}
 
-	utils.Debug("Starting Output %q: %q", settings.Type, settings.Name)
+	log.Logger.Debugf("Starting Output %q: %q", settings.Type, settings.Name)
 
 	var plg outputs.Output
 
