@@ -38,7 +38,7 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 		}
 		return nil
 	}); err != nil {
-		log.Logger.Errorf("Error a check of db size: %v", err)
+		log.Logger.Errorf("Unable to delete bucket: %v", err)
 		return
 	}
 }

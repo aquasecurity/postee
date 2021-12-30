@@ -180,11 +180,11 @@ func (ctx *Router) Terminate() {
 		ctx.quit <- struct{}{}
 	}
 
-	log.Logger.Info("quit notified")
+	log.Logger.Debug("quit notified")
 
 	if ctx.ticker != nil {
 		ctx.stopTicker <- struct{}{}
-		log.Logger.Info("stopTicker notified")
+		log.Logger.Debug("stopTicker notified")
 	}
 
 	ctx.cleanInstance()
@@ -580,12 +580,12 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
-			log.Logger.Errorf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
+			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", routeName, outputName)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
 		if !ok {
-			log.Logger.Errorf("route %q contains reference to undefined or misconfigured template %q.",
+			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
 				routeName, r.Template)
 			continue
 		}

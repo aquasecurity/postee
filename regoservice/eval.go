@@ -78,7 +78,7 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 
 func getFirstElement(context map[string]interface{}, key string) interface{} {
 	for _, v := range context {
-		log.Logger.Infof("checking: %s ...\n", key)
+		log.Logger.Debugf("checking: %s ...\n", key)
 		childCtx, ok := v.(map[string]interface{})
 		if !ok {
 			return nil
