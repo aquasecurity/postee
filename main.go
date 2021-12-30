@@ -7,7 +7,6 @@ import (
 	"syscall"
 
 	"github.com/aquasecurity/postee/router"
-	"github.com/aquasecurity/postee/utils"
 	"github.com/aquasecurity/postee/webserver"
 	"github.com/spf13/cobra"
 
@@ -45,7 +44,6 @@ func init() {
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	utils.InitDebug()
 
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
 

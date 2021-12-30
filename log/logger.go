@@ -26,7 +26,7 @@ func initDefaultLogger() LoggerType {
 	debug := false
 	disable := false
 
-	if os.Getenv("POSTEE_DEBUG") != "" {
+	if os.Getenv("POSTEE_DEBUG") != "" || os.Getenv("AQUAALERT_DEBUG") != "" {
 		debug = true
 	}
 
