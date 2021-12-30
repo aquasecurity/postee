@@ -36,7 +36,7 @@ var GetCfgCacheSource = func(postgresDb *PostgresDb) (string, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return emptyCfg, nil
 		}
-		return "", fmt.Errorf("error getting cfg cache source: %v", err)
+		return "", fmt.Errorf("error getting cfg cache source: %w", err)
 	}
 	return cfgFile, nil
 }
