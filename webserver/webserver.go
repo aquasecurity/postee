@@ -37,7 +37,7 @@ func (ctx *WebServer) withApiKey(next http.HandlerFunc) http.HandlerFunc {
 		correctKey, err := dbservice.Db.GetApiKey()
 
 		if err != nil || correctKey == "" {
-			log.Logger.Errorf("reload API key is either empty or there is an error: %s \n", err)
+			log.Logger.Errorf("reload API key is either empty or there is an error: %s", err)
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		}
 
@@ -61,7 +61,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	if ok := utils.PathExists(keyPem); !ok {
 		err := utils.GenerateCertificate(keyPem, certPem)
 		if err != nil {
-			log.Logger.Errorf("GenerateCertificate error: %v \n", err)
+			log.Logger.Errorf("GenerateCertificate error: %v", err)
 		}
 	}
 
@@ -74,7 +74,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	}
 	err := dbservice.Db.EnsureApiKey()
 	if err != nil {
-		log.Logger.Errorf("EnsureApiKey error: %v \n", err)
+		log.Logger.Errorf("EnsureApiKey error: %v", err)
 	}
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
@@ -108,7 +108,7 @@ func (ctx *WebServer) sessionHandler(f func(http.ResponseWriter, *http.Request))
 func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Logger.Errorf("Failed ioutil.ReadAll: %s\n", err)
+		log.Logger.Errorf("Failed ioutil.ReadAll: %s", err)
 		ctx.writeResponseError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -130,7 +130,7 @@ func (ctx *WebServer) writeResponse(w http.ResponseWriter, httpStatus int, v int
 		result, _ := json.Marshal(v)
 		_, err := w.Write(result)
 		if err != nil {
-			log.Logger.Errorf("Write error: %s \n", err)
+			log.Logger.Errorf("Write error: %s", err)
 		}
 	}
 }
@@ -140,6 +140,6 @@ func (ctx *WebServer) writeResponseError(w http.ResponseWriter, httpError int, e
 	w.WriteHeader(httpError)
 	errEncode := json.NewEncoder(w).Encode(err)
 	if errEncode != nil {
-		log.Logger.Errorf("Encode error: %s \n", errEncode)
+		log.Logger.Errorf("Encode error: %s", errEncode)
 	}
 }

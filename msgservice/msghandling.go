@@ -100,10 +100,10 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 		AggregateScanAndGetQueue(route.Name, content, 0, true)
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
-			log.Logger.Infof("about to schedule %s\n", route.Name)
+			log.Logger.Infof("about to schedule %s", route.Name)
 			RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
 		} else {
-			log.Logger.Infof("%s is already scheduled\n", route.Name)
+			log.Logger.Infof("%s is already scheduled", route.Name)
 		}
 	} else {
 		send(output, content)

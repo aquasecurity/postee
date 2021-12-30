@@ -174,7 +174,7 @@ func (ctx *Router) Terminate() {
 	}
 	log.Logger.Info("Route schedulers stopped")
 
-	log.Logger.Infof("ctx.quit %v\n", ctx.quit)
+	log.Logger.Infof("ctx.quit %v", ctx.quit)
 
 	if ctx.quit != nil {
 		ctx.quit <- struct{}{}
@@ -248,7 +248,7 @@ func removeTemplateFromCfgCacheSource(outputs *data.TenantSettings, templateName
 }
 
 func (ctx *Router) initTemplate(template *data.Template) error {
-	log.Logger.Infof("Configuring template %s \n", template.Name)
+	log.Logger.Infof("Configuring template %s", template.Name)
 
 	if template.LegacyScanRenderer != "" {
 		inpteval, err := formatting.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
@@ -256,7 +256,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Logger.Infof("Configured with legacy renderer %s \n", template.LegacyScanRenderer)
+		log.Logger.Infof("Configured with legacy renderer %s", template.LegacyScanRenderer)
 	}
 
 	if template.RegoPackage != "" {
@@ -265,10 +265,10 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Logger.Infof("Configured with Rego package %s\n", template.RegoPackage)
+		log.Logger.Infof("Configured with Rego package %s", template.RegoPackage)
 	}
 	if template.Url != "" {
-		log.Logger.Infof("Configured with url: %s\n", template.Url)
+		log.Logger.Infof("Configured with url: %s", template.Url)
 
 		r, err := http.NewRequest("GET", template.Url, nil)
 		if err != nil {
@@ -324,7 +324,7 @@ func (ctx *Router) setAquaServerUrl(url string) {
 func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
-	log.Logger.Infof("Loading alerts configuration file %s ....\n", ctx.cfgfile)
+	log.Logger.Infof("Loading alerts configuration file %s ....", ctx.cfgfile)
 
 	ctx.setAquaServerUrl(tenant.AquaServer)
 
@@ -356,17 +356,17 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)
 		if err != nil {
-			log.Logger.Errorf("Can not initialize template %s: %v \n", t.Name, err)
+			log.Logger.Errorf("Can not initialize template %s: %v", t.Name, err)
 		}
 	}
 
 	for _, settings := range tenant.Outputs {
-		utils.Debug("%#v\n", anonymizeSettings(&settings))
+		utils.Debug("%#v", anonymizeSettings(&settings))
 
 		err := ctx.addOutput(&settings)
 
 		if err != nil {
-			log.Logger.Errorf("Can not initialize output %s: %v \n", settings.Name, err)
+			log.Logger.Errorf("Can not initialize output %s: %v", settings.Name, err)
 		} else {
 			log.Logger.Infof("Output %s is configured", settings.Name)
 		}
@@ -623,7 +623,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		}
 	}
 
-	utils.Debug("Starting Output %q: %q\n", settings.Type, settings.Name)
+	utils.Debug("Starting Output %q: %q", settings.Type, settings.Name)
 
 	var plg outputs.Output
 
