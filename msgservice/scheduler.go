@@ -1,10 +1,10 @@
 package msgservice
 
 import (
-	"log"
 	"time"
 
 	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/log"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/routes"
 )
@@ -20,7 +20,7 @@ var RunScheduler = func(
 	name *string,
 	output outputs.Output,
 ) {
-	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.Plugins.AggregateTimeoutSeconds)
+	log.Logger.Infof("Scheduler is activated for route %q. Period: %d sec", route.Name, route.Plugins.AggregateTimeoutSeconds)
 
 	ticker := getTicker(route.Plugins.AggregateTimeoutSeconds)
 	route.StartScheduler()
@@ -30,15 +30,15 @@ var RunScheduler = func(
 			select {
 			case <-done:
 				currentTicker.Stop()
-				log.Printf("Scheduler for %q was stopped", route.Name)
+				log.Logger.Infof("Scheduler for %q was stopped", route.Name)
 				return
 			case <-currentTicker.C:
-				log.Printf("Scheduler triggered for %q", route.Name)
+				log.Logger.Infof("Scheduler triggered for %q", route.Name)
 				queue := fnAggregate(route.Name, nil, 0, false)
 				if len(queue) > 0 {
 					aggregated, err := inpteval.BuildAggregatedContent(queue)
 					if err != nil {
-						log.Printf("Unable to build aggregated contents %v\n", err)
+						log.Logger.Errorf("Unable to build aggregated contents %v", err)
 					}
 					fnSend(output, aggregated)
 				}

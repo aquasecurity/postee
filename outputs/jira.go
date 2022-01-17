@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strconv"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/formatting"
 	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/log"
 
 	"net/http"
 	"net/url"
@@ -73,13 +73,13 @@ func (ctx *JiraAPI) CloneSettings() *data.OutputSettings {
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	client, err := ctx.createClient()
 	if err != nil {
-		log.Printf("unable to create Jira client: %s, please check your credentials.", err)
+		log.Logger.Errorf("unable to create Jira client: %s, please check your credentials.", err)
 		return
 	}
 
 	boardlist, _, err := client.Board.GetAllBoards(&jira.BoardListOptions{ProjectKeyOrID: ctx.ProjectKey})
 	if err != nil {
-		log.Printf("failed to get boards from Jira API GetAllBoards with ProjectID %s. %s", ctx.ProjectKey, err)
+		log.Logger.Errorf("failed to get boards from Jira API GetAllBoards with ProjectID %s. %s", ctx.ProjectKey, err)
 		return
 	}
 	var matches int
@@ -92,36 +92,36 @@ func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	}
 
 	if matches > 1 {
-		log.Printf("found more than one boards with name %q, working with board id %d", boardName, ctx.boardId)
+		log.Logger.Infof("found more than one boards with name %q, working with board id %d", boardName, ctx.boardId)
 	} else if matches == 0 {
-		log.Printf("no boards found with name %s when getting all boards for User", boardName)
+		log.Logger.Infof("no boards found with name %s when getting all boards for User", boardName)
 		return
 	} else {
-		log.Printf("using board ID %d with Name %q", ctx.boardId, boardName)
+		log.Logger.Infof("using board ID %d with Name %q", ctx.boardId, boardName)
 	}
 }
 
 func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
 	sprints, _, err := client.Board.GetAllSprintsWithOptions(ctx.boardId, &jira.GetAllSprintsOptions{State: "active"})
 	if err != nil {
-		log.Printf("failed to get active sprint for board ID %d from Jira API. %s", ctx.boardId, err)
+		log.Logger.Errorf("failed to get active sprint for board ID %d from Jira API. %s", ctx.boardId, err)
 		return
 	}
 	if len(sprints.Values) > 1 {
 		ctx.SprintId = len(sprints.Values) - 1
-		log.Printf("Found more than one active sprint, using sprint id %d as the active sprint", ctx.SprintId)
+		log.Logger.Infof("Found more than one active sprint, using sprint id %d as the active sprint", ctx.SprintId)
 	} else if len(sprints.Values) == 1 {
 		if sprints.Values[0].ID != ctx.SprintId {
 			ctx.SprintId = sprints.Values[0].ID
-			log.Printf("using sprint id %d as the active sprint", ctx.SprintId)
+			log.Logger.Infof("using sprint id %d as the active sprint", ctx.SprintId)
 		}
 	} else {
-		log.Printf("no active sprints exist in board ID %d Name %s", ctx.boardId, ctx.ProjectKey)
+		log.Logger.Infof("no active sprints exist in board ID %d Name %s", ctx.boardId, ctx.ProjectKey)
 	}
 }
 
 func (ctx *JiraAPI) Terminate() error {
-	log.Printf("Jira output terminated\n")
+	log.Logger.Infof("Jira output terminated")
 	return nil
 }
 
@@ -131,7 +131,7 @@ func (ctx *JiraAPI) Init() error {
 	}
 	ctx.fetchBoardId(ctx.BoardName)
 
-	log.Printf("Starting Jira output %q....", ctx.Name)
+	log.Logger.Infof("Starting Jira output %q....", ctx.Name)
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}
@@ -148,7 +148,7 @@ func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 			return nil, errors.New("Jira Cloud can't work with PAT")
 		}
 		if ctx.Password != "" {
-			log.Printf("Found both Password and PAT, using PAT to authenticate.")
+			log.Logger.Warn("Found both Password and PAT, using PAT to authenticate.")
 		}
 		tp := jira.BearerTokenAuthTransport{
 			Token: ctx.Token,
@@ -188,7 +188,7 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 func (ctx *JiraAPI) Send(content map[string]string) error {
 	client, err := ctx.createClient()
 	if err != nil {
-		log.Printf("unable to create Jira client: %s", err)
+		log.Logger.Errorf("unable to create Jira client: %s", err)
 		return err
 	}
 
@@ -234,7 +234,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 		fieldsConfig[k] = v
 	}
 	if len(ctx.Unknowns) > 0 {
-		log.Printf("added %d custom fields to issue.", len(ctx.Unknowns))
+		log.Logger.Infof("added %d custom fields to issue.", len(ctx.Unknowns))
 	}
 
 	type Version struct {
@@ -244,7 +244,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, isServerJira(ctx.Url))
 
 	if err != nil {
-		log.Printf("Failed to init issue: %s\n", err)
+		log.Logger.Errorf("Failed to init issue: %s", err)
 		return err
 	}
 
@@ -268,15 +268,15 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 			})
 		}
 		issue.Fields.Unknowns["versions"] = affectsVersions
-		log.Printf("added %d affected versions into Versions field", len(ctx.AffectsVersions))
+		log.Logger.Infof("added %d affected versions into Versions field", len(ctx.AffectsVersions))
 	}
 
 	i, err := ctx.openIssue(client, issue)
 	if err != nil {
-		log.Printf("Failed to open jira issue, %s\n", err)
+		log.Logger.Errorf("Failed to open jira issue, %s", err)
 		return err
 	}
-	log.Printf("Created new jira issue %s", i.ID)
+	log.Logger.Infof("Created new jira issue %s", i.ID)
 	return nil
 }
 
@@ -367,7 +367,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 		case "number":
 			val, err := strconv.Atoi(value)
 			if err != nil {
-				fmt.Printf("Failed convert value(string) to int: %s\n", err)
+				fmt.Printf("Failed convert value(string) to int: %s", err)
 			}
 			issueFields.Unknowns[jiraKey] = val
 
@@ -411,15 +411,15 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 			}
 
 			if err != nil {
-				log.Printf("Get Jira User info error: %v", err)
+				log.Logger.Errorf("Get Jira User info error: %v", err)
 				continue
 			}
 			if resp.StatusCode != http.StatusOK {
-				log.Printf("http response failed: %q", resp.Status)
+				log.Logger.Errorf("http response failed: %q", resp.Status)
 				continue
 			}
 			if len(users) == 0 {
-				log.Printf("There is no user for %q", value)
+				log.Logger.Errorf("There is no user for %q", value)
 				continue
 			}
 			issueFields.Unknowns[jiraKey] = users[0]
@@ -446,7 +446,7 @@ func findUserOnJiraServer(c *jira.Client, email string) ([]jira.User, *jira.Resp
 
 	resp, err := c.Do(req, &users)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Logger.Errorf("%v", err)
 		return nil, resp, err
 	}
 	return users, resp, nil

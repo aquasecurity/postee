@@ -1,16 +1,16 @@
 package main
 
 import (
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
 
 	"github.com/aquasecurity/postee/router"
-	"github.com/aquasecurity/postee/utils"
 	"github.com/aquasecurity/postee/webserver"
 	"github.com/spf13/cobra"
+
+	"github.com/aquasecurity/postee/log"
 )
 
 const (
@@ -44,7 +44,6 @@ func init() {
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	utils.InitDebug()
 
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
 
@@ -78,7 +77,7 @@ func main() {
 		err := router.Instance().ApplyFileCfg(cfgfile, postgresUrl, pathToDb, false)
 
 		if err != nil {
-			log.Printf("Can't start alert manager %v", err)
+			log.Logger.Fatalf("Can't start alert manager: %v", err)
 			return
 		}
 
@@ -91,7 +90,7 @@ func main() {
 	}
 	err := rootCmd.Execute()
 	if err != nil {
-		log.Printf("Can't start command %v", err)
+		log.Logger.Fatalf("Can't start command: %v", err)
 		return
 	}
 }
@@ -103,7 +102,7 @@ func Daemonize() {
 
 	go func() {
 		sig := <-sigs
-		log.Println(sig)
+		log.Logger.Info(sig)
 		done <- true
 	}()
 

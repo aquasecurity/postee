@@ -1,7 +1,6 @@
 package postgresdb
 
 import (
-	"log"
 	"testing"
 	"time"
 
@@ -21,7 +20,7 @@ func TestStoreMessage(t *testing.T) {
 	psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 		db, mock, err := sqlxmock.Newx()
 		if err != nil {
-			log.Println("failed to open sqlmock database:", err)
+			t.Errorf("failed to open sqlmock database: %v", err)
 		}
 		rows := sqlxmock.NewRows([]string{"messagevalue"}).AddRow(currentValueStoreMessage)
 		mock.ExpectQuery("SELECT").WillReturnRows(rows)

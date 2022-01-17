@@ -2,12 +2,12 @@ package msgservice
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/aquasecurity/postee/data"
 	"github.com/aquasecurity/postee/dbservice"
+	"github.com/aquasecurity/postee/log"
 	"github.com/aquasecurity/postee/outputs"
 	"github.com/aquasecurity/postee/regoservice"
 	"github.com/aquasecurity/postee/routes"
@@ -60,11 +60,11 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 
 		wasStored, err := dbservice.Db.MayBeStoreMessage(input, msgKey, expired)
 		if err != nil {
-			log.Printf("Error while storing input: %v", err)
+			log.Logger.Errorf("Error while storing input: %v", err)
 			return
 		}
 		if !wasStored {
-			log.Printf("The same message was received before: %s", msgKey)
+			log.Logger.Infof("The same message was received before: %s", msgKey)
 			return
 		}
 
@@ -78,7 +78,7 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
-		log.Printf("Error while evaluating input: %v", err)
+		log.Logger.Errorf("Error while evaluating input: %v", err)
 		return
 	}
 
@@ -91,7 +91,7 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 		if len(aggregated) > 0 {
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
-				log.Printf("Error while building aggregated content: %v", err)
+				log.Logger.Errorf("Error while building aggregated content: %v", err)
 				return
 			}
 			send(output, content)
@@ -100,10 +100,10 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 		AggregateScanAndGetQueue(route.Name, content, 0, true)
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
-			log.Printf("about to schedule %s\n", route.Name)
+			log.Logger.Infof("about to schedule %s", route.Name)
 			RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
 		} else {
-			log.Printf("%s is already scheduled\n", route.Name)
+			log.Logger.Infof("%s is already scheduled", route.Name)
 		}
 	} else {
 		send(output, content)
@@ -115,13 +115,13 @@ func send(otpt outputs.Output, cnt map[string]string) {
 	go func() {
 		err := otpt.Send(cnt)
 		if err != nil {
-			log.Printf("Error while sending event: %v", err)
+			log.Logger.Errorf("Error while sending event: %v", err)
 		}
 	}()
 
 	err := dbservice.Db.RegisterPlgnInvctn(otpt.GetName())
 	if err != nil {
-		log.Printf("Error while building aggregated content: %v", err)
+		log.Logger.Errorf("Error while building aggregated content: %v", err)
 		return
 	}
 
@@ -138,11 +138,11 @@ func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
 	aggregatedScans, err := dbservice.Db.AggregateScans(outputName, currentContent, counts, ignoreLength)
 	if err != nil {
-		log.Printf("AggregateScans Error: %v", err)
+		log.Logger.Errorf("AggregateScans Error: %v", err)
 		return aggregatedScans
 	}
 	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
-		log.Printf("New scan was added to the queue of %q without sending.", outputName)
+		log.Logger.Infof("New scan was added to the queue of %q without sending.", outputName)
 		return nil
 	}
 	return aggregatedScans

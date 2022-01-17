@@ -2,10 +2,10 @@ package boltdb
 
 import (
 	"bytes"
-	"log"
 	"time"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
+	"github.com/aquasecurity/postee/log"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -18,7 +18,7 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 
 	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
-		log.Println("CheckSizeLimit: Can't open db:", boltDb.DbPath)
+		log.Logger.Errorf("CheckSizeLimit: Can't open db: %s", boltDb.DbPath)
 		return
 	}
 	defer db.Close()
@@ -38,7 +38,7 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 		}
 		return nil
 	}); err != nil {
-		log.Println("Error a check of db size:", err)
+		log.Logger.Errorf("Unable to delete bucket: %v", err)
 		return
 	}
 }
@@ -49,19 +49,19 @@ func (boltDb *BoltDb) CheckExpiredData() {
 
 	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
 	if err != nil {
-		log.Println("CheckExpiredData: Can't open db:", boltDb.DbPath)
+		log.Logger.Errorf("CheckExpiredData: Can't open db: %s", boltDb.DbPath)
 		return
 	}
 	defer db.Close()
 
 	expired, err := boltDb.getExpired(db)
 	if err != nil {
-		log.Println("Can't select expired data: ", err)
+		log.Logger.Errorf("Can't select expired data: %v", err)
 		return
 	}
 
 	if err := dbDelete(db, dbparam.DbBucketName, expired); err != nil {
-		log.Println("Can't remove expired data: ", err)
+		log.Logger.Errorf("Can't remove expired data: %v", err)
 	}
 }
 

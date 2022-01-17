@@ -3,16 +3,17 @@ package teams_api
 import (
 	"bytes"
 	"fmt"
-	"github.com/aquasecurity/postee/utils"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/aquasecurity/postee/log"
 )
 
 func CreateMessageByWebhook(webhook, content string) error {
 	var message bytes.Buffer
 	fmt.Fprintf(&message, "{\"text\":\"%s\"}", content)
 
-	utils.Debug("Data for sending to %q: %q\n", webhook, message.String())
+	log.Logger.Debugf("Data for sending to %q: %q", webhook, message.String())
 	r := bytes.NewReader(message.Bytes())
 	client := http.DefaultClient
 	reg, err := http.NewRequest("POST", webhook, r)
@@ -32,7 +33,7 @@ func CreateMessageByWebhook(webhook, content string) error {
 		if message[0] != '1' {
 			return fmt.Errorf("Teams Body Error: %q", string(message))
 		}
-		utils.Debug("Response body: %q\n", message)
+		log.Logger.Debugf("Response body: %q", message)
 	}
 	return nil
 }
