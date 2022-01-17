@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/open-policy-agent/opa/rego"
 )
 

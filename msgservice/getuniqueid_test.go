@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/routes"
+	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

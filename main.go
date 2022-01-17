@@ -8,10 +8,10 @@ import (
 	"runtime"
 	"syscall"
 
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/router"
-	"github.com/aquasecurity/postee/utils"
-	"github.com/aquasecurity/postee/webserver"
+	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/router"
+	"github.com/aquasecurity/postee/v2/utils"
+	"github.com/aquasecurity/postee/v2/webserver"
 	"github.com/spf13/cobra"
 )
 
