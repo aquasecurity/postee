@@ -117,3 +117,4 @@ outputs:
   password:  # Mandatory. Specify user API key
   instance:  # Mandatory. Name of ServiceN  ow Instance
   board:     #  Specify the ServiceNow board name to open tickets on. Default is "incident"
+  
