@@ -100,8 +100,8 @@ persistentVolume:
   enabled: false
   mountPathDb: /server/database
   mountPathConfig: /data
-  mountPathRego: /server/rego-template
-  mountPathFilters: /server/rego-filters
+  mountPathRego: /server/rego-templates/custom
+  mountPathFilters: /server/rego-filters/custom
   accessModes:
     - ReadWriteOnce
   size: 1Gi

@@ -17,7 +17,7 @@
 {{- else if contains "ClusterIP" .Values.service.type }}
   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "postee.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
-  echo "Postee http://{{ include "postee.fullname" . }}:{{ .Values.service.port }} to use your application"
-  echo "Postee-UI http://{{ include "postee.ui.fullname" . }}:{{ .Values.uiService.port }} to use your application"
+  echo "Postee Webhook http://{{ include "postee.fullname" . }}:{{ .Values.service.port }} to set in your application."
+  echo "Postee Website http://{{ include "postee.ui.fullname" . }}:{{ .Values.uiService.port }} to configure Postee."
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME {{ .Values.uiService.port }}:$CONTAINER_PORT
 {{- end }}

@@ -37,9 +37,13 @@ Check that all the pods are in Running state:
 
 We check the logs:
 
+```
 kubectl logs deployment/my-posteeui -n postee | head
+```
 
+```
 kubectl logs statefulsets/my-postee -n postee | head
+```
 
 ## Delete Chart
 
