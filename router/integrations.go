@@ -27,5 +27,8 @@ type OutputSettings struct {
 	UseMX           bool              `json:"use-mx,omitempty"`
 	InstanceName    string            `json:"instance,omitempty"`
 	SizeLimit       int               `json:"size-limit,omitempty"`
-	InputFile       string            `json:"input-file"`
+	InputFile       string            `json:"input-file,omitempty"`
+	Body            string            `json:"body,omitempty"`
+	Method          string            `json:"method,omitempty"`
+	Timeout         string            `json:"timeout,omitempty"`
 }

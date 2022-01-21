@@ -12,9 +12,9 @@ routes:
   outputs: [ stdout ]
   template: raw-json
 
-- name: exec-route
+- name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  outputs: [my-exec]
+  outputs: [my-http-post]
   template: raw-json
 
 # Templates are used to format a message
@@ -32,4 +32,12 @@ outputs:
 - name: my-exec
   type: exec
   enable: true
-  input-file: exec-test.sh # Mandatory. Specify the path to the script to run.
+  input-file: exec-test.sh            # Required. Specify the path to the script to run
+
+- name: my-http-post
+  type: http
+  enable: true
+  url: "https://google.com"           # Required. URL of the HTTP Request
+  method: post                        # Required. Method to use. CONNECT is not supported at this time
+  timeout: 10s                        # Optional. Timeout value in XX(s,m,h)
+  body: "hello world"                 # Optional. Body of the HTTP request

@@ -318,6 +318,7 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	utils.Debug("Starting Output %q: %q\n", settings.Type, settings.Name)
 
 	var plg outputs.Output
+	var err error
 
 	switch settings.Type {
 	case "jira":
@@ -338,12 +339,19 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		plg = buildStdoutOutput(settings)
 	case "exec":
 		plg = buildExecOutput(settings)
+	case "http":
+		plg, err = buildHTTPOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	default:
 		log.Printf("Output type %q is undefined or empty. Output name is %q.",
 			settings.Type, settings.Name)
 		return nil
 	}
-	err := plg.Init()
+
+	err = plg.Init()
 	if err != nil {
 		log.Printf("failed to Init : %v", err)
 	}

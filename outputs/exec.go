@@ -14,16 +14,16 @@ type ExecClient struct {
 	InputFile string
 }
 
-func (e ExecClient) GetName() string {
+func (e *ExecClient) GetName() string {
 	return e.Name
 }
 
-func (e ExecClient) Init() error {
+func (e *ExecClient) Init() error {
 	e.Name = "Exec Output"
 	return nil
 }
 
-func (e ExecClient) Send(m map[string]string) error {
+func (e *ExecClient) Send(m map[string]string) error {
 	// Set Postee event to be available inside the execution shell
 	cmd := exec.Command("/bin/sh", e.InputFile)
 	cmd.Env = os.Environ()
@@ -39,10 +39,11 @@ func (e ExecClient) Send(m map[string]string) error {
 	return nil
 }
 
-func (e ExecClient) Terminate() error {
+func (e *ExecClient) Terminate() error {
+	log.Printf("Exec output terminated\n")
 	return nil
 }
 
-func (e ExecClient) GetLayoutProvider() layout.LayoutProvider {
+func (e *ExecClient) GetLayoutProvider() layout.LayoutProvider {
 	return nil
 }

@@ -1,7 +1,10 @@
 package router
 
 import (
+	"fmt"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/aquasecurity/postee/v2/outputs"
 )
@@ -106,4 +109,33 @@ func buildExecOutput(sourceSettings *OutputSettings) *outputs.ExecClient {
 		Name:      sourceSettings.Name,
 		InputFile: sourceSettings.InputFile,
 	}
+}
+
+func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error) {
+	if len(sourceSettings.Method) <= 0 {
+		return nil, fmt.Errorf("http action requires a method to be specified")
+	}
+
+	if len(sourceSettings.Timeout) < 0 {
+		sourceSettings.Timeout = "5s"
+	}
+
+	duration, err := time.ParseDuration(sourceSettings.Timeout)
+	if err != nil {
+		return nil, fmt.Errorf("invalid duration specified: %s", err.Error())
+	}
+	sourceSettings.Timeout = duration.String()
+
+	reqUrl, err := url.Parse(sourceSettings.Url)
+	if err != nil {
+		return nil, fmt.Errorf("error building HTTP url: %s", err.Error())
+	}
+
+	return &outputs.HTTPClient{
+		Name:    sourceSettings.Name,
+		URL:     reqUrl,
+		Method:  strings.ToUpper(sourceSettings.Method),
+		Body:    sourceSettings.Body,
+		Timeout: duration,
+	}, nil
 }
