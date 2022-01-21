@@ -5,6 +5,13 @@
 replicaCount: 1
 posteeConfigPath: "cfg-files/*"
 
+posteUi:
+  port: 8000
+  user: ""
+  pass: ""
+  image: aquasec/postee-ui
+  tag: "latest"
+
 image:
   repository: aquasec/postee
   pullPolicy: Always
@@ -13,7 +20,7 @@ image:
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: "1.34"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -41,10 +48,15 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  portSsl: 8443
+  portSsl: 8445
   targetPortSsl: 8445
-  port: 8080
+  port: 8082
   targetPort: 8082
+
+uiService:
+  type: LoadBalancer
+  port: 8000
+  targetPort: 8000
 
 ingress:
   enabled: false
@@ -86,7 +98,10 @@ affinity: {}
 ##
 persistentVolume:
   enabled: false
-  mountPath: /server/database
+  mountPathDb: /server/database
+  mountPathConfig: /data
+  mountPathRego: /server/rego-templates/custom
+  mountPathFilters: /server/rego-filters/custom
   accessModes:
     - ReadWriteOnce
   size: 1Gi
