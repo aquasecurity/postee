@@ -336,6 +336,8 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		plg = buildSplunkOutput(settings)
 	case "stdout":
 		plg = buildStdoutOutput(settings)
+	case "exec":
+		plg = buildExecOutput(settings)
 	default:
 		log.Printf("Output type %q is undefined or empty. Output name is %q.",
 			settings.Type, settings.Name)
