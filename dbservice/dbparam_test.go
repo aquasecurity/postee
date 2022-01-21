@@ -34,7 +34,10 @@ func TestSetNewDbPathFromEnv(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't create dir: %s", baseDir)
 				}
-				os.Chmod(baseDir, 0)
+				err = os.Chmod(baseDir, 0)
+				if err != nil {
+					t.Errorf("Can't change the mode dir in %s: %s", baseDir, err)
+				}
 			}
 			SetNewDbPathFromEnv()
 			defer os.RemoveAll(baseDir)

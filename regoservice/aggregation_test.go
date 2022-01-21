@@ -73,9 +73,12 @@ func aggregateBuildinRego(t *testing.T, caseDesc string, regoRule *string, aggre
 	commonRegoFilename := "common.rego"
 	buildinRegoTemplates = []string{commonRegoFilename, testRego, aggrRego} //common part goes in single bundle
 
-	ioutil.WriteFile(commonRegoFilename, []byte(commonRego), 0644)
-	ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
-	ioutil.WriteFile(aggrRego, []byte(*aggregationRegoRule), 0644)
+	err := ioutil.WriteFile(commonRegoFilename, []byte(commonRego), 0644)
+	err = ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
+	err = ioutil.WriteFile(aggrRego, []byte(*aggregationRegoRule), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	defer func() {
 		buildinRegoTemplates = buildinRegoTemplatesSaved

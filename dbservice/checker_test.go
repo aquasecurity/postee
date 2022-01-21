@@ -1,6 +1,8 @@
 package dbservice
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -147,12 +149,25 @@ func TestDbDelete(t *testing.T) {
 	value := []byte("value")
 	bucket := "b"
 
-	dbInsert(db, bucket, key, value)
-	dbDelete(db, bucket, [][]byte{key})
-	dbDelete(db, bucket, [][]byte{key})
+	err = dbInsert(db, bucket, key, value)
+	if err != nil {
+		t.Fatal("TestDbDelete dbInsert: ", err)
+	}
+	err = dbDelete(db, bucket, [][]byte{key})
+	if err != nil {
+		t.Fatal("TestDbDelete dbInsert: ", err)
+	}
+	err = dbDelete(db, bucket, [][]byte{key})
+	if err != nil {
+		t.Fatal("TestDbDelete dbInsert: ", err)
+	}
 
 	bucket = ""
-	dbInsert(db, bucket, key, value)
+	err = dbInsert(db, bucket, key, value)
+	expectedError := fmt.Errorf("bucket name required")
+	if errors.Is(err, expectedError) {
+		t.Errorf("Unexpected error: expected %s, got %s \n", expectedError, err)
+	}
 }
 
 func TestWithoutAccessToDb(t *testing.T) {

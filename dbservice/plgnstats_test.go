@@ -18,7 +18,10 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 	expectedCnt := 3
 	keyToTest := "test"
 	for i := 0; i < expectedCnt; i++ {
-		RegisterPlgnInvctn(keyToTest)
+		err := RegisterPlgnInvctn(keyToTest)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 	r, err := getPlgnStats()
 	if err != nil {
