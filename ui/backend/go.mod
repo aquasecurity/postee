@@ -9,3 +9,5 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	go.etcd.io/bbolt v1.3.6
 )
+
+replace golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f

@@ -3,12 +3,14 @@ package msgservice
 import (
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestSheduler(t *testing.T) {
+func TestScheduler(t *testing.T) {
 	routeName := "test-schedule"
 	demoRoute := &routes.InputRoute{}
 	demoRoute.Name = routeName
@@ -21,7 +23,9 @@ func TestSheduler(t *testing.T) {
 			t.Fatal("error Send")
 		}
 	}
+	tickerInvocations := 0
 	demoAggregate := func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
+		tickerInvocations++
 		return []map[string]string{
 			{
 				"title":       "title1",
@@ -47,4 +51,7 @@ func TestSheduler(t *testing.T) {
 	demoEmailOutput.wg.Wait()
 	demoRoute.StopScheduler()
 
+	time.Sleep(time.Duration(2*demoRoute.Plugins.AggregateTimeoutSeconds) * time.Second) //make sure ticker is not invoked anymore
+
+	assert.Equal(t, 1, tickerInvocations)
 }
