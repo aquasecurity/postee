@@ -14,7 +14,7 @@ routes:
 
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  outputs: [my-http-post]
+  outputs: [my-exec, my-http-get, my-http-post]     # Outputs are serially executed
   template: raw-json
 
 # Templates are used to format a message
@@ -34,10 +34,21 @@ outputs:
   enable: true
   input-file: exec-test.sh            # Required. Specify the path to the script to run
 
+- name: my-http-get
+  type: http
+  enable: true
+  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
+  method: GET                         # Required. Method to use. CONNECT is not supported at this time
+  headers:                            # Optional. Headers to pass in for the request
+    "Foo": ["bar", "baz"]
+  timeout: 1s                         # Optional. Timeout value in XX(s,m,h)
+
 - name: my-http-post
   type: http
   enable: true
-  url: "https://google.com"           # Required. URL of the HTTP Request
-  method: post                        # Required. Method to use. CONNECT is not supported at this time
+  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
+  method: POST                        # Required. Method to use. CONNECT is not supported at this time
+  headers:                            # Optional. Headers to pass in for the request.
+    "Foo": ["bar", "baz"]
   timeout: 10s                        # Optional. Timeout value in XX(s,m,h)
   body: "hello world"                 # Optional. Body of the HTTP request

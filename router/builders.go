@@ -136,6 +136,7 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		URL:     reqUrl,
 		Method:  strings.ToUpper(sourceSettings.Method),
 		Body:    sourceSettings.Body,
+		Headers: sourceSettings.Headers,
 		Timeout: duration,
 	}, nil
 }

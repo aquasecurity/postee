@@ -1,11 +1,12 @@
 package outputs
 
 import (
-	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/aquasecurity/postee/layout"
@@ -17,6 +18,7 @@ type HTTPClient struct {
 	Method  string
 	Body    string
 	Timeout time.Duration
+	Headers map[string][]string
 }
 
 func (hc *HTTPClient) GetName() string {
@@ -36,16 +38,24 @@ func (hc HTTPClient) Send(m map[string]string) error {
 	resp, err := c.Do(&http.Request{
 		Method: hc.Method,
 		URL:    hc.URL,
-		Header: nil, // TODO: Support adding headers
-		Body:   io.NopCloser(bytes.NewBufferString(hc.Body)),
+		Header: hc.Headers,
+		Body:   io.NopCloser(strings.NewReader(hc.Body)),
 	})
 	if err != nil {
 		log.Println("error during HTTP Client execution: ", err.Error())
 		return err
 	}
 
-	b, _ := io.ReadAll(resp.Body)
-	log.Println(">>>>>>>>>> body: ", string(b))
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("unable to read HTTP response: %s", err.Error())
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http status NOT OK: %d, response: %s", resp.StatusCode, string(b))
+	}
+
+	log.Printf("http execution to url %s successful", hc.URL)
 	return nil
 }
 
