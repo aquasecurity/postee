@@ -135,6 +135,13 @@ spec:
         resources:
           requests:
             storage: 100Mi
+    - metadata:
+        name: rego-filters
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
   template:
     metadata:
       labels:
@@ -156,21 +163,21 @@ spec:
           image: busybox:1.34
           command:
             - cp
-            - /k8s/cfg.yaml
-            - /data/cfg.yaml
+            - /configmap/cfg.yaml
+            - /config/cfg.yaml
           volumeMounts:
             - name: configmap-vol
-              mountPath: /k8s
+              mountPath: /configmap
               readOnly: false
             - name: postee-config
-              mountPath: /data
+              mountPath: /config
       containers:
         - image: aquasec/postee:latest
           imagePullPolicy: Always
           name: postee
           env:
             - name: POSTEE_CFG
-              value: /data/cfg.yaml
+              value: /config/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
           ports:
@@ -181,13 +188,17 @@ spec:
               containerPort: 8445
               protocol: TCP
           volumeMounts:
-            - name: postee-config
-              mountPath: /data
+            - name: configmap-vol
+              mountPath: /configmap
               readOnly: false
             - name: postee-db
               mountPath: /server/database
+            - name: postee-config
+              mountPath: /config
             - name: rego-template
-              mountPath: /server/rego-template/custom
+              mountPath: /server/rego-templates/custom
+            - name: rego-filters
+              mountPath: /server/rego-filters/custom
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
