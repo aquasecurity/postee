@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"strconv"
 
-	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/v2/data"
 )
 
 func GenTestDescription(provider LayoutProvider, raw string) string {

@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aquasecurity/postee/router"
-	"github.com/aquasecurity/postee/utils"
+	"github.com/aquasecurity/postee/v2/router"
+	"github.com/aquasecurity/postee/v2/utils"
 	"github.com/gorilla/mux"
 )
 

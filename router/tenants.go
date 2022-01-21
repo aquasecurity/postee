@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/aquasecurity/postee/routes"
+	"github.com/aquasecurity/postee/v2/routes"
 )
 
 type TenantSettings struct {

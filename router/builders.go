@@ -3,7 +3,7 @@ package router
 import (
 	"strings"
 
-	"github.com/aquasecurity/postee/outputs"
+	"github.com/aquasecurity/postee/v2/outputs"
 )
 
 func buildStdoutOutput(sourceSettings *OutputSettings) *outputs.StdoutOutput {

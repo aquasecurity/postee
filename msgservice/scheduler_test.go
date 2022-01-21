@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aquasecurity/postee/outputs"
-	"github.com/aquasecurity/postee/routes"
+	"github.com/aquasecurity/postee/v2/outputs"
+	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/stretchr/testify/assert"
 )
 
