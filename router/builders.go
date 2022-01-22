@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -116,15 +117,13 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		return nil, fmt.Errorf("http action requires a method to be specified")
 	}
 
-	if len(sourceSettings.Timeout) < 0 {
-		sourceSettings.Timeout = "5s"
-	}
-
 	duration, err := time.ParseDuration(sourceSettings.Timeout)
 	if err != nil {
 		return nil, fmt.Errorf("invalid duration specified: %s", err.Error())
 	}
-	sourceSettings.Timeout = duration.String()
+	if duration == 0 {
+		duration = time.Second * 5
+	}
 
 	reqUrl, err := url.Parse(sourceSettings.Url)
 	if err != nil {
@@ -133,10 +132,10 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 
 	return &outputs.HTTPClient{
 		Name:    sourceSettings.Name,
+		Client:  http.Client{Timeout: duration},
 		URL:     reqUrl,
 		Method:  strings.ToUpper(sourceSettings.Method),
 		Body:    sourceSettings.Body,
 		Headers: sourceSettings.Headers,
-		Timeout: duration,
 	}, nil
 }

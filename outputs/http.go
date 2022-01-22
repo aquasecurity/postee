@@ -7,17 +7,16 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/aquasecurity/postee/layout"
 )
 
 type HTTPClient struct {
 	Name    string
+	Client  http.Client
 	URL     *url.URL
 	Method  string
 	Body    string
-	Timeout time.Duration
 	Headers map[string][]string
 }
 
@@ -26,16 +25,11 @@ func (hc *HTTPClient) GetName() string {
 }
 
 func (hc *HTTPClient) Init() error {
-	hc.Name = "HTTP Client"
 	return nil
 }
 
 func (hc HTTPClient) Send(m map[string]string) error {
-	c := http.Client{
-		Timeout: hc.Timeout,
-	}
-
-	resp, err := c.Do(&http.Request{
+	resp, err := hc.Client.Do(&http.Request{
 		Method: hc.Method,
 		URL:    hc.URL,
 		Header: hc.Headers,
