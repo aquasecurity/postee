@@ -44,3 +44,18 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   hostPath:
     path: /tmp/postee/rego-templates/
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postee-rego-filters
+  labels:
+    app: postee-rego-filters
+spec:
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /tmp/postee/rego-filters/
