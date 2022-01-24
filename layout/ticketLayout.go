@@ -73,7 +73,7 @@ func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.Scan
 		RenderSensitiveData(scanInfo.SensitiveData, provider, &builder)
 	}
 	// Checked that the aqua-server name is not empty
-	if len(serverUrl) > 0 {
+	if len(serverUrl) > 0 && len(image_url_part) > 0 {
 		builder.WriteString(provider.P("See more: " + provider.A(serverUrl+image_url_part, serverUrl+image_url_part)))
 	}
 	return builder.String()

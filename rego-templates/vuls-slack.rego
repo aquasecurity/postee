@@ -104,8 +104,13 @@ malware_list := l {
 }
 
 ###########################################################################################################
+postee := with_default(input, "postee", {})
+aqua_server := with_default(postee, "AquaServer", "")
+
 title = sprintf("%s vulnerability scan report", [input.image]) # title is string
-url := sprintf("%s/%s", [input.registry, urlquery.encode(input.image)])
+href:=sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
+text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
+url := by_flag("", href, aqua_server == "")
 
 aggregation_pkg := "postee.vuls.slack.aggregation"
 
@@ -179,11 +184,6 @@ result = res {
                 }
 	           ]
 
-    postee := with_default(input, "postee", {})
-    aqua_server := with_default(postee, "AquaServer", "")
-
-    href:=sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
-    text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
     urlText :=sprintf("See more: \u003c%s|%s\u003e", [href, text])
 
     footers := by_flag(

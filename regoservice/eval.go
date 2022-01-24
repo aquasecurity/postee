@@ -68,15 +68,15 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		return nil, err
 	}
 
-	image_url_part, err := asStringOrJson(data, url_prop)
-	if err != nil {
-		return nil, err
+	shortMessageUrl, ok := data[url_prop].(string)
+	if !ok {
+		shortMessageUrl = ""
 	}
 
 	return map[string]string{
 		"title":       title,
 		"description": description,
-		"url":         serverUrl + image_url_part,
+		"url":         shortMessageUrl,
 	}, nil
 
 }
@@ -133,6 +133,8 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 
 		item["title"] = scan["title"]
 
+		item[url_prop] = scan[url_prop]
+
 		aggregatedJson = append(aggregatedJson, item)
 	}
 
@@ -163,9 +165,15 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 		return nil, err
 	}
 
+	shortMessageUrl, ok := data[url_prop].(string)
+	if !ok {
+		shortMessageUrl = ""
+	}
+
 	return map[string]string{
 		"title":       title,
 		"description": description,
+		"url":         shortMessageUrl,
 	}, nil
 }
 
