@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/aquasecurity/postee/utils"
 	"net/http"
+
+	"github.com/aquasecurity/postee/v2/utils"
 )
 
 func InsertRecordToTable(user, password, instance, table string, content []byte) error {

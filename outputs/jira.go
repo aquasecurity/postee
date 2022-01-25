@@ -8,8 +8,8 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/v2/formatting"
+	"github.com/aquasecurity/postee/v2/layout"
 
 	"net/http"
 	"net/url"
@@ -153,11 +153,11 @@ func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	tpClient, err := ctx.buildTransportClient()
 	if err != nil {
-		return nil, fmt.Errorf("unable to create new JIRA client. %v", err)
+		return nil, fmt.Errorf("unable to create new JIRA client. %w", err)
 	}
 	client, err := jira.NewClient(tpClient, ctx.Url)
 	if err != nil {
-		return client, fmt.Errorf("unable to create new JIRA client. %v", err)
+		return client, fmt.Errorf("unable to create new JIRA client. %w", err)
 	}
 	return client, nil
 }
@@ -175,12 +175,12 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
-		return fmt.Errorf("Failed to create meta project: %s\n", err)
+		return fmt.Errorf("Failed to create meta project: %w", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
-		return fmt.Errorf("Failed to create meta issue type: %s", err)
+		return fmt.Errorf("Failed to create meta issue type: %w", err)
 	}
 
 	ctx.Summary = content["title"]
@@ -259,11 +259,6 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	return nil
 }
 
-func (ctx *JiraAPI) login(client *jira.Client) error {
-	_, err := client.Authentication.AcquireSessionCookie(ctx.User, ctx.Password)
-	return err
-}
-
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {
 	i, res, err := client.Issue.Create(issue)
 
@@ -278,7 +273,7 @@ func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Iss
 func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error) {
 	meta, _, err := c.Issue.GetCreateMeta(project)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get create meta : %s", err)
+		return nil, fmt.Errorf("failed to get create meta : %w", err)
 	}
 
 	// get right project

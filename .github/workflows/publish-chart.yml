@@ -1,5 +1,11 @@
 name: Publish Chart Helm
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'deploy/helm/**'
+      - 'deploy/kubernetes/**'
   push:
     branches: [main]
     paths:
@@ -17,28 +23,26 @@ env:
   KIND_IMAGE: "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@ec3a7ce113134d7a93b817d10a8272cb61118579 #v2.4.0
         with:
           fetch-depth: 0
       - name: Setup Kubernetes cluster (KIND)
-        uses: engineerd/setup-kind@v0.5.0
+        uses: helm/kind-action@94729529f85113b88f4f819c17ce61382e6d8478 #v1.2.0
         with:
           version: ${{ env.KIND_VERSION }}
           image: ${{ env.KIND_IMAGE }}
-      - name: Test connection to Kubernetes cluster
-        run: |
-          kubectl cluster-info
       - name: Installing Kubernetes Postee manifest
         run: |
             kubectl create -f deploy/kubernetes
       - name: Testing Kubernetes Postee manifest
         run: |
-            kubectl wait --for=condition=Ready pod -l app=aqua-postee --timeout=150s
+            kubectl wait --for=condition=Ready pod -l app=postee --timeout=150s
+            kubectl wait --for=condition=Ready pod -l app=postee-ui --timeout=150s
       - name: Install Helm
         uses: azure/setup-helm@v1
         with:

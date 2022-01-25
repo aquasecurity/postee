@@ -11,7 +11,7 @@ The manifest is [here](https://github.com/aquasecurity/postee/blob/main/deploy/k
 
 It will expose a service `postee-ui-svc` in the port `8000`.
 
-`https://postee-ui.default.svc.cluster.local:8000`
+`http://postee-ui.default.svc.cluster.local:8000`
 
 
 ### Docker Image for Postee UI application

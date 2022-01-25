@@ -1,8 +1,9 @@
 package layout
 
 import (
-	"github.com/aquasecurity/postee/data"
 	"strconv"
+
+	"github.com/aquasecurity/postee/v2/data"
 )
 
 func RenderAssurances(provider LayoutProvider, assuranceResults data.ImageAssuranceResults) string {

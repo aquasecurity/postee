@@ -12,14 +12,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/msgservice"
-	"github.com/aquasecurity/postee/outputs"
-	"github.com/aquasecurity/postee/regoservice"
-	"github.com/aquasecurity/postee/routes"
-	"github.com/aquasecurity/postee/utils"
+	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/formatting"
+	"github.com/aquasecurity/postee/v2/msgservice"
+	"github.com/aquasecurity/postee/v2/outputs"
+	"github.com/aquasecurity/postee/v2/regoservice"
+	"github.com/aquasecurity/postee/v2/routes"
+	"github.com/aquasecurity/postee/v2/utils"
 )
 
 const (
@@ -97,7 +97,10 @@ func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
 
 	for _, pl := range ctx.outputs {
-		pl.Terminate()
+		err := pl.Terminate()
+		if err != nil {
+			log.Printf("failed to terminate output: %v", err)
+		}
 	}
 	log.Printf("Outputs terminated")
 
@@ -334,7 +337,10 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 			settings.Type, settings.Name)
 		return nil
 	}
-	plg.Init()
+	err := plg.Init()
+	if err != nil {
+		log.Printf("failed to Init : %v", err)
+	}
 
 	return plg
 }

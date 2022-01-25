@@ -1,8 +1,9 @@
 package formatting
 
 import (
-	"github.com/aquasecurity/postee/layout"
 	"testing"
+
+	"github.com/aquasecurity/postee/v2/layout"
 )
 
 type tagsTest struct {

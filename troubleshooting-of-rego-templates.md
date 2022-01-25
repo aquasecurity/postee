@@ -19,6 +19,7 @@ The example above should be started in `rego-templates` folder and evaluates def
 ### Evaluate template to build json
 
 ```
+cd rego-templates
 opa eval data.postee.vuls.slack.result --data vuls-slack.rego --data common/common.rego --input <path to input json> | jq .result[0].expressions[0].value
 ```
 

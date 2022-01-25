@@ -2,7 +2,8 @@ package layout
 
 import (
 	"bytes"
-	"github.com/aquasecurity/postee/data"
+
+	"github.com/aquasecurity/postee/v2/data"
 )
 
 func RenderSensitiveData(sensitive []data.SensitiveData, provider LayoutProvider, builder *bytes.Buffer) {

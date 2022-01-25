@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/v2/layout"
 )
 
 const (
