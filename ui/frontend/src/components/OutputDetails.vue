@@ -47,6 +47,7 @@
                   <option value="webhook">Webhook</option>
                   <option value="splunk">Splunk</option>
                   <option value="serviceNow">ServiceNow</option>
+                  <option value="nexusIq">Nexus IQ</option>
                 </select>
                 <small id="aHelp" class="form-text text-muted"
                   >The output type</small
@@ -109,6 +110,19 @@
             :inputHandler="updateField"
             :validator="v([url, required])"
           />
+          <!-- nexus-iq custom properties start -->
+          <PropertyField
+            id="organizationId"
+            label="Organization ID"
+            :value="formValues['organization-id']"
+            :errorMsg="errors['organizationId']"
+            name="organization-id"
+            description="ID of organization to create reports in"
+            :show="isNexusIQ"
+            :inputHandler="updateField"
+            :validator="v(required)"
+          />
+          <!-- -->
 
           <!-- email custom properties start -->
           <div class="row">
@@ -434,8 +448,9 @@ const urlDescriptionByType = {
   teams: "Webhook's url",
   jira: 'Mandatory. E.g "https://johndoe.atlassian.net"',
   slack: "",
+  nexusIq: "Url of Nexus IQ server",
 };
-const typesWithCredentials = ["serviceNow", "email"]; //TODO add description strings
+const typesWithCredentials = ["serviceNow", "email", "nexusIq"]; //TODO add description strings
 
 export default {
   data() {
@@ -488,6 +503,9 @@ export default {
     },
     isJira() {
       return this.outputType === "jira";
+    },
+    isNexusIQ() {
+      return this.outputType === "nexusIq";
     },
     showCredentials() {
       return typesWithCredentials.indexOf(this.outputType) >= 0;

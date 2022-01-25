@@ -72,7 +72,7 @@ func (nexus *NexusIqOutput) execute(method string, url string, payload string, h
 		return nil, err
 	}
 
-	if resp.StatusCode/100 == 2 {
+	if resp.StatusCode/100 != 2 {
 		msg := "received incorrect response status: %d. Body: %s"
 		return nil, fmt.Errorf(msg, resp.StatusCode, body)
 	}
