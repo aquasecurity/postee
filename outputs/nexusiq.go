@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/v2/formatting"
+	"github.com/aquasecurity/postee/v2/layout"
 )
 
 var notAllowed = regexp.MustCompile(`[\.:]`)
