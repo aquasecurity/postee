@@ -66,6 +66,25 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"*outputs.EmailOutput",
 		},
 		{
+			"Simple Nexus IQ output",
+			OutputSettings{
+				Url:            "http://localhost:8070",
+				User:           "admin",
+				Password:       "admin123",
+				Name:           "my-nexus",
+				Type:           "nexusIq",
+				OrganizationId: "222de33e8005408a844c12eab952c9b0",
+			},
+			map[string]interface{}{
+				"Url":            "http://localhost:8070",
+				"User":           "admin",
+				"Password":       "admin123",
+				"OrganizationId": "222de33e8005408a844c12eab952c9b0",
+			},
+			false,
+			"*outputs.NexusIqOutput",
+		},
+		{
 			"Simple Jira output",
 			OutputSettings{
 				Url:        "localhost:2990",
