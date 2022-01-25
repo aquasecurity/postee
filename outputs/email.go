@@ -52,13 +52,14 @@ func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
 func (email *EmailOutput) Send(content map[string]string) error {
 	subject := content["title"]
 	body := content["description"]
+	port := strconv.Itoa(email.Port)
 	recipients := getHandledRecipients(email.Recipients, &content, email.Name)
 	if len(recipients) == 0 {
 		return errThereIsNoRecipient
 	}
 
 	if email.UseMX {
-		sendViaMxServers(email.Sender, subject, body, recipients)
+		sendViaMxServers(email.Sender, port, subject, body, recipients)
 		return nil
 	}
 
@@ -70,7 +71,7 @@ func (email *EmailOutput) Send(content map[string]string) error {
 		strings.Join(recipients, ","), email.Sender, subject, body)
 
 	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
-	err := smtp.SendMail(email.Host+":"+strconv.Itoa(email.Port), auth, email.Sender, recipients, []byte(msg))
+	err := smtp.SendMail(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
 		log.Println("SendMail Error:", err)
 		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
@@ -80,7 +81,7 @@ func (email *EmailOutput) Send(content map[string]string) error {
 	return nil
 }
 
-func sendViaMxServers(from, subj, msg string, recipients []string) {
+func sendViaMxServers(from, port, subj, msg string, recipients []string) {
 	for _, rcpt := range recipients {
 		at := strings.LastIndex(rcpt, "@")
 		if at < 0 {
@@ -100,7 +101,7 @@ func sendViaMxServers(from, subj, msg string, recipients []string) {
 					"Subject: %s\r\n"+
 					"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n", rcpt, from, subj, msg)
 
-			if err := smtp.SendMail(mx.Host+":25", nil, from, []string{rcpt}, []byte(message)); err != nil {
+			if err := smtp.SendMail(mx.Host+":"+port, nil, from, []string{rcpt}, []byte(message)); err != nil {
 				log.Printf("SendMail error to %q via %q", rcpt, mx.Host)
 				log.Print(err)
 				continue
