@@ -34,6 +34,7 @@
   - [Templates](#templates)
   - [Outputs](#outputs)
     - [ServiceNow](#serviceNow)
+    - [Nexus IQ](#nexus-iq-integration-parameters)
     - [Jira](#jira)
     - [Email](#email)
     - [Slack](#slack)
