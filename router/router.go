@@ -146,7 +146,7 @@ func (ctx *Router) applyTenantCfg(tenant *data.TenantSettings, synchronous bool)
 	ctx.cleanInstance()
 	ctx.cleanChannels(synchronous)
 
-	err := ctx.initTenantSettings(tenant)
+	err := ctx.initTenantSettings(tenant, synchronous)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (ctx *Router) Terminate() {
 
 	log.Logger.Debug("quit notified")
 
-	if ctx.ticker != nil {
+	if ctx.ticker != nil && ctx.stopTicker != nil {
 		ctx.stopTicker <- struct{}{}
 		log.Logger.Debug("stopTicker notified")
 	}
@@ -322,7 +322,7 @@ func (ctx *Router) setAquaServerUrl(url string) {
 	}
 }
 
-func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
+func (ctx *Router) initTenantSettings(tenant *data.TenantSettings, synchronous bool) error {
 	ctx.mutexScan.Lock()
 	defer ctx.mutexScan.Unlock()
 	log.Logger.Infof("Loading alerts configuration file %s ....", ctx.cfgfile)
@@ -344,18 +344,20 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings) error {
 		actualDbTestInterval = 1
 	}
 
-	ctx.ticker = time.NewTicker(baseForTicker * time.Duration(actualDbTestInterval))
-	go func() {
-		for {
-			select {
-			case <-ctx.stopTicker:
-				return
-			case <-ctx.ticker.C:
-				dbservice.Db.CheckSizeLimit()
-				dbservice.Db.CheckExpiredData()
+	if !synchronous {
+		ctx.ticker = time.NewTicker(baseForTicker * time.Duration(actualDbTestInterval))
+		go func() {
+			for {
+				select {
+				case <-ctx.stopTicker:
+					return
+				case <-ctx.ticker.C:
+					dbservice.Db.CheckSizeLimit()
+					dbservice.Db.CheckExpiredData()
+				}
 			}
-		}
-	}()
+		}()
+	}
 
 	//----------------------------------------------------
 
