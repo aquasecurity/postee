@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
@@ -29,7 +30,8 @@ func (webhook *WebhookOutput) Init() error {
 func (webhook *WebhookOutput) Send(content map[string]string) error {
 	log.Printf("Sending webhook to %q", webhook.Url)
 	data := content["description"] //it's not supposed to work with legacy renderer
-	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
+	client := http.Client{Timeout: time.Duration(120) * time.Second}
+	resp, err := client.Post(webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
 		log.Printf("Sending webhook Error: %v", err)
 		return err
