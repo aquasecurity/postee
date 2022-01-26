@@ -51,7 +51,7 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 	}
 
 	scanInfo := new(data.ScanImageInfo)
-	err := json.Unmarshal([]byte(d["src"]), scanInfo)
+	err := json.Unmarshal([]byte(d["description"]), scanInfo)
 	if err != nil {
 		log.Printf("sending to %q error: %v", splunk.Name, err)
 		return err
