@@ -16,7 +16,7 @@ helm install my-postee -n postee --dry-run --set-file applicationConfigPath="../
 
 ```bash
 cd deploy/helm
-helm install my-postee --create-namespace -n postee ./postee
+helm install app --create-namespace -n postee ./postee
 ```
 
 ## Installing from the the Aqua Chart Repository
@@ -25,10 +25,10 @@ Let's add the Helm chart and deploy Postee executing:
 
 
 ```bash
-helm repo add postee https://aquasecurity.github.io/charts
+helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
 helm repo update
-kubectl create ns postee
-helm install postee -n postee aquasecurity/postee
+helm search repo postee
+helm install app --create-namespace -n postee aquasecurity/postee
 ```
 
 Check that all the pods are in Running state:
