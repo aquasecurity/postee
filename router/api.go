@@ -38,7 +38,6 @@ func WithNewConfig(tenantName string) error { //tenant name
 	if err := dbservice.ConfigureDb(defaultDbPath, "", ""); err != nil {
 		return err
 	}
-	Instance().cleanInstance()
 	Instance().cleanChannels(true)
 	return nil
 }
@@ -49,7 +48,6 @@ func WithNewConfigAndDbPath(tenantName, dbPath string) error { //tenant name
 	if err := dbservice.ConfigureDb(dbPath, "", ""); err != nil {
 		return err
 	}
-	Instance().cleanInstance()
 	Instance().cleanChannels(true)
 	return nil
 }
