@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -130,12 +131,21 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		return nil, fmt.Errorf("error building HTTP url: %s", err.Error())
 	}
 
+	var body []byte
+	if len(sourceSettings.BodyFile) > 0 {
+		var err error
+		body, err = ioutil.ReadFile(sourceSettings.BodyFile)
+		if err != nil {
+			return nil, fmt.Errorf("http action unable to specified body-file: %s, err: %s", sourceSettings.BodyFile, err.Error())
+		}
+	}
+
 	return &outputs.HTTPClient{
 		Name:    sourceSettings.Name,
 		Client:  http.Client{Timeout: duration},
 		URL:     reqUrl,
 		Method:  strings.ToUpper(sourceSettings.Method),
-		Body:    sourceSettings.Body,
+		Body:    string(body),
 		Headers: sourceSettings.Headers,
 	}, nil
 }

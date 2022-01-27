@@ -28,7 +28,7 @@ type OutputSettings struct {
 	InstanceName    string              `json:"instance,omitempty"`
 	SizeLimit       int                 `json:"size-limit,omitempty"`
 	InputFile       string              `json:"input-file,omitempty"`
-	Body            string              `json:"body,omitempty"`
+	BodyFile        string              `json:"bodyfile,omitempty"`
 	Method          string              `json:"method,omitempty"`
 	Timeout         string              `json:"timeout,omitempty"`
 	Headers         map[string][]string `json:"headers,omitempty"`

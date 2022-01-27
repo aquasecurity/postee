@@ -14,7 +14,7 @@ routes:
 
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  outputs: [my-exec, my-http-get, my-http-post]     # Outputs are serially executed
+  outputs: [my-exec, my-http-get, my-http-post]
   template: raw-json
 
 # Templates are used to format a message
@@ -51,4 +51,4 @@ outputs:
   headers:                            # Optional. Headers to pass in for the request.
     "Foo": ["bar", "baz"]
   timeout: 10s                        # Optional. Timeout value in XX(s,m,h)
-  body: "hello world"                 # Optional. Body of the HTTP request
+  bodyFile: tracee.event.logs         # Optional. Body of the HTTP request
