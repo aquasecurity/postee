@@ -9,9 +9,14 @@ import (
 	"github.com/aquasecurity/postee/layout"
 )
 
+type execCmd = func(string, ...string) *exec.Cmd
+
 type ExecClient struct {
+	ExecCmd   execCmd
 	Name      string
+	Env       []string
 	InputFile string
+	Output    []byte
 }
 
 func (e *ExecClient) GetName() string {
@@ -19,23 +24,24 @@ func (e *ExecClient) GetName() string {
 }
 
 func (e *ExecClient) Init() error {
+	e.ExecCmd = exec.Command
 	e.Name = "Exec Output"
 	return nil
 }
 
 func (e *ExecClient) Send(m map[string]string) error {
-	// Set Postee event to be available inside the execution shell
-	cmd := exec.Command("/bin/sh", e.InputFile)
-	cmd.Env = os.Environ()
-	cmd.Env = append(cmd.Env, fmt.Sprintf("POSTEE_EVENT=%s", m["description"]))
+	e.Env = append(e.Env, os.Environ()...)
+	e.Env = append(e.Env, fmt.Sprintf("POSTEE_EVENT=%s", m["description"]))
 
-	var out []byte
+	// Set Postee event to be available inside the execution shell
+	cmd := e.ExecCmd("/bin/sh", e.InputFile)
+	cmd.Env = append(cmd.Env, e.Env...)
+
 	var err error
-	if out, err = cmd.CombinedOutput(); err != nil {
-		log.Printf("error while executing script: %s", err.Error())
-		return err
+	if e.Output, err = cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("error while executing script: %s", err.Error())
 	}
-	log.Println("execution output: ", "len: ", len(out), "out: ", string(out))
+	log.Println("execution output: ", "len: ", len(e.Output), "out: ", string(e.Output))
 	return nil
 }
 

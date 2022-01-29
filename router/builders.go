@@ -109,6 +109,7 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 func buildExecOutput(sourceSettings *OutputSettings) *outputs.ExecClient {
 	return &outputs.ExecClient{
 		Name:      sourceSettings.Name,
+		Env:       sourceSettings.Env,
 		InputFile: sourceSettings.InputFile,
 	}
 }
