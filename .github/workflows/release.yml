@@ -5,11 +5,11 @@ on:
       - "*"
   workflow_dispatch:
 env:
-  GO_VERSION: "1.16"
+  GO_VERSION: "1.17"
 jobs:
   unit-tests:
     name: Run unit tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Setup Go
         uses: actions/setup-go@v1
@@ -27,7 +27,7 @@ jobs:
     name: Release
     needs:
       - unit-tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Setup Go
         uses: actions/setup-go@v1
