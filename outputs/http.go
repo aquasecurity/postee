@@ -25,10 +25,13 @@ func (hc *HTTPClient) GetName() string {
 }
 
 func (hc *HTTPClient) Init() error {
+	hc.Name = "HTTP Output"
 	return nil
 }
 
 func (hc HTTPClient) Send(m map[string]string) error {
+	hc.Headers["POSTEE_EVENT"] = []string{m["description"]} // preserve and transmit postee header
+
 	resp, err := hc.Client.Do(&http.Request{
 		Method: hc.Method,
 		URL:    hc.URL,
@@ -46,7 +49,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("http status NOT OK: %d, response: %s", resp.StatusCode, string(b))
+		return fmt.Errorf("http status NOT OK: HTTP %d %s, response: %s", resp.StatusCode, http.StatusText(resp.StatusCode), string(b))
 	}
 
 	log.Printf("http execution to url %s successful", hc.URL)
