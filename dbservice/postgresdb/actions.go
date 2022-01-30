@@ -14,7 +14,6 @@ func (postgresDb *PostgresDb) MayBeStoreMessage(message []byte, messageKey strin
 	if err != nil {
 		return false, err
 	}
-	defer db.Close()
 
 	currentValue := ""
 	sqlQuery := fmt.Sprintf("SELECT messageValue FROM %s WHERE (tenantName=$1 AND messageKey=$2)", dbparam.DbBucketName)
