@@ -22,6 +22,7 @@ type DbProvider interface {
 	RegisterPlgnInvctn(name string) error
 	EnsureApiKey() error
 	GetApiKey() (string, error)
+	Close() error
 }
 
 func ConfigureDb(pathToDb, postgresUrl, tenantName string) error {

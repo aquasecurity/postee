@@ -297,7 +297,7 @@ func TestApplyPostgresCfg(t *testing.T) {
 		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCacheSource
 	}()
 
-	err := demoCtx.ApplyPostgresCfg("tenantName", postgresUrl, false)
+	err := demoCtx.ApplyPostgresCfg("tenantName", postgresUrl, true)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
