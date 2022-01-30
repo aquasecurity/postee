@@ -564,14 +564,6 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
-	if ok, err := regoservice.DoesMatchRegoCriteria(inMsg, r.InputFiles, r.Input); err != nil {
-		utils.PrnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, in)
-		return
-	} else if !ok {
-		utils.PrnInputLogs("Input %s... doesn't match a REGO rule: %s", in, r.Input)
-		return
-	}
-
 	inputCallbacks := ctx.inputCallBacks[routeName]
 
 	for _, callback := range inputCallbacks {
@@ -579,6 +571,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 			return
 		}
 	}
+	
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
