@@ -2,6 +2,7 @@ package postgresdb
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/aquasecurity/postee/log"
@@ -12,16 +13,17 @@ const (
 	CONN_RETRIES = 10
 )
 
-var dbConn *sqlx.DB
+var (
+	once   sync.Once
+	dbConn *sqlx.DB
+)
 
 var psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-	if dbConn == nil {
+	once.Do(func() {
 		retries := CONN_RETRIES
 		db, err := sqlx.Connect("postgres", connectUrl)
 		for err != nil {
-			if log.Logger != nil {
-				log.Logger.Errorf("failed to connect to postgres db (%d): %s", retries, err.Error())
-			}
+			log.Logger.Errorf("failed to connect to postgres db (%d): %s", retries, err.Error())
 
 			if retries > 1 {
 				retries--
@@ -29,10 +31,10 @@ var psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
 				db, err = sqlx.Connect("postgres", connectUrl)
 				continue
 			}
-			return nil, err
+			log.Logger.Fatal(err)
 		}
 		dbConn = db
-	}
+	})
 
 	return dbConn, nil
 }

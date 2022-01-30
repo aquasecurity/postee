@@ -545,7 +545,12 @@ var withPostgresParamsTest = func() error {
 		j, _ := json.Marshal(outputSettings)
 		return string(j), nil
 	}
+
+	savedUpdateCfgCache := postgresdb.UpdateCfgCacheSource
+	postgresdb.UpdateCfgCacheSource = func(postgresDb *postgresdb.PostgresDb, cfgfile string) error { return nil }
+
 	defer func() {
+		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCache
 		postgresdb.InitPostgresDb = savedInitPostgresDb
 		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
 	}()
@@ -561,7 +566,10 @@ var withPostgresUrlTest = func() error {
 	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
 	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
 	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) { return "", nil }
+	savedUpdateCfgCache := postgresdb.UpdateCfgCacheSource
+	postgresdb.UpdateCfgCacheSource = func(postgresDb *postgresdb.PostgresDb, cfgfile string) error { return nil }
 	defer func() {
+		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCache
 		postgresdb.InitPostgresDb = savedInitPostgresDb
 		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
 	}()

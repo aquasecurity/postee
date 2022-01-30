@@ -22,16 +22,20 @@ func TestInitTemplate(t *testing.T) {
 	defaultRegoFolder := "rego-templates"
 	commonRegoFolder := defaultRegoFolder + "/common"
 	testRego := defaultRegoFolder + "/rego1.rego"
-	err := os.Mkdir(defaultRegoFolder, 0777)
-	if err != nil {
-		t.Fatalf("Can't create rego folder: %v", err)
+	if _, err := os.Stat(defaultRegoFolder); os.IsNotExist(err) {
+		err = os.Mkdir(defaultRegoFolder, 0777)
+		if err != nil {
+			t.Fatalf("Can't create rego folder: %v", err)
+		}
 	}
-	err = os.Mkdir(commonRegoFolder, 0777)
-	if err != nil {
-		t.Fatalf("Can't create rego folder: %v", err)
+	if _, err := os.Stat(commonRegoFolder); os.IsNotExist(err) {
+		err = os.Mkdir(commonRegoFolder, 0777)
+		if err != nil {
+			t.Fatalf("Can't create rego folder: %v", err)
+		}
 	}
 
-	err = ioutil.WriteFile(testRego, []byte(regoRule), 0644)
+	err := ioutil.WriteFile(testRego, []byte(regoRule), 0644)
 
 	if err != nil {
 		t.Fatalf("Can't write rego: %v", err)
