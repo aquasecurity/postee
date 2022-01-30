@@ -19,7 +19,6 @@ func (postgresDb *PostgresDb) CheckSizeLimit() {
 		log.Logger.Errorf("CheckSizeLimit: Can't open db, connectUrl: %s", connectUrl)
 		return
 	}
-	defer db.Close()
 
 	size := 0
 	if err = db.Get(&size, fmt.Sprintf("SELECT pg_total_relation_size('%s');", dbparam.DbBucketName)); err != nil {
@@ -41,7 +40,6 @@ func (postgresDb *PostgresDb) CheckExpiredData() {
 		log.Logger.Errorf("CheckExpiredData: Can't open postgresDb: %v", err)
 		return
 	}
-	defer db.Close()
 
 	max := time.Now().UTC() //remove expired records
 	if err = deleteRowsByTenantNameAndTime(db, postgresDb.TenantName, max); err != nil {

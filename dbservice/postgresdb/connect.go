@@ -2,16 +2,39 @@ package postgresdb
 
 import (
 	"errors"
+	"time"
 
+	"github.com/aquasecurity/postee/log"
 	"github.com/jmoiron/sqlx"
 )
 
+const (
+	CONN_RETRIES = 10
+)
+
+var dbConn *sqlx.DB
+
 var psqlConnect = func(connectUrl string) (*sqlx.DB, error) {
-	db, err := sqlx.Connect("postgres", connectUrl)
-	if err != nil {
-		return nil, err
+	if dbConn == nil {
+		retries := CONN_RETRIES
+		db, err := sqlx.Connect("postgres", connectUrl)
+		for err != nil {
+			if log.Logger != nil {
+				log.Logger.Errorf("failed to connect to postgres db (%d): %s", retries, err.Error())
+			}
+
+			if retries > 1 {
+				retries--
+				time.Sleep(5 * time.Second)
+				db, err = sqlx.Connect("postgres", connectUrl)
+				continue
+			}
+			return nil, err
+		}
+		dbConn = db
 	}
-	return db, nil
+
+	return dbConn, nil
 }
 
 var testConnect = func(connectUrl string) (*sqlx.DB, error) {

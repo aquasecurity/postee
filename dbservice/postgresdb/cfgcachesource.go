@@ -16,7 +16,7 @@ var UpdateCfgCacheSource = func(postgresDb *PostgresDb, cfgfile string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+
 	if err := insertCfgCacheSource(db, postgresDb.TenantName, cfgfile); err != nil {
 		return err
 	}
@@ -29,7 +29,7 @@ var GetCfgCacheSource = func(postgresDb *PostgresDb) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer db.Close()
+
 	cfgFile := ""
 	sqlQuery := fmt.Sprintf("SELECT configfile FROM %s WHERE tenantName=$1", dbparam.DbTableCfgCacheSource)
 	if err = db.Get(&cfgFile, sqlQuery, postgresDb.TenantName); err != nil {

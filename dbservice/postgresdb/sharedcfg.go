@@ -14,7 +14,6 @@ func (postgresDb *PostgresDb) EnsureApiKey() error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
 	apiKey, err := dbparam.GenerateApiKey(32)
 	if err != nil {
@@ -32,7 +31,7 @@ func (postgresDb *PostgresDb) GetApiKey() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer db.Close()
+
 	value := ""
 	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "value", dbparam.DbBucketSharedConfig, "apikeyname")
 	err = db.Get(&value, sqlQuery, postgresDb.TenantName, apiKeyName)
