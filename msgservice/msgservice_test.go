@@ -36,6 +36,7 @@ func (inptEval *FailingInptEval) BuildAggregatedContent(items []map[string]strin
 func (inptEval *FailingInptEval) IsAggregationSupported() bool {
 	return inptEval.expectedAggrError != nil
 }
+
 func TestEvalError(t *testing.T) {
 	dbPathReal := db.DbPath
 	defer func() {
@@ -60,7 +61,9 @@ func TestEvalError(t *testing.T) {
 	}
 
 	srv := new(MsgService)
-	srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, mockScan1) {
+		srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	}
 
 	if demoEmailOutput.getEmailsCount() > 0 {
 		t.Errorf("Output shouldn't be called when evaluation is failed")
@@ -97,10 +100,38 @@ func TestAggrEvalError(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		srv := new(MsgService)
-		srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		if srv.EvaluateRegoRule(demoRoute, mockScan1) {
+			srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		}
 	}
 
 	if demoEmailOutput.getEmailsCount() > 0 {
 		t.Errorf("Output shouldn't be called when evaluation is failed")
+	}
+}
+
+func TestEmptyInput(t *testing.T) {
+	dbPathReal := db.DbPath
+	defer func() {
+		os.Remove(db.DbPath)
+		db.DbPath = dbPathReal
+	}()
+	db.DbPath = "test_webhooks.db"
+
+	srvUrl := ""
+
+	demoRoute := &routes.InputRoute{}
+
+	demoRoute.Name = "demo-route"
+
+	demoInptEval := &DemoInptEval{}
+
+	srv := new(MsgService)
+	if srv.EvaluateRegoRule(demoRoute, map[string]interface{}{}) {
+		srv.MsgHandling(map[string]interface{}{}, nil, demoRoute, demoInptEval, &srvUrl)
+	}
+
+	if demoInptEval.renderCnt != 0 {
+		t.Errorf("Eval() shouldn't be called if no output is passed to ResultHandling()")
 	}
 }

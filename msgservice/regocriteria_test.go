@@ -139,7 +139,9 @@ func validateRegoInput(t *testing.T, caseDesc string, input map[string]interface
 	demoEmailOutput.wg.Add(expected)
 
 	srv := new(MsgService)
-	srv.MsgHandling(input, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, input) {
+		srv.MsgHandling(input, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	}
 
 	demoEmailOutput.wg.Wait()
 
