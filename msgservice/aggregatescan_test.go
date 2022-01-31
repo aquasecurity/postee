@@ -39,16 +39,14 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 
 }
 func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRenderCnt int, expectedAggrRenderCnt int, skipAggrSpprt bool) {
-	db = boltdb.NewBoltDb()
-	oldDb := dbservice.Db
-	dbservice.Db = db
-	defer func() { dbservice.Db = oldDb }()
-	dbPathReal := db.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	db.DbPath = "test_webhooks.db"
+	oldDb := dbservice.Db
+	dbservice.Db = testDB
+	defer func() { dbservice.Db = oldDb }()
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,

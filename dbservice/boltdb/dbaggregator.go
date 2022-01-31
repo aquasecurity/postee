@@ -4,23 +4,18 @@ import (
 	"encoding/json"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
-	bolt "go.etcd.io/bbolt"
 )
 
 func (boltDb *BoltDb) AggregateScans(output string,
 	currentScan map[string]string,
 	scansPerTicket int,
 	ignoreTheQuantity bool) ([]map[string]string, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	boltDb.mu.Lock()
+	defer boltDb.mu.Unlock()
 
-	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
+	db := boltDb.db
 
-	err = Init(db, dbparam.DbBucketAggregator)
+	err := Init(db, dbparam.DbBucketAggregator)
 	if err != nil {
 		return nil, err
 	}

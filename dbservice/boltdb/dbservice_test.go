@@ -76,19 +76,18 @@ var (
 )
 
 func TestStoreMessage(t *testing.T) {
-	db := NewBoltDb()
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
 	var tests = []struct {
 		input *string
 	}{
 		{&AlpineImageResult},
 	}
 
-	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		os.Remove(path)
 	}()
-	db.DbPath = "test_webhooks.db"
 
 	for _, test := range tests {
 
@@ -113,12 +112,11 @@ func TestStoreMessage(t *testing.T) {
 
 }
 func TestInitError(t *testing.T) {
-	db := NewBoltDb()
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
 	originalInit := Init
-	originalDbPath := db.DbPath
 	initErr := errors.New("init error")
-
-	db.DbPath = "test_webhooks.db"
 
 	Init = func(db *bbolt.DB, bucket string) error {
 		return initErr
@@ -126,8 +124,7 @@ func TestInitError(t *testing.T) {
 
 	defer func() {
 		Init = originalInit
-		os.Remove(db.DbPath)
-		db.DbPath = originalDbPath
+		os.Remove(path)
 	}()
 	isNew, err := db.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 
@@ -141,12 +138,12 @@ func TestInitError(t *testing.T) {
 
 }
 func TestSelectError(t *testing.T) {
-	db := NewBoltDb()
-	originalDbSelect := dbSelect
-	originalDbPath := db.DbPath
-	selectErr := errors.New("select error")
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
 
-	db.DbPath = "test_webhooks.db"
+	originalDbSelect := dbSelect
+	selectErr := errors.New("select error")
 
 	dbSelect = func(db *bbolt.DB, bucket, key string) (result []byte, err error) {
 		return nil, selectErr
@@ -154,8 +151,7 @@ func TestSelectError(t *testing.T) {
 
 	defer func() {
 		dbSelect = originalDbSelect
-		os.Remove(db.DbPath)
-		db.DbPath = originalDbPath
+		os.Remove(path)
 	}()
 	isNew, err := db.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 
@@ -181,12 +177,11 @@ func TestInsertError(t *testing.T) {
 }
 
 func testBucketInsert(t *testing.T, testBucket string) {
-	db := NewBoltDb()
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
 	originalDbInsert := dbInsert
-	originalDbPath := db.DbPath
 	insertErr := errors.New("insert error")
-
-	db.DbPath = "test_webhooks.db"
 
 	dbInsert = func(db *bbolt.DB, bucket string, key, value []byte) error {
 		if bucket == testBucket {
@@ -197,8 +192,7 @@ func testBucketInsert(t *testing.T, testBucket string) {
 
 	defer func() {
 		dbInsert = originalDbInsert
-		os.Remove(db.DbPath)
-		db.DbPath = originalDbPath
+		os.Remove(path)
 	}()
 	//expired shouldn't be null to cause insert to 'WebhookExpiryDates' bucket
 	timeToExpire := time.Duration(1) * time.Second
@@ -211,6 +205,6 @@ func testBucketInsert(t *testing.T, testBucket string) {
 	}
 
 	if !errors.Is(err, insertErr) {
-		t.Errorf("Unexpected error: expected %s, got %s \n", insertErr, err)
+		t.Errorf("Unexpected error: expected %s, got %v \n", insertErr, err)
 	}
 }

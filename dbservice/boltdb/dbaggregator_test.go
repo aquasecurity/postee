@@ -6,7 +6,8 @@ import (
 )
 
 func TestAggregateScans(t *testing.T) {
-	db := NewBoltDb()
+	db, _ := NewBoltDb()
+	defer db.Close()
 	var (
 		scan1 = map[string]string{"title": "t1", "description": "d1"}
 		scan2 = map[string]string{"title": "t2", "description": "d2"}

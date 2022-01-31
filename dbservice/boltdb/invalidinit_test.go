@@ -8,74 +8,67 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-var db = NewBoltDb()
-
 var tests = []struct {
 	caseDesc        string
-	errPrvdr        func() error
+	errPrvdr        func(db *BoltDb) error
 	initIsNotCalled bool
 }{
 	{
 		caseDesc: "EnsureApiKey",
-		errPrvdr: func() error {
-			return db.EnsureApiKey()
+		errPrvdr: func(dbTest *BoltDb) error {
+			return dbTest.EnsureApiKey()
 		},
 	},
 	{
 		caseDesc: "GetApiKey",
-		errPrvdr: func() error {
-			_, err := db.GetApiKey()
+		errPrvdr: func(dbTest *BoltDb) error {
+			_, err := dbTest.GetApiKey()
 			return err
 		},
 		initIsNotCalled: true,
 	},
 	{
 		caseDesc: "RegisterPlgnInvctn",
-		errPrvdr: func() error {
-			return db.RegisterPlgnInvctn("some-key")
+		errPrvdr: func(dbTest *BoltDb) error {
+			return dbTest.RegisterPlgnInvctn("some-key")
 		},
 	},
 	{
 		caseDesc: "MayBeStoreMessage",
-		errPrvdr: func() error {
-			_, err := db.MayBeStoreMessage(nil, "a-b-c", nil)
+		errPrvdr: func(dbTest *BoltDb) error {
+			_, err := dbTest.MayBeStoreMessage(nil, "a-b-c", nil)
 			return err
 		},
 	},
 	{
 		caseDesc: "AggregateScans",
-		errPrvdr: func() error {
-			_, err := db.AggregateScans("", map[string]string{}, 1, false)
+		errPrvdr: func(dbTest *BoltDb) error {
+			_, err := dbTest.AggregateScans("", map[string]string{}, 1, false)
 			return err
 		},
 	},
 }
 
 func TestInvalidDbPath(t *testing.T) {
-	dbPathReal := db.DbPath
-	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
-	}()
-	db.DbPath = "/tmp"
-
-	for _, test := range tests {
-		err := test.errPrvdr()
-		if err == nil {
-			t.Errorf("Error is expected when %s is called\n", test.caseDesc)
-		}
-
+	path := "/tmp"
+	_, err := NewBoltDb(path)
+	if err == nil {
+		t.Errorf("Error is expected when bad path '%s' passed\n", path)
 	}
+
 }
+
 func TestBucketInitialization(t *testing.T) {
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
+
 	savedInit := Init
-	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(db.DbPath)
+		os.Remove(path)
 		Init = savedInit
-		db.DbPath = dbPathReal
 	}()
-	db.DbPath = "test_webhooks.db"
+
 	expectedError := errors.New("weird error")
 	Init = func(db *bbolt.DB, bucket string) error {
 		return expectedError
@@ -84,7 +77,7 @@ func TestBucketInitialization(t *testing.T) {
 		if test.initIsNotCalled {
 			continue
 		}
-		err := test.errPrvdr()
+		err := test.errPrvdr(db)
 		if !errors.Is(err, expectedError) {
 			t.Errorf("Unexpected error for %s call, expected %v, got %v", test.caseDesc, expectedError, err)
 		}

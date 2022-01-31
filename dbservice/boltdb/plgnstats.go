@@ -8,15 +8,12 @@ import (
 )
 
 func (boltDb *BoltDb) RegisterPlgnInvctn(name string) error {
-	mutex.Lock()
-	defer mutex.Unlock()
+	boltDb.mu.Lock()
+	defer boltDb.mu.Unlock()
 
-	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	err = Init(db, dbparam.DbBucketOutputStats)
+	db := boltDb.db
+
+	err := Init(db, dbparam.DbBucketOutputStats)
 	if err != nil {
 		return err
 	}

@@ -95,17 +95,15 @@ func TestScanUniqueId(t *testing.T) {
 
 }
 
-func sendInputs(t *testing.T, caseDesc string, inputs []string, uniqueMessageProps []string, expected int) {
-	db = boltdb.NewBoltDb()
+func sendInputs(t *testing.T, caseDesc string, inputs []map[string]interface{}, uniqueMessageProps []string, expected int) {
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
+	defer testDB.Close()
 	oldDb := dbservice.Db
-	dbservice.Db = db
+	dbservice.Db = testDB
 	defer func() { dbservice.Db = oldDb }()
-	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		os.Remove(testDB.DbPath)
 	}()
-	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
