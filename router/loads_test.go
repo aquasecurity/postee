@@ -65,7 +65,7 @@ outputs:
   password: admin
   tls-verify: false
   project-key: kcv`
-	db = boltdb.NewBoltDb()
+	db, _ = boltdb.NewBoltDb()
 )
 
 type ctxWrapper struct {

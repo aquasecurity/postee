@@ -4,18 +4,13 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/dbservice/dbparam"
-	bolt "go.etcd.io/bbolt"
 )
 
 func (boltDb *BoltDb) MayBeStoreMessage(message []byte, messageKey string, expired *time.Time) (wasStored bool, err error) {
-	mutex.Lock()
-	defer mutex.Unlock()
+	boltDb.mu.Lock()
+	defer boltDb.mu.Unlock()
 
-	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
-	if err != nil {
-		return false, err
-	}
-	defer db.Close()
+	db := boltDb.db
 
 	if err = Init(db, dbparam.DbBucketName); err != nil {
 		return false, err

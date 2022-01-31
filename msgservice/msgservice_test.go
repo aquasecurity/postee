@@ -10,10 +10,6 @@ import (
 	"github.com/aquasecurity/postee/routes"
 )
 
-var (
-	db = boltdb.NewBoltDb()
-)
-
 type FailingInptEval struct {
 	expectedError     error
 	expectedAggrError error
@@ -36,13 +32,13 @@ func (inptEval *FailingInptEval) BuildAggregatedContent(items []map[string]strin
 func (inptEval *FailingInptEval) IsAggregationSupported() bool {
 	return inptEval.expectedAggrError != nil
 }
+
 func TestEvalError(t *testing.T) {
-	dbPathReal := db.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -68,15 +64,14 @@ func TestEvalError(t *testing.T) {
 }
 
 func TestAggrEvalError(t *testing.T) {
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	oldDb := dbservice.Db
-	dbservice.Db = db
+	dbservice.Db = testDB
 	defer func() { dbservice.Db = oldDb }()
-	dbPathReal := db.DbPath
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,

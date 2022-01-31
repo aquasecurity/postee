@@ -94,7 +94,8 @@ func TestRegoCriteria(t *testing.T) {
 
 }
 func validateRegoInput(t *testing.T, caseDesc string, input map[string]interface{}, regoCriteria string, regoFilePath string, shouldPass bool) {
-	db := boltdb.NewBoltDb()
+	db, _ := boltdb.NewBoltDb("test_webhooks.db")
+	defer db.Close()
 	oldDb := dbservice.Db
 	dbservice.Db = db
 	defer func() { dbservice.Db = oldDb }()
@@ -110,12 +111,9 @@ func validateRegoInput(t *testing.T, caseDesc string, input map[string]interface
 	defer os.Remove("regoFile.rego")
 	defer regoFile.Close()
 
-	dbPathReal := db.DbPath
 	defer func() {
 		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
 	}()
-	db.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,

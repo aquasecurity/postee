@@ -5,7 +5,12 @@ import (
 )
 
 func TestChangeDbPath(t *testing.T) {
-	boltDb := NewBoltDb()
+	boltDb, err := NewBoltDb()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer boltDb.Close()
 	testPath := "/tmp/test.db"
 	storedPath := boltDb.DbPath
 	boltDb.ChangeDbPath(testPath)

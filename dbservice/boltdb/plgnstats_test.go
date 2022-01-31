@@ -10,13 +10,13 @@ import (
 )
 
 func TestRegisterPlgnInvctn(t *testing.T) {
-	dbBolt := NewBoltDb()
-	dbPathReal := dbBolt.DbPath
+	path := "test_webhooks.db"
+	dbBolt, _ := NewBoltDb(path)
 	defer func() {
-		os.Remove(dbBolt.DbPath)
-		dbBolt.DbPath = dbPathReal
+		dbBolt.Close()
+		os.Remove(path)
 	}()
-	dbBolt.DbPath = "test_webhooks.db"
+
 	expectedCnt := 3
 	keyToTest := "test"
 	for i := 0; i < expectedCnt; i++ {
@@ -25,6 +25,7 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
 	r, err := getPlgnStats(dbBolt)
 	if err != nil {
 		t.Fatal("error while getting value of API key")
@@ -38,12 +39,7 @@ func TestRegisterPlgnInvctn(t *testing.T) {
 func getPlgnStats(dbBolt *BoltDb) (r map[string]int, err error) {
 	r = make(map[string]int)
 
-	db, err := bolt.Open(dbBolt.DbPath, 0444, nil)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-	err = db.View(func(tx *bolt.Tx) error {
+	err = dbBolt.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dbparam.DbBucketOutputStats))
 		if bucket == nil {
 			return nil //no bucket - empty stats will be returned

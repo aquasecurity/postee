@@ -12,16 +12,12 @@ const (
 )
 
 func (boltDb *BoltDb) EnsureApiKey() error {
-	mutex.Lock()
-	defer mutex.Unlock()
+	boltDb.mu.Lock()
+	defer boltDb.mu.Unlock()
 
-	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
+	db := boltDb.db
 
-	err = Init(db, dbparam.DbBucketOutputStats)
+	err := Init(db, dbparam.DbBucketOutputStats)
 	if err != nil {
 		return err
 	}
@@ -37,12 +33,9 @@ func (boltDb *BoltDb) EnsureApiKey() error {
 }
 func (boltDb *BoltDb) GetApiKey() (string, error) {
 	var apiKey string = ""
-	db, err := bolt.Open(boltDb.DbPath, 0444, nil) //should be enough
-	if err != nil {
-		return "", err
-	}
-	defer db.Close()
-	err = db.View(func(tx *bolt.Tx) error {
+	db := boltDb.db
+
+	err := db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(dbparam.DbBucketSharedConfig))
 		if bucket == nil {
 			return errors.New("no bucket") //no bucket

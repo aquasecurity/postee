@@ -13,15 +13,10 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 	if dbparam.DbSizeLimit == 0 {
 		return
 	}
-	mutex.Lock()
-	defer mutex.Unlock()
+	boltDb.mu.Lock()
+	defer boltDb.mu.Unlock()
 
-	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
-	if err != nil {
-		log.Logger.Errorf("CheckSizeLimit: Can't open db: %s", boltDb.DbPath)
-		return
-	}
-	defer db.Close()
+	db := boltDb.db
 
 	if err := db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(dbparam.DbBucketName))
@@ -44,15 +39,10 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 }
 
 func (boltDb *BoltDb) CheckExpiredData() {
-	mutex.Lock()
-	defer mutex.Unlock()
+	boltDb.mu.Lock()
+	defer boltDb.mu.Unlock()
 
-	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
-	if err != nil {
-		log.Logger.Errorf("CheckExpiredData: Can't open db: %s", boltDb.DbPath)
-		return
-	}
-	defer db.Close()
+	db := boltDb.db
 
 	expired, err := boltDb.getExpired(db)
 	if err != nil {

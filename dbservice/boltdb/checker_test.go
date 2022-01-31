@@ -11,16 +11,14 @@ import (
 )
 
 func TestExpiredDates(t *testing.T) {
-	boltDb := NewBoltDb()
-	dbPathReal := boltDb.DbPath
+	boltDb, _ := NewBoltDb("test_webhooks.db")
+	defer boltDb.Close()
 	realDueTimeBase := dbparam.DueTimeBase
 	defer func() {
 		os.Remove(boltDb.DbPath)
-		boltDb.DbPath = dbPathReal
 		dbparam.DueTimeBase = realDueTimeBase
 	}()
 	dbparam.DueTimeBase = time.Nanosecond
-	boltDb.DbPath = "test_webhooks.db"
 	tests := []struct {
 		title                       string
 		delay                       int
@@ -55,15 +53,14 @@ func TestExpiredDates(t *testing.T) {
 }
 
 func TestDbSizeLimnit(t *testing.T) {
-	boltDb := NewBoltDb()
-	dbPathReal := boltDb.DbPath
+	boltDb, _ := NewBoltDb("test_webhooks.db")
+	defer boltDb.Close()
+
 	realSizeLimit := dbparam.DbSizeLimit
 	defer func() {
 		os.Remove(boltDb.DbPath)
-		boltDb.DbPath = dbPathReal
 		dbparam.DbSizeLimit = realSizeLimit
 	}()
-	boltDb.DbPath = "test_webhooks.db"
 
 	tests := []struct {
 		title   string
@@ -98,17 +95,15 @@ func TestDbSizeLimnit(t *testing.T) {
 }
 
 func TestWrongBuckets(t *testing.T) {
-	boltDb := NewBoltDb()
+	boltDb, _ := NewBoltDb("test_webhooks.db")
+	defer boltDb.Close()
 	savedDbBucketName := dbparam.DbBucketName
 	savedDbBucketExpiryDates := dbparam.DbBucketExpiryDates
-	dbPathReal := boltDb.DbPath
 	defer func() {
 		dbparam.DbBucketName = savedDbBucketName
 		dbparam.DbBucketExpiryDates = savedDbBucketExpiryDates
 		os.Remove(boltDb.DbPath)
-		boltDb.DbPath = dbPathReal
 	}()
-	boltDb.DbPath = "test_webhooks.db"
 
 	_, err := boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
 	if err != nil {
@@ -134,17 +129,14 @@ func TestWrongBuckets(t *testing.T) {
 }
 
 func TestDbDelete(t *testing.T) {
-	boltDb := NewBoltDb()
-	dbPathReal := boltDb.DbPath
+	path := "test_webhooks.db"
 	defer func() {
-		os.Remove(boltDb.DbPath)
-		boltDb.DbPath = dbPathReal
+		os.Remove(path)
 	}()
-	boltDb.DbPath = "test_webhooks.db"
 
-	db, err := bolt.Open(boltDb.DbPath, 0666, nil)
+	db, err := bolt.Open(path, 0666, nil)
 	if err != nil {
-		t.Fatal("Can't open db:", boltDb.DbPath)
+		t.Fatal("Can't open db:", path)
 		return
 	}
 	defer db.Close()
@@ -203,26 +195,4 @@ func TestDbDelete(t *testing.T) {
 		t.Errorf("bad insert/select, expected: %s, got: %s", value1, selectValue1AfterDel)
 	}
 
-}
-
-func TestWithoutAccessToDb(t *testing.T) {
-	boltDb := NewBoltDb()
-	dbPathReal := boltDb.DbPath
-	defer func() {
-		err := os.Remove(boltDb.DbPath)
-		if err != nil {
-			t.Errorf("Can't remove db: %v", err)
-		}
-		boltDb.DbPath = dbPathReal
-	}()
-	boltDb.DbPath = "test_webhooks.db"
-	db, err := bolt.Open(boltDb.DbPath, 0220, nil)
-	if err != nil {
-		t.Fatal("Can't open db:", boltDb.DbPath)
-		return
-	}
-	db.Close()
-	dbparam.DbSizeLimit = 1
-	boltDb.CheckSizeLimit()
-	boltDb.CheckExpiredData()
 }

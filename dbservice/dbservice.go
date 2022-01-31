@@ -37,12 +37,11 @@ func ConfigureDb(pathToDb, postgresUrl, tenantName string) error {
 		}
 		Db = postgresDb
 	} else {
-		boltdb := boltdb.NewBoltDb()
-		if pathToDb != "" {
-			if err := boltdb.SetNewDbPath(pathToDb); err != nil {
-				return err
-			}
+		boltdb, err := boltdb.NewBoltDb(pathToDb)
+		if err != nil {
+			return err
 		}
+
 		Db = boltdb
 	}
 	return nil

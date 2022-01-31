@@ -6,13 +6,13 @@ import (
 )
 
 func TestApiKey(t *testing.T) {
-	db := NewBoltDb()
-	dbPathReal := db.DbPath
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		os.Remove(path)
 	}()
-	db.DbPath = "test_webhooks.db"
+
 	err := db.EnsureApiKey()
 	if err != nil {
 		t.Fatal("error EnsureApiKey")
@@ -26,13 +26,13 @@ func TestApiKey(t *testing.T) {
 	}
 }
 func TestApiKeyWithoutInit(t *testing.T) {
-	db := NewBoltDb()
-	dbPathReal := db.DbPath
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		os.Remove(path)
 	}()
-	db.DbPath = "test_webhooks.db"
+
 	key, err := db.GetApiKey()
 	if err == nil {
 		t.Fatal("Error is expected")
@@ -42,13 +42,13 @@ func TestApiKeyWithoutInit(t *testing.T) {
 	}
 }
 func TestApiKeyRenewal(t *testing.T) {
-	db := NewBoltDb()
-	dbPathReal := db.DbPath
+	path := "test_webhooks.db"
+	db, _ := NewBoltDb(path)
+	defer db.Close()
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		os.Remove(path)
 	}()
-	db.DbPath = "test_webhooks.db"
+
 	var keys [2]string
 	for i := 0; i < 2; i++ {
 		err := db.EnsureApiKey()
