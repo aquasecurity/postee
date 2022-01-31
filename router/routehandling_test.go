@@ -7,9 +7,7 @@ import (
 	"time"
 )
 
-var (
-	payload = `{"image" : "alpine"}`
-)
+var payload = `{"image" : "alpine"}`
 
 func TestHandling(t *testing.T) {
 	tests := []struct {
@@ -202,8 +200,8 @@ func TestInvalidRouteName(t *testing.T) {
 			}
 		}
 	}
-
 }
+
 func TestSend(t *testing.T) {
 	expctdInvctns := 1
 	actualInvctCnt := 0

@@ -71,7 +71,9 @@ func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRend
 
 	for _, scan := range scans {
 		srv := new(MsgService)
-		srv.MsgHandling(scan, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		if srv.EvaluateRegoRule(demoRoute, scan) {
+			srv.MsgHandling(scan, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		}
 	}
 
 	demoEmailOutput.wg.Wait()

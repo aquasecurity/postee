@@ -58,9 +58,15 @@ func TestAggregateByTimeout(t *testing.T) {
 	srvUrl := ""
 
 	srv1 := new(MsgService)
-	srv1.MsgHandling(mockScan1, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.MsgHandling(mockScan2, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.MsgHandling(mockScan3, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	if srv1.EvaluateRegoRule(demoRoute, mockScan1) {
+		srv1.MsgHandling(mockScan1, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	}
+	if srv1.EvaluateRegoRule(demoRoute, mockScan2) {
+		srv1.MsgHandling(mockScan2, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	}
+	if srv1.EvaluateRegoRule(demoRoute, mockScan3) {
+		srv1.MsgHandling(mockScan3, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	}
 
 	expectedSchedulerInvctCnt := 1
 

@@ -115,7 +115,9 @@ func sendInputs(t *testing.T, caseDesc string, inputs []map[string]interface{}, 
 
 	for _, inp := range inputs {
 		srv := new(MsgService)
-		srv.MsgHandling(inp, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		if srv.EvaluateRegoRule(demoRoute, inp) {
+			srv.MsgHandling(inp, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		}
 	}
 
 	demoEmailOutput.wg.Wait()

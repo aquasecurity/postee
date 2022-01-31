@@ -538,6 +538,7 @@ func (ctx *Router) loadCfgCacheSourceFromPostgres() (*data.TenantSettings, error
 
 type service interface {
 	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	EvaluateRegoRule(input *routes.InputRoute, in map[string]interface{}) bool
 }
 
 var getScanService = func() service {
@@ -571,7 +572,12 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 			return
 		}
 	}
-	
+
+	if !getScanService().EvaluateRegoRule(r, inMsg) {
+		log.Logger.Infof("Rego match was not found for route %s", routeName)
+		return
+	}
+
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
