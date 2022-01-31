@@ -21,11 +21,3 @@ func TestConnectFuncError(t *testing.T) {
 		t.Errorf("error text connect, expectedError: %v, got: %v", expectedError, err)
 	}
 }
-
-func TestPsqlConnectError(t *testing.T) {
-	expectedError := `missing "=" after "test_trivy_psql_connect_dbName" in connection info string"`
-	_, err := psqlConnect("test_trivy_psql_connect_dbName")
-	if err.Error() != expectedError {
-		t.Errorf("Unexpected error, expected: '%v', got: '%v'", expectedError, err)
-	}
-}

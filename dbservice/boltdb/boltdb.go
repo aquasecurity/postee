@@ -42,3 +42,8 @@ func (boltDb *BoltDb) SetNewDbPath(newPath string) error {
 	}
 	return nil
 }
+
+// unimplemented
+func (boltDb *BoltDb) Close() error {
+	return nil
+}
