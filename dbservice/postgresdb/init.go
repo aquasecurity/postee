@@ -32,7 +32,6 @@ var InitPostgresDb = func(connectUrl string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
 	err = initAllTables(db)
 	if err != nil {

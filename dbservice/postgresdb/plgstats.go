@@ -14,7 +14,6 @@ func (postgresDb *PostgresDb) RegisterPlgnInvctn(name string) error {
 	if err != nil {
 		return err
 	}
-	defer db.Close()
 
 	amount := 0
 	sqlQuery := fmt.Sprintf("SELECT %s FROM %s WHERE (tenantName=$1 AND %s=$2)", "amount", dbparam.DbBucketOutputStats, "outputName")
