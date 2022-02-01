@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aquasecurity/postee/log"
+	"github.com/aquasecurity/postee/v2/log"
 	"github.com/jmoiron/sqlx"
 )
 

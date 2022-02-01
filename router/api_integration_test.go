@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/router"
-	"github.com/aquasecurity/postee/routes"
+	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/router"
+	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -78,9 +78,6 @@ func TestAudit(t *testing.T) {
 		Name:     "test",
 		Outputs:  []string{"test-webhook"},
 		Template: "audit-json-template",
-		Plugins: routes.Plugins{
-			PolicyShowAll: true,
-		},
 	})
 	router.Send([]byte(msg))
 	defer os.Remove("webhooks.db")

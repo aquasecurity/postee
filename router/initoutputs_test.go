@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aquasecurity/postee/data"
+	"github.com/aquasecurity/postee/v2/data"
 )
 
 func TestBuildAndInitOtpt(t *testing.T) {
@@ -18,7 +18,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 	}{
 		{
 			"Default Stdout Output",
-			OutputSettings{
+			data.OutputSettings{
 				Name:   "stdout",
 				Type:   "stdout",
 				Enable: true,

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/aquasecurity/postee/log"
+	"github.com/aquasecurity/postee/v2/log"
 	bolt "go.etcd.io/bbolt"
 )
 

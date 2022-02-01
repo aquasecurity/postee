@@ -7,12 +7,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/dbservice/boltdb" //nolint - used to get db type in TestConfigFuncs
-	"github.com/aquasecurity/postee/dbservice/postgresdb"
-	"github.com/aquasecurity/postee/outputs" //nolint - used to get Output type in TestEditOutput
-	"github.com/aquasecurity/postee/routes"
+	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb" //nolint - used to get db type in TestConfigFuncs
+	"github.com/aquasecurity/postee/v2/dbservice/postgresdb"
+	"github.com/aquasecurity/postee/v2/outputs" //nolint - used to get Output type in TestEditOutput
+	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/stretchr/testify/assert"
 )
 

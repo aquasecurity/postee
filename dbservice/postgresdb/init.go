@@ -3,7 +3,7 @@ package postgresdb
 import (
 	"fmt"
 
-	"github.com/aquasecurity/postee/dbservice/dbparam"
+	"github.com/aquasecurity/postee/v2/dbservice/dbparam"
 	"github.com/jmoiron/sqlx"
 )
 

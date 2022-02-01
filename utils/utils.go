@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aquasecurity/postee/log"
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 func GetEnvironmentVarOrPlain(value string) string {

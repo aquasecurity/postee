@@ -46,46 +46,37 @@ var (
 
 func TestScanUniqueId(t *testing.T) {
 	tests := []struct {
-		inputs        []map[string]interface{}
-		caseDesc      string
-		policyShowAll bool
-		expctdInvc    int
+		inputs             []map[string]interface{}
+		caseDesc           string
+		uniqueMessageProps []string
+		expctdInvc         int
 	}{
 		{
-			inputs:        []map[string]interface{}{unique_scan1, unique_scan1},
-			caseDesc:      "Same scan twice with PolicyShowAll: false",
-			policyShowAll: false,
-			expctdInvc:    1,
+			inputs:             []map[string]interface{}{unique_scan1, unique_scan1},
+			caseDesc:           "Same scan twice with unique message props specified",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			expctdInvc:         1,
 		},
 		{
-			inputs:        []map[string]interface{}{unique_scan1, unique_scan1},
-			caseDesc:      "Same scan twice with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
+			inputs:     []map[string]interface{}{unique_scan1, unique_scan2},
+			caseDesc:   "Same scan twice without unique message props specified",
+			expctdInvc: 2,
 		},
 		{
-			inputs:        []map[string]interface{}{unique_scan1, unique_scan2},
-			caseDesc:      "2 unique scan with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
+			inputs:             []map[string]interface{}{unique_scan1, unique_scan2},
+			caseDesc:           "2 unique scan with unique message props specified",
+			uniqueMessageProps: []string{"digest", "image", "registry"},
+			expctdInvc:         2,
 		},
 		{
-			inputs:        []map[string]interface{}{unique_scan1, unique_scan2},
-			caseDesc:      "2 unique scan with PolicyShowAll: false",
-			policyShowAll: false,
-			expctdInvc:    2,
+			inputs:     []map[string]interface{}{unique_scan1, unique_scan2},
+			caseDesc:   "2 unique scan without unique message props specified",
+			expctdInvc: 2,
 		},
 		{
-			inputs:        []map[string]interface{}{non_unique_payload, non_unique_payload},
-			caseDesc:      "2 non-scan inputs with PolicyShowAll: true",
-			policyShowAll: true,
-			expctdInvc:    2,
-		},
-		{
-			caseDesc:      "2 non-scan inputs with PolicyShowAll: false",
-			inputs:        []map[string]interface{}{non_unique_payload, non_unique_payload},
-			policyShowAll: false,
-			expctdInvc:    2,
+			inputs:     []map[string]interface{}{non_unique_payload, non_unique_payload},
+			caseDesc:   "2 non-scan inputs without unique message props specified",
+			expctdInvc: 2,
 		},
 	}
 
@@ -122,8 +113,8 @@ func sendInputs(t *testing.T, caseDesc string, inputs []map[string]interface{}, 
 
 	for _, inp := range inputs {
 		srv := new(MsgService)
-		if srv.EvaluateRegoRule(demoRoute, []byte(inp)) {
-			srv.MsgHandling([]byte(inp), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		if srv.EvaluateRegoRule(demoRoute, inp) {
+			srv.MsgHandling(inp, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 		}
 	}
 

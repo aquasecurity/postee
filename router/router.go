@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path"
 	"strings"
 	"sync"
@@ -322,13 +321,6 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings, synchronous b
 
 	ctx.setAquaServerUrl(tenant.AquaServer)
 
-	postgresUrl := os.Getenv("POSTGRES_URL")
-	pathToDb := os.Getenv("PATH_TO_DB")
-
-	if err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name); err != nil {
-		return err
-	}
-
 	dbparam.DbSizeLimit = tenant.DBMaxSize
 
 	actualDbTestInterval := tenant.DBTestInterval
@@ -419,10 +411,12 @@ func (ctx *Router) listRoutes() []routes.InputRoute {
 			Input:   r.Input,
 			Outputs: data.CopyStringArray(r.Outputs),
 			Plugins: routes.Plugins{
-				AggregateIssuesNumber:   r.Plugins.AggregateIssuesNumber,
-				AggregateIssuesTimeout:  r.Plugins.AggregateIssuesTimeout,
-				PolicyShowAll:           r.Plugins.PolicyShowAll,
-				AggregateTimeoutSeconds: r.Plugins.AggregateTimeoutSeconds,
+				AggregateMessageNumber:      r.Plugins.AggregateMessageNumber,
+				AggregateMessageTimeout:     r.Plugins.AggregateMessageTimeout,
+				AggregateTimeoutSeconds:     r.Plugins.AggregateTimeoutSeconds,
+				UniqueMessageProps:          r.Plugins.UniqueMessageProps,
+				UniqueMessageTimeout:        r.Plugins.UniqueMessageTimeout,
+				UniqueMessageTimeoutSeconds: r.Plugins.UniqueMessageTimeoutSeconds,
 			},
 			Template: r.Template,
 		})
@@ -538,7 +532,7 @@ func (ctx *Router) loadCfgCacheSourceFromPostgres() (*data.TenantSettings, error
 
 type service interface {
 	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
-	EvaluateRegoRule(input *routes.InputRoute, in []byte) bool
+	EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool
 }
 
 var getScanService = func() service {
@@ -559,8 +553,22 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Logger.Errorf("route %q has no outputs", routeName)
 		return
 	}
+	inMsg := map[string]interface{}{}
+	if err := json.Unmarshal(in, &inMsg); err != nil {
+		utils.PrnInputLogs("json.Unmarshal error for %q: %v", in, err)
+		return
+	}
 
-	if !getScanService().EvaluateRegoRule(r, in) {
+	inputCallbacks := ctx.inputCallBacks[routeName]
+
+	for _, callback := range inputCallbacks {
+		if !callback(inMsg) {
+			return
+		}
+	}
+
+	if !getScanService().EvaluateRegoRule(r, inMsg) {
+		log.Logger.Infof("Rego match was not found for route %s", routeName)
 		return
 	}
 
@@ -591,6 +599,7 @@ func (ctx *Router) handle(in []byte) {
 		ctx.HandleRoute(routeName, in)
 	}
 }
+
 func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outputs.Output, error) {
 	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
 	if len(settings.User) == 0 && requireAuthorization[settings.Type] {
@@ -603,12 +612,10 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	settings.Token = utils.GetEnvironmentVarOrPlain(settings.Token)
 	if settings.Type == "jira" {
 		if len(settings.User) == 0 {
-			log.Printf("User for %q is empty", settings.Name)
-			return nil
+			return nil, xerrors.Errorf("user for %q is empty", settings.Name)
 		}
 		if len(settings.Token) == 0 && len(settings.Password) == 0 {
-			log.Printf("Password and Token for %q are empty", settings.Name)
-			return nil
+			return nil, xerrors.Errorf("both password and token for %q are empty", settings.Name)
 		}
 	}
 

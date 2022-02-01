@@ -56,8 +56,8 @@ func TestEvalError(t *testing.T) {
 	}
 
 	srv := new(MsgService)
-	if srv.EvaluateRegoRule(demoRoute, []byte(mockScan1)) {
-		srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, mockScan1) {
+		srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	if demoEmailOutput.getEmailsCount() > 0 {
@@ -94,8 +94,8 @@ func TestAggrEvalError(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		srv := new(MsgService)
-		if srv.EvaluateRegoRule(demoRoute, []byte(mockScan1)) {
-			srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		if srv.EvaluateRegoRule(demoRoute, mockScan1) {
+			srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 		}
 	}
 
@@ -103,44 +103,25 @@ func TestAggrEvalError(t *testing.T) {
 		t.Errorf("Output shouldn't be called when evaluation is failed")
 	}
 }
+
 func TestEmptyInput(t *testing.T) {
-	dbPathReal := db.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	defer func() {
-		os.Remove(db.DbPath)
-		db.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	db.DbPath = "test_webhooks.db"
 
 	srvUrl := ""
-
 	demoRoute := &routes.InputRoute{}
-
 	demoRoute.Name = "demo-route"
-
 	demoInptEval := &DemoInptEval{}
 
 	srv := new(MsgService)
-	if srv.EvaluateRegoRule(demoRoute, []byte("{}")) {
-		srv.MsgHandling([]byte("{}"), nil, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, map[string]interface{}{}) {
+		srv.MsgHandling(map[string]interface{}{}, nil, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	if demoInptEval.renderCnt != 0 {
 		t.Errorf("Eval() shouldn't be called if no output is passed to ResultHandling()")
-	}
-}
-
-func TestMalformedJSON(t *testing.T) {
-	var (
-		srvUrl          = ""
-		demoRoute       = &routes.InputRoute{Name: "demo-route"}
-		demoInptEval    = &DemoInptEval{}
-		demoEmailOutput = &DemoEmailOutput{}
-	)
-
-	srv := new(MsgService)
-	srv.MsgHandling([]byte("{test:test}"), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
-
-	if demoEmailOutput.getEmailsCount() > 0 {
-		t.Errorf("Output shouldn't be called when evaluation is failed")
 	}
 }

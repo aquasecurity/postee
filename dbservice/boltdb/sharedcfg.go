@@ -3,7 +3,7 @@ package boltdb
 import (
 	"errors"
 
-	"github.com/aquasecurity/postee/dbservice/dbparam"
+	"github.com/aquasecurity/postee/v2/dbservice/dbparam"
 	bolt "go.etcd.io/bbolt"
 )
 

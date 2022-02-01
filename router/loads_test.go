@@ -138,7 +138,7 @@ func (ctxWrapper *ctxWrapper) teardown() {
 	close(ctxWrapper.buff)
 }
 
-func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, _ []byte) bool {
+func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
 	if r.Name == "fail_evaluation" {
 		return false
 	}

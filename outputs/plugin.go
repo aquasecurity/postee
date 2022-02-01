@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aquasecurity/postee/log"
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 const (

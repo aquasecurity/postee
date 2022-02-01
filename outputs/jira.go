@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"github.com/aquasecurity/postee/log"
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 
 	"net/http"
 	"net/url"

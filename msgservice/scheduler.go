@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/log"
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
 )

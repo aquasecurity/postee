@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/aquasecurity/postee/log/zaplogger"
+	"github.com/aquasecurity/postee/v2/log/zaplogger"
 )
 
 var Logger LoggerType = initDefaultLogger()

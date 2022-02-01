@@ -404,7 +404,7 @@ func TestRouteWithNoValidRego(t *testing.T) {
 
 	defer wrap.teardown()
 
-	err := wrap.instance.Start(wrap.cfgPath)
+	err := wrap.instance.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 	if err != nil {
 		t.Fatalf("Unexpected error %v", err)
 	}

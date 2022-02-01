@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aquasecurity/postee/dbservice/boltdb"
-	"github.com/aquasecurity/postee/dbservice/postgresdb"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
+	"github.com/aquasecurity/postee/v2/dbservice/postgresdb"
 )
 
 var (

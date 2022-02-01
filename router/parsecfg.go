@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"io/ioutil"
 
-	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/log"
+	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/log"
 	"github.com/ghodss/yaml"
 )
 

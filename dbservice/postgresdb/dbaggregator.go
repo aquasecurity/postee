@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/aquasecurity/postee/dbservice/dbparam"
+	"github.com/aquasecurity/postee/v2/dbservice/dbparam"
 )
 
 func (postgresDb *PostgresDb) AggregateScans(output string,

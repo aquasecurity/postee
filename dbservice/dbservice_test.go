@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/aquasecurity/postee/dbservice/postgresdb"
+	"github.com/aquasecurity/postee/v2/dbservice/postgresdb"
 )
 
 func TestConfigurateBoltDbPathUsedEnv(t *testing.T) {

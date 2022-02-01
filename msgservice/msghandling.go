@@ -2,15 +2,16 @@ package msgservice
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/log"
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
+	"github.com/aquasecurity/postee/v2/utils"
 )
 
 type MsgService struct {
@@ -23,10 +24,6 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 
 	//TODO marshalling message back to bytes, change after merge with https://github.com/aquasecurity/postee/pull/150
 	input, _ := json.Marshal(in)
-	if err := scan.init(input); err != nil {
-		log.Println("ScanService.Init Error: Can't init service with data:", input, "\nError:", err)
-		return
-	}
 
 	//TODO move logic below somewhere close to Jira output implementation
 	owners := ""
@@ -34,9 +31,7 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 	if ok {
 		applicationScopeOwners := make([]string, 0)
 
-		for _, owner := range applicationScopeOwnersObj.([]interface{}) {
-			applicationScopeOwners = append(applicationScopeOwners, owner.(string))
-		}
+		applicationScopeOwners = append(applicationScopeOwners, applicationScopeOwnersObj.([]string)...)
 
 		if len(applicationScopeOwners) > 0 {
 			owners = strings.Join(applicationScopeOwners, ";")
@@ -101,25 +96,19 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 }
 
 // EvaluateRegoRule returns true in case the given input ([]byte) matches the input of the given route
-func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input []byte) bool {
-	in := map[string]interface{}{}
-	if err := json.Unmarshal(input, &in); err != nil {
-		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
-		return false
-	}
-
-	if ok, err := regoservice.DoesMatchRegoCriteria(in, r.InputFiles, r.Input); err != nil {
+func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
+	if ok, err := regoservice.DoesMatchRegoCriteria(input, r.InputFiles, r.Input); err != nil {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-			prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
+			utils.PrnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
 		} else {
-			prnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
+			utils.PrnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
 		}
 		return false
 	} else if !ok {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-			prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, r.Input)
+			utils.PrnInputLogs("Input %s... doesn't match a REGO rule: %s", input, r.Input)
 		} else {
-			prnInputLogs("Input %s... doesn't match a REGO input files rule", input)
+			utils.PrnInputLogs("Input %s... doesn't match a REGO input files rule", input)
 		}
 		return false
 	}
