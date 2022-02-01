@@ -1,22 +1,53 @@
 # Postee Helm Chart
 
-## Test
+This chart bootstraps a Postee deployment on a [Kubernetes](https://kubernetes.io/) cluster using the [Helm package manager](https://helm.sh/).
+
+## Prerequisites
+- Kubernetes 1.17+
+- Helm 3+
+## Test the Chart Repository
+
 ```bash
 cd deploy/helm
-helm install my-postee -n aqua --dry-run --debug --set-file applicationConfigPath="../../cfg.yaml" ./postee
+helm install my-postee -n postee --dry-run --set-file applicationConfigPath="../../cfg.yaml" ./postee
 ```
 
-## Install
-
-**NOTE**
-The cfg.yaml is located under `deploy/helm/postee/cfg-files/cfg.yaml`
+## Installing the Chart from the Source Code
 
 ```bash
-helm install my-postee -n aqua --debug ./postee
+cd deploy/helm
+helm install app --create-namespace -n postee ./postee
 ```
 
-## Delete
+## Installing from the the Aqua Chart Repository
+
+Let's add the Helm chart and deploy Postee executing:
+
+
 ```bash
-helm -n aqua delete my-postee
+helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
+helm repo update
+helm search repo postee
+helm install app --create-namespace -n postee aquasecurity/postee
+```
+
+Check that all the pods are in Running state:
+
+`kubectl get pods -n postee`
+
+We check the logs:
+
+```
+kubectl logs deployment/my-posteeui -n postee | head
+```
+
+```
+kubectl logs statefulsets/my-postee -n postee | head
+```
+
+## Delete Chart
+
+```bash
+helm -n postee delete my-postee
 ```
 

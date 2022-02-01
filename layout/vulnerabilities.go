@@ -2,8 +2,9 @@ package layout
 
 import (
 	"bytes"
-	"github.com/aquasecurity/postee/data"
 	"strings"
+
+	"github.com/aquasecurity/postee/v2/data"
 )
 
 const empty = "none"

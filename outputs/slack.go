@@ -7,11 +7,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/aquasecurity/postee/data"
-	"github.com/aquasecurity/postee/formatting"
-	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/formatting"
+	"github.com/aquasecurity/postee/v2/layout"
 
-	slackAPI "github.com/aquasecurity/postee/slack"
+	slackAPI "github.com/aquasecurity/postee/v2/slack"
 )
 
 const (
