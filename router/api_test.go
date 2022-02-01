@@ -1,7 +1,6 @@
 package router
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -397,8 +396,6 @@ func TestConfigFuncs(t *testing.T) {
 		{"WithFileConfigAndDbPath", withFileConfigAndDbPathTest, "", false, "raw", "my-slack", "route1", "test/webhooks.db", ""},
 		{"WithNewConfig", withNewConfigTest, "", true, "", "", "", "./webhooks.db", ""},
 		{"WithNewConfigAndDbPath", withNewConfigAndDbPathTest, "", true, "", "", "", "test/webhooks.db", ""},
-		{"WithPostgresParams", withPostgresParamsTest, "ParamsTenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:543/ParamsDbName?sslmode=ParamsSslMode"},
-		{"WithPostgresUrl", withPostgresUrlTest, "tenantName", true, "", "", "", "", "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:543/ParamsDbName?sslmode=ParamsSslMode"},
 	}
 	for _, test := range tests {
 		t.Run("test "+test.funcName, func(t *testing.T) {
@@ -534,49 +531,6 @@ var withDefaultConfigAndDbPathTest = func() error {
 		os.RemoveAll(filepath.Dir(dbPath))
 		os.RemoveAll(filepath.Dir(defaultConfigPath))
 	}()
-	return nil
-}
-
-var withPostgresParamsTest = func() error {
-	savedInitPostgresDb := postgresdb.InitPostgresDb
-	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
-	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
-	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) {
-		j, _ := json.Marshal(outputSettings)
-		return string(j), nil
-	}
-
-	savedUpdateCfgCache := postgresdb.UpdateCfgCacheSource
-	postgresdb.UpdateCfgCacheSource = func(postgresDb *postgresdb.PostgresDb, cfgfile string) error { return nil }
-
-	defer func() {
-		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCache
-		postgresdb.InitPostgresDb = savedInitPostgresDb
-		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
-	}()
-	err := WithPostgresParams("ParamsTenantName", "ParamsDbName", "ParamsDbHostName", "543", "ParamsUser", "ParamsPassword", "ParamsSslMode")
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-var withPostgresUrlTest = func() error {
-	savedInitPostgresDb := postgresdb.InitPostgresDb
-	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
-	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
-	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) { return "", nil }
-	savedUpdateCfgCache := postgresdb.UpdateCfgCacheSource
-	postgresdb.UpdateCfgCacheSource = func(postgresDb *postgresdb.PostgresDb, cfgfile string) error { return nil }
-	defer func() {
-		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCache
-		postgresdb.InitPostgresDb = savedInitPostgresDb
-		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
-	}()
-	psqlUrl := "postgres://ParamsUser:ParamsPassword@ParamsDbHostName:543/ParamsDbName?sslmode=ParamsSslMode"
-	if err := WithPostgresUrl(tenantName, psqlUrl); err != nil {
-		return err
-	}
 	return nil
 }
 

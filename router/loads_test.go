@@ -1,7 +1,6 @@
 package router
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,9 +9,6 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
-	"github.com/aquasecurity/postee/v2/dbservice"
-	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
-	"github.com/aquasecurity/postee/v2/dbservice/postgresdb"
 	"github.com/aquasecurity/postee/v2/msgservice"
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
@@ -65,7 +61,6 @@ outputs:
   password: admin
   tls-verify: false
   project-key: kcv`
-	db, _ = boltdb.NewBoltDb()
 )
 
 type ctxWrapper struct {
@@ -106,12 +101,11 @@ func (ctxWrapper *ctxWrapper) setup(cfg string) {
 	}
 }
 func (ctxWrapper *ctxWrapper) init() {
-	ctxWrapper.savedDBPath = db.DbPath
+	ctxWrapper.savedDBPath = "test_webhooks.db"
 	ctxWrapper.savedBaseForTicker = baseForTicker
 	ctxWrapper.savedGetService = getScanService
 	ctxWrapper.buff = make(chan invctn)
 
-	db.DbPath = "test_webhooks.db"
 	baseForTicker = time.Microsecond
 	ctxWrapper.defaultRegoFolder = "rego-templates"
 	ctxWrapper.commonRegoFolder = ctxWrapper.defaultRegoFolder + "/common"
@@ -136,11 +130,10 @@ func (ctxWrapper *ctxWrapper) teardown() {
 
 	baseForTicker = ctxWrapper.savedBaseForTicker
 	os.Remove(ctxWrapper.cfgPath)
-	os.Remove(db.DbPath)
+	os.Remove(ctxWrapper.savedDBPath)
 	os.Remove(ctxWrapper.commonRegoFolder)
 	os.Remove(ctxWrapper.defaultRegoFolder)
 
-	db.ChangeDbPath(ctxWrapper.savedDBPath)
 	getScanService = ctxWrapper.savedGetService
 	close(ctxWrapper.buff)
 }
@@ -159,7 +152,7 @@ func TestLoads(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	err := demoCtx.ApplyFileCfg(wrap.cfgPath, "", "", false)
+	err := demoCtx.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,6 +176,7 @@ func TestLoads(t *testing.T) {
 		t.Errorf("Output 'splunk' didn't run!")
 	}
 }
+
 func TestReload(t *testing.T) {
 	extraOtptCfg := `
 - name: jira2
@@ -201,7 +195,7 @@ func TestReload(t *testing.T) {
 
 	demoCtx := wrap.instance
 
-	errStart := demoCtx.ApplyFileCfg(wrap.cfgPath, "", "", false)
+	errStart := demoCtx.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 	if errStart != nil {
 		t.Fatal(errStart)
 	}
@@ -232,82 +226,5 @@ func TestServiceGetters(t *testing.T) {
 	scanner := getScanService()
 	if _, ok := scanner.(*msgservice.MsgService); !ok {
 		t.Error("getScanService() doesn't return an instance of scanservice.ScanService")
-	}
-}
-
-func TestApplyPostgresCfg(t *testing.T) {
-	testTenantSerrings := data.TenantSettings{
-		Name:            "TenantName",
-		AquaServer:      "https://demolab.aquasec.com",
-		DBMaxSize:       13,
-		DBRemoveOldData: 7,
-		InputRoutes: []routes.InputRoute{
-			{
-				Name:     "route",
-				Outputs:  []string{"slack", "teams"},
-				Template: "legacy",
-			},
-		},
-		Outputs: []data.OutputSettings{
-			{
-				Name:   "slack",
-				Type:   "slack",
-				Url:    "https://hooks.slack.com/services/TAAAA/BBB/",
-				Enable: true,
-			},
-			{
-				Name:   "teams",
-				Type:   "teams",
-				Url:    "https://outlook.office.com/webhook/",
-				Enable: true,
-			},
-		},
-		Templates: []data.Template{
-			{
-				Name:               "legacy",
-				LegacyScanRenderer: "html",
-			},
-		},
-	}
-	wrap := ctxWrapper{}
-	wrap.init()
-	demoCtx := wrap.instance
-
-	savedDb := dbservice.Db
-	dbservice.Db = &postgresdb.PostgresDb{}
-
-	postgresUrl := "postgres://User:Password@DbHostName:Port/DbName?sslmode=SslMode"
-
-	savedGetCfgCacheSource := postgresdb.GetCfgCacheSource
-	postgresdb.GetCfgCacheSource = func(postgresDb *postgresdb.PostgresDb) (string, error) {
-		cfg, _ := json.Marshal(testTenantSerrings)
-		return string(cfg), nil
-	}
-
-	savedUpdateCfgCacheSource := postgresdb.UpdateCfgCacheSource
-	postgresdb.UpdateCfgCacheSource = func(postgresDb *postgresdb.PostgresDb, cfgfile string) error { return nil }
-
-	savedInitPostgresDb := postgresdb.InitPostgresDb
-	postgresdb.InitPostgresDb = func(connectUrl string) error { return nil }
-	defer func() {
-		wrap.teardown()
-		dbservice.Db = savedDb
-		postgresdb.GetCfgCacheSource = savedGetCfgCacheSource
-		postgresdb.InitPostgresDb = savedInitPostgresDb
-		postgresdb.UpdateCfgCacheSource = savedUpdateCfgCacheSource
-	}()
-
-	err := demoCtx.ApplyPostgresCfg("tenantName", postgresUrl, true)
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-	}
-
-	expectedOutputsCnt := 2
-	if len(demoCtx.outputs) != expectedOutputsCnt {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(Instance().outputs))
-	}
-
-	if testTenantSerrings.Outputs[0].Name != Instance().databaseCfgCacheSource.Outputs[0].Name {
-		t.Errorf("Output names are not equals, expected: %s, got: %s", testTenantSerrings.Outputs[0].Name, Instance().databaseCfgCacheSource.Outputs[0].Name)
 	}
 }

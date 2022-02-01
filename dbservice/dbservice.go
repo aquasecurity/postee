@@ -25,24 +25,23 @@ type DbProvider interface {
 	Close() error
 }
 
-func ConfigureDb(pathToDb, postgresUrl, tenantName string) error {
-
+func ConfigureDb(pathToDb, postgresUrl, tenantName string) (DbProvider, error) {
 	if postgresUrl != "" {
 		if tenantName == "" {
-			return errConfigPsqlEmptyTenantName
+			return nil, errConfigPsqlEmptyTenantName
 		}
 		postgresDb := postgresdb.NewPostgresDb(tenantName, postgresUrl)
 		if err := postgresdb.InitPostgresDb(postgresDb.ConnectUrl); err != nil {
-			return err
+			return nil, err
 		}
 		Db = postgresDb
 	} else {
 		boltdb, err := boltdb.NewBoltDb(pathToDb)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		Db = boltdb
 	}
-	return nil
+	return Db, nil
 }
