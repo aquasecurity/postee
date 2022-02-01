@@ -244,6 +244,7 @@ func (ctx *Router) load() error {
 
 type service interface {
 	MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	EvaluateRegoRule(input *routes.InputRoute, in []byte) bool
 }
 
 var getScanService = func() service {
@@ -264,6 +265,11 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Printf("route %q has no outputs", routeName)
 		return
 	}
+
+	if !getScanService().EvaluateRegoRule(r, in) {
+		return
+	}
+
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {

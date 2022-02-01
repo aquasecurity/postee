@@ -112,7 +112,9 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, uniqueMessagePro
 
 	for _, inp := range inputs {
 		srv := new(MsgService)
-		srv.MsgHandling([]byte(inp), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		if srv.EvaluateRegoRule(demoRoute, []byte(inp)) {
+			srv.MsgHandling([]byte(inp), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		}
 	}
 
 	demoEmailOutput.wg.Wait()
