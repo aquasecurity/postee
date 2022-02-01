@@ -15,6 +15,7 @@ import (
 
 var (
 	errThereIsNoRecipient = errors.New("there is no recipient")
+	lookupMXFunc          = net.LookupMX
 )
 
 type EmailOutput struct {
@@ -88,12 +89,14 @@ func sendViaMxServers(from, port, subj, msg string, recipients []string) {
 			log.Printf("%q isn't email", rcpt)
 			continue
 		}
+
 		host := rcpt[at+1:]
-		mxs, err := net.LookupMX(host)
+		mxs, err := lookupMXFunc(host)
 		if err != nil {
-			log.Print(err)
+			log.Println("error looking up mx host: ", err)
 			continue
 		}
+
 		for _, mx := range mxs {
 			message := fmt.Sprintf(
 				"To: %s\r\n"+
@@ -103,7 +106,7 @@ func sendViaMxServers(from, port, subj, msg string, recipients []string) {
 
 			if err := smtp.SendMail(mx.Host+":"+port, nil, from, []string{rcpt}, []byte(message)); err != nil {
 				log.Printf("SendMail error to %q via %q", rcpt, mx.Host)
-				log.Print(err)
+				log.Println("error: ", err)
 				continue
 			}
 			log.Printf("The message to %q was sent successful via %q!", rcpt, mx.Host)
