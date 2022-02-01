@@ -23,7 +23,7 @@ func TestConfigurateBoltDbPathUsedEnv(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 
 			testInterval := 2
-			if err := ConfigureDb(test.dbPath, "", ""); err != nil {
+			if _, err := ConfigureDb(test.dbPath, "", ""); err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
 			if testInterval != 2 {
@@ -62,7 +62,7 @@ func TestConfiguratePostgresDbUrlAndTenantName(t *testing.T) {
 				postgresdb.InitPostgresDb = initPostgresDbSaved
 			}()
 
-			err := ConfigureDb("", test.url, test.tenantName)
+			_, err := ConfigureDb("", test.url, test.tenantName)
 			if err != nil {
 				if !errors.Is(err, test.expectedError) {
 					t.Errorf("Unexpected error, expected: %s, got: %s", test.expectedError, err)

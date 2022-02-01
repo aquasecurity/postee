@@ -122,7 +122,7 @@ func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfgPath string, exp
 
 	defer wrap.teardown()
 
-	err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", "", false)
+	err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 
 	if err != nil {
 		t.Fatalf("[%s] Unexpected error %v", caseDesc, err)
@@ -169,6 +169,7 @@ func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfgPath string, exp
 	}
 
 }
+
 func TestInvalidRouteName(t *testing.T) {
 	expctdInvctns := 0
 	actualInvctCnt := 0
@@ -183,7 +184,7 @@ func TestInvalidRouteName(t *testing.T) {
 
 	defer wrap.teardown()
 
-	err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", "", false)
+	err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 	if err != nil {
 		t.Fatalf("Unexpected error %v", err)
 	}
@@ -204,6 +205,7 @@ func TestInvalidRouteName(t *testing.T) {
 	}
 
 }
+
 func TestSend(t *testing.T) {
 	expctdInvctns := 1
 	actualInvctCnt := 0
@@ -218,7 +220,7 @@ func TestSend(t *testing.T) {
 
 	defer wrap.teardown()
 
-	err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", "", false)
+	err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 	if err != nil {
 		t.Fatalf("Unexpected error %v", err)
 	}
@@ -278,10 +280,9 @@ func TestCallBack(t *testing.T) {
 
 			wrap.setup(string(b))
 
-			defer wrap.teardown()
-
-			err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", "", false)
+			err = wrap.instance.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 			if err != nil {
+				wrap.teardown()
 				t.Fatalf("Unexpected error %v", err)
 			}
 
@@ -294,11 +295,13 @@ func TestCallBack(t *testing.T) {
 			for {
 				select {
 				case <-timeout:
+					wrap.teardown()
 					return
 				case <-wrap.buff:
 					actualInvctCnt++
 					if actualInvctCnt != tt.expctdInvctns {
 						t.Errorf("Incorrect number of invocations!  expected %d, got %d \n", tt.expctdInvctns, actualInvctCnt)
+						wrap.teardown()
 						return
 					}
 				}
