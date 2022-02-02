@@ -48,7 +48,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 		return fmt.Errorf("unable to read HTTP response: %s", err.Error())
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return fmt.Errorf("http status NOT OK: HTTP %d %s, response: %s", resp.StatusCode, http.StatusText(resp.StatusCode), string(b))
 	}
 
