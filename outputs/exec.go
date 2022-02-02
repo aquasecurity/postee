@@ -30,7 +30,7 @@ func (e *ExecClient) Init() error {
 }
 
 func (e *ExecClient) Send(m map[string]string) error {
-	e.Env = append(e.Env, os.Environ()...)
+	e.Env = os.Environ()
 	e.Env = append(e.Env, fmt.Sprintf("POSTEE_EVENT=%s", m["description"]))
 
 	// Set Postee event to be available inside the execution shell
