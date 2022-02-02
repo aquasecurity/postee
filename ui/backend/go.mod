@@ -1,6 +1,6 @@
 module github.com/aquasecurity/postee/ui/backend
 
-go 1.16
+go 1.17
 
 require (
 	github.com/aquasecurity/postee v1.1.5-0.20211210093651-b669cce16033

@@ -1,4 +1,4 @@
-FROM golang:1.15.8-alpine as builder
+FROM golang:1.17-alpine as builder
 # RUN apk add --update git
 COPY . /server/
 WORKDIR /server/
