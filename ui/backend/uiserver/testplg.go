@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aquasecurity/postee/layout"
-	"github.com/aquasecurity/postee/router"
+	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/router"
 )
 
 func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
