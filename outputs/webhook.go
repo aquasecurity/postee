@@ -13,8 +13,9 @@ import (
 )
 
 type WebhookOutput struct {
-	Name string
-	Url  string
+	Name    string
+	Url     string
+	Timeout int
 }
 
 func (webhook *WebhookOutput) GetName() string {
@@ -30,7 +31,7 @@ func (webhook *WebhookOutput) Init() error {
 func (webhook *WebhookOutput) Send(content map[string]string) error {
 	log.Printf("Sending webhook to %q", webhook.Url)
 	data := content["description"] //it's not supposed to work with legacy renderer
-	client := http.Client{Timeout: time.Duration(120) * time.Second}
+	client := newClient(webhook.Timeout)
 	resp, err := client.Post(webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
 		log.Printf("Sending webhook Error: %v", err)
@@ -61,4 +62,11 @@ func (webhook *WebhookOutput) GetLayoutProvider() layout.LayoutProvider {
 	// Todo: This is MOCK. Because Formatting isn't need for Webhook
 	// todo: The App should work with `return nil`
 	return new(formatting.HtmlProvider)
+}
+
+var newClient = func(timeout int) http.Client {
+	if timeout == 0 {
+		timeout = 120
+	}
+	return http.Client{Timeout: time.Duration(timeout) * time.Second}
 }
