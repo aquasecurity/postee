@@ -15,6 +15,7 @@ import (
 
 var (
 	errThereIsNoRecipient = errors.New("there is no recipient")
+	lookupMXFunc          = net.LookupMX
 )
 
 type EmailOutput struct {
@@ -26,6 +27,7 @@ type EmailOutput struct {
 	Sender     string
 	Recipients []string
 	UseMX      bool
+	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 }
 
 func (email *EmailOutput) GetName() string {
@@ -37,6 +39,8 @@ func (email *EmailOutput) Init() error {
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
+
+	email.sendFunc = smtp.SendMail
 	return nil
 }
 
@@ -58,11 +62,6 @@ func (email *EmailOutput) Send(content map[string]string) error {
 		return errThereIsNoRecipient
 	}
 
-	if email.UseMX {
-		sendViaMxServers(email.Sender, port, subject, body, recipients)
-		return nil
-	}
-
 	msg := fmt.Sprintf(
 		"To: %s\r\n"+
 			"From: %s\r\n"+
@@ -70,8 +69,17 @@ func (email *EmailOutput) Send(content map[string]string) error {
 			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
 		strings.Join(recipients, ","), email.Sender, subject, body)
 
-	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
-	err := smtp.SendMail(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
+	if email.UseMX {
+		email.sendViaMxServers(port, msg, recipients)
+		return nil
+	}
+
+	var auth smtp.Auth
+	if len(email.Password) > 0 && len(email.User) > 0 {
+		auth = smtp.PlainAuth("", email.User, email.Password, email.Host)
+	}
+
+	err := email.sendFunc(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
 		log.Println("SendMail Error:", err)
 		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
@@ -81,29 +89,25 @@ func (email *EmailOutput) Send(content map[string]string) error {
 	return nil
 }
 
-func sendViaMxServers(from, port, subj, msg string, recipients []string) {
+func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []string) {
 	for _, rcpt := range recipients {
 		at := strings.LastIndex(rcpt, "@")
 		if at < 0 {
 			log.Printf("%q isn't email", rcpt)
 			continue
 		}
+
 		host := rcpt[at+1:]
-		mxs, err := net.LookupMX(host)
+		mxs, err := lookupMXFunc(host)
 		if err != nil {
-			log.Print(err)
+			log.Println("error looking up mx host: ", err)
 			continue
 		}
-		for _, mx := range mxs {
-			message := fmt.Sprintf(
-				"To: %s\r\n"+
-					"From: %s\r\n"+
-					"Subject: %s\r\n"+
-					"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n", rcpt, from, subj, msg)
 
-			if err := smtp.SendMail(mx.Host+":"+port, nil, from, []string{rcpt}, []byte(message)); err != nil {
+		for _, mx := range mxs {
+			if err := email.sendFunc(mx.Host+":"+port, nil, email.Sender, recipients, []byte(msg)); err != nil {
 				log.Printf("SendMail error to %q via %q", rcpt, mx.Host)
-				log.Print(err)
+				log.Println("error: ", err)
 				continue
 			}
 			log.Printf("The message to %q was sent successful via %q!", rcpt, mx.Host)
