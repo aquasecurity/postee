@@ -272,6 +272,18 @@ Select your profile picture at top right of the screen, then choose  Settings > 
         * Password: your Password.\
         or
         * Token: your Personal Access Tokens.
+3. For non-English jira:
+    * If your jira `issuetype` and `priority` fields do not have default values ("Task" and "High") fill the configuration file:
+      ```
+      # cfg.yaml configuration file
+
+      - name: your-jira-name  
+      type: jira
+      ...     
+      issuetype:    # If your jira issuetype is not "Task", fill your issuetype here.
+      priority:     # If your jira priority is not "High", fill your priority here.
+      ...
+      ```
 
 <details>
 <summary>Details</summary>
