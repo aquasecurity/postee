@@ -13,39 +13,10 @@ import (
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
-type EmailSender interface {
-	Send(address string, to []string, body []byte) error
-}
-
-type EmailConfig struct {
-	Username   string
-	Password   string
-	ServerHost string
-	ServerPort string
-	SenderAddr string
-}
-
 var (
 	errThereIsNoRecipient = errors.New("there is no recipient")
 	lookupMXFunc          = net.LookupMX
 )
-
-type emailSender struct {
-	conf EmailConfig
-	send func(string, smtp.Auth, string, []string, []byte) error
-}
-
-func (e *emailSender) Send(address string, to []string, body []byte) error {
-	var auth smtp.Auth
-	if len(e.conf.Password) > 0 && len(e.conf.Username) > 0 {
-		auth = smtp.PlainAuth("", e.conf.Username, e.conf.Password, e.conf.ServerHost)
-	}
-	return e.send(address, auth, e.conf.SenderAddr, to, body)
-}
-
-func NewEmailSender(conf EmailConfig, sendFunc func(string, smtp.Auth, string, []string, []byte) error) EmailSender {
-	return &emailSender{conf, sendFunc}
-}
 
 type EmailOutput struct {
 	Name       string
@@ -56,7 +27,7 @@ type EmailOutput struct {
 	Sender     string
 	Recipients []string
 	UseMX      bool
-	ES         EmailSender
+	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 }
 
 func (email *EmailOutput) GetName() string {
@@ -68,13 +39,8 @@ func (email *EmailOutput) Init() error {
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
-	email.ES = NewEmailSender(EmailConfig{
-		Username:   email.User,
-		Password:   email.Password,
-		ServerHost: email.Host,
-		ServerPort: strconv.Itoa(email.Port),
-		SenderAddr: email.Sender,
-	}, smtp.SendMail)
+
+	email.sendFunc = smtp.SendMail
 	return nil
 }
 
@@ -108,7 +74,12 @@ func (email *EmailOutput) Send(content map[string]string) error {
 		return nil
 	}
 
-	err := email.ES.Send(email.Host+":"+port, recipients, []byte(msg))
+	var auth smtp.Auth
+	if len(email.Password) > 0 && len(email.User) > 0 {
+		auth = smtp.PlainAuth("", email.User, email.Password, email.Host)
+	}
+
+	err := email.sendFunc(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
 		log.Println("SendMail Error:", err)
 		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
@@ -134,7 +105,7 @@ func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []
 		}
 
 		for _, mx := range mxs {
-			if err := email.ES.Send(mx.Host+":"+port, recipients, []byte(msg)); err != nil {
+			if err := email.sendFunc(mx.Host+":"+port, nil, email.Sender, recipients, []byte(msg)); err != nil {
 				log.Printf("SendMail error to %q via %q", rcpt, mx.Host)
 				log.Println("error: ", err)
 				continue

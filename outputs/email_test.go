@@ -32,7 +32,7 @@ func TestEmailOutput_Send(t *testing.T) {
 	testCases := []struct {
 		name               string
 		lookupMXFunc       func(name string) ([]*net.MX, error)
-		emailConfig        *EmailOutput
+		emailOutput        *EmailOutput
 		expectedMessage    string
 		sendError          error
 		expectedError      error
@@ -70,7 +70,7 @@ func TestEmailOutput_Send(t *testing.T) {
 		},
 		{
 			name:          "sad path, no recipients",
-			emailConfig:   &EmailOutput{Recipients: []string{}},
+			emailOutput:   &EmailOutput{Recipients: []string{}},
 			expectedError: errThereIsNoRecipient,
 		},
 		{
@@ -82,7 +82,7 @@ func TestEmailOutput_Send(t *testing.T) {
 		},
 		{
 			name: "sad path, use mx server, invalid recipient,",
-			emailConfig: &EmailOutput{
+			emailOutput: &EmailOutput{
 				Name:       "my-email",
 				User:       "user",
 				Password:   "pass",
@@ -123,14 +123,11 @@ func TestEmailOutput_Send(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var emailsSent int
-			f, r := mockSend(tc.sendError, &emailsSent)
-
-			var ec EmailOutput
-			if tc.emailConfig != nil {
-				ec = *tc.emailConfig
+			var eo EmailOutput
+			if tc.emailOutput != nil {
+				eo = *tc.emailOutput
 			} else {
-				ec = EmailOutput{
+				eo = EmailOutput{
 					Name:       "my-email",
 					User:       "user",
 					Password:   "pass",
@@ -140,7 +137,10 @@ func TestEmailOutput_Send(t *testing.T) {
 					Recipients: []string{"anything@fubar.com"},
 				}
 			}
-			ec.ES = &emailSender{send: f}
+
+			var emailsSent int
+			f, r := mockSend(tc.sendError, &emailsSent)
+			eo.sendFunc = f
 
 			if tc.lookupMXFunc != nil {
 				oldLookupMXFunc := lookupMXFunc
@@ -148,10 +148,10 @@ func TestEmailOutput_Send(t *testing.T) {
 				defer func() {
 					lookupMXFunc = oldLookupMXFunc
 				}()
-				ec.UseMX = true
+				eo.UseMX = true
 			}
 
-			err := ec.Send(map[string]string{"description": "foo bar baz body", "title": "email subject"})
+			err := eo.Send(map[string]string{"description": "foo bar baz body", "title": "email subject"})
 			switch {
 			case tc.expectedError != nil:
 				assert.Equal(t, tc.expectedError, err, tc.name)
