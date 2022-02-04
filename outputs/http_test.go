@@ -35,6 +35,7 @@ func TestHTTPClient_Send(t *testing.T) {
 			name:   "happy path method get",
 			method: http.MethodGet,
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "bar value", r.Header.Get("fookey"))
 				assert.Equal(t, "foo bar baz header", r.Header.Get("POSTEE_EVENT"))
 				fmt.Fprintln(w, "Hello, client")
 			},
@@ -44,6 +45,7 @@ func TestHTTPClient_Send(t *testing.T) {
 			method: http.MethodPost,
 			body:   "foo body",
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "bar value", r.Header.Get("fookey"))
 				assert.Equal(t, "foo bar baz header", r.Header.Get("POSTEE_EVENT"))
 
 				b, _ := ioutil.ReadAll(r.Body)

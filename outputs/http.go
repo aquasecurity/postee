@@ -30,12 +30,13 @@ func (hc *HTTPClient) Init() error {
 }
 
 func (hc HTTPClient) Send(m map[string]string) error {
-	hc.Headers["POSTEE_EVENT"] = []string{m["description"]} // preserve and transmit postee header
+	headers := hc.Headers
+	headers["POSTEE_EVENT"] = []string{m["description"]} // preserve and transmit postee header
 
 	resp, err := hc.Client.Do(&http.Request{
 		Method: hc.Method,
 		URL:    hc.URL,
-		Header: hc.Headers,
+		Header: headers,
 		Body:   io.NopCloser(strings.NewReader(hc.Body)),
 	})
 	if err != nil {
