@@ -12,22 +12,10 @@ import (
 	"time"
 )
 
-// RoundTripFunc .
-type RoundTripFunc func(req *http.Request) *http.Response
-
-// RoundTrip .
-func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
-	if !strings.HasPrefix(req.URL.Scheme, "http") {
-		return nil, fmt.Errorf("bad URL")
-	}
-	return f(req), nil
-}
-
-//NewTestClient returns *http.Client with Transport replaced to avoid making real calls
-func NewTestClient(fn RoundTripFunc) *http.Client {
-	return &http.Client{
-		Transport: RoundTripFunc(fn),
-	}
+func TestWebhook_GetName(t *testing.T) {
+	webhook := WebhookOutput{Name: "webhook output"}
+	require.NoError(t, webhook.Init())
+	require.Equal(t, "webhook output", webhook.GetName())
 }
 
 func TestWebhook_Send(t *testing.T) {
@@ -133,5 +121,22 @@ func TestNewClient(t *testing.T) {
 			require.Equal(t, test.wantTimeout, client.Timeout)
 		})
 	}
+}
 
+// RoundTripFunc .
+type RoundTripFunc func(req *http.Request) *http.Response
+
+// RoundTrip .
+func (f RoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	if !strings.HasPrefix(req.URL.Scheme, "http") {
+		return nil, fmt.Errorf("bad URL")
+	}
+	return f(req), nil
+}
+
+//NewTestClient returns *http.Client with Transport replaced to avoid making real calls
+func NewTestClient(fn RoundTripFunc) *http.Client {
+	return &http.Client{
+		Transport: RoundTripFunc(fn),
+	}
 }
