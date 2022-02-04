@@ -186,36 +186,13 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	ctx.Summary = content["title"]
 	ctx.Description = content["description"]
 
-	assignee := ctx.User
-	if len(ctx.Assignee) > 0 {
-		assignees := getHandledRecipients(ctx.Assignee, &content, ctx.Name)
-		if len(assignees) > 0 {
-			assignee = assignees[0]
-		}
-	}
-
-	fieldsConfig := map[string]string{
-		"Issue Type":  ctx.Issuetype,
-		"Project":     ctx.ProjectKey,
-		"Priority":    ctx.Priority,
-		"Assignee":    assignee,
-		"Description": ctx.Description,
-		"Summary":     ctx.Summary,
-	}
-	if ctx.SprintId > 0 {
-		fieldsConfig["Sprint"] = strconv.Itoa(ctx.SprintId)
-	}
-
-	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom User defined in jira.
-	for k, v := range ctx.Unknowns {
-		fieldsConfig[k] = v
-	}
-	if len(ctx.Unknowns) > 0 {
-		log.Printf("added %d custom fields to issue.", len(ctx.Unknowns))
-	}
-
 	type Version struct {
 		Name string `json:"name"`
+	}
+
+	fieldsConfig, err := createFieldsConfig(ctx, client, &content)
+	if err != nil {
+		return fmt.Errorf("Failed to create fields config: %w", err)
 	}
 
 	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, isServerJira(ctx.Url))
@@ -283,6 +260,55 @@ func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error
 	}
 
 	return metaProject, nil
+}
+
+func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]string) (map[string]string, error) {
+	fields, _, err := client.Field.GetList()
+	if err != nil {
+		return nil, err
+	}
+
+	assignee := ctx.User
+	if len(ctx.Assignee) > 0 {
+		assignees := getHandledRecipients(ctx.Assignee, content, ctx.Name)
+		if len(assignees) > 0 {
+			assignee = assignees[0]
+		}
+	}
+
+	fieldsConfig := make(map[string]string)
+
+	for _, field := range fields {
+		switch field.ID {
+		case "issuetype":
+			fieldsConfig[field.Name] = ctx.Issuetype
+		case "project":
+			fieldsConfig[field.Name] = ctx.ProjectKey
+		case "priority":
+			fieldsConfig[field.Name] = ctx.Priority
+		case "assignee":
+			fieldsConfig[field.Name] = assignee
+		case "description":
+			fieldsConfig[field.Name] = ctx.Description
+		case "summary":
+			fieldsConfig[field.Name] = ctx.Summary
+		case "customfield_10020": // Sprint
+			if ctx.SprintId > 0 {
+				fieldsConfig[field.Name] = strconv.Itoa(ctx.SprintId)
+			}
+		}
+
+	}
+
+	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom User defined in jira.
+	for k, v := range ctx.Unknowns {
+		fieldsConfig[k] = v
+	}
+	if len(ctx.Unknowns) > 0 {
+		log.Printf("added %d custom fields to issue.", len(ctx.Unknowns))
+	}
+
+	return fieldsConfig, nil
 }
 
 func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira.MetaIssueType, error) {
