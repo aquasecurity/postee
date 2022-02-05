@@ -37,23 +37,12 @@ jobs:
       - name: Test
         run: make test
 
-      - name: trivy - fs
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          ignore-unfixed: true
-          format: 'template'
-          template: '@/contrib/sarif.tpl'
-          output: 'trivy-results.sarif'
-          exit-code: 0
-
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           ignore-unfixed: true
-          format: 'template'
-          template: '@/contrib/sarif.tpl'
+          format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL'
           exit-code: 0
@@ -69,10 +58,6 @@ jobs:
           scan-type: 'config'
           hide-progress: false
           format: 'table'
-        env:
-          AQUA_KEY: ${{ secrets.AQUA_KEY }}
-          AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
-          TRIVY_RUN_AS_PLUGIN: 'aqua'
 
       - name: Publish Codecov
         run: bash <(curl -s https://codecov.io/bash)
