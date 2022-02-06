@@ -548,6 +548,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Logger.Errorf("route %q has no outputs", routeName)
 		return
 	}
+
 	inMsg := map[string]interface{}{}
 	if err := json.Unmarshal(in, &inMsg); err != nil {
 		log.PrnInputError("json.Unmarshal error for %q: %v", in, err)
@@ -555,6 +556,10 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	}
 
 	inputCallbacks := ctx.inputCallBacks[routeName]
+	inMsg, err := parseInputMessage(in)
+	if err != nil {
+		return
+	}
 
 	for _, callback := range inputCallbacks {
 		if !callback(inMsg) {
@@ -566,24 +571,36 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
+	ctx.publishToOutput(inMsg, r)
+}
+
+func parseInputMessage(in []byte) (msg map[string]interface{}, err error) {
+	if err := json.Unmarshal(in, &msg); err != nil {
+		log.PrnInputError("json.Unmarshal error for %q: %v", in, err)
+	}
+
+	return msg, err
+}
+
+func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRoute) {
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
-			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", routeName, outputName)
+			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
-				routeName, r.Template)
+				r.Name, r.Template)
 			continue
 		}
-		log.Logger.Infof("route %q is associated with template %q", routeName, r.Template)
+		log.Logger.Infof("route %q is associated with template %q", r.Name, r.Template)
 
 		if ctx.synchronous {
-			getScanService().MsgHandling(inMsg, pl, r, tmpl, &ctx.aquaServer)
+			getScanService().MsgHandling(msg, pl, r, tmpl, &ctx.aquaServer)
 		} else {
-			go getScanService().MsgHandling(inMsg, pl, r, tmpl, &ctx.aquaServer)
+			go getScanService().MsgHandling(msg, pl, r, tmpl, &ctx.aquaServer)
 		}
 	}
 }
@@ -592,6 +609,39 @@ func (ctx *Router) handle(in []byte) {
 	for routeName := range ctx.inputRoutes {
 		ctx.HandleRoute(routeName, in)
 	}
+}
+
+// Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
+// In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
+func (ctx *Router) Evaluate(in []byte) []string {
+	routesNames := []string{}
+	for routeName := range ctx.inputRoutes {
+		r, ok := ctx.inputRoutes[routeName]
+		if !ok || r == nil {
+			log.Logger.Errorf("There isn't route %q", routeName)
+			continue
+		}
+
+		inMsg, err := parseInputMessage(in)
+		if err != nil {
+			continue
+		}
+
+		inputCallbacks := ctx.inputCallBacks[routeName]
+		for _, callback := range inputCallbacks {
+			if !callback(inMsg) {
+				continue
+			}
+		}
+
+		if !getScanService().EvaluateRegoRule(r, inMsg) {
+			continue
+		}
+
+		routesNames = append(routesNames, r.Name)
+	}
+
+	return routesNames
 }
 
 func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outputs.Output, error) {
