@@ -367,7 +367,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 		case "number":
 			val, err := strconv.Atoi(value)
 			if err != nil {
-				fmt.Printf("Failed convert value(string) to int: %s", err)
+				log.Logger.Warnf("Failed convert value(string) to int: %s", err)
 			}
 			issueFields.Unknowns[jiraKey] = val
 

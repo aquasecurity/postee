@@ -117,7 +117,7 @@ func sendViaMxServers(from, port, subj, msg string, recipients []string) {
 					"Subject: %s\r\n"+
 					"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n", rcpt, from, subj, msg)
 
-			if err := smtp.SendMail(mx.Host+":25", nil, from, []string{rcpt}, []byte(message)); err != nil {
+			if err := smtp.SendMail(mx.Host+":"+port, nil, from, []string{rcpt}, []byte(message)); err != nil {
 				log.Logger.Errorf("SendMail error to %q via %q", rcpt, mx.Host)
 				log.Logger.Error(err)
 				continue
