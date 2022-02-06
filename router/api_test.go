@@ -683,3 +683,36 @@ func TestSaveLoadCfgInPostgres(t *testing.T) {
 		t.Errorf("AquaServers are not equals, expected: %s, got: %s", router.databaseCfgCacheSource.AquaServer, tenant.AquaServer)
 	}
 }
+
+func TestEvaluate(t *testing.T) {
+	var (
+		tests = []struct {
+			message  []byte
+			expected bool
+		}{
+			{
+				message:  []byte("{\"key\":\"value\"}"),
+				expected: true,
+			},
+			{
+				message:  []byte("{\"key\":\"wrong_data\"}"),
+				expected: false,
+			},
+		}
+		route = &routes.InputRoute{
+			Name:  "test_route",
+			Input: "contains(input.key, \"value\")",
+		}
+	)
+
+	if len(Instance().inputRoutes) > 0 {
+		Instance().cleanInstance()
+	}
+
+	Instance().addRoute(route)
+	defer Instance().cleanInstance()
+
+	for _, test := range tests {
+		assert.Equal(t, test.expected, Instance().Evaluate(test.message))
+	}
+}

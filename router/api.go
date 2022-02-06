@@ -188,6 +188,11 @@ func Send(b []byte) {
 	Instance().handle(bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''}))
 }
 
+// Evaluate returns true in case one of the configured routes inputs is satisfied for the given input message
+func Evaluate(b []byte) bool {
+	return Instance().Evaluate(bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''}))
+}
+
 func buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) string {
 	hostname := dbHostName
 
