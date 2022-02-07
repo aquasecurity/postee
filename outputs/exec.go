@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/v2/layout"
 )
 
 type execCmd = func(string, ...string) *exec.Cmd

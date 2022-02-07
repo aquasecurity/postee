@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/aquasecurity/postee/layout"
+	"github.com/aquasecurity/postee/v2/layout"
 )
 
 type HTTPClient struct {
