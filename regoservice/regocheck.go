@@ -22,21 +22,21 @@ allow {
 	defaultPathToRegoFilters = "./rego-filters"
 )
 
-var pathToRegoFilters = ""
+var PathToRegoFilters = ""
 
 func getFilesWithPathToRegoFilters(files []string) []string {
-	if pathToRegoFilters == "" {
+	if PathToRegoFilters == "" {
 		if os.Getenv("REGO_FILTERS_PATH") != "" {
-			pathToRegoFilters = os.Getenv("REGO_FILTERS_PATH")
+			PathToRegoFilters = os.Getenv("REGO_FILTERS_PATH")
 		} else {
-			pathToRegoFilters = defaultPathToRegoFilters
+			PathToRegoFilters = defaultPathToRegoFilters
 		}
 	}
 	filesWithPath := make([]string, len(files))
 	copy(filesWithPath, files)
 	for i, file := range filesWithPath {
-		if !strings.HasPrefix(file, pathToRegoFilters) {
-			filesWithPath[i] = filepath.Join(pathToRegoFilters, file)
+		if !strings.HasPrefix(file, PathToRegoFilters) {
+			filesWithPath[i] = filepath.Join(PathToRegoFilters, file)
 		}
 	}
 	return filesWithPath

@@ -78,7 +78,7 @@ func TestOpaRego(t *testing.T) {
 func TestGetFilesWithPathToRegoFilters(t *testing.T) {
 	oldEnv := os.Getenv("REGO_FILTERS_PATH")
 	defer os.Setenv("REGO_FILTERS_PATH", oldEnv)
-	oldPathToRegoFilters := pathToRegoFilters
+	oldPathToRegoFilters := PathToRegoFilters
 
 	tests := []struct {
 		files         []string
@@ -93,9 +93,9 @@ func TestGetFilesWithPathToRegoFilters(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		pathToRegoFilters = ""
+		PathToRegoFilters = ""
 		os.Setenv("REGO_FILTERS_PATH", test.env)
-		fmt.Println(pathToRegoFilters)
+		fmt.Println(PathToRegoFilters)
 		filesWithPath := getFilesWithPathToRegoFilters(test.files)
 
 		for i := range test.expectedfiles {
@@ -105,5 +105,5 @@ func TestGetFilesWithPathToRegoFilters(t *testing.T) {
 		}
 	}
 
-	pathToRegoFilters = oldPathToRegoFilters
+	PathToRegoFilters = oldPathToRegoFilters
 }
