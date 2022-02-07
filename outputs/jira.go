@@ -359,12 +359,13 @@ func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]s
 			fieldsConfig[field.Name] = ctx.Description
 		case "summary":
 			fieldsConfig[field.Name] = ctx.Summary
-		case "customfield_10020": // Sprint
-			if ctx.SprintId > 0 {
-				fieldsConfig[field.Name] = strconv.Itoa(ctx.SprintId)
-			}
 		}
+	}
 
+	// sprint is jira custom field.
+	// TODO make sprint field name check for non-English jira
+	if ctx.SprintId > 0 {
+		fieldsConfig["Sprint"] = strconv.Itoa(ctx.SprintId)
 	}
 
 	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom User defined in jira.
