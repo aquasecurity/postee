@@ -1,9 +1,10 @@
 package routes
 
 import (
-	"log"
 	"strconv"
 	"strings"
+
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 func parseTimeouts(v string) (int, error) {
@@ -41,7 +42,7 @@ func parseTimeouts(v string) (int, error) {
 func ConfigureTimeouts(route *InputRoute) *InputRoute {
 	aggregateTimeoutSeconds, err := parseTimeouts(route.Plugins.AggregateMessageTimeout)
 	if err != nil {
-		log.Printf("%q settings: Can't convert 'aggregate-message-timeout'(%q) to seconds.",
+		log.Logger.Errorf("%q settings: Can't convert 'aggregate-message-timeout'(%q) to seconds.",
 			route.Name, route.Plugins.AggregateMessageTimeout)
 	}
 
@@ -49,7 +50,7 @@ func ConfigureTimeouts(route *InputRoute) *InputRoute {
 
 	uniqueMessageTimeoutSeconds, err := parseTimeouts(route.Plugins.UniqueMessageTimeout)
 	if err != nil {
-		log.Printf("%q settings: Can't convert 'unique-message-timeout'(%q) to seconds.",
+		log.Logger.Errorf("%q settings: Can't convert 'unique-message-timeout'(%q) to seconds.",
 			route.Name, route.Plugins.UniqueMessageTimeout)
 	}
 

@@ -7,19 +7,26 @@ import (
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
 func TestAggregateByTimeout(t *testing.T) {
+	testDB, _ := boltdb.NewBoltDb()
+	defer testDB.Close()
+	oldDb := dbservice.Db
+	dbservice.Db = testDB
+	defer func() { dbservice.Db = oldDb }()
+
 	const aggregationSeconds = 3
 
-	dbPathReal := dbservice.DbPath
+	dbPathReal := testDB.DbPath
 	savedRunScheduler := RunScheduler
 	schedulerInvctCnt := 0
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(testDB.DbPath)
+		testDB.DbPath = dbPathReal
 		RunScheduler = savedRunScheduler
 	}()
 	RunScheduler = func(
@@ -36,7 +43,7 @@ func TestAggregateByTimeout(t *testing.T) {
 		schedulerInvctCnt++
 	}
 
-	dbservice.DbPath = "test_webhooks.db"
+	testDB.DbPath = "test_webhooks.db"
 
 	demoRoute := &routes.InputRoute{
 		Name: "demo-route1",
@@ -52,9 +59,9 @@ func TestAggregateByTimeout(t *testing.T) {
 	srvUrl := ""
 
 	srv1 := new(MsgService)
-	srv1.MsgHandling([]byte(mockScan1), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.MsgHandling([]byte(mockScan2), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
-	srv1.MsgHandling([]byte(mockScan3), demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling(mockScan1, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling(mockScan2, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
+	srv1.MsgHandling(mockScan3, demoEmailPlg, demoRoute, demoInptEval, &srvUrl)
 
 	expectedSchedulerInvctCnt := 1
 

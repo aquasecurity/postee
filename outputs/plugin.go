@@ -2,10 +2,11 @@ package outputs
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 const (
@@ -18,6 +19,7 @@ type Output interface {
 	Send(map[string]string) error
 	Terminate() error
 	GetLayoutProvider() layout.LayoutProvider
+	CloneSettings() *data.OutputSettings //TODO shouldn't return reference
 }
 
 func getHandledRecipients(recipients []string, content *map[string]string, outputName string) []string {
@@ -26,7 +28,7 @@ func getHandledRecipients(recipients []string, content *map[string]string, outpu
 		if r == ApplicationScopeOwner {
 			owners, err := getAppScopeOwners(content)
 			if err != nil {
-				log.Printf("get application scope owners error for %q: %v", outputName, err)
+				log.Logger.Errorf("get application scope owners error for %q: %v", outputName, err)
 				continue
 			}
 			result = append(result, owners...)

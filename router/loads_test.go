@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
-	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/msgservice"
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
@@ -79,25 +78,34 @@ type invctn struct {
 	outputCls   string
 	templateCls string
 	routeName   string
+	found       bool
 }
 
-func (ctx *ctxWrapper) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
+func (ctx *ctxWrapper) MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
 	i := invctn{
 		fmt.Sprintf("%T", output),
 		fmt.Sprintf("%T", inpteval),
 		route.Name,
+		false,
 	}
 	ctx.buff <- i
 }
 
 func (ctxWrapper *ctxWrapper) setup(cfg string) {
-	ctxWrapper.savedDBPath = dbservice.DbPath
-	ctxWrapper.savedBaseForTicker = baseForTicker
+	ctxWrapper.init()
+
 	ctxWrapper.cfgPath = "cfg_test.yaml"
+	err := ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
+	if err != nil {
+		log.Printf("Can't write to %s", ctxWrapper.cfgPath)
+	}
+}
+func (ctxWrapper *ctxWrapper) init() {
+	ctxWrapper.savedDBPath = "test_webhooks.db"
+	ctxWrapper.savedBaseForTicker = baseForTicker
 	ctxWrapper.savedGetService = getScanService
 	ctxWrapper.buff = make(chan invctn)
 
-	dbservice.DbPath = "test_webhooks.db"
 	baseForTicker = time.Microsecond
 	ctxWrapper.defaultRegoFolder = "rego-templates"
 	ctxWrapper.commonRegoFolder = ctxWrapper.defaultRegoFolder + "/common"
@@ -114,10 +122,6 @@ func (ctxWrapper *ctxWrapper) setup(cfg string) {
 		return ctxWrapper
 	}
 
-	err = ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
-	if err != nil {
-		log.Printf("Can't write to %s", ctxWrapper.cfgPath)
-	}
 	ctxWrapper.instance = Instance()
 }
 
@@ -126,16 +130,15 @@ func (ctxWrapper *ctxWrapper) teardown() {
 
 	baseForTicker = ctxWrapper.savedBaseForTicker
 	os.Remove(ctxWrapper.cfgPath)
-	os.Remove(dbservice.DbPath)
+	os.Remove(ctxWrapper.savedDBPath)
 	os.Remove(ctxWrapper.commonRegoFolder)
 	os.Remove(ctxWrapper.defaultRegoFolder)
 
-	dbservice.ChangeDbPath(ctxWrapper.savedDBPath)
 	getScanService = ctxWrapper.savedGetService
 	close(ctxWrapper.buff)
 }
 
-func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, _ []byte) bool {
+func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
 	if r.Name == "fail_evaluation" {
 		return false
 	}
@@ -149,7 +152,7 @@ func TestLoads(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	err := demoCtx.Start(wrap.cfgPath)
+	err := demoCtx.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -173,6 +176,7 @@ func TestLoads(t *testing.T) {
 		t.Errorf("Output 'splunk' didn't run!")
 	}
 }
+
 func TestReload(t *testing.T) {
 	extraOtptCfg := `
 - name: jira2
@@ -190,10 +194,12 @@ func TestReload(t *testing.T) {
 	defer wrap.teardown()
 
 	demoCtx := wrap.instance
-	errStart := demoCtx.Start(wrap.cfgPath)
+
+	errStart := demoCtx.ApplyFileCfg(wrap.cfgPath, "", wrap.savedDBPath, false)
 	if errStart != nil {
 		t.Fatal(errStart)
 	}
+
 	expectedOutputsCnt := 2
 	if len(demoCtx.outputs) != expectedOutputsCnt {
 		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(demoCtx.outputs))

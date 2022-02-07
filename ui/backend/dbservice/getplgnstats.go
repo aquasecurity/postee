@@ -3,7 +3,7 @@ package dbservice
 import (
 	"strconv"
 
-	hookDbService "github.com/aquasecurity/postee/dbservice"
+	hookDbService "github.com/aquasecurity/postee/v2/dbservice"
 	bolt "go.etcd.io/bbolt"
 )
 

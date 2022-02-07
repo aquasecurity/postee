@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/aquasecurity/postee/ui/backend/dbservice"
+	"github.com/aquasecurity/postee/v2/ui/backend/dbservice"
 )
 
 func (srv *uiServer) plgnStats(w http.ResponseWriter, r *http.Request) {

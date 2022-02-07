@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
@@ -38,18 +39,20 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 
 }
 func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRenderCnt int, expectedAggrRenderCnt int, skipAggrSpprt bool) {
-	dbPathReal := dbservice.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	oldDb := dbservice.Db
+	dbservice.Db = testDB
+	defer func() { dbservice.Db = oldDb }()
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
 	}
 
-	scans := []string{mockScan1, mockScan2, mockScan3, mockScan4}
+	scans := []map[string]interface{}{mockScan1, mockScan2, mockScan3, mockScan4}
 
 	srvUrl := ""
 	demoRoute := &routes.InputRoute{}
@@ -66,7 +69,7 @@ func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRend
 
 	for _, scan := range scans {
 		srv := new(MsgService)
-		srv.MsgHandling([]byte(scan), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv.MsgHandling(scan, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	demoEmailOutput.wg.Wait()

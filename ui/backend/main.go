@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/aquasecurity/postee/ui/backend/uiserver"
+	"github.com/aquasecurity/postee/v2/ui/backend/uiserver"
 )
 
 const (

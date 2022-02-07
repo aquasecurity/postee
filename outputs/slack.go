@@ -3,12 +3,12 @@ package outputs
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"strings"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 
 	slackAPI "github.com/aquasecurity/postee/v2/slack"
 )
@@ -28,9 +28,18 @@ func (slack *SlackOutput) GetName() string {
 	return slack.Name
 }
 
+func (slack *SlackOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:   slack.Name,
+		Url:    slack.Url,
+		Enable: true,
+		Type:   "slack",
+	}
+}
+
 func (slack *SlackOutput) Init() error {
 	slack.slackLayout = new(formatting.SlackMrkdwnProvider)
-	log.Printf("Starting Slack output %q....", slack.Name)
+	log.Logger.Infof("Starting Slack output %q....", slack.Name)
 	return nil
 }
 
@@ -54,7 +63,7 @@ func buildSlackBlock(title string, data []byte) []byte {
 }
 
 func (slack *SlackOutput) Send(input map[string]string) error {
-	log.Printf("Sending via Slack %q", slack.Name)
+	log.Logger.Infof("Sending via Slack %q", slack.Name)
 	title := clearSlackText(slack.slackLayout.TitleH2(input["title"]))
 	var body string
 	if strings.HasSuffix(input["description"], ",") {
@@ -69,7 +78,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 	rawBlock := make([]data.SlackBlock, 0)
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
-		log.Printf("Unmarshal slack sending error: %v", err)
+		log.Logger.Errorf("Unable to parse json: %v", err)
 		return err
 	}
 
@@ -80,7 +89,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
 			return err
 		}
-		log.Printf("Sending via Slack %q was successful!", slack.Name)
+		log.Logger.Infof("Sending via Slack %q was successful!", slack.Name)
 	} else {
 		for n := 0; n < length; {
 			d := length - n
@@ -90,10 +99,10 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 			cutData, _ := json.Marshal(rawBlock[n : n+d])
 			cutData = cutData[1 : len(cutData)-1]
 			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
-				log.Printf("Sending to %q was finished with error: %v", slack.Name, err)
+				log.Logger.Errorf("Sending to %q was finished with error: %v", slack.Name, err)
 				return err
 			} else {
-				log.Printf("Sending [%d/%d part] to %q was successful!",
+				log.Logger.Infof("Sending [%d/%d part] to %q was successful!",
 					int(n/49)+1, int(length/49)+1,
 					slack.Name)
 			}
@@ -104,7 +113,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 }
 
 func (slack *SlackOutput) Terminate() error {
-	log.Printf("Slack output %q terminated", slack.Name)
+	log.Logger.Infof("Slack output %q terminated", slack.Name)
 	return nil
 }
 

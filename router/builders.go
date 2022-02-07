@@ -3,14 +3,15 @@ package router
 import (
 	"strings"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/outputs"
 )
 
-func buildStdoutOutput(sourceSettings *OutputSettings) *outputs.StdoutOutput {
+func buildStdoutOutput(sourceSettings *data.OutputSettings) *outputs.StdoutOutput {
 	return &outputs.StdoutOutput{Name: sourceSettings.Name}
 }
 
-func buildSplunkOutput(sourceSettings *OutputSettings) *outputs.SplunkOutput {
+func buildSplunkOutput(sourceSettings *data.OutputSettings) *outputs.SplunkOutput {
 	return &outputs.SplunkOutput{
 		Name:       sourceSettings.Name,
 		Url:        sourceSettings.Url,
@@ -19,14 +20,14 @@ func buildSplunkOutput(sourceSettings *OutputSettings) *outputs.SplunkOutput {
 	}
 }
 
-func buildWebhookOutput(sourceSettings *OutputSettings) *outputs.WebhookOutput {
+func buildWebhookOutput(sourceSettings *data.OutputSettings) *outputs.WebhookOutput {
 	return &outputs.WebhookOutput{
 		Name: sourceSettings.Name,
 		Url:  sourceSettings.Url,
 	}
 }
 
-func buildTeamsOutput(sourceSettings *OutputSettings, aquaServer string) *outputs.TeamsOutput {
+func buildTeamsOutput(sourceSettings *data.OutputSettings, aquaServer string) *outputs.TeamsOutput {
 	return &outputs.TeamsOutput{
 		Name:       sourceSettings.Name,
 		AquaServer: aquaServer,
@@ -34,7 +35,7 @@ func buildTeamsOutput(sourceSettings *OutputSettings, aquaServer string) *output
 	}
 }
 
-func buildServiceNow(sourceSettings *OutputSettings) *outputs.ServiceNowOutput {
+func buildServiceNow(sourceSettings *data.OutputSettings) *outputs.ServiceNowOutput {
 	serviceNow := &outputs.ServiceNowOutput{
 		Name:     sourceSettings.Name,
 		User:     sourceSettings.User,
@@ -48,7 +49,7 @@ func buildServiceNow(sourceSettings *OutputSettings) *outputs.ServiceNowOutput {
 	return serviceNow
 }
 
-func buildSlackOutput(sourceSettings *OutputSettings, aqua string) *outputs.SlackOutput {
+func buildSlackOutput(sourceSettings *data.OutputSettings, aqua string) *outputs.SlackOutput {
 	return &outputs.SlackOutput{
 		Name:       sourceSettings.Name,
 		AquaServer: aqua,
@@ -56,7 +57,7 @@ func buildSlackOutput(sourceSettings *OutputSettings, aqua string) *outputs.Slac
 	}
 }
 
-func buildEmailOutput(sourceSettings *OutputSettings) *outputs.EmailOutput {
+func buildEmailOutput(sourceSettings *data.OutputSettings) *outputs.EmailOutput {
 	return &outputs.EmailOutput{
 		Name:       sourceSettings.Name,
 		User:       sourceSettings.User,
@@ -69,7 +70,7 @@ func buildEmailOutput(sourceSettings *OutputSettings) *outputs.EmailOutput {
 	}
 }
 
-func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
+func buildJiraOutput(sourceSettings *data.OutputSettings) *outputs.JiraAPI {
 	jiraApi := &outputs.JiraAPI{
 		Name:            sourceSettings.Name,
 		Url:             sourceSettings.Url,

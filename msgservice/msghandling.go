@@ -2,30 +2,28 @@ package msgservice
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/log"
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
+	"github.com/aquasecurity/postee/v2/utils"
 )
 
 type MsgService struct {
 }
 
-func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
+func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
 	if output == nil {
 		return
 	}
 
-	in := map[string]interface{}{}
-	if err := json.Unmarshal(input, &in); err != nil {
-		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
-		return
-	}
+	//TODO marshalling message back to bytes, change after merge with https://github.com/aquasecurity/postee/pull/150
+	input, _ := json.Marshal(in)
 
 	//TODO move logic below somewhere close to Jira output implementation
 	owners := ""
@@ -33,9 +31,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 	if ok {
 		applicationScopeOwners := make([]string, 0)
 
-		for _, owner := range applicationScopeOwnersObj.([]interface{}) {
-			applicationScopeOwners = append(applicationScopeOwners, owner.(string))
-		}
+		applicationScopeOwners = append(applicationScopeOwners, applicationScopeOwnersObj.([]string)...)
 
 		if len(applicationScopeOwners) > 0 {
 			owners = strings.Join(applicationScopeOwners, ";")
@@ -46,13 +42,13 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
 		expired := calculateExpired(route.Plugins.UniqueMessageTimeoutSeconds)
 
-		wasStored, err := dbservice.MayBeStoreMessage(input, msgKey, expired)
+		wasStored, err := dbservice.Db.MayBeStoreMessage(input, msgKey, expired)
 		if err != nil {
-			log.Printf("Error while storing input: %v", err)
+			log.Logger.Errorf("Error while storing input: %v", err)
 			return
 		}
 		if !wasStored {
-			log.Printf("The same message was received before: %s", msgKey)
+			log.Logger.Infof("The same message was received before: %s", msgKey)
 			return
 		}
 
@@ -66,7 +62,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
-		log.Printf("Error while evaluating input: %v", err)
+		log.Logger.Errorf("Error while evaluating input: %v", err)
 		return
 	}
 
@@ -79,7 +75,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		if len(aggregated) > 0 {
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
-				log.Printf("Error while building aggregated content: %v", err)
+				log.Logger.Errorf("Error while building aggregated content: %v", err)
 				return
 			}
 			send(output, content)
@@ -88,10 +84,10 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		AggregateScanAndGetQueue(route.Name, content, 0, true)
 
 		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
-			log.Printf("about to schedule %s\n", route.Name)
+			log.Logger.Infof("about to schedule %s", route.Name)
 			RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
 		} else {
-			log.Printf("%s is already scheduled\n", route.Name)
+			log.Logger.Infof("%s is already scheduled", route.Name)
 		}
 	} else {
 		send(output, content)
@@ -100,25 +96,19 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 }
 
 // EvaluateRegoRule returns true in case the given input ([]byte) matches the input of the given route
-func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input []byte) bool {
-	in := map[string]interface{}{}
-	if err := json.Unmarshal(input, &in); err != nil {
-		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
-		return false
-	}
-
-	if ok, err := regoservice.DoesMatchRegoCriteria(in, r.InputFiles, r.Input); err != nil {
+func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
+	if ok, err := regoservice.DoesMatchRegoCriteria(input, r.InputFiles, r.Input); err != nil {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-			prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
+			utils.PrnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
 		} else {
-			prnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
+			utils.PrnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
 		}
 		return false
 	} else if !ok {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-			prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, r.Input)
+			utils.PrnInputLogs("Input %s... doesn't match a REGO rule: %s", input, r.Input)
 		} else {
-			prnInputLogs("Input %s... doesn't match a REGO input files rule", input)
+			utils.PrnInputLogs("Input %s... doesn't match a REGO input files rule", input)
 		}
 		return false
 	}
@@ -130,13 +120,13 @@ func send(otpt outputs.Output, cnt map[string]string) {
 	go func() {
 		err := otpt.Send(cnt)
 		if err != nil {
-			log.Printf("Error while sending event: %v", err)
+			log.Logger.Errorf("Error while sending event: %v", err)
 		}
 	}()
 
-	err := dbservice.RegisterPlgnInvctn(otpt.GetName())
+	err := dbservice.Db.RegisterPlgnInvctn(otpt.GetName())
 	if err != nil {
-		log.Printf("Error while building aggregated content: %v", err)
+		log.Logger.Errorf("Error while building aggregated content: %v", err)
 		return
 	}
 
@@ -151,13 +141,13 @@ func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
 }
 
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
-	aggregatedScans, err := dbservice.AggregateScans(outputName, currentContent, counts, ignoreLength)
+	aggregatedScans, err := dbservice.Db.AggregateScans(outputName, currentContent, counts, ignoreLength)
 	if err != nil {
-		log.Printf("AggregateScans Error: %v", err)
+		log.Logger.Errorf("AggregateScans Error: %v", err)
 		return aggregatedScans
 	}
 	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
-		log.Printf("New scan was added to the queue of %q without sending.", outputName)
+		log.Logger.Infof("New scan was added to the queue of %q without sending.", outputName)
 		return nil
 	}
 	return aggregatedScans
