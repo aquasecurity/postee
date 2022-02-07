@@ -19,6 +19,11 @@ import (
 	"github.com/aquasecurity/go-jira"
 )
 
+const (
+	defaultIssueType     = "Task"
+	defaultIssuePriority = "High"
+)
+
 type JiraAPI struct {
 	Name            string
 	Url             string
@@ -178,6 +183,11 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 		return fmt.Errorf("Failed to create meta project: %w", err)
 	}
 
+	err = createIssueType(ctx, metaProject)
+	if err != nil {
+		return fmt.Errorf("Failed to create issuetype: %w", err)
+	}
+
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
 		return fmt.Errorf("Failed to create meta issue type: %w", err)
@@ -262,6 +272,58 @@ func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error
 	return metaProject, nil
 }
 
+func createIssueType(ctx *JiraAPI, metaProject *jira.MetaProject) error {
+	if ctx.Issuetype != "" {
+		for _, issueType := range metaProject.IssueTypes {
+			if ctx.Issuetype == issueType.Name { // search issueType in REST API
+				return nil
+			}
+		}
+		return fmt.Errorf("project %q don't have issueType %q", metaProject.Name, ctx.Issuetype)
+	} else {
+		for _, issueType := range metaProject.IssueTypes {
+			if issueType.Name == defaultIssueType { //search default issueType in REST API
+				ctx.Issuetype = defaultIssueType
+				return nil
+			}
+		}
+		if len(metaProject.IssueTypes) > 0 { // use 1st issueType from REST API
+			ctx.Issuetype = metaProject.IssueTypes[0].Name
+			return nil
+		} else {
+			return fmt.Errorf("project %q don't have issueTypes", metaProject.Name)
+		}
+	}
+}
+
+func createIssuePriority(ctx *JiraAPI, client *jira.Client) error {
+	issuePriorities, _, err := client.Priority.GetList()
+	if err != nil {
+		return fmt.Errorf("failed to get issue priority list: %w", err)
+	}
+	if ctx.Priority != "" {
+		for _, priority := range issuePriorities {
+			if ctx.Priority == priority.Name { // search priority in REST API
+				return nil
+			}
+		}
+		return fmt.Errorf("project don't have issue priority %q", ctx.Priority)
+	} else {
+		for _, priority := range issuePriorities {
+			if priority.Name == defaultIssuePriority { // search default priority in REST API
+				ctx.Priority = defaultIssuePriority
+				return nil
+			}
+		}
+		if len(issuePriorities) > 0 {
+			ctx.Priority = issuePriorities[0].Name // use 1st priority from REST API
+			return nil
+		} else {
+			return fmt.Errorf("project don't have issue priorities")
+		}
+	}
+}
+
 func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]string) (map[string]string, error) {
 	fields, _, err := client.Field.GetList()
 	if err != nil {
@@ -274,6 +336,11 @@ func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]s
 		if len(assignees) > 0 {
 			assignee = assignees[0]
 		}
+	}
+
+	err = createIssuePriority(ctx, client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create issue priority: %w", err)
 	}
 
 	fieldsConfig := make(map[string]string)

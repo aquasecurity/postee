@@ -89,12 +89,7 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 		SprintId:        -1,
 		BoardName:       sourceSettings.BoardName,
 	}
-	if jiraApi.Issuetype == "" {
-		jiraApi.Issuetype = IssueTypeDefault
-	}
-	if jiraApi.Priority == "" {
-		jiraApi.Priority = PriorityDefault
-	}
+
 	if len(jiraApi.Assignee) == 0 {
 		jiraApi.Assignee = []string{jiraApi.User}
 	}
