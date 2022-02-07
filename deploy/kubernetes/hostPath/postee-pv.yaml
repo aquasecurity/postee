@@ -43,7 +43,7 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   hostPath:
-    path: /tmp/postee/rego-templates/
+    path: /tmp/postee/rego_templates/
 ---
 apiVersion: v1
 kind: PersistentVolume

@@ -19,7 +19,7 @@ var (
 func TestInitTemplate(t *testing.T) {
 	savedGetHttpClient := getHttpClient
 	getHttpClient = getMockedHttpClient
-	defaultRegoFolder := "rego-templates"
+	defaultRegoFolder := "rego_templates"
 	commonRegoFolder := defaultRegoFolder + "/common"
 	testRego := defaultRegoFolder + "/rego1.rego"
 	if _, err := os.Stat(defaultRegoFolder); os.IsNotExist(err) {

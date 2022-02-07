@@ -107,7 +107,7 @@ func (ctxWrapper *ctxWrapper) init() {
 	ctxWrapper.buff = make(chan invctn)
 
 	baseForTicker = time.Microsecond
-	ctxWrapper.defaultRegoFolder = "rego-templates"
+	ctxWrapper.defaultRegoFolder = "rego_templates"
 	ctxWrapper.commonRegoFolder = ctxWrapper.defaultRegoFolder + "/common"
 	err := os.Mkdir(ctxWrapper.defaultRegoFolder, 0777)
 	if err != nil {

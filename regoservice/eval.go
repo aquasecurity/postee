@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/log"
+	"github.com/aquasecurity/postee/v2/rego_templates"
 	"github.com/open-policy-agent/opa/rego"
 )
 
@@ -19,8 +19,8 @@ const (
 )
 
 var (
-	buildinRegoTemplates = []string{"./rego-templates"}
-	commonRegoTemplates  = []string{"./rego-templates/common"}
+	buildinRegoTemplates = []string{"./rego_templates"}
+	commonRegoTemplates  = []string{"./rego_templates/common"}
 )
 
 type regoEvaluator struct {
@@ -234,22 +234,25 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 	return aggrQuery, nil
 }
 
+func buildCommonFuncs() (funcs []func(r *rego.Rego)) {
+	tmpls := rego_templates.GetCommon()
+	for filename, input := range tmpls {
+		funcs = append(funcs, rego.Module(filename, input))
+	}
+	return
+}
+
 func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, error) {
 	ctx := context.Background()
-	foundPaths := make([]string, 0)
 
-	for _, path := range commonRegoTemplates {
-		if _, err := os.Stat(commonRegoTemplates[0]); !os.IsNotExist(err) {
-			foundPaths = append(foundPaths, path)
-		}
-	}
-
-	r, err := rego.New(
-		rego.Query("data"),
+	opts := []func(r *rego.Rego){rego.Query("data"),
 		jsonFmtFunc(),
-		rego.Load(foundPaths, nil), //only common modules
-		rego.Module(filename, body),
-	).PrepareForEval(ctx)
+		rego.Module(filename, body)}
+
+	commonFuncs := buildCommonFuncs()
+	opts = append(opts, commonFuncs...)
+
+	r, err := rego.New(opts...).PrepareForEval(ctx)
 
 	if err != nil {
 		return nil, err
