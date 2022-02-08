@@ -193,6 +193,24 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"*outputs.ServiceNowOutput",
 		},
 		{
+			"ServiceNow output without BoardName",
+			OutputSettings{
+				Name:         "my-servicenow",
+				Type:         "serviceNow",
+				User:         "admin",
+				Password:     "secret",
+				InstanceName: "dev108148",
+			},
+			map[string]interface{}{
+				"User":     "admin",
+				"Password": "secret",
+				"Instance": "dev108148",
+				"Table":    ServiceNowTableDefault,
+			},
+			false,
+			"*outputs.ServiceNowOutput",
+		},
+		{
 			"Simple Teams output",
 			OutputSettings{
 				Url:  "https://outlook.office.com/webhook/ABCD",
