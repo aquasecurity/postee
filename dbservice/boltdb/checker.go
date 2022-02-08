@@ -9,6 +9,8 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+const mb = 1024 * 1024
+
 func (boltDb *BoltDb) CheckSizeLimit() {
 	if dbparam.DbSizeLimit == 0 {
 		return
@@ -28,7 +30,8 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			size += len(v)
 		}
-		if size > dbparam.DbSizeLimit {
+
+		if size > dbparam.DbSizeLimit*mb {
 			return tx.DeleteBucket([]byte(dbparam.DbBucketName))
 		}
 		return nil

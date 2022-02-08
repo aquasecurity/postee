@@ -65,14 +65,16 @@ func TestDbSizeLimit(t *testing.T) {
 	}()
 
 	tests := []struct {
-		title   string
-		limit   int
-		needRun bool
-		isNew   bool
+		title     string
+		limit     int
+		msgNum    int
+		runChecks bool
+		stored    bool
 	}{
-		{"First scan", 0, false, true},
-		{"Second scan", 0, true, false},
-		{"Third scan", 1, true, true},
+		{"First scan", 0, 1, false, true},
+		{"Second scan", 0, 1, true, false},
+		{"Third scan", 1, 500, true, true},
+		{"Fouth scan", 1, 1024, true, true},
 	}
 
 	dbparam.DbSizeLimit = 1
@@ -81,17 +83,22 @@ func TestDbSizeLimit(t *testing.T) {
 	for _, test := range tests {
 		t.Log(test.title)
 		dbparam.DbSizeLimit = test.limit
-		if test.needRun {
+		if test.runChecks {
 			boltDb.CheckSizeLimit()
 		}
+		var stored bool
+		var err error
 
-		isNew, err := boltDb.MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
+		for i := 0; i < test.msgNum; i++ {
+			stored, err = boltDb.MayBeStoreMessage([]byte(AlpineImageResult), fmt.Sprintf("%s%d", AlpineImageKey, i), nil)
+		}
+
 		if err != nil {
 			t.Fatal("First Add AlpineImageResult Error", err)
 		}
 
-		if isNew != test.isNew {
-			t.Errorf("Error handling! Want isNew: %t, rgot: %t", test.isNew, isNew)
+		if stored != test.stored {
+			t.Errorf("Error handling! Want stored: %t, got: %t", test.stored, stored)
 		}
 	}
 }
