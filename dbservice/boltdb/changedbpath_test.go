@@ -5,7 +5,7 @@ import (
 )
 
 func TestChangeDbPath(t *testing.T) {
-	boltDb, err := NewBoltDb()
+	boltDb, err := NewBoltDb("test_webhooks.db")
 	if err != nil {
 		t.Fatal(err)
 	}

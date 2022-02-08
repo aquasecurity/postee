@@ -13,7 +13,7 @@ import (
 )
 
 func TestAggregateByTimeout(t *testing.T) {
-	testDB, _ := boltdb.NewBoltDb()
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	defer testDB.Close()
 	oldDb := dbservice.Db
 	dbservice.Db = testDB

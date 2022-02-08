@@ -47,7 +47,6 @@ type Router struct {
 	synchronous            bool
 	inputCallBacks         map[string][]InputCallbackFunc
 	databaseCfgCacheSource *data.TenantSettings
-	bolt                   dbservice.DbProvider
 }
 
 var (
@@ -72,10 +71,6 @@ func Instance() *Router {
 		}
 	})
 	return routerCtx
-}
-
-func (ctx *Router) SetBolt(db dbservice.DbProvider) {
-	ctx.bolt = db
 }
 
 func (ctx *Router) ReloadConfig() {
@@ -118,7 +113,7 @@ func (ctx *Router) ApplyFileCfg(cfgfile, postgresUrl, pathToDb string, synchrono
 		return err
 	}
 
-	ctx.bolt, err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name)
+	err = dbservice.ConfigureDb(pathToDb, postgresUrl, tenant.Name)
 	if err != nil {
 		return err
 	}
@@ -176,8 +171,8 @@ func (ctx *Router) Terminate() {
 		log.Logger.Debug("stopTicker notified")
 	}
 
-	if ctx.bolt != nil {
-		ctx.bolt.Close()
+	if dbservice.Db != nil {
+		dbservice.Db.Close()
 	}
 
 	ctx.cleanInstance()
@@ -337,8 +332,8 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings, synchronous b
 				case <-ctx.stopTicker:
 					return
 				case <-ctx.ticker.C:
-					ctx.bolt.CheckSizeLimit()
-					ctx.bolt.CheckExpiredData()
+					dbservice.Db.CheckSizeLimit()
+					dbservice.Db.CheckExpiredData()
 				}
 			}
 		}()

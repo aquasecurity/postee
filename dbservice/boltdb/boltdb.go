@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DEFAULT_PATH = "/server/database/webhooks.db"
+	DefaultPath = "/server/database/webhooks.db"
 )
 
 type BoltDb struct {
@@ -21,7 +21,7 @@ type BoltDb struct {
 }
 
 func NewBoltDb(paths ...string) (*BoltDb, error) {
-	dbPath := DEFAULT_PATH
+	dbPath := DefaultPath
 	if len(paths) > 0 {
 		if paths[0] != "" {
 			dbPath = paths[0]
@@ -40,7 +40,7 @@ func NewBoltDb(paths ...string) (*BoltDb, error) {
 	}, nil
 }
 
-func open(path string) (*bolt.DB, error) {
+var open = func(path string) (*bolt.DB, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 		if err != nil {

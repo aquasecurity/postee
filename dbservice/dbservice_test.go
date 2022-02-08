@@ -2,51 +2,21 @@ package dbservice
 
 import (
 	"errors"
-	"os"
 	"reflect"
 	"testing"
 
 	"github.com/aquasecurity/postee/v2/dbservice/postgresdb"
 )
 
-func TestConfigurateBoltDbPathUsedEnv(t *testing.T) {
-	tests := []struct {
-		name         string
-		dbPath       string
-		expectedPath string
-	}{
-		{"happy configuration BoltDB with dbPath", "database/webhooks.db", "database/webhooks.db"},
-		{"happy configuration BoltDB with empty dbPath", "", "/server/database/webhooks.db"},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-
-			testInterval := 2
-			if _, err := ConfigureDb(test.dbPath, "", ""); err != nil {
-				t.Errorf("Unexpected error: %v", err)
-			}
-			if testInterval != 2 {
-				t.Error("test interval error, expected: 2, got: ", testInterval)
-			}
-			if test.expectedPath != reflect.Indirect(reflect.ValueOf(Db)).FieldByName("DbPath").Interface() {
-				t.Errorf("paths do not match, expected: %s, got: %s", test.expectedPath, reflect.Indirect(reflect.ValueOf(Db)).FieldByName("DbPath").Interface())
-			}
-		})
-		defer os.RemoveAll("database/")
-	}
-}
-
-func TestConfiguratePostgresDbUrlAndTenantName(t *testing.T) {
+func TestConfigurePostgresWithEmptyTenantName(t *testing.T) {
 	tests := []struct {
 		name          string
 		url           string
 		tenantName    string
 		expectedError error
 	}{
-		{"happy configuration postgres with url", "postgresql://user:secret@localhost", "test-tenantName", nil},
-		{"bad tenantName", "postgresql://user:secret@localhost", "", errConfigPsqlEmptyTenantName},
-		{"bad url", "badUrl", "test-tenantName", errors.New("badUrl error")},
+		{"happy configuration postgres with url and tenantName", "postgresql://user:secret@localhost", "test-tenantName", nil},
+		{"sad configuration without tenantName", "postgresql://user:secret@localhost", "", errConfigPsqlEmptyTenantName},
 	}
 
 	for _, test := range tests {
@@ -62,7 +32,7 @@ func TestConfiguratePostgresDbUrlAndTenantName(t *testing.T) {
 				postgresdb.InitPostgresDb = initPostgresDbSaved
 			}()
 
-			_, err := ConfigureDb("", test.url, test.tenantName)
+			err := ConfigureDb("", test.url, test.tenantName)
 			if err != nil {
 				if !errors.Is(err, test.expectedError) {
 					t.Errorf("Unexpected error, expected: %s, got: %s", test.expectedError, err)

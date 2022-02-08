@@ -6,7 +6,7 @@ import (
 )
 
 func TestAggregateScans(t *testing.T) {
-	db, _ := NewBoltDb()
+	db, _ := NewBoltDb("test_webhooks.db")
 	defer db.Close()
 	var (
 		scan1 = map[string]string{"title": "t1", "description": "d1"}
@@ -93,4 +93,5 @@ func TestAggregateScans(t *testing.T) {
 	if lastScan[0]["description"] != scan4["description"] {
 		t.Errorf("Wrong Description\nResult: %q\nWaited: %q", lastScan[0]["description"], scan4["description"])
 	}
+	defer os.RemoveAll("test_webhooks.db")
 }
