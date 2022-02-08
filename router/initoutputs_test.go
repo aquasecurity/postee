@@ -205,6 +205,22 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			false,
 			"*outputs.TeamsOutput",
 		},
+		{
+			"Simple Splunk output",
+			OutputSettings{
+				Url:   "http://localhost:8088",
+				Name:  "my-splunk",
+				Type:  "splunk",
+				Token: "test_token_for_splunk",
+			},
+			map[string]interface{}{
+				"Url":   "http://localhost:8088",
+				"Name":  "my-splunk",
+				"Token": "test_token_for_splunk",
+			},
+			false,
+			"*outputs.SplunkOutput",
+		},
 	}
 	for _, test := range tests {
 		o := BuildAndInitOtpt(&test.outputSettings, "")
