@@ -296,7 +296,7 @@ func createIssueType(ctx *JiraAPI, metaProject *jira.MetaProject) error {
 	}
 }
 
-func createIssuePriority(ctx *JiraAPI, client *jira.Client) error {
+var createIssuePriority = func(ctx *JiraAPI, client *jira.Client) error {
 	issuePriorities, _, err := client.Priority.GetList()
 	if err != nil {
 		return fmt.Errorf("failed to get issue priority list: %w", err)
