@@ -1,18 +1,16 @@
 package outputs
 
 import (
+	"encoding/json"
 	"github.com/aquasecurity/go-jira"
-	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
 func TestСreateIssuePriority(t *testing.T) {
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
 	tests := []struct {
 		name         string
 		jiraAPI      *JiraAPI
@@ -59,13 +57,19 @@ func TestСreateIssuePriority(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			httpmock.RegisterResponder("GET", "http://testUrl/rest/api/2/priority",
-				func(req *http.Request) (*http.Response, error) {
-					resp, err := httpmock.NewJsonResponse(200, test.priorities)
-					return resp, err
-				},
-			)
-			jiraClient, err := jira.NewClient(http.DefaultClient, "http://testUrl")
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				propertiesJson, err := json.Marshal(test.priorities)
+				if err != nil {
+					t.Errorf("Unexpected json mashal error: %v", err)
+				}
+				_, err = w.Write(propertiesJson)
+				if err != nil {
+					t.Errorf("Unexpected write repsonse error: %v", err)
+				}
+			}))
+			defer ts.Close()
+
+			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
 			if err != nil {
 				t.Fatalf("can't create jiraClient %v", err)
 			}
