@@ -74,7 +74,7 @@ func TestDbSizeLimit(t *testing.T) {
 		{"First scan", 0, 1, false, true},
 		{"Second scan", 0, 1, true, false},
 		{"Third scan", 1, 500, true, true},
-		{"Fouth scan", 1, 1024, true, true},
+		{"Fourth scan", 1, 1024, true, true},
 	}
 
 	dbparam.DbSizeLimit = 1
