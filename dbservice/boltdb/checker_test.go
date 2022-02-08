@@ -54,7 +54,7 @@ func TestExpiredDates(t *testing.T) {
 	}
 }
 
-func TestDbSizeLimnit(t *testing.T) {
+func TestDbSizeLimit(t *testing.T) {
 	boltDb, _ := NewBoltDb("test_webhooks.db")
 	defer boltDb.Close()
 

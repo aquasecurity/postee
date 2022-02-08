@@ -7,7 +7,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-func TestConfigurateBoltDbPathUsedEnv(t *testing.T) {
+func TestConfigureBoltDb(t *testing.T) {
 	tests := []struct {
 		name         string
 		dbPath       string

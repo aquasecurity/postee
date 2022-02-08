@@ -14,21 +14,21 @@ import (
 
 func TestAggregateByTimeout(t *testing.T) {
 	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
-	defer testDB.Close()
 	oldDb := dbservice.Db
 	dbservice.Db = testDB
-	defer func() { dbservice.Db = oldDb }()
 
 	const aggregationSeconds = 3
 
-	dbPathReal := testDB.DbPath
 	savedRunScheduler := RunScheduler
 	schedulerInvctCnt := 0
+
 	defer func() {
+		dbservice.Db.Close()
+		dbservice.Db = oldDb
 		os.Remove(testDB.DbPath)
-		testDB.DbPath = dbPathReal
 		RunScheduler = savedRunScheduler
 	}()
+
 	RunScheduler = func(
 		route *routes.InputRoute,
 		fnSend func(plg outputs.Output, cnt map[string]string),
