@@ -11,7 +11,6 @@ import (
 	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
-	"github.com/aquasecurity/postee/v2/utils"
 )
 
 type MsgService struct {
@@ -99,16 +98,16 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
 	if ok, err := regoservice.DoesMatchRegoCriteria(input, r.InputFiles, r.Input); err != nil {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-			utils.PrnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
+			log.PrnInputError("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
 		} else {
-			utils.PrnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
+			log.PrnInputError("Error while evaluating rego rule for input files :%v for the input %s", err, input)
 		}
 		return false
 	} else if !ok {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-			utils.PrnInputLogs("Input %s... doesn't match a REGO rule: %s", input, r.Input)
+			log.PrnInputInfo("Input %s... doesn't match a REGO rule: %s", input, r.Input)
 		} else {
-			utils.PrnInputLogs("Input %s... doesn't match a REGO input files rule", input)
+			log.PrnInputInfo("Input %s... doesn't match a REGO input files rule", input)
 		}
 		return false
 	}

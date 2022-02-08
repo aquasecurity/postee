@@ -44,3 +44,23 @@ func initDefaultLogger() LoggerType {
 func SetLogger(logger LoggerType) {
 	Logger = logger
 }
+func maybeTruncateArguments(v ...interface{}) {
+	maxLen := 20
+	for idx, e := range v {
+		b, ok := e.([]byte)
+		if ok {
+			if l := len(b); l > maxLen {
+				v[idx] = string(b[:maxLen])
+			}
+		}
+	}
+}
+func PrnInputError(msg string, v ...interface{}) {
+	maybeTruncateArguments(v...)
+	Logger.Errorf(msg, v...)
+}
+
+func PrnInputInfo(msg string, v ...interface{}) {
+	maybeTruncateArguments(v...)
+	Logger.Infof(msg, v...)
+}

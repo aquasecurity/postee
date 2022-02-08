@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/aquasecurity/postee/v2/log"
 )
 
 func GetEnvironmentVarOrPlain(value string) string {
@@ -36,17 +34,4 @@ func GetRootDir() (string, error) {
 func PathExists(name string) bool {
 	_, err := os.Stat(name)
 	return !os.IsNotExist(err)
-}
-
-func PrnInputLogs(msg string, v ...interface{}) {
-	maxLen := 20
-	for idx, e := range v {
-		b, ok := e.([]byte)
-		if ok {
-			if l := len(b); l > maxLen {
-				v[idx] = string(b[:maxLen])
-			}
-		}
-	}
-	log.Logger.Errorf(msg, v...)
 }

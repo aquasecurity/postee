@@ -550,7 +550,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	}
 	inMsg := map[string]interface{}{}
 	if err := json.Unmarshal(in, &inMsg); err != nil {
-		utils.PrnInputLogs("json.Unmarshal error for %q: %v", in, err)
+		log.PrnInputError("json.Unmarshal error for %q: %v", in, err)
 		return
 	}
 
@@ -563,7 +563,6 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	}
 
 	if !getScanService().EvaluateRegoRule(r, inMsg) {
-		log.Logger.Infof("Rego match was not found for route %s", routeName)
 		return
 	}
 
