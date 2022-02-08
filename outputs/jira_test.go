@@ -64,7 +64,7 @@ func TestСreateIssuePriority(t *testing.T) {
 				}
 				_, err = w.Write(propertiesJson)
 				if err != nil {
-					t.Errorf("Unexpected write repsonse error: %v", err)
+					t.Errorf("Unexpected write response error: %v", err)
 				}
 			}))
 			defer ts.Close()
@@ -137,5 +137,71 @@ func TestCreateIssueType(t *testing.T) {
 				require.Equal(t, test.wantIssueType, test.jiraAPI.Issuetype)
 			}
 		})
+	}
+}
+
+func TestCreateMetaProject(t *testing.T) {
+	tests := []struct {
+		name               string
+		metaInfo           interface{}
+		wantMetaProjectKey string
+		wantError          string
+	}{
+		{
+			name: "happy path",
+			metaInfo: jira.CreateMetaInfo{
+				Projects: []*jira.MetaProject{
+					{Key: "test"},
+					{Key: "debug"},
+				},
+			},
+			wantMetaProjectKey: "debug",
+		},
+		{
+			name:      "sad path (jira return error)",
+			metaInfo:  "bad struct",
+			wantError: "failed to get create meta : json: cannot unmarshal string into Go value of type jira.CreateMetaInfo",
+		},
+		{
+			name: "sad path (project not found)",
+			metaInfo: jira.CreateMetaInfo{
+				Projects: []*jira.MetaProject{
+					{Key: "test"},
+					{Key: "debug"},
+				},
+			},
+			wantMetaProjectKey: "bad project",
+			wantError:          "could not find project with key bad project",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(200)
+				metaInfoJson, err := json.Marshal(test.metaInfo)
+				if err != nil {
+					t.Errorf("Unexpected marshal metaInfo error: %v", err)
+				}
+				_, err = w.Write(metaInfoJson)
+				if err != nil {
+					t.Errorf("Unexpected write response error: %v", err)
+				}
+			}))
+			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			metaproject, err := createMetaProject(jiraClient, test.wantMetaProjectKey)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				require.Equal(t, test.wantMetaProjectKey, metaproject.Key)
+			}
+		})
+
 	}
 }
