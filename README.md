@@ -462,7 +462,7 @@ See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
 ## Misc
 
 ### Data Persistency
-The Postee container uses BoltDB or PostgreSQL to store information about previously scanned images.
+The Postee container uses BoltDB to store information about previously scanned images.
 This is used to prevent resending messages that were already sent before.
 The size of the database can grow over time. Every image that is saved in the Bolt database uses 20K of storage.  
 The default Postee Database is BoltDb. 
@@ -473,8 +473,6 @@ If you would like to persist the database file between restarts of the Postee co
 use a persistent storage option to mount the "/server/database" directory of the container.
 The "deploy/kubernetes" directory in this project contains an example deployment that includes a basic Host Persistency.
 
-To use PostgreSQL set the 'POSTGRES_URL' environment variable to your [connection URI](https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING). If you would like to connect 2 or more Postee to 1 PostgreSQL to use unique tenant name in postee config file.
-    
 ### Using environment variables in Postee Configuration File   
 Postee supports use of environment variables for *Output* fields: **User**, **Password** and **Token**. Add preffix `$` to the environment variable name in the configuration file, for example:
 ```
