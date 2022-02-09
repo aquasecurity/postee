@@ -108,7 +108,7 @@ func TestCreateIssueType(t *testing.T) {
 			wantIssueType: "Story",
 		},
 		{
-			name:          "happy path (fill priority, jira have 'Bug' field)",
+			name:          "happy path (fill issueType, jira has 'Bug' field)",
 			jiraAPI:       &JiraAPI{Issuetype: "Bug"},
 			metaProject:   &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
 			wantIssueType: "Bug",
