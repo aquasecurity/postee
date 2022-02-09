@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -602,7 +603,6 @@ func TestInitIssue(t *testing.T) {
 }
 
 func TestOpenIssue(t *testing.T) {
-
 	tests := []struct {
 		name      string
 		issue     *jira.Issue
@@ -644,6 +644,45 @@ func TestOpenIssue(t *testing.T) {
 				assert.Contains(t, err.Error(), test.wantError)
 			} else {
 				assert.Equal(t, test.issue, issue)
+			}
+		})
+	}
+}
+
+func TestBuildTransportClient(t *testing.T) {
+	tests := []struct {
+		name          string
+		jiraApi       *JiraAPI
+		wantTransport interface{}
+		wantError     string
+	}{
+		{
+			name:          "happy path bearer auth",
+			jiraApi:       &JiraAPI{Token: "token", Password: "password"},
+			wantTransport: &jira.BearerTokenAuthTransport{},
+		},
+		{
+			name:          "happy path bearer auth",
+			jiraApi:       &JiraAPI{User: "User", Password: "Password"},
+			wantTransport: &jira.BasicAuthTransport{},
+		},
+		{
+			name:      "sad path bearer auth for server jira",
+			jiraApi:   &JiraAPI{Token: "token", Url: "https://johndoe.atlassian.net"},
+			wantError: "Jira Cloud can't work with PAT",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			client, err := test.jiraApi.buildTransportClient()
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				assert.Equal(t, reflect.TypeOf(test.wantTransport), reflect.TypeOf(client.Transport))
 			}
 		})
 	}
