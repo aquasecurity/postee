@@ -430,7 +430,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 				if key == "Sprint" {
 					num, err := strconv.Atoi(value)
 					if err != nil {
-						return nil, fmt.Errorf("Failed convert 'Sprint' value(string) to int: %s\n", err)
+						return nil, fmt.Errorf("Failed convert 'Sprint' value(string) to int: %w\n", err)
 					}
 					issueFields.Unknowns[jiraKey] = num // Due to Jira REST API behavior, needed to specify not a slice but a number.
 				} else {
@@ -440,7 +440,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 		case "number":
 			val, err := strconv.Atoi(value)
 			if err != nil {
-				return nil, fmt.Errorf("Failed convert '%s' value(string) to int: %s\n", key, err)
+				return nil, fmt.Errorf("Failed convert '%s' value(string) to int: %w\n", key, err)
 			}
 			issueFields.Unknowns[jiraKey] = val
 

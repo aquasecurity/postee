@@ -600,3 +600,51 @@ func TestInitIssue(t *testing.T) {
 		})
 	}
 }
+
+func TestOpenIssue(t *testing.T) {
+
+	tests := []struct {
+		name      string
+		issue     *jira.Issue
+		wantError string
+	}{
+		{
+			name:  "Happy path",
+			issue: &jira.Issue{ID: "issue1"},
+		},
+		{
+			name:      "sad path",
+			wantError: "open issue error",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError != "" {
+					w.WriteHeader(http.StatusNotFound)
+					_, _ = w.Write([]byte(test.wantError))
+				} else {
+					issueJson, _ := json.Marshal(test.issue)
+					_, _ = w.Write(issueJson)
+					w.WriteHeader(http.StatusOK)
+				}
+			}))
+			defer ts.Close()
+
+			jiraApi := &JiraAPI{}
+			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			issue, err := jiraApi.openIssue(jiraClient, test.issue)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				assert.Equal(t, test.issue, issue)
+			}
+		})
+	}
+}
