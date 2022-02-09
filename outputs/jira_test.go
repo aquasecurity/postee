@@ -671,6 +671,11 @@ func TestBuildTransportClient(t *testing.T) {
 			jiraApi:   &JiraAPI{Token: "token", Url: "https://johndoe.atlassian.net"},
 			wantError: "Jira Cloud can't work with PAT",
 		},
+		{
+			name:      "sad path bearer auth with bad url",
+			jiraApi:   &JiraAPI{Token: "token", Url: "https://  johndoe.atlassian.net"},
+			wantError: "Jira Cloud can't work with PAT",
+		},
 	}
 
 	for _, test := range tests {
@@ -683,6 +688,41 @@ func TestBuildTransportClient(t *testing.T) {
 				assert.Contains(t, err.Error(), test.wantError)
 			} else {
 				assert.Equal(t, reflect.TypeOf(test.wantTransport), reflect.TypeOf(client.Transport))
+			}
+		})
+	}
+}
+
+func TestCreateMetaIssueType(t *testing.T) {
+	tests := []struct {
+		name              string
+		metaProject       *jira.MetaProject
+		issueType         string
+		wantMetaIssueType *jira.MetaIssueType
+		wantError         string
+	}{
+		{
+			name:              "happy path",
+			metaProject:       &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
+			wantMetaIssueType: &jira.MetaIssueType{Name: "Task"},
+		},
+		{
+			name:        "sad path",
+			metaProject: &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "SubTask"}, {Name: "Bug"}}},
+			wantError:   "could not find issuetype",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			metaIssueType, err := createMetaIssueType(test.metaProject, defaultIssueType)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				assert.Equal(t, test.wantMetaIssueType, metaIssueType)
 			}
 		})
 	}
