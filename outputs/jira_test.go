@@ -340,8 +340,8 @@ func TestCreateFieldsConfig(t *testing.T) {
 
 			savedCreateIssuePriority := createIssuePriority
 			createIssuePriority = func(ctx *JiraAPI, client *jira.Client) error {
-				if test.wantError == "project don't have issue priorities" {
-					return fmt.Errorf("project don't have issue priorities")
+				if test.wantError != "" {
+					return fmt.Errorf(test.wantError)
 				} else {
 					return nil
 				}
