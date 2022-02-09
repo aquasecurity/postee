@@ -15,6 +15,11 @@ bom_tpl:=`<?xml version="1.0"?>
 component_tpl:=`    <component type="application">
       <name>%s</name>
       <version>%s</version>
+      <licenses>
+        <license>
+          <id>%s</id>
+        </license>
+      </licenses>
       %s
     </component>`
 
@@ -37,6 +42,9 @@ vlnrb_tpl := `
             </v:rating>
           </v:ratings>
           <v:description>%s</v:description>
+          <v:recommendations>
+            <v:recommendation>%s</v:recommendation>
+          </v:recommendations>
         </v:vulnerability>`
 vlnrb_lst_tpl := `<v:vulnerabilities>%s</v:vulnerabilities>`
 
@@ -50,8 +58,9 @@ render_vlnrb(vlnrb_lst) = xml {
         vln_method := vlnrb.aqua_scoring_system
         vln_vectors := vlnrb.aqua_vectors
         vln_score := vlnrb.aqua_score
+        vln_solution := vlnrb.solution
 
-        r := sprintf(vlnrb_tpl, [vln_name, nvd_url, vln_score, vln_score, vln_score, vln_severity, vln_method, vln_vectors, vln_description])
+        r := sprintf(vlnrb_tpl, [vln_name, nvd_url, vln_score, vln_score, vln_score, vln_severity, vln_method, vln_vectors, vln_description, vln_solution])
     ]
 
     xml := sprintf(vlnrb_lst_tpl, [concat("", l)])
@@ -64,11 +73,12 @@ render_components := l {
                     component := item.resource
                     component_name := with_default(component, "name", "none")
                     component_version := with_default(component, "version", "none")
+                    component_license := with_default(component, "license", "not provided")
 
                     vlnrb:=render_vlnrb(item.vulnerabilities)
 
 
-                    r := sprintf(component_tpl, [component_name, component_version, vlnrb])
+                    r := sprintf(component_tpl, [component_name, component_version, component_license, vlnrb])
               ]
 }
 
