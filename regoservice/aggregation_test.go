@@ -67,21 +67,27 @@ description2`,
 }
 
 func aggregateBuildinRego(t *testing.T, caseDesc string, regoRule *string, aggregationRegoRule *string, items []map[string]string, regoPackage string, expectedValues map[string]string) {
-	buildinRegoTemplatesSaved := buildinRegoTemplates
+	buildinRegoTemplatesSaved := regoTemplates
 	testRego := "rego1.rego"
 	aggrRego := "aggr1.rego"
 	commonRegoFilename := "common.rego"
-	buildinRegoTemplates = []string{commonRegoFilename, testRego, aggrRego} //common part goes in single bundle
+	regoTemplates = []string{commonRegoFilename, testRego, aggrRego} //common part goes in single bundle
 
 	err := ioutil.WriteFile(commonRegoFilename, []byte(commonRego), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
 	err = ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
+	if err != nil {
+		t.Fatal(err)
+	}
 	err = ioutil.WriteFile(aggrRego, []byte(*aggregationRegoRule), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	defer func() {
-		buildinRegoTemplates = buildinRegoTemplatesSaved
+		regoTemplates = buildinRegoTemplatesSaved
 		os.Remove(testRego)
 		os.Remove(commonRegoFilename)
 		os.Remove(aggrRego)

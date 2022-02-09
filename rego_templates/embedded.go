@@ -11,18 +11,31 @@ import (
 
 const (
 	COMMON_DIR = "common"
+	LOCAL_DIR  = "."
 )
 
 var (
 	//go:embed *.rego
 	EmbeddedFiles embed.FS
-	templates     map[string]string
+	templates     = make(map[string]string)
+	templatesMu   sync.Mutex
 
 	//go:embed common
 	EmbeddedCommonFiles embed.FS
 	commonTemplates     = make(map[string]string)
-	commonMu            sync.RWMutex
+	commonMu            sync.Mutex
 )
+
+func GetTemplates() map[string]string {
+	templatesMu.Lock()
+	defer templatesMu.Unlock()
+	if len(templates) != 0 {
+		return templates
+	}
+	populateFS(EmbeddedFiles, templates, LOCAL_DIR)
+
+	return templates
+}
 
 func GetCommon() map[string]string {
 	commonMu.Lock()
@@ -30,15 +43,15 @@ func GetCommon() map[string]string {
 	if len(commonTemplates) != 0 {
 		return commonTemplates
 	}
-	populateCommon()
+	populateFS(EmbeddedCommonFiles, commonTemplates, COMMON_DIR)
 
 	return commonTemplates
 }
 
-func populateCommon() {
-	dir, err := fs.ReadDir(EmbeddedCommonFiles, COMMON_DIR)
+func populateFS(files embed.FS, storage map[string]string, dirPath string) {
+	dir, err := fs.ReadDir(files, dirPath)
 	if err != nil {
-		log.Logger.Errorf("failed to read embedded common files: %s", err)
+		log.Logger.Errorf("failed to read embedded files: %s", err)
 		return
 	}
 
@@ -47,12 +60,12 @@ func populateCommon() {
 			continue
 		}
 
-		bt, err := fs.ReadFile(EmbeddedCommonFiles, filepath.Join(COMMON_DIR, file.Name()))
+		bt, err := fs.ReadFile(files, filepath.Join(dirPath, file.Name()))
 		if err != nil {
-			log.Logger.Errorf("failed to read embedded common file '%s': %s", file.Name(), err)
+			log.Logger.Errorf("failed to read embedded file '%s': %s", file.Name(), err)
 			continue
 		}
 
-		commonTemplates[file.Name()] = string(bt)
+		storage[file.Name()] = string(bt)
 	}
 }

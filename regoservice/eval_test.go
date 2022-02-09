@@ -132,9 +132,9 @@ func TestEval(t *testing.T) {
 }
 
 func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
-	buildinRegoTemplatesSaved := buildinRegoTemplates
+	buildinRegoTemplatesSaved := regoTemplates
 	testRego := "rego1.rego"
-	buildinRegoTemplates = []string{testRego}
+	regoTemplates = []string{testRego}
 
 	errWrite := ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
 	if errWrite != nil {
@@ -142,7 +142,7 @@ func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input 
 	}
 
 	defer func() {
-		buildinRegoTemplates = buildinRegoTemplatesSaved
+		regoTemplates = buildinRegoTemplatesSaved
 		os.Remove(testRego)
 	}()
 	demo, err := BuildBundledRegoEvaluator(regoPackage)

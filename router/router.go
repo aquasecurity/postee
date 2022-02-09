@@ -253,7 +253,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Logger.Infof("Configured with Rego package %s", template.RegoPackage)
+		log.Logger.Infof("Configured template '%s' with Rego package %s", template.Name, template.RegoPackage)
 	}
 	if template.Url != "" {
 		log.Logger.Infof("Configured with url: %s", template.Url)
