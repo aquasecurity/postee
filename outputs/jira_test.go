@@ -59,14 +59,8 @@ func TestСreateIssuePriority(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				propertiesJson, err := json.Marshal(test.priorities)
-				if err != nil {
-					t.Errorf("Unexpected json mashal error: %v", err)
-				}
-				_, err = w.Write(propertiesJson)
-				if err != nil {
-					t.Errorf("Unexpected write response error: %v", err)
-				}
+				propertiesJson, _ := json.Marshal(test.priorities)
+				_, _ = w.Write(propertiesJson)
 			}))
 			defer ts.Close()
 
@@ -179,15 +173,8 @@ func TestCreateMetaProject(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(200)
-				metaInfoJson, err := json.Marshal(test.metaInfo)
-				if err != nil {
-					t.Errorf("Unexpected marshal metaInfo error: %v", err)
-				}
-				_, err = w.Write(metaInfoJson)
-				if err != nil {
-					t.Errorf("Unexpected write response error: %v", err)
-				}
+				metaInfoJson, _ := json.Marshal(test.metaInfo)
+				_, _ = w.Write(metaInfoJson)
 			}))
 			defer ts.Close()
 			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
@@ -321,15 +308,8 @@ func TestCreateFieldsConfig(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(200)
-				fieldsJson, err := json.Marshal(test.fields)
-				if err != nil {
-					t.Errorf("Unexpected marshal metaInfo error: %v", err)
-				}
-				_, err = w.Write(fieldsJson)
-				if err != nil {
-					t.Errorf("Unexpected write response error: %v", err)
-				}
+				fieldsJson, _ := json.Marshal(test.fields)
+				_, _ = w.Write(fieldsJson)
 			}))
 			defer ts.Close()
 
@@ -354,11 +334,7 @@ func TestCreateFieldsConfig(t *testing.T) {
 				require.NotNil(t, err)
 				assert.Contains(t, err.Error(), test.wantError)
 			} else {
-				for key, value := range test.wantFieldsConfig {
-					if fieldsConfig[key] != value {
-						t.Errorf("error fieldsConfig value, expected: %s, got: %s", value, fieldsConfig[key])
-					}
-				}
+				assert.Equal(t, test.wantFieldsConfig, fieldsConfig)
 			}
 		})
 	}
