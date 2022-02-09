@@ -32,7 +32,8 @@ outputs:
 - name: my-exec
   type: exec
   enable: true
-  input-file: exec-test.sh            # Required. Specify the path to the script to run
+  env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
+  input-file: exec-test.sh                             # Required. Specify the path to the script to run
 
 - name: my-http-get
   type: http
