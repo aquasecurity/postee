@@ -53,7 +53,7 @@ func (ctx *JiraAPI) GetName() string {
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
-	client, err := ctx.createClient()
+	client, err := createClient(ctx)
 	if err != nil {
 		log.Printf("unable to create Jira client: %s, please check your credentials.", err)
 		return
@@ -155,7 +155,7 @@ func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 	}
 }
 
-func (ctx *JiraAPI) createClient() (*jira.Client, error) {
+var createClient = func(ctx *JiraAPI) (*jira.Client, error) {
 	tpClient, err := ctx.buildTransportClient()
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new JIRA client. %w", err)
@@ -168,7 +168,7 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 }
 
 func (ctx *JiraAPI) Send(content map[string]string) error {
-	client, err := ctx.createClient()
+	client, err := createClient(ctx)
 	if err != nil {
 		log.Printf("unable to create Jira client: %s", err)
 		return err

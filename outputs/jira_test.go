@@ -735,5 +735,73 @@ func TestGetName(t *testing.T) {
 
 		assert.Equal(t, jiraApi.Name, name)
 	})
+}
 
+func TestFetchBoardId(t *testing.T) {
+	tests := []struct {
+		name        string
+		boardName   string
+		boardList   *jira.BoardsList
+		wantJiraApi *JiraAPI
+		wantError   string
+	}{
+		{
+			name:        "happy path (0 boards found)",
+			boardName:   "board0",
+			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board1"}, {Name: "board2"}}},
+			wantJiraApi: &JiraAPI{BoardName: "board0"},
+		},
+		{
+			name:        "happy path (1 board found)",
+			boardName:   "board1",
+			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board1", ID: 1, Type: "Scrum"}, {Name: "board2", ID: 2, Type: "Scrum"}}},
+			wantJiraApi: &JiraAPI{boardId: 1, BoardName: "board1", boardType: "Scrum"},
+		},
+		{
+			name:        "happy path (2 boards found)",
+			boardName:   "board2",
+			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board2", ID: 1, Type: "Scrum"}, {Name: "board2", ID: 2, Type: "Scrum"}}},
+			wantJiraApi: &JiraAPI{boardId: 2, BoardName: "board2", boardType: "Scrum"},
+		},
+		{
+			name:        "sad path (create client error)",
+			boardName:   "board3",
+			wantJiraApi: &JiraAPI{BoardName: "board3"},
+			wantError:   "create client error",
+		},
+		{
+			name:        "sad path (get boardList error)",
+			boardName:   "board4",
+			wantJiraApi: &JiraAPI{BoardName: "board4"},
+			wantError:   "get boardList error",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError == "get boardList error" {
+					w.WriteHeader(http.StatusNotFound)
+				} else {
+					boardListJson, _ := json.Marshal(test.boardList)
+					_, _ = w.Write(boardListJson)
+				}
+			}))
+
+			savedCreateClient := createClient
+			createClient = func(ctx *JiraAPI) (*jira.Client, error) {
+				if test.wantError == "create client error" {
+					return nil, fmt.Errorf(test.wantError)
+				} else {
+					return jira.NewClient(ts.Client(), ts.URL)
+				}
+			}
+			defer func() { createClient = savedCreateClient }()
+
+			jiraApi := &JiraAPI{BoardName: test.boardName}
+			jiraApi.fetchBoardId(test.boardName)
+
+			assert.Equal(t, test.wantJiraApi, jiraApi)
+		})
+	}
 }
