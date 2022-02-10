@@ -83,7 +83,7 @@ func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	}
 }
 
-func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
+func (ctx *JiraAPI) fetchSprintId(client *jira.Client) {
 	sprints, _, err := client.Board.GetAllSprintsWithOptions(ctx.boardId, &jira.GetAllSprintsOptions{State: "active"})
 	if err != nil {
 		log.Printf("failed to get active sprint for board ID %d from Jira API. %s", ctx.boardId, err)
@@ -175,7 +175,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	}
 
 	if ctx.boardType == "scrum" {
-		ctx.fetchSprintId(*client)
+		ctx.fetchSprintId(client)
 	}
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)

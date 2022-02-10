@@ -805,3 +805,57 @@ func TestFetchBoardId(t *testing.T) {
 		})
 	}
 }
+
+func TestFetchSprintId(t *testing.T) {
+	tests := []struct {
+		name        string
+		sprints     *jira.SprintsList
+		wantJiraApi *JiraAPI
+		wantError   bool
+	}{
+		{
+			name:        "happy path (2 sprints found)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint0"}, {Name: "sprint1"}}},
+			wantJiraApi: &JiraAPI{SprintId: 1},
+		},
+		{
+			name:        "happy path (1 sprint found)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint32", ID: 32}}},
+			wantJiraApi: &JiraAPI{SprintId: 32},
+		},
+		{
+			name:        "happy path (0 sprints found)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{}},
+			wantJiraApi: &JiraAPI{SprintId: -1},
+		},
+		{
+			name:        "sad path (get all sprints error)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{}},
+			wantJiraApi: &JiraAPI{SprintId: -1},
+			wantError:   true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError {
+					w.WriteHeader(http.StatusNotFound)
+				} else {
+					sprintsJson, _ := json.Marshal(test.sprints)
+					_, _ = w.Write(sprintsJson)
+				}
+			}))
+
+			jiraApi := &JiraAPI{SprintId: -1}
+			client, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			jiraApi.fetchSprintId(client)
+
+			assert.Equal(t, test.wantJiraApi, jiraApi)
+		})
+	}
+}
