@@ -127,336 +127,137 @@ var metaIssuetype = &jira.MetaIssueType{Name: "Task", Fields: map[string]interfa
 	},
 }}
 
-func TestСreateIssuePriority(t *testing.T) {
+func TestJiraAPI_GetName(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		jiraApi := &JiraAPI{Name: "testName"}
+		name := jiraApi.GetName()
+
+		assert.Equal(t, jiraApi.Name, name)
+	})
+}
+
+func TestJiraAPI_FetchBoardId(t *testing.T) {
 	tests := []struct {
-		name         string
-		jiraAPI      *JiraAPI
-		priorities   interface{}
-		wantPriority string
-		wantError    string
+		name        string
+		boardName   string
+		boardList   *jira.BoardsList
+		wantJiraApi *JiraAPI
+		wantError   string
 	}{
 		{
-			name:         "happy path (empty priority, jira has 'High' field)",
-			jiraAPI:      &JiraAPI{Priority: ""},
-			priorities:   []jira.Priority{{Name: "Highest"}, {Name: "High"}, {Name: "Medium"}},
-			wantPriority: "High",
+			name:        "happy path (0 boards found)",
+			boardName:   "board0",
+			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board1"}, {Name: "board2"}}},
+			wantJiraApi: &JiraAPI{BoardName: "board0"},
 		},
 		{
-			name:         "happy path (empty priority, jira doesn't have 'High' field)",
-			jiraAPI:      &JiraAPI{Priority: ""},
-			priorities:   []jira.Priority{{Name: "Highest"}, {Name: "Low"}, {Name: "Medium"}},
-			wantPriority: "Highest",
+			name:        "happy path (1 board found)",
+			boardName:   "board1",
+			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board1", ID: 1, Type: "Scrum"}, {Name: "board2", ID: 2, Type: "Scrum"}}},
+			wantJiraApi: &JiraAPI{boardId: 1, BoardName: "board1", boardType: "Scrum"},
 		},
 		{
-			name:         "happy path (fill priority, jira has 'Medium' field)",
-			jiraAPI:      &JiraAPI{Priority: "Medium"},
-			priorities:   []jira.Priority{{Name: "Highest"}, {Name: "High"}, {Name: "Medium"}},
-			wantPriority: "Medium",
+			name:        "happy path (2 boards found)",
+			boardName:   "board2",
+			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board2", ID: 1, Type: "Scrum"}, {Name: "board2", ID: 2, Type: "Scrum"}}},
+			wantJiraApi: &JiraAPI{boardId: 2, BoardName: "board2", boardType: "Scrum"},
 		},
 		{
-			name:       "bad path (fill priority, jira doesn't have 'Medium' field)",
-			jiraAPI:    &JiraAPI{Priority: "Medium"},
-			priorities: []jira.Priority{{Name: "Highest"}, {Name: "High"}, {Name: "Low"}},
-			wantError:  "project don't have issue priority \"Medium\"",
+			name:        "sad path (Failed to create client)",
+			boardName:   "board3",
+			wantJiraApi: &JiraAPI{BoardName: "board3"},
+			wantError:   "Failed to create client",
 		},
 		{
-			name:       "bad path (jira returns empty priorities)",
-			jiraAPI:    &JiraAPI{Priority: ""},
-			priorities: nil,
-			wantError:  "project don't have issue priorities",
-		},
-		{
-			name:       "bad path (jira returns error)",
-			jiraAPI:    &JiraAPI{Priority: ""},
-			priorities: jira.Issue{},
-			wantError:  "failed to get issue priority list: json: cannot unmarshal object into Go value of type []jira.Priority",
+			name:        "sad path (Failed to get boardList)",
+			boardName:   "board4",
+			wantJiraApi: &JiraAPI{BoardName: "board4"},
+			wantError:   "Failed to get boardList",
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				propertiesJson, _ := json.Marshal(test.priorities)
-				_, _ = w.Write(propertiesJson)
-			}))
-			defer ts.Close()
-
-			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
-			if err != nil {
-				t.Fatalf("can't create jiraClient %v", err)
-			}
-
-			err = createIssuePriority(test.jiraAPI, jiraClient)
-
-			if test.wantError != "" {
-				require.NotNil(t, err)
-				assert.Contains(t, err.Error(), test.wantError)
-			} else {
-				require.Equal(t, test.wantPriority, test.jiraAPI.Priority)
-			}
-		})
-	}
-}
-
-func TestCreateIssueType(t *testing.T) {
-	tests := []struct {
-		name          string
-		jiraAPI       *JiraAPI
-		metaProject   *jira.MetaProject
-		wantIssueType string
-		wantError     string
-	}{
-		{
-			name:          "happy path (empty issueType, jira has 'Task' field)",
-			jiraAPI:       &JiraAPI{},
-			metaProject:   &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
-			wantIssueType: "Task",
-		},
-		{
-			name:          "happy path (empty issueType, jira doesn't have 'Task' field)",
-			jiraAPI:       &JiraAPI{},
-			metaProject:   &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Story"}, {Name: "Bug"}}},
-			wantIssueType: "Story",
-		},
-		{
-			name:          "happy path (fill issueType, jira has 'Bug' field)",
-			jiraAPI:       &JiraAPI{Issuetype: "Bug"},
-			metaProject:   &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
-			wantIssueType: "Bug",
-		},
-		{
-			name:        "bad path (fill issueType, jira doesn't have 'Bug' field)",
-			jiraAPI:     &JiraAPI{Issuetype: "Bug"},
-			metaProject: &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Story"}}},
-			wantError:   "project \"\" don't have issueType \"Bug\"",
-		},
-		{
-			name:        "bad path (metaIssueType has empty IssueTypes)",
-			jiraAPI:     &JiraAPI{Priority: ""},
-			metaProject: &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{}},
-			wantError:   "project \"\" don't have issueTypes",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			err := createIssueType(test.jiraAPI, test.metaProject)
-
-			if test.wantError != "" {
-				require.NotNil(t, err)
-				assert.Contains(t, err.Error(), test.wantError)
-			} else {
-				require.Equal(t, test.wantIssueType, test.jiraAPI.Issuetype)
-			}
-		})
-	}
-}
-
-func TestCreateMetaProject(t *testing.T) {
-	tests := []struct {
-		name               string
-		metaInfo           interface{}
-		wantMetaProjectKey string
-		wantError          string
-	}{
-		{
-			name: "happy path",
-			metaInfo: jira.CreateMetaInfo{
-				Projects: []*jira.MetaProject{
-					{Key: "test"},
-					{Key: "debug"},
-				},
-			},
-			wantMetaProjectKey: "debug",
-		},
-		{
-			name:      "sad path (jira return error)",
-			metaInfo:  "bad struct",
-			wantError: "failed to get create meta : json: cannot unmarshal string into Go value of type jira.CreateMetaInfo",
-		},
-		{
-			name: "sad path (project not found)",
-			metaInfo: jira.CreateMetaInfo{
-				Projects: []*jira.MetaProject{
-					{Key: "test"},
-					{Key: "debug"},
-				},
-			},
-			wantMetaProjectKey: "bad project",
-			wantError:          "could not find project with key bad project",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				metaInfoJson, _ := json.Marshal(test.metaInfo)
-				_, _ = w.Write(metaInfoJson)
-			}))
-			defer ts.Close()
-			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
-			if err != nil {
-				t.Fatalf("can't create jiraClient %v", err)
-			}
-
-			metaProject, err := createMetaProject(jiraClient, test.wantMetaProjectKey)
-
-			if test.wantError != "" {
-				require.NotNil(t, err)
-				assert.Contains(t, err.Error(), test.wantError)
-			} else {
-				require.Equal(t, test.wantMetaProjectKey, metaProject.Key)
-			}
-		})
-	}
-}
-
-func TestCreateFieldsConfig(t *testing.T) {
-	tests := []struct {
-		name             string
-		fields           interface{}
-		jiraApi          *JiraAPI
-		content          *map[string]string
-		wantFieldsConfig map[string]string
-		wantError        string
-	}{
-		{
-			name: "happy path (default field names)",
-			fields: []jira.Field{
-				{ID: "issuetype", Name: "Issue Type"},
-				{ID: "project", Name: "Project"},
-				{ID: "priority", Name: "Priority"},
-				{ID: "assignee", Name: "Assignee"},
-				{ID: "description", Name: "Description"},
-				{ID: "summary", Name: "Summary"},
-			},
-			jiraApi: &JiraAPI{
-				User:        "User",
-				Issuetype:   "Task",
-				ProjectKey:  "Project",
-				Priority:    "High",
-				Description: "Description",
-				Summary:     "Summary",
-			},
-			content: &map[string]string{},
-			wantFieldsConfig: map[string]string{
-				"Issue Type":  "Task",
-				"Project":     "Project",
-				"Priority":    "High",
-				"Assignee":    "User",
-				"Description": "Description",
-				"Summary":     "Summary",
-			},
-		},
-		{
-			name: "happy path (custom field names)",
-			fields: []jira.Field{
-				{ID: "issuetype", Name: "Custom Issue Type"},
-				{ID: "project", Name: "Custom Project"},
-				{ID: "priority", Name: "Custom Priority"},
-				{ID: "assignee", Name: "Custom Assignee"},
-				{ID: "description", Name: "Custom Description"},
-				{ID: "summary", Name: "Custom Summary"},
-			},
-			jiraApi: &JiraAPI{
-				User:        "User",
-				Issuetype:   "Task",
-				ProjectKey:  "Project",
-				Priority:    "High",
-				Description: "Description",
-				Summary:     "Summary",
-				SprintId:    432,
-				Assignee:    []string{"Assignee"},
-			},
-			content: &map[string]string{"owners": "owners"},
-			wantFieldsConfig: map[string]string{
-				"Custom Issue Type":  "Task",
-				"Custom Project":     "Project",
-				"Custom Priority":    "High",
-				"Custom Assignee":    "Assignee",
-				"Custom Description": "Description",
-				"Custom Summary":     "Summary",
-				"Sprint":             "432",
-			},
-		},
-		{
-			name: "happy path (custom fields)",
-			fields: []jira.Field{
-				{ID: "issuetype", Name: "Issue Type"},
-				{ID: "project", Name: "Project"},
-				{ID: "priority", Name: "Priority"},
-				{ID: "assignee", Name: "Assignee"},
-				{ID: "description", Name: "Description"},
-				{ID: "summary", Name: "Summary"},
-			},
-			jiraApi: &JiraAPI{
-				User:        "User",
-				Issuetype:   "Task",
-				ProjectKey:  "Project",
-				Priority:    "High",
-				Description: "Description",
-				Summary:     "Summary",
-				Unknowns:    map[string]string{"Custom field": "Custom field value"},
-			},
-			content: &map[string]string{},
-			wantFieldsConfig: map[string]string{
-				"Issue Type":   "Task",
-				"Project":      "Project",
-				"Priority":     "High",
-				"Assignee":     "User",
-				"Description":  "Description",
-				"Summary":      "Summary",
-				"Custom field": "Custom field value",
-			},
-		},
-		{
-			name:      "sad path (filed.GetList() return error)",
-			fields:    "bad fields array",
-			wantError: "json: cannot unmarshal string into Go value of type []jira.Field",
-		},
-		{
-			name:      "sad path (createIssuePriority return error)",
-			fields:    []jira.Field{},
-			jiraApi:   &JiraAPI{},
-			wantError: "project don't have issue priorities",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				fieldsJson, _ := json.Marshal(test.fields)
-				_, _ = w.Write(fieldsJson)
-			}))
-			defer ts.Close()
-
-			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
-			if err != nil {
-				t.Fatalf("can't create jiraClient %v", err)
-			}
-
-			savedCreateIssuePriority := createIssuePriority
-			createIssuePriority = func(ctx *JiraAPI, client *jira.Client) error {
-				if test.wantError != "" {
-					return fmt.Errorf(test.wantError)
+				if test.wantError == "Failed to get boardList" {
+					w.WriteHeader(http.StatusNotFound)
 				} else {
-					return nil
+					boardListJson, _ := json.Marshal(test.boardList)
+					_, _ = w.Write(boardListJson)
+				}
+			}))
+
+			savedCreateClient := createClient
+			createClient = func(ctx *JiraAPI) (*jira.Client, error) {
+				if test.wantError == "Failed to create client" {
+					return nil, fmt.Errorf(test.wantError)
+				} else {
+					return jira.NewClient(ts.Client(), ts.URL)
 				}
 			}
-			defer func() { createIssuePriority = savedCreateIssuePriority }()
+			defer func() { createClient = savedCreateClient }()
 
-			fieldsConfig, err := createFieldsConfig(test.jiraApi, jiraClient, test.content)
+			jiraApi := &JiraAPI{BoardName: test.boardName}
+			jiraApi.fetchBoardId(test.boardName)
 
-			if test.wantError != "" {
-				require.NotNil(t, err)
-				assert.Contains(t, err.Error(), test.wantError)
-			} else {
-				assert.Equal(t, test.wantFieldsConfig, fieldsConfig)
-			}
+			assert.Equal(t, test.wantJiraApi, jiraApi)
 		})
 	}
 }
 
-func TestInitIssue(t *testing.T) {
+func TestJiraAPI_FetchSprintId(t *testing.T) {
+	tests := []struct {
+		name        string
+		sprints     *jira.SprintsList
+		wantJiraApi *JiraAPI
+		wantError   bool
+	}{
+		{
+			name:        "happy path (2 sprints found)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint0"}, {Name: "sprint1"}}},
+			wantJiraApi: &JiraAPI{SprintId: 1},
+		},
+		{
+			name:        "happy path (1 sprint found)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint32", ID: 32}}},
+			wantJiraApi: &JiraAPI{SprintId: 32},
+		},
+		{
+			name:        "happy path (0 sprints found)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{}},
+			wantJiraApi: &JiraAPI{SprintId: -1},
+		},
+		{
+			name:        "sad path (Failed to get all sprints)",
+			sprints:     &jira.SprintsList{Values: []jira.Sprint{}},
+			wantJiraApi: &JiraAPI{SprintId: -1},
+			wantError:   true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError {
+					w.WriteHeader(http.StatusNotFound)
+				} else {
+					sprintsJson, _ := json.Marshal(test.sprints)
+					_, _ = w.Write(sprintsJson)
+				}
+			}))
+
+			jiraApi := &JiraAPI{SprintId: -1}
+			client, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			jiraApi.fetchSprintId(client)
+
+			assert.Equal(t, test.wantJiraApi, jiraApi)
+		})
+	}
+}
+
+func TestJiraAPI_InitIssue(t *testing.T) {
 	metaProject := &jira.MetaProject{
 		Id:   "project ID",
 		Name: "project name",
@@ -590,11 +391,14 @@ func TestInitIssue(t *testing.T) {
 				allFieldsJson, _ := json.Marshal(test.user)
 				_, _ = w.Write(allFieldsJson)
 			}))
+
 			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
 			if err != nil {
 				t.Fatalf("can't create jiraClient %v", err)
 			}
+
 			issue, err := InitIssue(jiraClient, metaProject, metaIssuetype, test.fieldsConfig, test.useSrvApi)
+
 			if test.wantError != "" {
 				require.NotNil(t, err)
 				assert.Contains(t, err.Error(), test.wantError)
@@ -605,54 +409,16 @@ func TestInitIssue(t *testing.T) {
 	}
 }
 
-func TestOpenIssue(t *testing.T) {
-	tests := []struct {
-		name      string
-		issue     *jira.Issue
-		wantError string
-	}{
-		{
-			name:  "Happy path",
-			issue: &jira.Issue{ID: "issue1"},
-		},
-		{
-			name:      "sad path",
-			wantError: "open issue error",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if test.wantError != "" {
-					w.WriteHeader(http.StatusNotFound)
-					_, _ = w.Write([]byte(test.wantError))
-				} else {
-					issueJson, _ := json.Marshal(test.issue)
-					_, _ = w.Write(issueJson)
-					w.WriteHeader(http.StatusOK)
-				}
-			}))
-			defer ts.Close()
-
-			jiraApi := &JiraAPI{}
-			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
-			if err != nil {
-				t.Fatalf("can't create jiraClient %v", err)
-			}
-
-			issue, err := jiraApi.openIssue(jiraClient, test.issue)
-
-			if test.wantError != "" {
-				require.NotNil(t, err)
-				assert.Contains(t, err.Error(), test.wantError)
-			} else {
-				assert.Equal(t, test.issue, issue)
-			}
-		})
-	}
+func TestJiraAPI_GetLayoutProvider(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		jiraApi := &JiraAPI{}
+		wantLayoutProviderType := new(formatting.JiraLayoutProvider)
+		LayoutProvider := jiraApi.GetLayoutProvider()
+		assert.Equal(t, reflect.TypeOf(wantLayoutProviderType), reflect.TypeOf(LayoutProvider))
+	})
 }
 
-func TestBuildTransportClient(t *testing.T) {
+func TestJiraAPI_BuildTransportClient(t *testing.T) {
 	tests := []struct {
 		name          string
 		jiraApi       *JiraAPI
@@ -680,10 +446,8 @@ func TestBuildTransportClient(t *testing.T) {
 			wantError: "Jira Cloud can't work with PAT",
 		},
 	}
-
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			client, err := test.jiraApi.buildTransportClient()
 
 			if test.wantError != "" {
@@ -692,220 +456,6 @@ func TestBuildTransportClient(t *testing.T) {
 			} else {
 				assert.Equal(t, reflect.TypeOf(test.wantTransport), reflect.TypeOf(client.Transport))
 			}
-		})
-	}
-}
-
-func TestCreateMetaIssueType(t *testing.T) {
-	tests := []struct {
-		name              string
-		metaProject       *jira.MetaProject
-		issueType         string
-		wantMetaIssueType *jira.MetaIssueType
-		wantError         string
-	}{
-		{
-			name:              "happy path",
-			metaProject:       &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
-			wantMetaIssueType: &jira.MetaIssueType{Name: "Task"},
-		},
-		{
-			name:        "sad path",
-			metaProject: &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "SubTask"}, {Name: "Bug"}}},
-			wantError:   "could not find issuetype",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-
-			metaIssueType, err := createMetaIssueType(test.metaProject, defaultIssueType)
-
-			if test.wantError != "" {
-				require.NotNil(t, err)
-				assert.Contains(t, err.Error(), test.wantError)
-			} else {
-				assert.Equal(t, test.wantMetaIssueType, metaIssueType)
-			}
-		})
-	}
-}
-
-func TestGetName(t *testing.T) {
-	t.Run("happy path", func(t *testing.T) {
-		jiraApi := &JiraAPI{Name: "testName"}
-		name := jiraApi.GetName()
-
-		assert.Equal(t, jiraApi.Name, name)
-	})
-}
-
-func TestFetchBoardId(t *testing.T) {
-	tests := []struct {
-		name        string
-		boardName   string
-		boardList   *jira.BoardsList
-		wantJiraApi *JiraAPI
-		wantError   string
-	}{
-		{
-			name:        "happy path (0 boards found)",
-			boardName:   "board0",
-			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board1"}, {Name: "board2"}}},
-			wantJiraApi: &JiraAPI{BoardName: "board0"},
-		},
-		{
-			name:        "happy path (1 board found)",
-			boardName:   "board1",
-			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board1", ID: 1, Type: "Scrum"}, {Name: "board2", ID: 2, Type: "Scrum"}}},
-			wantJiraApi: &JiraAPI{boardId: 1, BoardName: "board1", boardType: "Scrum"},
-		},
-		{
-			name:        "happy path (2 boards found)",
-			boardName:   "board2",
-			boardList:   &jira.BoardsList{Values: []jira.Board{{Name: "board2", ID: 1, Type: "Scrum"}, {Name: "board2", ID: 2, Type: "Scrum"}}},
-			wantJiraApi: &JiraAPI{boardId: 2, BoardName: "board2", boardType: "Scrum"},
-		},
-		{
-			name:        "sad path (create client error)",
-			boardName:   "board3",
-			wantJiraApi: &JiraAPI{BoardName: "board3"},
-			wantError:   "create client error",
-		},
-		{
-			name:        "sad path (get boardList error)",
-			boardName:   "board4",
-			wantJiraApi: &JiraAPI{BoardName: "board4"},
-			wantError:   "get boardList error",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if test.wantError == "get boardList error" {
-					w.WriteHeader(http.StatusNotFound)
-				} else {
-					boardListJson, _ := json.Marshal(test.boardList)
-					_, _ = w.Write(boardListJson)
-				}
-			}))
-
-			savedCreateClient := createClient
-			createClient = func(ctx *JiraAPI) (*jira.Client, error) {
-				if test.wantError == "create client error" {
-					return nil, fmt.Errorf(test.wantError)
-				} else {
-					return jira.NewClient(ts.Client(), ts.URL)
-				}
-			}
-			defer func() { createClient = savedCreateClient }()
-
-			jiraApi := &JiraAPI{BoardName: test.boardName}
-			jiraApi.fetchBoardId(test.boardName)
-
-			assert.Equal(t, test.wantJiraApi, jiraApi)
-		})
-	}
-}
-
-func TestFetchSprintId(t *testing.T) {
-	tests := []struct {
-		name        string
-		sprints     *jira.SprintsList
-		wantJiraApi *JiraAPI
-		wantError   bool
-	}{
-		{
-			name:        "happy path (2 sprints found)",
-			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint0"}, {Name: "sprint1"}}},
-			wantJiraApi: &JiraAPI{SprintId: 1},
-		},
-		{
-			name:        "happy path (1 sprint found)",
-			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint32", ID: 32}}},
-			wantJiraApi: &JiraAPI{SprintId: 32},
-		},
-		{
-			name:        "happy path (0 sprints found)",
-			sprints:     &jira.SprintsList{Values: []jira.Sprint{}},
-			wantJiraApi: &JiraAPI{SprintId: -1},
-		},
-		{
-			name:        "sad path (get all sprints error)",
-			sprints:     &jira.SprintsList{Values: []jira.Sprint{}},
-			wantJiraApi: &JiraAPI{SprintId: -1},
-			wantError:   true,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if test.wantError {
-					w.WriteHeader(http.StatusNotFound)
-				} else {
-					sprintsJson, _ := json.Marshal(test.sprints)
-					_, _ = w.Write(sprintsJson)
-				}
-			}))
-
-			jiraApi := &JiraAPI{SprintId: -1}
-			client, err := jira.NewClient(ts.Client(), ts.URL)
-			if err != nil {
-				t.Fatalf("can't create jiraClient %v", err)
-			}
-
-			jiraApi.fetchSprintId(client)
-
-			assert.Equal(t, test.wantJiraApi, jiraApi)
-		})
-	}
-}
-
-func TestJiraAPI_GetLayoutProvider(t *testing.T) {
-	t.Run("happy path", func(t *testing.T) {
-		jiraApi := &JiraAPI{}
-		wantLayoutProviderType := new(formatting.JiraLayoutProvider)
-		LayoutProvider := jiraApi.GetLayoutProvider()
-		assert.Equal(t, reflect.TypeOf(wantLayoutProviderType), reflect.TypeOf(LayoutProvider))
-	})
-}
-
-func TestJiraAPI_Init(t *testing.T) {
-	tests := []struct {
-		name        string
-		jiraApi     *JiraAPI
-		envPassword string
-		wantJiraApi *JiraAPI
-	}{
-		{
-			name:        "happy path",
-			jiraApi:     &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "password"},
-			wantJiraApi: &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "password"},
-		},
-		{
-			name:        "happy path (empty BoardName)",
-			jiraApi:     &JiraAPI{ProjectKey: "project", Password: "password"},
-			wantJiraApi: &JiraAPI{BoardName: "project board", ProjectKey: "project", Password: "password"},
-		},
-		{
-			name:        "happy path(empty password)",
-			jiraApi:     &JiraAPI{BoardName: "board0", ProjectKey: "project"},
-			envPassword: "test_password",
-			wantJiraApi: &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "test_password"},
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if test.envPassword != "" {
-				savedJiraPassword := os.Getenv("JIRA_PASSWORD")
-				_ = os.Setenv("JIRA_PASSWORD", test.envPassword)
-				defer os.Setenv("JIRA_PASSWORD", savedJiraPassword)
-			}
-			_ = test.jiraApi.Init()
-
-			assert.Equal(t, test.wantJiraApi, test.jiraApi)
 		})
 	}
 }
@@ -1067,6 +617,457 @@ func TestJiraAPI_Send(t *testing.T) {
 			} else {
 				require.Nil(t, err)
 			}
+		})
+	}
+}
+
+func TestJiraAPI_OpenIssue(t *testing.T) {
+	tests := []struct {
+		name      string
+		issue     *jira.Issue
+		wantError string
+	}{
+		{
+			name:  "Happy path",
+			issue: &jira.Issue{ID: "issue1"},
+		},
+		{
+			name:      "sad path",
+			wantError: "open issue error",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError != "" {
+					w.WriteHeader(http.StatusNotFound)
+					_, _ = w.Write([]byte(test.wantError))
+				} else {
+					issueJson, _ := json.Marshal(test.issue)
+					_, _ = w.Write(issueJson)
+					w.WriteHeader(http.StatusOK)
+				}
+			}))
+			defer ts.Close()
+
+			jiraApi := &JiraAPI{}
+			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			issue, err := jiraApi.openIssue(jiraClient, test.issue)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				assert.Equal(t, test.issue, issue)
+			}
+		})
+	}
+}
+
+func TestJiraAPI_CreateMetaProject(t *testing.T) {
+	tests := []struct {
+		name               string
+		metaInfo           interface{}
+		wantMetaProjectKey string
+		wantError          string
+	}{
+		{
+			name: "happy path",
+			metaInfo: jira.CreateMetaInfo{
+				Projects: []*jira.MetaProject{
+					{Key: "test"},
+					{Key: "debug"},
+				},
+			},
+			wantMetaProjectKey: "debug",
+		},
+		{
+			name:      "sad path (jira return error)",
+			metaInfo:  "bad struct",
+			wantError: "failed to get create meta : json: cannot unmarshal string into Go value of type jira.CreateMetaInfo",
+		},
+		{
+			name: "sad path (project not found)",
+			metaInfo: jira.CreateMetaInfo{
+				Projects: []*jira.MetaProject{
+					{Key: "test"},
+					{Key: "debug"},
+				},
+			},
+			wantMetaProjectKey: "bad project",
+			wantError:          "could not find project with key bad project",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				metaInfoJson, _ := json.Marshal(test.metaInfo)
+				_, _ = w.Write(metaInfoJson)
+			}))
+			defer ts.Close()
+
+			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			metaProject, err := createMetaProject(jiraClient, test.wantMetaProjectKey)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				require.Equal(t, test.wantMetaProjectKey, metaProject.Key)
+			}
+		})
+	}
+}
+
+func TestJiraAPI_CreateIssueType(t *testing.T) {
+	tests := []struct {
+		name          string
+		jiraAPI       *JiraAPI
+		metaProject   *jira.MetaProject
+		wantIssueType string
+		wantError     string
+	}{
+		{
+			name:          "happy path (empty issueType, jira has 'Task' field)",
+			jiraAPI:       &JiraAPI{},
+			metaProject:   &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
+			wantIssueType: "Task",
+		},
+		{
+			name:          "happy path (empty issueType, jira doesn't have 'Task' field)",
+			jiraAPI:       &JiraAPI{},
+			metaProject:   &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Story"}, {Name: "Bug"}}},
+			wantIssueType: "Story",
+		},
+		{
+			name:          "happy path (fill issueType, jira has 'Bug' field)",
+			jiraAPI:       &JiraAPI{Issuetype: "Bug"},
+			metaProject:   &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
+			wantIssueType: "Bug",
+		},
+		{
+			name:        "bad path (fill issueType, jira doesn't have 'Bug' field)",
+			jiraAPI:     &JiraAPI{Issuetype: "Bug"},
+			metaProject: &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Story"}}},
+			wantError:   "project \"\" don't have issueType \"Bug\"",
+		},
+		{
+			name:        "bad path (metaIssueType has empty IssueTypes)",
+			jiraAPI:     &JiraAPI{Priority: ""},
+			metaProject: &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{}},
+			wantError:   "project \"\" don't have issueTypes",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := createIssueType(test.jiraAPI, test.metaProject)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				require.Equal(t, test.wantIssueType, test.jiraAPI.Issuetype)
+			}
+		})
+	}
+}
+
+func TestJiraAPI_CreateIssuePriority(t *testing.T) {
+	tests := []struct {
+		name         string
+		jiraAPI      *JiraAPI
+		priorities   interface{}
+		wantPriority string
+		wantError    string
+	}{
+		{
+			name:         "happy path (empty priority, jira has 'High' field)",
+			jiraAPI:      &JiraAPI{Priority: ""},
+			priorities:   []jira.Priority{{Name: "Highest"}, {Name: "High"}, {Name: "Medium"}},
+			wantPriority: "High",
+		},
+		{
+			name:         "happy path (empty priority, jira doesn't have 'High' field)",
+			jiraAPI:      &JiraAPI{Priority: ""},
+			priorities:   []jira.Priority{{Name: "Highest"}, {Name: "Low"}, {Name: "Medium"}},
+			wantPriority: "Highest",
+		},
+		{
+			name:         "happy path (fill priority, jira has 'Medium' field)",
+			jiraAPI:      &JiraAPI{Priority: "Medium"},
+			priorities:   []jira.Priority{{Name: "Highest"}, {Name: "High"}, {Name: "Medium"}},
+			wantPriority: "Medium",
+		},
+		{
+			name:       "bad path (fill priority, jira doesn't have 'Medium' field)",
+			jiraAPI:    &JiraAPI{Priority: "Medium"},
+			priorities: []jira.Priority{{Name: "Highest"}, {Name: "High"}, {Name: "Low"}},
+			wantError:  "project don't have issue priority \"Medium\"",
+		},
+		{
+			name:       "bad path (jira returns empty priorities)",
+			jiraAPI:    &JiraAPI{Priority: ""},
+			priorities: nil,
+			wantError:  "project don't have issue priorities",
+		},
+		{
+			name:       "bad path (jira returns error)",
+			jiraAPI:    &JiraAPI{Priority: ""},
+			priorities: jira.Issue{},
+			wantError:  "failed to get issue priority list: json: cannot unmarshal object into Go value of type []jira.Priority",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				propertiesJson, _ := json.Marshal(test.priorities)
+				_, _ = w.Write(propertiesJson)
+			}))
+			defer ts.Close()
+
+			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			err = createIssuePriority(test.jiraAPI, jiraClient)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				require.Equal(t, test.wantPriority, test.jiraAPI.Priority)
+			}
+		})
+	}
+}
+
+func TestJiraAPI_CreateFieldsConfig(t *testing.T) {
+	tests := []struct {
+		name             string
+		fields           interface{}
+		jiraApi          *JiraAPI
+		content          *map[string]string
+		wantFieldsConfig map[string]string
+		wantError        string
+	}{
+		{
+			name: "happy path (default field names)",
+			fields: []jira.Field{
+				{ID: "issuetype", Name: "Issue Type"},
+				{ID: "project", Name: "Project"},
+				{ID: "priority", Name: "Priority"},
+				{ID: "assignee", Name: "Assignee"},
+				{ID: "description", Name: "Description"},
+				{ID: "summary", Name: "Summary"},
+			},
+			jiraApi: &JiraAPI{
+				User:        "User",
+				Issuetype:   "Task",
+				ProjectKey:  "Project",
+				Priority:    "High",
+				Description: "Description",
+				Summary:     "Summary",
+			},
+			content: &map[string]string{},
+			wantFieldsConfig: map[string]string{
+				"Issue Type":  "Task",
+				"Project":     "Project",
+				"Priority":    "High",
+				"Assignee":    "User",
+				"Description": "Description",
+				"Summary":     "Summary",
+			},
+		},
+		{
+			name: "happy path (custom field names)",
+			fields: []jira.Field{
+				{ID: "issuetype", Name: "Custom Issue Type"},
+				{ID: "project", Name: "Custom Project"},
+				{ID: "priority", Name: "Custom Priority"},
+				{ID: "assignee", Name: "Custom Assignee"},
+				{ID: "description", Name: "Custom Description"},
+				{ID: "summary", Name: "Custom Summary"},
+			},
+			jiraApi: &JiraAPI{
+				User:        "User",
+				Issuetype:   "Task",
+				ProjectKey:  "Project",
+				Priority:    "High",
+				Description: "Description",
+				Summary:     "Summary",
+				SprintId:    432,
+				Assignee:    []string{"Assignee"},
+			},
+			content: &map[string]string{"owners": "owners"},
+			wantFieldsConfig: map[string]string{
+				"Custom Issue Type":  "Task",
+				"Custom Project":     "Project",
+				"Custom Priority":    "High",
+				"Custom Assignee":    "Assignee",
+				"Custom Description": "Description",
+				"Custom Summary":     "Summary",
+				"Sprint":             "432",
+			},
+		},
+		{
+			name: "happy path (custom fields)",
+			fields: []jira.Field{
+				{ID: "issuetype", Name: "Issue Type"},
+				{ID: "project", Name: "Project"},
+				{ID: "priority", Name: "Priority"},
+				{ID: "assignee", Name: "Assignee"},
+				{ID: "description", Name: "Description"},
+				{ID: "summary", Name: "Summary"},
+			},
+			jiraApi: &JiraAPI{
+				User:        "User",
+				Issuetype:   "Task",
+				ProjectKey:  "Project",
+				Priority:    "High",
+				Description: "Description",
+				Summary:     "Summary",
+				Unknowns:    map[string]string{"Custom field": "Custom field value"},
+			},
+			content: &map[string]string{},
+			wantFieldsConfig: map[string]string{
+				"Issue Type":   "Task",
+				"Project":      "Project",
+				"Priority":     "High",
+				"Assignee":     "User",
+				"Description":  "Description",
+				"Summary":      "Summary",
+				"Custom field": "Custom field value",
+			},
+		},
+		{
+			name:      "sad path (filed.GetList() return error)",
+			fields:    "bad fields array",
+			wantError: "json: cannot unmarshal string into Go value of type []jira.Field",
+		},
+		{
+			name:      "sad path (createIssuePriority return error)",
+			fields:    []jira.Field{},
+			jiraApi:   &JiraAPI{},
+			wantError: "project don't have issue priorities",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fieldsJson, _ := json.Marshal(test.fields)
+				_, _ = w.Write(fieldsJson)
+			}))
+			defer ts.Close()
+
+			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
+			if err != nil {
+				t.Fatalf("can't create jiraClient %v", err)
+			}
+
+			savedCreateIssuePriority := createIssuePriority
+			createIssuePriority = func(ctx *JiraAPI, client *jira.Client) error {
+				if test.wantError != "" {
+					return fmt.Errorf(test.wantError)
+				} else {
+					return nil
+				}
+			}
+			defer func() { createIssuePriority = savedCreateIssuePriority }()
+
+			fieldsConfig, err := createFieldsConfig(test.jiraApi, jiraClient, test.content)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				assert.Equal(t, test.wantFieldsConfig, fieldsConfig)
+			}
+		})
+	}
+}
+
+func TestJiraAPI_CreateMetaIssueType(t *testing.T) {
+	tests := []struct {
+		name              string
+		metaProject       *jira.MetaProject
+		issueType         string
+		wantMetaIssueType *jira.MetaIssueType
+		wantError         string
+	}{
+		{
+			name:              "happy path",
+			metaProject:       &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "Task"}, {Name: "Bug"}}},
+			wantMetaIssueType: &jira.MetaIssueType{Name: "Task"},
+		},
+		{
+			name:        "sad path",
+			metaProject: &jira.MetaProject{IssueTypes: []*jira.MetaIssueType{{Name: "SubTask"}, {Name: "Bug"}}},
+			wantError:   "could not find issuetype",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			metaIssueType, err := createMetaIssueType(test.metaProject, defaultIssueType)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				assert.Equal(t, test.wantMetaIssueType, metaIssueType)
+			}
+		})
+	}
+}
+
+func TestJiraAPI_Init(t *testing.T) {
+	tests := []struct {
+		name        string
+		jiraApi     *JiraAPI
+		envPassword string
+		wantJiraApi *JiraAPI
+	}{
+		{
+			name:        "happy path",
+			jiraApi:     &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "password"},
+			wantJiraApi: &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "password"},
+		},
+		{
+			name:        "happy path (empty BoardName)",
+			jiraApi:     &JiraAPI{ProjectKey: "project", Password: "password"},
+			wantJiraApi: &JiraAPI{BoardName: "project board", ProjectKey: "project", Password: "password"},
+		},
+		{
+			name:        "happy path(empty password)",
+			jiraApi:     &JiraAPI{BoardName: "board0", ProjectKey: "project"},
+			envPassword: "test_password",
+			wantJiraApi: &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "test_password"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.envPassword != "" {
+				savedJiraPassword := os.Getenv("JIRA_PASSWORD")
+				_ = os.Setenv("JIRA_PASSWORD", test.envPassword)
+				defer func() {
+					_ = os.Setenv("JIRA_PASSWORD", savedJiraPassword)
+				}()
+			}
+
+			_ = test.jiraApi.Init()
+
+			assert.Equal(t, test.wantJiraApi, test.jiraApi)
 		})
 	}
 }
