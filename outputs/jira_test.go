@@ -14,6 +14,119 @@ import (
 	"testing"
 )
 
+var metaIssuetype = &jira.MetaIssueType{Name: "Task", Fields: map[string]interface{}{
+	"issuetype": map[string]interface{}{
+		"name": "Issue Type",
+		"schema": map[string]interface{}{
+			"type": "issuetype",
+		},
+	},
+	"project": map[string]interface{}{
+		"name": "Project",
+		"schema": map[string]interface{}{
+			"type": "project",
+		},
+	},
+	"priority": map[string]interface{}{
+		"name": "Priority",
+		"schema": map[string]interface{}{
+			"type": "priority",
+		},
+	},
+	"description": map[string]interface{}{
+		"name": "Description",
+		"schema": map[string]interface{}{
+			"type": "string",
+		},
+	},
+	"summary": map[string]interface{}{
+		"name": "Summary",
+		"schema": map[string]interface{}{
+			"type": "string",
+		},
+	},
+	"assignee": map[string]interface{}{
+		"name": "Assignee",
+		"schema": map[string]interface{}{
+			"type": "user",
+		},
+	},
+	"customfield_10020": map[string]interface{}{
+		"name": "Sprint",
+		"schema": map[string]interface{}{
+			"type":  "array",
+			"items": "json",
+		},
+	},
+	"customfield_10021": map[string]interface{}{
+		"name": "Flagged",
+		"schema": map[string]interface{}{
+			"type":  "array",
+			"items": "option",
+		},
+	},
+	"components": map[string]interface{}{
+		"name": "Components",
+		"schema": map[string]interface{}{
+			"type":  "array",
+			"items": "component",
+		},
+	},
+	"versions": map[string]interface{}{
+		"name": "Affects versions",
+		"schema": map[string]interface{}{
+			"type":  "array",
+			"items": "version",
+		},
+	},
+	"customfield_10015": map[string]interface{}{
+		"name": "Start date",
+		"schema": map[string]interface{}{
+			"type": "date",
+		},
+	},
+	"customfield_10009": map[string]interface{}{
+		"name": "Actual end",
+		"schema": map[string]interface{}{
+			"type": "datetime",
+		},
+	},
+	"customfield_10001": map[string]interface{}{
+		"name": "Team",
+		"schema": map[string]interface{}{
+			"type": "any",
+		},
+	},
+	"customfield_10004": map[string]interface{}{
+		"name": "Impact",
+		"schema": map[string]interface{}{
+			"type": "option",
+		},
+	},
+	"timespent": map[string]interface{}{
+		"name": "Time Spent",
+		"schema": map[string]interface{}{
+			"type": "number",
+		},
+	},
+	"customfield_10052": map[string]interface{}{
+		"name":   "No schema type",
+		"schema": map[string]interface{}{},
+	},
+	"customfield_10053": map[string]interface{}{
+		"name": "No schema items",
+		"schema": map[string]interface{}{
+			"type": "array",
+		},
+	},
+	"customfield_10054": map[string]interface{}{
+		"name": "Bad Type",
+		"schema": map[string]interface{}{
+			"type": "badType",
+		},
+	},
+}}
+
 func TestСreateIssuePriority(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -348,118 +461,6 @@ func TestInitIssue(t *testing.T) {
 		Id:   "project ID",
 		Name: "project name",
 	}
-	metaIssuetype := &jira.MetaIssueType{Fields: map[string]interface{}{
-		"issuetype": map[string]interface{}{
-			"name": "Issue Type",
-			"schema": map[string]interface{}{
-				"type": "issuetype",
-			},
-		},
-		"project": map[string]interface{}{
-			"name": "Project",
-			"schema": map[string]interface{}{
-				"type": "project",
-			},
-		},
-		"priority": map[string]interface{}{
-			"name": "Priority",
-			"schema": map[string]interface{}{
-				"type": "priority",
-			},
-		},
-		"description": map[string]interface{}{
-			"name": "Description",
-			"schema": map[string]interface{}{
-				"type": "string",
-			},
-		},
-		"summary": map[string]interface{}{
-			"name": "Summary",
-			"schema": map[string]interface{}{
-				"type": "string",
-			},
-		},
-		"assignee": map[string]interface{}{
-			"name": "Assignee",
-			"schema": map[string]interface{}{
-				"type": "user",
-			},
-		},
-		"customfield_10020": map[string]interface{}{
-			"name": "Sprint",
-			"schema": map[string]interface{}{
-				"type":  "array",
-				"items": "json",
-			},
-		},
-		"customfield_10021": map[string]interface{}{
-			"name": "Flagged",
-			"schema": map[string]interface{}{
-				"type":  "array",
-				"items": "option",
-			},
-		},
-		"components": map[string]interface{}{
-			"name": "Components",
-			"schema": map[string]interface{}{
-				"type":  "array",
-				"items": "component",
-			},
-		},
-		"versions": map[string]interface{}{
-			"name": "Affects versions",
-			"schema": map[string]interface{}{
-				"type":  "array",
-				"items": "version",
-			},
-		},
-		"customfield_10015": map[string]interface{}{
-			"name": "Start date",
-			"schema": map[string]interface{}{
-				"type": "date",
-			},
-		},
-		"customfield_10009": map[string]interface{}{
-			"name": "Actual end",
-			"schema": map[string]interface{}{
-				"type": "datetime",
-			},
-		},
-		"customfield_10001": map[string]interface{}{
-			"name": "Team",
-			"schema": map[string]interface{}{
-				"type": "any",
-			},
-		},
-		"customfield_10004": map[string]interface{}{
-			"name": "Impact",
-			"schema": map[string]interface{}{
-				"type": "option",
-			},
-		},
-		"timespent": map[string]interface{}{
-			"name": "Time Spent",
-			"schema": map[string]interface{}{
-				"type": "number",
-			},
-		},
-		"customfield_10052": map[string]interface{}{
-			"name":   "No schema type",
-			"schema": map[string]interface{}{},
-		},
-		"customfield_10053": map[string]interface{}{
-			"name": "No schema items",
-			"schema": map[string]interface{}{
-				"type": "array",
-			},
-		},
-		"customfield_10054": map[string]interface{}{
-			"name": "Bad Type",
-			"schema": map[string]interface{}{
-				"type": "badType",
-			},
-		},
-	}}
 	tests := []struct {
 		name            string
 		useSrvApi       bool
@@ -932,8 +933,133 @@ func TestJiraApi_createClient(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-
 			_, err := createClient(test.jiraApi)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestJiraAPI_Send(t *testing.T) {
+	tests := []struct {
+		name           string
+		jiraApi        *JiraAPI
+		createMetaInfo *jira.CreateMetaInfo
+		fieldList      *[]jira.Field
+		priorityList   *[]jira.Priority
+		issue          *jira.Issue
+		content        map[string]string
+		wantError      string
+	}{
+		{
+			name: "happy path",
+			jiraApi: &JiraAPI{
+				ProjectKey:      "project",
+				User:            "user",
+				boardType:       "scrum",
+				Labels:          []string{"label1", "label2"},
+				FixVersions:     []string{"fix1", "fix2"},
+				AffectsVersions: []string{"affect1", "affect2"},
+			},
+			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
+			fieldList: &[]jira.Field{
+				{ID: "issuetype", Name: "Issue Type"},
+				{ID: "project", Name: "Project"},
+				{ID: "priority", Name: "Priority"},
+				{ID: "description", Name: "Description"},
+				{ID: "summary", Name: "Summary"},
+			},
+			priorityList: &[]jira.Priority{{Name: "High"}},
+			issue:        &jira.Issue{},
+			content:      map[string]string{"title": "title_content", "description": "description_content"},
+		},
+		{
+			name:      "sad path (Failed to create client)",
+			wantError: "Failed to create client",
+		},
+		{
+			name:      "sad path (Failed to create meta project)",
+			jiraApi:   &JiraAPI{},
+			wantError: "Failed to create meta project",
+		},
+		{
+			name:           "sad path (Failed to create issuetype)",
+			jiraApi:        &JiraAPI{Issuetype: "Bug", ProjectKey: "project"},
+			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
+			wantError:      "Failed to create issuetype",
+		},
+		{
+			name:           "sad path (Failed to create fields config)",
+			jiraApi:        &JiraAPI{ProjectKey: "project"},
+			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
+			priorityList:   &[]jira.Priority{{Name: "High"}},
+			wantError:      "Failed to create fields config",
+		},
+		{
+			name:           "sad path (Failed to init issue)",
+			jiraApi:        &JiraAPI{ProjectKey: "project", Unknowns: map[string]string{"bad field": "bad field"}},
+			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
+			priorityList:   &[]jira.Priority{{Name: "High"}},
+			wantError:      "key bad field is not found in the list of fields",
+		},
+		{
+			name:           "sad path (Failed to open issue)",
+			jiraApi:        &JiraAPI{ProjectKey: "project"},
+			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
+			priorityList:   &[]jira.Priority{{Name: "High"}},
+			wantError:      "Failed to open issue",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mux := http.NewServeMux()
+			mux.HandleFunc("/rest/api/2/issue/createmeta", func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError == "Failed to create meta project" {
+					w.WriteHeader(http.StatusNotFound)
+				} else {
+					fieldListJson, _ := json.Marshal(test.createMetaInfo)
+					_, _ = w.Write(fieldListJson)
+				}
+			})
+			mux.HandleFunc("/rest/api/2/field", func(w http.ResponseWriter, r *http.Request) {
+				fieldListJson, _ := json.Marshal(test.fieldList)
+				_, _ = w.Write(fieldListJson)
+			})
+			mux.HandleFunc("/rest/api/2/priority", func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError == "Failed to create fields config" {
+
+				} else {
+					priorityListJson, _ := json.Marshal(test.priorityList)
+					_, _ = w.Write(priorityListJson)
+				}
+			})
+			mux.HandleFunc("/rest/api/2/issue", func(w http.ResponseWriter, r *http.Request) {
+				if test.wantError == "Failed to open issue" {
+					w.WriteHeader(http.StatusNotFound)
+					_, _ = w.Write([]byte("Failed to open issue"))
+				} else {
+					issueJson, _ := json.Marshal(test.issue)
+					_, _ = w.Write(issueJson)
+				}
+			})
+			ts := httptest.NewServer(mux)
+
+			savedCreateClient := createClient
+			createClient = func(ctx *JiraAPI) (*jira.Client, error) {
+				if test.wantError == "Failed to create client" {
+					return nil, fmt.Errorf(test.wantError)
+				} else {
+					return jira.NewClient(ts.Client(), ts.URL)
+				}
+			}
+			defer func() { createClient = savedCreateClient }()
+
+			err := test.jiraApi.Send(test.content)
 
 			if test.wantError != "" {
 				require.NotNil(t, err)
