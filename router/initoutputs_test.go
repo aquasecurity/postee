@@ -205,6 +205,48 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			false,
 			"*outputs.TeamsOutput",
 		},
+		{
+			"HTTP Action output, with a timeout & body specified",
+			OutputSettings{
+				Method:   "GET",
+				Timeout:  "10s",
+				Url:      "https://foo.bar.com",
+				Name:     "my-http-output",
+				Type:     "http",
+				BodyFile: "goldens/test.txt",
+			},
+			map[string]interface{}{
+				"Name":   "HTTP Output",
+				"Method": "GET",
+				"Body":   "foo bar baz",
+			},
+			false,
+			"*outputs.HTTPClient",
+		},
+		{
+			"HTTP Action output, with a invalid timeout",
+			OutputSettings{
+				Method:  "GET",
+				Timeout: "ten seconds",
+				Type:    "http",
+			},
+			map[string]interface{}{}, true,
+			"<nil>",
+		},
+		{"Exec Action output",
+			OutputSettings{
+				Name:      "my-exec-output",
+				Env:       []string{"foo=bar"},
+				InputFile: "goldens/test.txt",
+				Type:      "exec",
+			},
+			map[string]interface{}{
+				"Name":      "Exec Output",
+				"InputFile": "goldens/test.txt",
+			},
+			false,
+			"*outputs.ExecClient",
+		},
 	}
 	for _, test := range tests {
 		o := BuildAndInitOtpt(&test.outputSettings, "")

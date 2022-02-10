@@ -119,12 +119,16 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		return nil, fmt.Errorf("http action requires a method to be specified")
 	}
 
-	duration, err := time.ParseDuration(sourceSettings.Timeout)
-	if err != nil {
-		return nil, fmt.Errorf("invalid duration specified: %w", err)
-	}
-	if duration == 0 {
-		duration = time.Second * 5
+	var duration time.Duration
+	if len(sourceSettings.Timeout) > 0 {
+		var err error
+		duration, err = time.ParseDuration(sourceSettings.Timeout)
+		if err != nil {
+			return nil, fmt.Errorf("invalid duration specified: %w", err)
+		}
+		if duration == 0 {
+			duration = time.Second * 5
+		}
 	}
 
 	reqUrl, err := url.Parse(sourceSettings.Url)
