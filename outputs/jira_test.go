@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -861,9 +862,49 @@ func TestFetchSprintId(t *testing.T) {
 	}
 }
 
-func TestJira_GetLayoutProvider(t *testing.T) {
-	jiraApi := &JiraAPI{}
-	wantLayoutProviderType := new(formatting.JiraLayoutProvider)
-	LayoutProvider := jiraApi.GetLayoutProvider()
-	assert.Equal(t, reflect.TypeOf(wantLayoutProviderType), reflect.TypeOf(LayoutProvider))
+func TestJiraAPI_GetLayoutProvider(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		jiraApi := &JiraAPI{}
+		wantLayoutProviderType := new(formatting.JiraLayoutProvider)
+		LayoutProvider := jiraApi.GetLayoutProvider()
+		assert.Equal(t, reflect.TypeOf(wantLayoutProviderType), reflect.TypeOf(LayoutProvider))
+	})
+}
+
+func TestJiraAPI_Init(t *testing.T) {
+	tests := []struct {
+		name        string
+		jiraApi     *JiraAPI
+		envPassword string
+		wantJiraApi *JiraAPI
+	}{
+		{
+			name:        "happy path",
+			jiraApi:     &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "password"},
+			wantJiraApi: &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "password"},
+		},
+		{
+			name:        "happy path (empty BoardName)",
+			jiraApi:     &JiraAPI{ProjectKey: "project", Password: "password"},
+			wantJiraApi: &JiraAPI{BoardName: "project board", ProjectKey: "project", Password: "password"},
+		},
+		{
+			name:        "happy path(empty password)",
+			jiraApi:     &JiraAPI{BoardName: "board0", ProjectKey: "project"},
+			envPassword: "test_password",
+			wantJiraApi: &JiraAPI{BoardName: "board0", ProjectKey: "project", Password: "test_password"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.envPassword != "" {
+				savedJiraPassword := os.Getenv("JIRA_PASSWORD")
+				_ = os.Setenv("JIRA_PASSWORD", test.envPassword)
+				defer os.Setenv("JIRA_PASSWORD", savedJiraPassword)
+			}
+			_ = test.jiraApi.Init()
+
+			assert.Equal(t, test.wantJiraApi, test.jiraApi)
+		})
+	}
 }
