@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aquasecurity/go-jira"
+	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -858,4 +859,11 @@ func TestFetchSprintId(t *testing.T) {
 			assert.Equal(t, test.wantJiraApi, jiraApi)
 		})
 	}
+}
+
+func TestJira_GetLayoutProvider(t *testing.T) {
+	jiraApi := &JiraAPI{}
+	wantLayoutProviderType := new(formatting.JiraLayoutProvider)
+	LayoutProvider := jiraApi.GetLayoutProvider()
+	assert.Equal(t, reflect.TypeOf(wantLayoutProviderType), reflect.TypeOf(LayoutProvider))
 }
