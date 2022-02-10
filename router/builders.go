@@ -126,9 +126,8 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		if err != nil {
 			return nil, fmt.Errorf("invalid duration specified: %w", err)
 		}
-		if duration == 0 {
-			duration = time.Second * 5
-		}
+	} else {
+		duration = time.Second * 5
 	}
 
 	reqUrl, err := url.Parse(sourceSettings.Url)
