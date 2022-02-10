@@ -727,3 +727,13 @@ func TestCreateMetaIssueType(t *testing.T) {
 		})
 	}
 }
+
+func TestGetName(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		jiraApi := &JiraAPI{Name: "testName"}
+		name := jiraApi.GetName()
+
+		assert.Equal(t, jiraApi.Name, name)
+	})
+
+}
