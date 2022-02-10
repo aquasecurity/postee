@@ -59,7 +59,7 @@ func TestHTTPClient_Send(t *testing.T) {
 			method: http.MethodGet,
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("internal server error"))
+				_, _ = w.Write([]byte("internal server error"))
 			},
 			expectedError: "http status NOT OK: HTTP 500 Internal Server Error, response: internal server error",
 		},

@@ -121,7 +121,7 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 
 	duration, err := time.ParseDuration(sourceSettings.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("invalid duration specified: %s", err.Error())
+		return nil, fmt.Errorf("invalid duration specified: %w", err)
 	}
 	if duration == 0 {
 		duration = time.Second * 5
@@ -129,7 +129,7 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 
 	reqUrl, err := url.Parse(sourceSettings.Url)
 	if err != nil {
-		return nil, fmt.Errorf("error building HTTP url: %s", err.Error())
+		return nil, fmt.Errorf("error building HTTP url: %w", err)
 	}
 
 	var body []byte
@@ -137,7 +137,7 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		var err error
 		body, err = ioutil.ReadFile(sourceSettings.BodyFile)
 		if err != nil {
-			return nil, fmt.Errorf("http action unable to specified body-file: %s, err: %s", sourceSettings.BodyFile, err.Error())
+			return nil, fmt.Errorf("http action unable to specified body-file: %s, err: %w", sourceSettings.BodyFile, err)
 		}
 	}
 

@@ -50,7 +50,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("unable to read HTTP response: %s", err.Error())
+		return fmt.Errorf("unable to read HTTP response: %w", err)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {

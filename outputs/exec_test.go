@@ -43,7 +43,7 @@ func TestExecClient_Send(t *testing.T) {
 		f, err := ioutil.TempFile("", "TestExecClient_Send-*")
 		require.NoError(t, err)
 		defer func() { os.RemoveAll(f.Name()) }()
-		f.WriteString(`#!/bin/sh
+		_, _ = f.WriteString(`#!/bin/sh
 echo "foo"
 echo $POSTEE_EVENT
 echo $INPUT_ENV`)
