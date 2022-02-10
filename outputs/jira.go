@@ -22,6 +22,7 @@ import (
 const (
 	defaultIssueType     = "Task"
 	defaultIssuePriority = "High"
+	defaultSprintPlugin  = "com.pyxis.greenhopper.jira:gh-sprint"
 )
 
 type JiraAPI struct {
@@ -359,13 +360,14 @@ func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]s
 			fieldsConfig[field.Name] = ctx.Description
 		case "summary":
 			fieldsConfig[field.Name] = ctx.Summary
+		default:
+			// Sprint is jira custom field. We found field.Name for sprint by plugin name.
+			// "com.pyxis.greenhopper.jira:gh-sprint" is custom field that come bundled with Jira.
+			// https://support.atlassian.com/jira-cloud-administration/docs/import-data-from-json
+			if ctx.SprintId > 0 && field.Schema.Custom == defaultSprintPlugin {
+				fieldsConfig[field.Name] = strconv.Itoa(ctx.SprintId)
+			}
 		}
-	}
-
-	// sprint is jira custom field.
-	// TODO make sprint field name check for non-English jira
-	if ctx.SprintId > 0 {
-		fieldsConfig["Sprint"] = strconv.Itoa(ctx.SprintId)
 	}
 
 	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom User defined in jira.

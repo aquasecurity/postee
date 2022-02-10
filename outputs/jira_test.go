@@ -898,6 +898,7 @@ func TestJiraAPI_CreateFieldsConfig(t *testing.T) {
 				{ID: "assignee", Name: "Custom Assignee"},
 				{ID: "description", Name: "Custom Description"},
 				{ID: "summary", Name: "Custom Summary"},
+				{ID: "customfield_10020", Name: "Custom Sprint", Schema: jira.FieldSchema{Custom: defaultSprintPlugin}},
 			},
 			jiraApi: &JiraAPI{
 				User:        "User",
@@ -917,7 +918,7 @@ func TestJiraAPI_CreateFieldsConfig(t *testing.T) {
 				"Custom Assignee":    "Assignee",
 				"Custom Description": "Description",
 				"Custom Summary":     "Summary",
-				"Sprint":             "432",
+				"Custom Sprint":      "432",
 			},
 		},
 		{
