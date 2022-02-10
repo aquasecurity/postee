@@ -908,3 +908,39 @@ func TestJiraAPI_Init(t *testing.T) {
 		})
 	}
 }
+
+func TestJiraApi_createClient(t *testing.T) {
+	tests := []struct {
+		name      string
+		jiraApi   *JiraAPI
+		wantError string
+	}{
+		{
+			name:    "happy path",
+			jiraApi: &JiraAPI{},
+		},
+		{
+			name:      "sad path (using PAT for cloud jira)",
+			jiraApi:   &JiraAPI{Token: "token", Url: "https://johndoe.atlassian.net"},
+			wantError: "Jira Cloud can't work with PAT",
+		},
+		{
+			name:      "sad path (bad url)",
+			jiraApi:   &JiraAPI{Url: "https://johndoe   .atlassian.net"},
+			wantError: "unable to create new JIRA client",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			_, err := createClient(test.jiraApi)
+
+			if test.wantError != "" {
+				require.NotNil(t, err)
+				assert.Contains(t, err.Error(), test.wantError)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
