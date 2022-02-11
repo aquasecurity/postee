@@ -58,6 +58,3 @@ jobs:
           scan-type: 'config'
           hide-progress: false
           format: 'table'
-
-      - name: Publish Codecov
-        run: bash <(curl -s https://codecov.io/bash)
