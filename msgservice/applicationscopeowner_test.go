@@ -43,7 +43,9 @@ func TestApplicationScopeOwner(t *testing.T) {
 	demoEmailOutput.wg.Add(1)
 
 	srv := new(MsgService)
-	srv.MsgHandling([]byte(scnWithOwners), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, []byte(scnWithOwners)) {
+		srv.MsgHandling([]byte(scnWithOwners), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	}
 
 	demoEmailOutput.wg.Wait()
 

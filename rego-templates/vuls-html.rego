@@ -97,7 +97,9 @@ to_colored_text(color, txt) = spn {
 }
 
 ####################################### Template specific functions #######################################
-
+to_severity_color(color, level) = spn {
+ spn:=to_colored_text(color, format_int(with_default(input.vulnerability_summary,level,0), 10))
+}
 # TODO refactor to support different properties
 check_failed(item) = false {
 not item.failed #Either absent or false
@@ -108,11 +110,11 @@ check_failed(item) = true {
 
 # 2 dimension array for vulnerabilities summary
 severities_stats := [
-                        ["critical", to_colored_text("#c00000", format_int(input.vulnerability_summary.critical, 10))],
-                        ["high", to_colored_text("#e0443d", format_int(input.vulnerability_summary.high, 10))],
-                        ["medium", to_colored_text("#f79421", format_int(input.vulnerability_summary.medium, 10))],
-                        ["low", to_colored_text("#e1c930", format_int(input.vulnerability_summary.low, 10))],
-                        ["negligible", to_colored_text("green", format_int(input.vulnerability_summary.negligible, 10))]
+                        ["critical", to_severity_color("#c00000", "critical")],
+                        ["high", to_severity_color("#e0443d", "high")],
+                        ["medium", to_severity_color("#f79421", "medium")],
+                        ["low", to_severity_color("#e1c930", "low")],
+                        ["negligible", to_severity_color("green", "negligible")]
                     ]
 
 # 2 dimension array for assurance controls

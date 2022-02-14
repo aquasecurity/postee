@@ -5,32 +5,54 @@ on:
       - "*"
   workflow_dispatch:
 env:
-  GO_VERSION: "1.16"
+  GO_VERSION: "1.17"
 jobs:
   unit-tests:
     name: Run unit tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@424fc82d43fa5a37540bae62709ddcc23d9520d4
         with:
           go-version: ${{ env.GO_VERSION }}
+
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
       - name: Run unit tests
         run: |
           make all
           make test
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          severity: 'CRITICAL'
+          exit-code: 0
+
+      - name: Run Trivy vulnerability scanner in IaC mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          hide-progress: false
+          format: 'table'
+        env:
+          AQUA_KEY: ${{ secrets.AQUA_KEY }}
+          AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
+          TRIVY_RUN_AS_PLUGIN: 'aqua'
   release:
     name: Release
     needs:
       - unit-tests
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@424fc82d43fa5a37540bae62709ddcc23d9520d4
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Checkout code

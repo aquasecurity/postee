@@ -176,7 +176,27 @@ outputs:
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
+	singleRouteSingelInput string = `
+Name: tenant
 
+routes:
+- name: fail_evaluation
+  outputs: ["my-slack"]
+  template: raw
+  input-files:
+   - Allow-Registry.rego
+
+templates:
+- name: raw
+  body: |
+   package postee
+   result:=input
+
+outputs:
+- name: my-slack
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/ABCDF/1234/TTT`
 	payload = `{"image" : "alpine"}`
 )
 
@@ -327,8 +347,37 @@ func TestInvalidRouteName(t *testing.T) {
 			}
 		}
 	}
-
 }
+
+func TestRouteWithNoValidRego(t *testing.T) {
+	expctdInvctns := 0
+	actualInvctCnt := 0
+	wrap := ctxWrapper{}
+	wrap.setup(singleRouteSingelInput)
+
+	defer wrap.teardown()
+
+	err := wrap.instance.Start(wrap.cfgPath)
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+
+	wrap.instance.HandleRoute("fail_evaluation", []byte(payload))
+	timeout := time.After(1 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			return
+		case <-wrap.buff:
+			actualInvctCnt++
+			if actualInvctCnt > expctdInvctns {
+				t.Errorf("Service shouldn't be called if invalid route is specified")
+				return
+			}
+		}
+	}
+}
+
 func TestSend(t *testing.T) {
 	expctdInvctns := 1
 	actualInvctCnt := 0

@@ -1,0 +1,55 @@
+# The configuration file contains a general settings section,
+# routes, templates and outputs sections.
+
+name: tenant            #  The tenant name
+aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+max-db-size: 1000       #  Max size of DB in MB. if empty then unlimited
+db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
+
+# Routes are used to define how to handle an incoming message
+routes:
+- name: stdout
+  outputs: [ stdout ]
+  template: raw-json
+
+- name: actions-route
+  input: contains(input.SigMetadata.ID, "TRC-2")
+  outputs: [my-exec, my-http-get, my-http-post]
+  template: raw-json
+
+# Templates are used to format a message
+templates:
+- name: raw-json                        # route message "As Is" to external webhook
+  rego-package: postee.rawmessage.json
+
+# Outputs are target services that should consume the messages
+outputs:
+- name: stdout
+  type: stdout
+  enable: true
+
+# Define a custom output of exec action, that can take params.
+- name: my-exec
+  type: exec
+  enable: true
+  env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
+  input-file: exec-test.sh                             # Required. Specify the path to the script to run
+
+- name: my-http-get
+  type: http
+  enable: true
+  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
+  method: GET                         # Required. Method to use. CONNECT is not supported at this time
+  headers:                            # Optional. Headers to pass in for the request
+    "Foo": ["bar", "baz"]
+  timeout: 1s                         # Optional. Timeout value in XX(s,m,h)
+
+- name: my-http-post
+  type: http
+  enable: true
+  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
+  method: POST                        # Required. Method to use. CONNECT is not supported at this time
+  headers:                            # Optional. Headers to pass in for the request.
+    "Foo": ["bar", "baz"]
+  timeout: 10s                        # Optional. Timeout value in XX(s,m,h)
+  bodyFile: tracee.event.logs         # Optional. Body of the HTTP request

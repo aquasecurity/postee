@@ -27,22 +27,6 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		return
 	}
 
-	if ok, err := regoservice.DoesMatchRegoCriteria(in, route.InputFiles, route.Input); err != nil {
-		if !regoservice.IsUsedRegoFiles(route.InputFiles) {
-			prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", route.Input, err, input)
-		} else {
-			prnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
-		}
-		return
-	} else if !ok {
-		if !regoservice.IsUsedRegoFiles(route.InputFiles) {
-			prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, route.Input)
-		} else {
-			prnInputLogs("Input %s... doesn't match a REGO input files rule", input)
-		}
-		return
-	}
-
 	//TODO move logic below somewhere close to Jira output implementation
 	owners := ""
 	applicationScopeOwnersObj, ok := in["application_scope_owners"]
@@ -113,6 +97,33 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		send(output, content)
 
 	}
+}
+
+// EvaluateRegoRule returns true in case the given input ([]byte) matches the input of the given route
+func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input []byte) bool {
+	in := map[string]interface{}{}
+	if err := json.Unmarshal(input, &in); err != nil {
+		prnInputLogs("json.Unmarshal error for %q: %v", input, err)
+		return false
+	}
+
+	if ok, err := regoservice.DoesMatchRegoCriteria(in, r.InputFiles, r.Input); err != nil {
+		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
+			prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
+		} else {
+			prnInputLogs("Error while evaluating rego rule for input files :%v for the input %s", err, input)
+		}
+		return false
+	} else if !ok {
+		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
+			prnInputLogs("Input %s... doesn't match a REGO rule: %s", input, r.Input)
+		} else {
+			prnInputLogs("Input %s... doesn't match a REGO input files rule", input)
+		}
+		return false
+	}
+
+	return true
 }
 
 func send(otpt outputs.Output, cnt map[string]string) {
