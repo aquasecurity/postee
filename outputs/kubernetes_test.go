@@ -50,7 +50,7 @@ func TestKubernetesClient_Send(t *testing.T) {
 			}
 
 			if tc.reactorFunc != nil {
-				k.clientset.CoreV1().(*fake2.FakeCoreV1).Fake.PrependReactor("patch", "pods", func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
+				k.clientset.CoreV1().(*fake2.FakeCoreV1).Fake.PrependReactor("update", "pods", func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, fmt.Errorf("failed to update label")
 				})
 			}
@@ -69,7 +69,7 @@ func TestKubernetesClient_Send(t *testing.T) {
 
 			_, err := k.clientset.CoreV1().Pods("testing").Create(context.TODO(), pod, metav1.CreateOptions{})
 			require.NoError(t, err, tc.name)
-			require.NoError(t, k.Send(map[string]string{"foo": "bar"}), tc.name)
+			require.NoError(t, k.Send(nil), tc.name)
 
 			pods, _ := k.clientset.CoreV1().Pods("testing").Get(context.TODO(), "test-pod", metav1.GetOptions{})
 			assert.Equal(t, tc.expectedLabels, pods.Labels, tc.name)

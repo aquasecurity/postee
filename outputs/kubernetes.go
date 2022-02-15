@@ -2,22 +2,13 @@ package outputs
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/aquasecurity/postee/v2/layout"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
-
-type patchStringValue struct {
-	Op    string `json:"op"`
-	Path  string `json:"path"`
-	Value string `json:"value"`
-}
 
 type KubernetesClient struct {
 	clientset kubernetes.Interface
@@ -58,20 +49,22 @@ func (k KubernetesClient) Send(m map[string]string) error {
 
 	// TODO: Set configmap
 	for _, pod := range pods.Items { // TODO: Allow configuring of resource {pod, ds, ...}
-		for key, value := range k.KubeLabels {
-			payload := []patchStringValue{ // TODO: Use pod.SetLabel() instead
-				{
-					Op:    "replace",
-					Path:  fmt.Sprintf("/metadata/labels/%s", key),
-					Value: value,
-				},
+		if len(k.KubeLabels) > 0 {
+			labels := make(map[string]string)
+			oldLabels := pod.GetLabels()
+			for k, v := range oldLabels {
+				labels[k] = v
 			}
-			pb, _ := json.Marshal(payload)
-			_, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Patch(ctx, pod.GetName(), types.JSONPatchType, pb, metav1.PatchOptions{})
+			for k, v := range k.KubeLabels {
+				labels[k] = v
+			}
+
+			pod.SetLabels(labels)
+			_, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, &pod, metav1.UpdateOptions{})
 			if err != nil {
-				log.Println("failed to apply label to pod:", pod.Name, "err:", err.Error())
+				log.Println("failed to apply labels to pod:", pod.Name, "err:", err.Error())
 			} else {
-				log.Println("label:", key, value, "applied successfully to pod:", pod.Name)
+				log.Println("labels applied successfully to pod:", pod.Name)
 			}
 		}
 
