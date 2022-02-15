@@ -157,10 +157,10 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 func buildKubernetesOutput(sourceSettings *OutputSettings) *outputs.KubernetesClient {
 	return &outputs.KubernetesClient{
 		Name:              sourceSettings.Name,
+		KubeNamespace:     sourceSettings.KubeNamespace,
 		KubeConfigFile:    sourceSettings.KubeConfigFile,
 		KubeLabels:        sourceSettings.KubeLabels,
 		KubeLabelSelector: sourceSettings.KubeLabelSelector,
 		KubeAnnotations:   sourceSettings.KubeAnnotations,
-		KubeConfigMap:     sourceSettings.KubeConfigMap,
 	}
 }

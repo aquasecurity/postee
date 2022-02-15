@@ -37,5 +37,5 @@ type OutputSettings struct {
 	KubeLabels        map[string]string   `json:"kube-labels,omitempty"`
 	KubeLabelSelector string              `json:"kube-label-selector,omitempty"`
 	KubeAnnotations   map[string]string   `json:"kube-annotations,omitempty"`
-	KubeConfigMap     map[string]string   `json:"kube-config-map,omitempty"`
+	KubeNamespace     string              `json:"kube-namespace,omitempty"`
 }

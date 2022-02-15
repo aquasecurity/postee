@@ -16,11 +16,11 @@ type KubernetesClient struct {
 	clientset kubernetes.Interface
 
 	Name              string
+	KubeNamespace     string
 	KubeConfigFile    string
 	KubeLabels        map[string]string
 	KubeLabelSelector string
 	KubeAnnotations   map[string]string
-	KubeConfigMap     map[string]string
 }
 
 func (k KubernetesClient) GetName() string {
@@ -45,12 +45,17 @@ func (k *KubernetesClient) Init() error {
 
 func (k KubernetesClient) Send(m map[string]string) error {
 	ctx := context.Background()
-	pods, _ := k.clientset.CoreV1().Pods("").List(ctx, metav1.ListOptions{
+
+	if k.KubeNamespace == "" {
+		return fmt.Errorf("kubernetes namespace needs to be set in config.yaml")
+	}
+
+	// TODO: Allow configuring of resource {pod, ds, ...}
+	// TODO: Allow input of resource name
+	pods, _ := k.clientset.CoreV1().Pods(k.KubeNamespace).List(ctx, metav1.ListOptions{
 		LabelSelector: k.KubeLabelSelector,
 	})
-
-	// TODO: Set configmap
-	for _, pod := range pods.Items { // TODO: Allow configuring of resource {pod, ds, ...}
+	for _, pod := range pods.Items {
 		if len(k.KubeLabels) > 0 {
 			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
