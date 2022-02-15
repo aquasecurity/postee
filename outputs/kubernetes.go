@@ -60,7 +60,7 @@ func (k KubernetesClient) Send(m map[string]string) error {
 			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
 				if err != nil {
-					return fmt.Errorf("failed to get updated pod for labeling: %s, err: %s", pod.Name, err.Error())
+					return fmt.Errorf("failed to get updated pod for labeling: %s, err: %w", pod.Name, err)
 				}
 
 				labels := make(map[string]string)
@@ -91,7 +91,7 @@ func (k KubernetesClient) Send(m map[string]string) error {
 			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
 				if err != nil {
-					return fmt.Errorf("failed to get updated pod for annotating: %s, err: %s", pod.Name, err.Error())
+					return fmt.Errorf("failed to get updated pod for annotating: %s, err: %w", pod.Name, err)
 				}
 				annotations := make(map[string]string)
 				oldAnnotations := pod.GetAnnotations()
