@@ -56,11 +56,10 @@ func (k KubernetesClient) Send(m map[string]string) error {
 		LabelSelector: k.KubeLabelSelector,
 	})
 
-	// TODO: Set annotations
 	// TODO: Set configmap
-	for _, pod := range pods.Items {
+	for _, pod := range pods.Items { // TODO: Allow configuring of resource {pod, ds, ...}
 		for key, value := range k.KubeLabels {
-			payload := []patchStringValue{
+			payload := []patchStringValue{ // TODO: Use pod.SetLabel() instead
 				{
 					Op:    "replace",
 					Path:  fmt.Sprintf("/metadata/labels/%s", key),
@@ -73,6 +72,25 @@ func (k KubernetesClient) Send(m map[string]string) error {
 				log.Println("failed to apply label to pod:", pod.Name, "err:", err.Error())
 			} else {
 				log.Println("label:", key, value, "applied successfully to pod:", pod.Name)
+			}
+		}
+
+		if len(k.KubeAnnotations) > 0 {
+			annotations := make(map[string]string)
+			oldAnnotations := pod.GetAnnotations()
+			for k, v := range oldAnnotations {
+				annotations[k] = v
+			}
+			for k, v := range k.KubeAnnotations {
+				annotations[k] = v
+			}
+
+			pod.SetAnnotations(annotations)
+			_, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, &pod, metav1.UpdateOptions{})
+			if err != nil {
+				log.Println("failed to apply annotation to pod:", pod.Name, "err:", err.Error())
+			} else {
+				log.Println("annotations applied successfully to pod:", pod.Name)
 			}
 		}
 	}
