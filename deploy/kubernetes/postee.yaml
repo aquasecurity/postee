@@ -129,7 +129,7 @@ spec:
           requests:
             storage: 100Mi
     - metadata:
-        name: rego-template
+        name: rego-templates
       spec:
         accessModes: [ "ReadWriteOnce" ]
         resources:
@@ -154,11 +154,15 @@ spec:
           command:
             - /bin/chown
             - -R
-            - "1099"
-            - /server/database
+            - "1099:1099"
+            - /server
           volumeMounts:
             - name: postee-db
               mountPath: /server/database
+            - name: rego-templates
+              mountPath: /server/rego-templates/custom
+            - name: rego-filters
+              mountPath: /server/rego-filters/custom
         - name: setting-cfg
           image: busybox:1.34
           command:
@@ -195,7 +199,7 @@ spec:
               mountPath: /server/database
             - name: postee-config
               mountPath: /config
-            - name: rego-template
+            - name: rego-templates
               mountPath: /server/rego-templates/custom
             - name: rego-filters
               mountPath: /server/rego-filters/custom
@@ -203,6 +207,7 @@ spec:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
             runAsUser: 1099
+            runAsGroup: 1099
           resources:
             limits:
               cpu: 500m
@@ -267,7 +272,7 @@ spec:
           command:
             - /bin/chown
             - -R
-            - "10001"
+            - "1099:1099"
             - /config
           volumeMounts:
             - name: postee-config
@@ -298,8 +303,8 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
-            runAsUser: 10001
-            runAsGroup: 10001
+            runAsUser: 1099
+            runAsGroup: 1099
           resources:
             limits:
               cpu: 500m

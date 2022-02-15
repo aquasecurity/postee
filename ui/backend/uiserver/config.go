@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"os"
 
-	hookDbService "github.com/aquasecurity/postee/dbservice"
-	"github.com/aquasecurity/postee/router"
+	hookDbService "github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/router"
 )
 
 func (srv *uiServer) getConfig(w http.ResponseWriter, r *http.Request) {

@@ -239,11 +239,89 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			false,
 			"*outputs.SplunkOutput",
 		},
+		{
+			"HTTP Action output, with a timeout & body specified",
+			OutputSettings{
+				Method:   "GET",
+				Timeout:  "10s",
+				Url:      "https://foo.bar.com",
+				Name:     "my-http-output",
+				Type:     "http",
+				BodyFile: "goldens/test.txt",
+			},
+			map[string]interface{}{
+				"Name":   "HTTP Output",
+				"Method": "GET",
+				"Body":   "foo bar baz",
+			},
+			false,
+			"*outputs.HTTPClient",
+		},
+		{
+			"HTTP Action output, with no method specified",
+			OutputSettings{
+				Url:  "https://foo.bar.com",
+				Name: "my-http-output",
+				Type: "http",
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
+		},
+		{
+			"HTTP Action output, with invalid url specified",
+			OutputSettings{
+				Method: "get",
+				Url:    "http://[fe80::1%en0]/",
+				Name:   "my-http-output",
+				Type:   "http",
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
+		},
+		{
+			"HTTP Action output, with invalid body file specified",
+			OutputSettings{
+				Method:   "GET",
+				Url:      "https://foo.bar.com",
+				Name:     "my-http-output",
+				Type:     "http",
+				BodyFile: "no such body file",
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
+		},
+		{
+			"HTTP Action output, with a invalid timeout",
+			OutputSettings{
+				Method:  "GET",
+				Timeout: "ten seconds",
+				Type:    "http",
+			},
+			map[string]interface{}{}, true,
+			"<nil>",
+		},
+		{"Exec Action output",
+			OutputSettings{
+				Name:      "my-exec-output",
+				Env:       []string{"foo=bar"},
+				InputFile: "goldens/test.txt",
+				Type:      "exec",
+			},
+			map[string]interface{}{
+				"Name":      "Exec Output",
+				"InputFile": "goldens/test.txt",
+			},
+			false,
+			"*outputs.ExecClient",
+		},
 	}
 	for _, test := range tests {
 		o := BuildAndInitOtpt(&test.outputSettings, "")
 		if test.shouldFail && o != nil {
-			t.Fatalf("No output expected for %s test case", test.caseDesc)
+			t.Fatalf("No output expected for %s test case but was %s", test.caseDesc, o)
 		} else if !test.shouldFail && o == nil {
 			t.Fatalf("Not expected output returned for %s test case", test.caseDesc)
 		}

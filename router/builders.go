@@ -1,7 +1,12 @@
 package router
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/aquasecurity/postee/v2/outputs"
 )
@@ -94,4 +99,52 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 		jiraApi.Assignee = []string{jiraApi.User}
 	}
 	return jiraApi
+}
+
+func buildExecOutput(sourceSettings *OutputSettings) *outputs.ExecClient {
+	return &outputs.ExecClient{
+		Name:      sourceSettings.Name,
+		Env:       sourceSettings.Env,
+		InputFile: sourceSettings.InputFile,
+	}
+}
+
+func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error) {
+	if len(sourceSettings.Method) <= 0 {
+		return nil, fmt.Errorf("http action requires a method to be specified")
+	}
+
+	var duration time.Duration
+	if len(sourceSettings.Timeout) > 0 {
+		var err error
+		duration, err = time.ParseDuration(sourceSettings.Timeout)
+		if err != nil {
+			return nil, fmt.Errorf("invalid duration specified: %w", err)
+		}
+	} else {
+		duration = time.Second * 5
+	}
+
+	reqUrl, err := url.Parse(sourceSettings.Url)
+	if err != nil {
+		return nil, fmt.Errorf("error building HTTP url: %w", err)
+	}
+
+	var body []byte
+	if len(sourceSettings.BodyFile) > 0 {
+		var err error
+		body, err = ioutil.ReadFile(sourceSettings.BodyFile)
+		if err != nil {
+			return nil, fmt.Errorf("http action unable to specified body-file: %s, err: %w", sourceSettings.BodyFile, err)
+		}
+	}
+
+	return &outputs.HTTPClient{
+		Name:    sourceSettings.Name,
+		Client:  http.Client{Timeout: duration},
+		URL:     reqUrl,
+		Method:  strings.ToUpper(sourceSettings.Method),
+		Body:    string(body),
+		Headers: sourceSettings.Headers,
+	}, nil
 }
