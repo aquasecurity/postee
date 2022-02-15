@@ -2,12 +2,14 @@ package outputs
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/aquasecurity/postee/v2/layout"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/retry"
 )
 
 type KubernetesClient struct {
@@ -50,40 +52,63 @@ func (k KubernetesClient) Send(m map[string]string) error {
 	// TODO: Set configmap
 	for _, pod := range pods.Items { // TODO: Allow configuring of resource {pod, ds, ...}
 		if len(k.KubeLabels) > 0 {
-			labels := make(map[string]string)
-			oldLabels := pod.GetLabels()
-			for k, v := range oldLabels {
-				labels[k] = v
-			}
-			for k, v := range k.KubeLabels {
-				labels[k] = v
-			}
+			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
+				if err != nil {
+					return fmt.Errorf("failed to get updated pod for labeling: %s, err: %s", pod.Name, err.Error())
+				}
 
-			pod.SetLabels(labels)
-			_, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, &pod, metav1.UpdateOptions{})
-			if err != nil {
-				log.Println("failed to apply labels to pod:", pod.Name, "err:", err.Error())
-			} else {
-				log.Println("labels applied successfully to pod:", pod.Name)
+				labels := make(map[string]string)
+				oldLabels := pod.GetLabels()
+				for k, v := range oldLabels {
+					labels[k] = v
+				}
+				for k, v := range k.KubeLabels {
+					labels[k] = v
+				}
+
+				pod.SetLabels(labels)
+				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
+				if err != nil {
+					log.Println("failed to apply labels to pod:", pod.Name, "err:", err.Error(), "retrying...")
+					return err
+				} else {
+					log.Println("labels applied successfully to pod:", pod.Name)
+				}
+				return nil
+			})
+			if retryErr != nil {
+				log.Println("failed to apply labels to pod:", pod.Name, "err:", retryErr)
 			}
 		}
 
 		if len(k.KubeAnnotations) > 0 {
-			annotations := make(map[string]string)
-			oldAnnotations := pod.GetAnnotations()
-			for k, v := range oldAnnotations {
-				annotations[k] = v
-			}
-			for k, v := range k.KubeAnnotations {
-				annotations[k] = v
-			}
+			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
+				if err != nil {
+					return fmt.Errorf("failed to get updated pod for annotating: %s, err: %s", pod.Name, err.Error())
+				}
+				annotations := make(map[string]string)
+				oldAnnotations := pod.GetAnnotations()
+				for k, v := range oldAnnotations {
+					annotations[k] = v
+				}
+				for k, v := range k.KubeAnnotations {
+					annotations[k] = v
+				}
 
-			pod.SetAnnotations(annotations)
-			_, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, &pod, metav1.UpdateOptions{})
-			if err != nil {
-				log.Println("failed to apply annotation to pod:", pod.Name, "err:", err.Error())
-			} else {
-				log.Println("annotations applied successfully to pod:", pod.Name)
+				pod.SetAnnotations(annotations)
+				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
+				if err != nil {
+					log.Println("failed to apply annotation to pod:", pod.Name, "err:", err.Error(), "retrying...")
+					return err
+				} else {
+					log.Println("annotations applied successfully to pod:", pod.Name)
+				}
+				return nil
+			})
+			if retryErr != nil {
+				log.Println("failed to apply annotations to pod:", pod.Name, "err:", retryErr)
 			}
 		}
 	}
