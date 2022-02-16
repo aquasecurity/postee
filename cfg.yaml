@@ -102,6 +102,7 @@ outputs:
   type: webhook
   enable: false
   url: https://..../webhook/   #  Webhook's url
+  timeout:                     #  Webhook's timeout. <numbers><unit suffix> pattern is used, such as "300ms" or "2h45m". Default: 120s
 
 - name: splunk
   type: splunk
