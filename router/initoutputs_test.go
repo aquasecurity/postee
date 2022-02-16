@@ -209,7 +209,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"HTTP Action output, with a timeout & body specified",
-			OutputSettings{
+			data.OutputSettings{
 				Method:   "GET",
 				Timeout:  "10s",
 				Url:      "https://foo.bar.com",
@@ -227,7 +227,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"HTTP Action output, with no method specified",
-			OutputSettings{
+			data.OutputSettings{
 				Url:  "https://foo.bar.com",
 				Name: "my-http-output",
 				Type: "http",
@@ -238,7 +238,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"HTTP Action output, with invalid url specified",
-			OutputSettings{
+			data.OutputSettings{
 				Method: "get",
 				Url:    "http://[fe80::1%en0]/",
 				Name:   "my-http-output",
@@ -250,7 +250,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"HTTP Action output, with invalid body file specified",
-			OutputSettings{
+			data.OutputSettings{
 				Method:   "GET",
 				Url:      "https://foo.bar.com",
 				Name:     "my-http-output",
@@ -263,7 +263,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 		{
 			"HTTP Action output, with a invalid timeout",
-			OutputSettings{
+			data.OutputSettings{
 				Method:  "GET",
 				Timeout: "ten seconds",
 				Type:    "http",
@@ -272,7 +272,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{"Exec Action output",
-			OutputSettings{
+			data.OutputSettings{
 				Name:      "my-exec-output",
 				Env:       []string{"foo=bar"},
 				InputFile: "goldens/test.txt",
@@ -287,7 +287,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		o, err := BuildAndInitOtpt(&test.outputSettings, "")
+		o, err := buildAndInitOtpt(&test.outputSettings, "")
 
 		if !test.shouldFail && err != nil {
 			t.Fatalf("Unexpected error %v", err)

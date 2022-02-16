@@ -107,7 +107,7 @@ func buildJiraOutput(sourceSettings *data.OutputSettings) *outputs.JiraAPI {
 	return jiraApi
 }
 
-func buildExecOutput(sourceSettings *OutputSettings) *outputs.ExecClient {
+func buildExecOutput(sourceSettings *data.OutputSettings) *outputs.ExecClient {
 	return &outputs.ExecClient{
 		Name:      sourceSettings.Name,
 		Env:       sourceSettings.Env,
@@ -115,7 +115,7 @@ func buildExecOutput(sourceSettings *OutputSettings) *outputs.ExecClient {
 	}
 }
 
-func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error) {
+func buildHTTPOutput(sourceSettings *data.OutputSettings) (*outputs.HTTPClient, error) {
 	if len(sourceSettings.Method) <= 0 {
 		return nil, fmt.Errorf("http action requires a method to be specified")
 	}

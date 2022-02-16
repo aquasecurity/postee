@@ -640,8 +640,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	case "http":
 		plg, err = buildHTTPOutput(settings)
 		if err != nil {
-			log.Println(err.Error())
-			return nil
+			return nil, err
 		}
 	default:
 		return nil, xerrors.Errorf("output %s has undefined or empty type: %q", settings.Name, settings.Type)
