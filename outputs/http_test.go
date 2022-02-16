@@ -66,7 +66,7 @@ func TestHTTPClient_Send(t *testing.T) {
 		{
 			name:          "sad path method get - bad url",
 			method:        http.MethodGet,
-			expectedError: `Get "http://path-to-nowhere": dial tcp: lookup path-to-nowhere: no such host`,
+			expectedError: `Get "http://path-to-nowhere": dial tcp: lookup path-to-nowhere: Temporary failure in name resolution`,
 		},
 	}
 
