@@ -91,7 +91,7 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 		Labels:          sourceSettings.Labels,
 		Unknowns:        sourceSettings.Unknowns,
 		SprintName:      sourceSettings.Sprint,
-		SprintId:        -1,
+		SprintId:        outputs.NotConfiguredSprintId,
 		BoardName:       sourceSettings.BoardName,
 	}
 

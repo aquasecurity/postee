@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	defaultIssueType     = "Task"
-	defaultIssuePriority = "High"
-	defaultSprintPlugin  = "com.pyxis.greenhopper.jira:gh-sprint"
+	defaultIssueType      = "Task"
+	defaultIssuePriority  = "High"
+	defaultSprintPlugin   = "com.pyxis.greenhopper.jira:gh-sprint"
+	NotConfiguredSprintId = -1
 )
 
 type JiraAPI struct {
@@ -184,9 +185,9 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 		return fmt.Errorf("Failed to create meta project: %w", err)
 	}
 
-	err = createIssueType(ctx, metaProject)
+	ctx.Issuetype, err = getIssueType(ctx, metaProject)
 	if err != nil {
-		return fmt.Errorf("Failed to create issuetype: %w", err)
+		return fmt.Errorf("Failed to get issuetype: %w", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
@@ -273,56 +274,66 @@ func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error
 	return metaProject, nil
 }
 
-func createIssueType(ctx *JiraAPI, metaProject *jira.MetaProject) error {
+func getIssueType(ctx *JiraAPI, metaProject *jira.MetaProject) (string, error) {
 	if ctx.Issuetype != "" {
-		for _, issueType := range metaProject.IssueTypes {
-			if ctx.Issuetype == issueType.Name { // search issueType in REST API
-				return nil
-			}
+		if validateIssueType(ctx.Issuetype, metaProject) { // check IssueType from context
+			return ctx.Issuetype, nil
+		} else {
+			return "", fmt.Errorf("project %q doesn't have issueType %q", metaProject.Name, ctx.Issuetype)
 		}
-		return fmt.Errorf("project %q don't have issueType %q", metaProject.Name, ctx.Issuetype)
 	} else {
-		for _, issueType := range metaProject.IssueTypes {
-			if issueType.Name == defaultIssueType { //search default issueType in REST API
-				ctx.Issuetype = defaultIssueType
-				return nil
-			}
+		if validateIssueType(defaultIssueType, metaProject) { // check default Issue Type
+			return defaultIssueType, nil
 		}
 		if len(metaProject.IssueTypes) > 0 { // use 1st issueType from REST API
-			ctx.Issuetype = metaProject.IssueTypes[0].Name
-			return nil
+			return metaProject.IssueTypes[0].Name, nil
 		} else {
-			return fmt.Errorf("project %q don't have issueTypes", metaProject.Name)
+			return "", fmt.Errorf("project %q doesn't have issueTypes", metaProject.Name)
 		}
 	}
 }
 
-var createIssuePriority = func(ctx *JiraAPI, client *jira.Client) error {
-	issuePriorities, _, err := client.Priority.GetList()
+func validateIssueType(issueType string, metaProject *jira.MetaProject) bool {
+	for _, it := range metaProject.IssueTypes { // get issueTypes list from REST API
+		if issueType == it.Name {
+			return true
+		}
+	}
+	return false
+}
+
+var getIssuePriority = func(ctx *JiraAPI, client *jira.Client) (string, error) {
+	issuePriorityList, _, err := client.Priority.GetList()
 	if err != nil {
-		return fmt.Errorf("failed to get issue priority list: %w", err)
+		return "", err
 	}
+
 	if ctx.Priority != "" {
-		for _, priority := range issuePriorities {
-			if ctx.Priority == priority.Name { // search priority in REST API
-				return nil
-			}
-		}
-		return fmt.Errorf("project don't have issue priority %q", ctx.Priority)
-	} else {
-		for _, priority := range issuePriorities {
-			if priority.Name == defaultIssuePriority { // search default priority in REST API
-				ctx.Priority = defaultIssuePriority
-				return nil
-			}
-		}
-		if len(issuePriorities) > 0 {
-			ctx.Priority = issuePriorities[0].Name // use 1st priority from REST API
-			return nil
+		if validateIssuePriority(ctx.Priority, issuePriorityList) { // check Priority from context
+			return ctx.Priority, nil
 		} else {
-			return fmt.Errorf("project don't have issue priorities")
+			return "", fmt.Errorf("project doesn't have issue priority %q", ctx.Priority)
+		}
+	} else {
+		if validateIssuePriority(defaultIssuePriority, issuePriorityList) { // check default Priority
+			return defaultIssuePriority, nil
+		} else {
+			if len(issuePriorityList) > 0 {
+				return issuePriorityList[0].Name, nil // use 1st priority from REST API
+			} else {
+				return "", fmt.Errorf("project doesn't have issue priorities")
+			}
 		}
 	}
+}
+
+func validateIssuePriority(priority string, priorityList []jira.Priority) bool {
+	for _, p := range priorityList {
+		if priority == p.Name {
+			return true
+		}
+	}
+	return false
 }
 
 func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]string) (map[string]string, error) {
@@ -339,9 +350,9 @@ func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]s
 		}
 	}
 
-	err = createIssuePriority(ctx, client)
+	ctx.Priority, err = getIssuePriority(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create issue priority: %w", err)
+		return nil, fmt.Errorf("failed to get issue priority: %w", err)
 	}
 
 	fieldsConfig := make(map[string]string)
