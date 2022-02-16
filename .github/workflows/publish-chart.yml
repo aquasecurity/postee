@@ -57,7 +57,7 @@ jobs:
           wget "https://github.com/helm/chart-releaser/releases/download/v${VERSION}/chart-releaser_${VERSION}_linux_amd64.tar.gz"
           tar xzvf chart-releaser_${VERSION}_linux_amd64.tar.gz cr
       - name: 'Action Get Latest Tag'
-        uses: 'actions-ecosystem/action-get-latest-tag@v1.4.1'
+        uses: 'actions-ecosystem/action-get-latest-tag@v1.5.0'
         id: 'get-latest-tag'
         with:
           semver_only: true
