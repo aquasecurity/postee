@@ -20,8 +20,8 @@ const (
 )
 
 var (
-	regoTemplates       = []string{"./rego_templates"}
-	commonRegoTemplates = []string{"./rego_templates/common"}
+	regoTemplates       = []string{"./rego-templates"}
+	commonRegoTemplates = []string{"./rego-templates/common"}
 )
 
 type regoEvaluator struct {

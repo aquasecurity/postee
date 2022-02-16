@@ -196,7 +196,7 @@ spec:
             - name: postee-config
               mountPath: /config
             - name: rego-template
-              mountPath: /server/rego_templates/custom
+              mountPath: /server/rego-templates/custom
             - name: rego-filters
               mountPath: /server/rego-filters/custom
           securityContext:

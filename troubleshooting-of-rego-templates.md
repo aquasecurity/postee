@@ -14,12 +14,12 @@ Here is example of command to evaluate rego:
 ```
 opa eval data.postee.vuls.html.result --data vuls-html.rego --data common/common.rego --input <path to input json> | jq -r .result[0].expressions[0].value
 ```
-The example above should be started in `rego_templates` folder and evaluates default html template shipped with postee. First opa argument is query. Three parts are used to build query `data`.`<your rego package>`.`result`. You may want to evaluate title property. In this case query would be: `data`.`<your rego package>`.`title`
+The example above should be started in `rego-templates` folder and evaluates default html template shipped with postee. First opa argument is query. Three parts are used to build query `data`.`<your rego package>`.`result`. You may want to evaluate title property. In this case query would be: `data`.`<your rego package>`.`title`
 
 ### Evaluate template to build json
 
 ```
-cd rego_templates
+cd rego-templates
 opa eval data.postee.vuls.slack.result --data vuls-slack.rego --data common/common.rego --input <path to input json> | jq .result[0].expressions[0].value
 ```
 

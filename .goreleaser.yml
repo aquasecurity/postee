@@ -50,7 +50,7 @@ dockers:
     ids:
       - postee
     extra_files:
-      - rego_templates/
+      - rego-templates/
       - rego-filters/
       - cfg.yaml
     build_flag_templates:
@@ -72,7 +72,7 @@ dockers:
     ids:
       - postee-ui
     extra_files:
-      - rego_templates/
+      - rego-templates/
       - rego-filters/
       - cfg.yaml
       - ui/

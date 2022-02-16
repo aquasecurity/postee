@@ -217,13 +217,13 @@ In addition to name, a template will have **one** of the 4 below keys:
 
 Key | Description | Example
 --- | --- | ---
-*rego-package*|Postee loads bundle of templates from `rego_templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego_templates' directory.| `postee.vuls.html`
+*rego-package*|Postee loads bundle of templates from `rego-templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego-templates' directory.| `postee.vuls.html`
 *body*| Specify inline template. Relative small templates can be added to config directly | input
 *url*| Load from url. Rego template can be loaded from url.| http://myserver.com/rego.txt
 *legacy-scan-renderer*| Legacy templates are introduced to support Postee V1 renderers. Available values are  "jira", "slack", "html". "jira" should be used for jira integration, "slack" is for slack and "html" is for everything else. | html
 </details>
 
-> More details about Templates implementation [here](https://github.com/aquasecurity/postee/tree/main/rego_templates)
+> More details about Templates implementation [here](https://github.com/aquasecurity/postee/tree/main/rego-templates)
 
 ### Outputs
 Outputs are remote services that messages should be sent to. Each output has two mandatory fields, which are 'name' and 'type'.
@@ -421,9 +421,9 @@ When vulnerabilities are found in an image, you will see that a JIRA ticket is c
 To troubleshoot the integration, you can look at both the Aqua Postee container logs and the Aqua Server logs. Use the "docker logs <container name>" command to view these logs.*
 
 ## Customizing Templates
-Postee loads bundle of templates from `rego_templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego_templates' directory.
+Postee loads bundle of templates from `rego-templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego-templates' directory.
 
-To create your own template, you should create a new file under the 'rego_templates' directory, and use the
+To create your own template, you should create a new file under the 'rego-templates' directory, and use the
 [Rego language](https://www.openpolicyagent.org/docs/latest/policy-language/) for the actual template code.
 
 Message payload is referenced as `input` when template is rendered. The result variable should be used to store the output message, which is the result of the template formatting. 
