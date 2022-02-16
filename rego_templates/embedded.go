@@ -1,17 +1,21 @@
 package rego_templates
 
 import (
+	"bufio"
 	"embed"
 	"io/fs"
 	"path/filepath"
+	"strings"
 	"sync"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/log"
 )
 
 const (
-	COMMON_DIR = "common"
-	LOCAL_DIR  = "."
+	COMMON_DIR               = "common"
+	LOCAL_DIR                = "."
+	REGO_PACKAGE_DECLERATION = "package"
 )
 
 var (
@@ -26,7 +30,7 @@ var (
 	commonMu            sync.Mutex
 )
 
-func GetTemplates() map[string]string {
+func EmbeddedTemplates() map[string]string {
 	templatesMu.Lock()
 	defer templatesMu.Unlock()
 	if len(templates) != 0 {
@@ -37,7 +41,7 @@ func GetTemplates() map[string]string {
 	return templates
 }
 
-func GetCommon() map[string]string {
+func EmbeddedCommon() map[string]string {
 	commonMu.Lock()
 	defer commonMu.Unlock()
 	if len(commonTemplates) != 0 {
@@ -68,4 +72,30 @@ func populateFS(files embed.FS, storage map[string]string, dirPath string) {
 
 		storage[file.Name()] = string(bt)
 	}
+}
+
+func GetAllTemplates() []data.Template {
+	var templates []data.Template
+	embedded := EmbeddedTemplates()
+	for name, file := range embedded {
+		scanner := bufio.NewScanner(strings.NewReader(file))
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.HasPrefix(line, REGO_PACKAGE_DECLERATION+" ") {
+				s := strings.Split(line, " ")
+				if len(s) < 2 {
+					log.Logger.Warnf("package decalration is misconfigured for rego template '%s': %s", name, line)
+					break
+				}
+
+				templates = append(templates, data.Template{
+					Name:        strings.TrimSuffix(name, ".rego"),
+					RegoPackage: s[1],
+				})
+				break
+			}
+		}
+	}
+
+	return templates
 }

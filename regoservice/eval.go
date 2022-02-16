@@ -202,7 +202,7 @@ func loadFuncs(templatesDir []string, f func() []func(r *rego.Rego)) []func(r *r
 }
 
 func buildTemplatesFuncs() (funcs []func(r *rego.Rego)) {
-	tmpls := rego_templates.GetTemplates()
+	tmpls := rego_templates.EmbeddedTemplates()
 	for filename, input := range tmpls {
 		funcs = append(funcs, rego.Module(filename, input))
 	}
@@ -267,7 +267,7 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 }
 
 func buildCommonFuncs() (funcs []func(r *rego.Rego)) {
-	tmpls := rego_templates.GetCommon()
+	tmpls := rego_templates.EmbeddedCommon()
 	for filename, input := range tmpls {
 		funcs = append(funcs, rego.Module(filename, input))
 	}

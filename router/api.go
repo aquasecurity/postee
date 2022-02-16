@@ -8,6 +8,7 @@ import (
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/rego_templates"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
@@ -164,6 +165,10 @@ func ListTemplates() []string {
 		names = append(names, n)
 	}
 	return names
+}
+
+func GetEmbeddedTemplates() []data.Template {
+	return rego_templates.GetAllTemplates()
 }
 
 //-----------------------------------------------
