@@ -21,10 +21,10 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -race -coverprofile=coverage.txt -covermode=atomic ./router ./msgservice ./dbservice ./formatting ./data ./regoservice ./routes
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./router ./msgservice ./dbservice ./formatting ./data ./regoservice ./routes ./outputs
 
 cover :
-	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes -v -coverprofile=cover.out
+	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes ./outputs -v -coverprofile=cover.out
 	go tool cover -html=cover.out
 
 composer :
