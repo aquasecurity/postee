@@ -8,7 +8,7 @@ import (
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
-	"github.com/aquasecurity/postee/v2/rego_templates"
+	rego_templates "github.com/aquasecurity/postee/v2/rego-templates"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 

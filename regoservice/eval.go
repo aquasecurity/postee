@@ -9,7 +9,7 @@ import (
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/log"
-	"github.com/aquasecurity/postee/v2/rego_templates"
+	rego_templates "github.com/aquasecurity/postee/v2/rego-templates"
 	"github.com/open-policy-agent/opa/rego"
 )
 
