@@ -7,26 +7,29 @@ import (
 	"testing"
 
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
 var (
-	scnWithOwners = `{
-		"image":"Demo mock image1",
-		"registry":"registry1",
-		"vulnerability_summary":{"critical":0,"high":1,"medium":3,"low":4,"negligible":5},
-		"image_assurance_results":{"disallowed":true},
-		"application_scope_owners": ["recipient1@aquasec.com", "recipient1@aquasec.com"]
-	}`
+	scnWithOwners = map[string]interface{}{
+		"image":                    "Demo mock image1",
+		"registry":                 "registry1",
+		"vulnerability_summary":    map[string]int{"critical": 0, "high": 1, "medium": 3, "low": 4, "negligible": 5},
+		"image_assurance_results":  map[string]interface{}{"disallowed": true},
+		"application_scope_owners": []string{"recipient1@aquasec.com", "recipient1@aquasec.com"},
+	}
 )
 
 func TestApplicationScopeOwner(t *testing.T) {
-	dbPathReal := dbservice.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
+	defer testDB.Close()
+	oldDb := dbservice.Db
+	dbservice.Db = testDB
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		os.Remove(testDB.DbPath)
+		dbservice.Db = oldDb
 	}()
-	dbservice.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -43,8 +46,8 @@ func TestApplicationScopeOwner(t *testing.T) {
 	demoEmailOutput.wg.Add(1)
 
 	srv := new(MsgService)
-	if srv.EvaluateRegoRule(demoRoute, []byte(scnWithOwners)) {
-		srv.MsgHandling([]byte(scnWithOwners), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, scnWithOwners) {
+		srv.MsgHandling(scnWithOwners, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	demoEmailOutput.wg.Wait()

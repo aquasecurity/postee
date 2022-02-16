@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/aquasecurity/postee/v2/data"
 )
 
 var (
@@ -20,16 +22,20 @@ func TestInitTemplate(t *testing.T) {
 	defaultRegoFolder := "rego-templates"
 	commonRegoFolder := defaultRegoFolder + "/common"
 	testRego := defaultRegoFolder + "/rego1.rego"
-	err := os.Mkdir(defaultRegoFolder, 0777)
-	if err != nil {
-		t.Fatalf("Can't create rego folder: %v", err)
+	if _, err := os.Stat(defaultRegoFolder); os.IsNotExist(err) {
+		err = os.Mkdir(defaultRegoFolder, 0777)
+		if err != nil {
+			t.Fatalf("Can't create rego folder: %v", err)
+		}
 	}
-	err = os.Mkdir(commonRegoFolder, 0777)
-	if err != nil {
-		t.Fatalf("Can't create rego folder: %v", err)
+	if _, err := os.Stat(commonRegoFolder); os.IsNotExist(err) {
+		err = os.Mkdir(commonRegoFolder, 0777)
+		if err != nil {
+			t.Fatalf("Can't create rego folder: %v", err)
+		}
 	}
 
-	err = ioutil.WriteFile(testRego, []byte(regoRule), 0644)
+	err := ioutil.WriteFile(testRego, []byte(regoRule), 0644)
 
 	if err != nil {
 		t.Fatalf("Can't write rego: %v", err)
@@ -43,13 +49,13 @@ func TestInitTemplate(t *testing.T) {
 	}()
 
 	tests := []struct {
-		template          *Template
+		template          *data.Template
 		caseDesc          string
 		expectedCls       string
 		shouldReturnError bool
 	}{
 		{
-			template: &Template{
+			template: &data.Template{
 				Name:               "legacy-html",
 				LegacyScanRenderer: "html",
 			},
@@ -57,7 +63,7 @@ func TestInitTemplate(t *testing.T) {
 			expectedCls: "*formatting.legacyScnEvaluator",
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name:        "built-in",
 				RegoPackage: "postee.slack",
 			},
@@ -65,7 +71,7 @@ func TestInitTemplate(t *testing.T) {
 			expectedCls: "*regoservice.regoEvaluator",
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "from-url",
 				Url:  "http://localhost/slack.rego",
 			},
@@ -73,7 +79,7 @@ func TestInitTemplate(t *testing.T) {
 			expectedCls: "*regoservice.regoEvaluator",
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "not-found",
 				Url:  "http://localhost/wrong.rego",
 			},
@@ -82,7 +88,7 @@ func TestInitTemplate(t *testing.T) {
 			shouldReturnError: true,
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "from-invalid-url",
 				Url:  "invalid-url",
 			},
@@ -91,7 +97,7 @@ func TestInitTemplate(t *testing.T) {
 			shouldReturnError: true,
 		},
 		{
-			template: &Template{
+			template: &data.Template{
 				Name: "inline",
 				Body: "package postee.inline",
 			},
@@ -104,7 +110,7 @@ func TestInitTemplate(t *testing.T) {
 	}
 
 }
-func doInitTemplate(t *testing.T, caseDesc string, template *Template, expectedCls string, shouldReturnError bool) {
+func doInitTemplate(t *testing.T, caseDesc string, template *data.Template, expectedCls string, shouldReturnError bool) {
 	demoCtx := Instance()
 	err := demoCtx.initTemplate(template)
 	if err != nil && !shouldReturnError {

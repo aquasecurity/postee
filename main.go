@@ -1,18 +1,16 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
 
-	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/router"
-	"github.com/aquasecurity/postee/v2/utils"
 	"github.com/aquasecurity/postee/v2/webserver"
 	"github.com/spf13/cobra"
+
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 const (
@@ -34,8 +32,8 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "webhooksrv",
-	Short: fmt.Sprintf("Aqua Container Security Webhook server\n"),
-	Long:  fmt.Sprintf("Aqua Container Security Webhook server\n"),
+	Short: "Aqua Container Security Webhook server\n",
+	Long:  "Aqua Container Security Webhook server\n",
 }
 
 func init() {
@@ -46,7 +44,6 @@ func init() {
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	utils.InitDebug()
 
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
 
@@ -74,13 +71,13 @@ func main() {
 			cfgfile = os.Getenv("POSTEE_CFG")
 		}
 
-		if os.Getenv("PATH_TO_DB") != "" {
-			dbservice.SetNewDbPathFromEnv()
-		}
+		postgresUrl := os.Getenv("POSTGRES_URL")
+		pathToDb := os.Getenv("PATH_TO_DB")
 
-		err := router.Instance().Start(cfgfile)
+		err := router.Instance().ApplyFileCfg(cfgfile, postgresUrl, pathToDb, false)
+
 		if err != nil {
-			log.Printf("Can't start alert manager %v", err)
+			log.Logger.Fatalf("Can't start alert manager: %v", err)
 			return
 		}
 
@@ -93,9 +90,10 @@ func main() {
 	}
 	err := rootCmd.Execute()
 	if err != nil {
-		log.Printf("Can't start command %v", err)
+		log.Logger.Fatalf("Can't start command: %v", err)
 		return
 	}
+
 }
 
 func Daemonize() {
@@ -105,7 +103,7 @@ func Daemonize() {
 
 	go func() {
 		sig := <-sigs
-		log.Println(sig)
+		log.Logger.Info(sig)
 		done <- true
 	}()
 

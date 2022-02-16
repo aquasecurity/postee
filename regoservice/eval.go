@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/aquasecurity/postee/v2/data"
+	"github.com/aquasecurity/postee/v2/log"
 	"github.com/open-policy-agent/opa/rego"
 )
 
@@ -77,7 +78,7 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 
 func getFirstElement(context map[string]interface{}, key string) interface{} {
 	for _, v := range context {
-		log.Printf("checking: %s ...\n", key)
+		log.Logger.Debugf("checking: %s ...\n", key)
 		childCtx, ok := v.(map[string]interface{})
 		if !ok {
 			return nil
@@ -97,7 +98,7 @@ func getFirstElement(context map[string]interface{}, key string) interface{} {
 func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 	expr, ok := data[prop]
 	if !ok {
-		return "", errors.New(fmt.Sprintf("property %s is not found", prop))
+		return "", fmt.Errorf(fmt.Sprintf("property %s is not found", prop))
 	}
 	switch v := expr.(type) {
 	case string:
@@ -111,7 +112,7 @@ func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 	}
 }
 func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]string) (map[string]string, error) {
-	aggregatedJson := make([]map[string]interface{}, len(scans), len(scans))
+	aggregatedJson := make([]map[string]interface{}, len(scans))
 
 	for _, scan := range scans {
 		desc := scan["description"]
@@ -204,6 +205,10 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 	//execute query with empty input and check if aggregation package is defined
 	rs, err := query.Eval(ctx, rego.EvalInput(make(map[string]interface{})))
 
+	if err != nil {
+		return nil, err
+	}
+
 	if len(rs) == 0 || len(rs[0].Expressions) == 0 {
 		return nil, errors.New("no results") //TODO error definition
 	}
@@ -213,27 +218,36 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 	aggregation_pkg_val := expr[aggregation_pkg_prop]
 
 	var aggrQuery *rego.PreparedEvalQuery
-
 	if aggregation_pkg_val != nil {
 		aggregation_pkg := aggregation_pkg_val.(string)
+		var err error
+
 		aggrQuery, err = buildBundledRegoForPackage(aggregation_pkg)
+
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		//it's ok skip aggregation package - no aggregation features will be available
-		log.Printf("No aggregation package configured!!!")
+		log.Logger.Infof("No aggregation package configured!!!")
 	}
 	return aggrQuery, nil
 }
 
 func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, error) {
 	ctx := context.Background()
+	foundPaths := make([]string, 0)
+
+	for _, path := range commonRegoTemplates {
+		if _, err := os.Stat(commonRegoTemplates[0]); !os.IsNotExist(err) {
+			foundPaths = append(foundPaths, path)
+		}
+	}
 
 	r, err := rego.New(
 		rego.Query("data"),
 		jsonFmtFunc(),
-		rego.Load(commonRegoTemplates, nil), //only common modules
+		rego.Load(foundPaths, nil), //only common modules
 		rego.Module(filename, body),
 	).PrepareForEval(ctx)
 

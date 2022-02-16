@@ -3,14 +3,15 @@ package outputs
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/smtp"
 	"strconv"
 	"strings"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 var (
@@ -34,8 +35,23 @@ func (email *EmailOutput) GetName() string {
 	return email.Name
 }
 
+func (email *EmailOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name: email.Name,
+		User: email.User,
+		//password is omitted
+		Host:       email.Host,
+		Port:       email.Port,
+		Sender:     email.Sender,
+		UseMX:      email.UseMX,
+		Recipients: data.CopyStringArray(email.Recipients),
+		Enable:     true,
+		Type:       "email",
+	}
+}
+
 func (email *EmailOutput) Init() error {
-	log.Printf("Starting Email output %q...", email.Name)
+	log.Logger.Infof("Starting Email output %q...", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
@@ -45,7 +61,7 @@ func (email *EmailOutput) Init() error {
 }
 
 func (email *EmailOutput) Terminate() error {
-	log.Printf("Email output terminated\n")
+	log.Logger.Infof("Email output terminated")
 	return nil
 }
 
@@ -81,11 +97,11 @@ func (email *EmailOutput) Send(content map[string]string) error {
 
 	err := email.sendFunc(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
-		log.Println("SendMail Error:", err)
-		log.Printf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
+		log.Logger.Error("Placeholder is missed: ", err)
+		log.Logger.Errorf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
 		return err
 	}
-	log.Println("Email was sent successfully!")
+	log.Logger.Debug("Email was sent successfully!")
 	return nil
 }
 
@@ -93,24 +109,24 @@ func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []
 	for _, rcpt := range recipients {
 		at := strings.LastIndex(rcpt, "@")
 		if at < 0 {
-			log.Printf("%q isn't email", rcpt)
+			log.Logger.Errorf("%q isn't valid email", rcpt)
 			continue
 		}
 
 		host := rcpt[at+1:]
 		mxs, err := lookupMXFunc(host)
 		if err != nil {
-			log.Println("error looking up mx host: ", err)
+			log.Logger.Errorf("error looking up mx host: %v", err)
 			continue
 		}
 
 		for _, mx := range mxs {
 			if err := email.sendFunc(mx.Host+":"+port, nil, email.Sender, recipients, []byte(msg)); err != nil {
-				log.Printf("SendMail error to %q via %q", rcpt, mx.Host)
-				log.Println("error: ", err)
+				log.Logger.Errorf("SendMail error to %q via %q", rcpt, mx.Host)
+				log.Logger.Error(err)
 				continue
 			}
-			log.Printf("The message to %q was sent successful via %q!", rcpt, mx.Host)
+			log.Logger.Debugf("The message to %q was sent successful via %q!", rcpt, mx.Host)
 			break
 		}
 	}

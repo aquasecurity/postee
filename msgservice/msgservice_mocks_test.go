@@ -5,15 +5,16 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
 var (
-	mockScan1 = `{"image":"Demo mock image1","registry":"registry1","vulnerability_summary":{"critical":0,"high":1,"medium":3,"low":4,"negligible":5},"image_assurance_results":{"disallowed":true}}`
-	mockScan2 = `{"image":"Demo mock Image2","registry":"registry2","vulnerability_summary":{"critical":0,"high":0,"medium":3,"low":4,"negligible":5},"image_assurance_results":{"disallowed":false}}`
-	mockScan3 = `{"image":"Demo mock Image3","registry":"Registry3","vulnerability_summary":{"critical":0,"high":0,"medium":0,"low":4,"negligible":5},"image_assurance_results":{"disallowed":true}}`
-	mockScan4 = `{"image":"Demo mock image4","registry":"registry4","vulnerability_summary":{"critical":0,"high":0,"medium":0,"low":0,"negligible":5},"image_assurance_results":{"disallowed":true}}`
+	mockScan1 = map[string]interface{}{"image": "Demo mock image1", "registry": "registry1", "vulnerability_summary": map[string]int{"critical": 0, "high": 1, "medium": 3, "low": 4, "negligible": 5}, "image_assurance_results": map[string]interface{}{"disallowed": true}}
+	mockScan2 = map[string]interface{}{"image": "Demo mock Image2", "registry": "registry2", "vulnerability_summary": map[string]int{"critical": 0, "high": 0, "medium": 3, "low": 4, "negligible": 5}, "image_assurance_results": map[string]interface{}{"disallowed": false}}
+	mockScan3 = map[string]interface{}{"image": "Demo mock Image3", "registry": "Registry3", "vulnerability_summary": map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 4, "negligible": 5}, "image_assurance_results": map[string]interface{}{"disallowed": true}}
+	mockScan4 = map[string]interface{}{"image": "Demo mock image4", "registry": "registry4", "vulnerability_summary": map[string]int{"critical": 0, "high": 0, "medium": 0, "low": 0, "negligible": 5}, "image_assurance_results": map[string]interface{}{"disallowed": true}}
 )
 
 type DemoInptEval struct {
@@ -69,6 +70,9 @@ type DemoEmailOutput struct {
 
 func (plg *DemoEmailOutput) GetName() string {
 	return "demo"
+}
+func (plg *DemoEmailOutput) CloneSettings() *data.OutputSettings {
+	return nil
 }
 
 func (plg *DemoEmailOutput) getEmailsCount() int {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
@@ -53,4 +54,14 @@ func (e *ExecClient) Terminate() error {
 
 func (e *ExecClient) GetLayoutProvider() layout.LayoutProvider {
 	return nil
+}
+
+func (e *ExecClient) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:      e.Name,
+		Env:       e.Env,
+		InputFile: e.InputFile,
+		Enable:    true,
+		Type:      "exec",
+	}
 }

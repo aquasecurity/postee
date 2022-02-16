@@ -2,11 +2,11 @@ package outputs
 
 import (
 	"encoding/json"
-	"log"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
-	"github.com/aquasecurity/postee/v2/utils"
+	"github.com/aquasecurity/postee/v2/log"
 
 	msteams "github.com/aquasecurity/postee/v2/teams"
 )
@@ -26,49 +26,58 @@ func (teams *TeamsOutput) GetName() string {
 	return teams.Name
 }
 
+func (teams *TeamsOutput) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:   teams.Name,
+		Url:    teams.Webhook,
+		Enable: true,
+		Type:   "teams",
+	}
+}
+
 func (teams *TeamsOutput) Init() error {
-	log.Printf("Starting MS Teams output %q....", teams.Name)
+	log.Logger.Infof("Starting MS Teams output %q....", teams.Name)
 	teams.teamsLayout = new(formatting.HtmlProvider)
 	return nil
 }
 
 func (teams *TeamsOutput) Send(input map[string]string) error {
-	log.Printf("Sending to MS Teams via %q...", teams.Name)
-	utils.Debug("Title for %q: %q\n", teams.Name, input["title"])
-	utils.Debug("Url(s) for %q: %q\n", teams.Name, input["url"])
-	utils.Debug("Webhook for %q: %q\n", teams.Name, teams.Webhook)
-	utils.Debug("Length of Description for %q: %d/%d\n",
+	log.Logger.Infof("Sending to MS Teams via %q...", teams.Name)
+	log.Logger.Debugf("Title for %q: %q", teams.Name, input["title"])
+	log.Logger.Debugf("Url(s) for %q: %q", teams.Name, input["url"])
+	log.Logger.Debugf("Webhook for %q: %q", teams.Name, teams.Webhook)
+	log.Logger.Debugf("Length of Description for %q: %d/%d",
 		teams.Name, len(input["description"]), teamsSizeLimit)
 
 	var body string
 	if len(input["description"]) > teamsSizeLimit {
-		utils.Debug("MS Team output will send SHORT message\n")
+		log.Logger.Debugf("MS Team output will send SHORT message")
 		body = buildShortMessage(teams.AquaServer, input["url"], teams.teamsLayout)
 	} else {
-		utils.Debug("MS Team output will send LONG message\n")
+		log.Logger.Debugf("MS Team output will send LONG message")
 		body = input["description"]
 	}
-	utils.Debug("Message is: %q\n", body)
+	log.Logger.Debugf("Message is: %q", body)
 
 	escaped, err := escapeJSON(body)
 	if err != nil {
-		log.Printf("Error while escaping payload: %v", err)
+		log.Logger.Errorf("Error while escaping payload: %v", err)
 		return err
 	}
 
 	err = msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"])+escaped)
 
 	if err != nil {
-		log.Printf("TeamsOutput Send Error: %v", err)
+		log.Logger.Errorf("TeamsOutput Send Error: %v", err)
 		return err
 	}
 
-	log.Printf("Sending to MS Teams via %q was successful!", teams.Name)
+	log.Logger.Infof("Sending to MS Teams via %q was successful!", teams.Name)
 	return nil
 }
 
 func (teams *TeamsOutput) Terminate() error {
-	log.Printf("MS Teams output %q terminated", teams.Name)
+	log.Logger.Infof("MS Teams output %q terminated", teams.Name)
 	return nil
 }
 

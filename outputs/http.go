@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
@@ -68,4 +69,15 @@ func (hc HTTPClient) Terminate() error {
 
 func (hc HTTPClient) GetLayoutProvider() layout.LayoutProvider {
 	return nil
+}
+
+func (hc HTTPClient) CloneSettings() *data.OutputSettings {
+	return &data.OutputSettings{
+		Name:    hc.Name,
+		Url:     hc.URL.String(),
+		Method:  hc.Method,
+		Headers: hc.Headers,
+		Enable:  true,
+		Type:    "http",
+	}
 }

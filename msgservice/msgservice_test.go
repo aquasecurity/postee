@@ -3,17 +3,11 @@ package msgservice
 import (
 	"errors"
 	"os"
-	"sync"
 	"testing"
 
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/dbservice/boltdb"
 	"github.com/aquasecurity/postee/v2/routes"
-)
-
-var (
-	invalidJson = `{
-	image : "My Image"
-	}`
 )
 
 type FailingInptEval struct {
@@ -39,74 +33,12 @@ func (inptEval *FailingInptEval) IsAggregationSupported() bool {
 	return inptEval.expectedAggrError != nil
 }
 
-func TestInputs(t *testing.T) {
-	tests := []struct {
-		input      []byte
-		caseDesc   string
-		shouldPass bool
-	}{
-		{
-			input:      nil,
-			caseDesc:   "Empty input",
-			shouldPass: false,
-		},
-		{
-			input:      []byte(invalidJson),
-			caseDesc:   "Invalid Json",
-			shouldPass: false,
-		},
-	}
-	for _, test := range tests {
-		validateInputValue(t, test.caseDesc, test.input, test.shouldPass)
-	}
-
-}
-func validateInputValue(t *testing.T, caseDesc string, input []byte, shouldPass bool) {
-	dbPathReal := dbservice.DbPath
-	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
-	}()
-	dbservice.DbPath = "test_webhooks.db"
-
-	demoEmailOutput := &DemoEmailOutput{
-		emailCounts: 0,
-	}
-
-	srvUrl := ""
-	expected := 0
-	if shouldPass {
-		expected = 1
-	}
-
-	demoRoute := &routes.InputRoute{}
-
-	demoRoute.Name = "demo-route"
-
-	demoInptEval := &DemoInptEval{}
-
-	demoEmailOutput.wg = &sync.WaitGroup{}
-	demoEmailOutput.wg.Add(expected)
-
-	srv := new(MsgService)
-	if srv.EvaluateRegoRule(demoRoute, input) {
-		srv.MsgHandling(input, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
-	}
-
-	demoEmailOutput.wg.Wait()
-
-	if demoEmailOutput.getEmailsCount() != expected {
-		t.Errorf("[%s] Wrong number of Send method calls: expected %d, got %d", caseDesc, expected, demoEmailOutput.getEmailsCount())
-	}
-
-}
 func TestEvalError(t *testing.T) {
-	dbPathReal := dbservice.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -124,8 +56,8 @@ func TestEvalError(t *testing.T) {
 	}
 
 	srv := new(MsgService)
-	if srv.EvaluateRegoRule(demoRoute, []byte(mockScan1)) {
-		srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, mockScan1) {
+		srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	if demoEmailOutput.getEmailsCount() > 0 {
@@ -134,12 +66,14 @@ func TestEvalError(t *testing.T) {
 }
 
 func TestAggrEvalError(t *testing.T) {
-	dbPathReal := dbservice.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
+	oldDb := dbservice.Db
+	dbservice.Db = testDB
+	defer func() { dbservice.Db = oldDb }()
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -160,8 +94,8 @@ func TestAggrEvalError(t *testing.T) {
 
 	for i := 0; i < 2; i++ {
 		srv := new(MsgService)
-		if srv.EvaluateRegoRule(demoRoute, []byte(mockScan1)) {
-			srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		if srv.EvaluateRegoRule(demoRoute, mockScan1) {
+			srv.MsgHandling(mockScan1, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
 		}
 	}
 
@@ -169,44 +103,25 @@ func TestAggrEvalError(t *testing.T) {
 		t.Errorf("Output shouldn't be called when evaluation is failed")
 	}
 }
+
 func TestEmptyInput(t *testing.T) {
-	dbPathReal := dbservice.DbPath
+	testDB, _ := boltdb.NewBoltDb("test_webhooks.db")
 	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		testDB.Close()
+		os.Remove(testDB.DbPath)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
 
 	srvUrl := ""
-
 	demoRoute := &routes.InputRoute{}
-
 	demoRoute.Name = "demo-route"
-
 	demoInptEval := &DemoInptEval{}
 
 	srv := new(MsgService)
-	if srv.EvaluateRegoRule(demoRoute, []byte("{}")) {
-		srv.MsgHandling([]byte("{}"), nil, demoRoute, demoInptEval, &srvUrl)
+	if srv.EvaluateRegoRule(demoRoute, map[string]interface{}{}) {
+		srv.MsgHandling(map[string]interface{}{}, nil, demoRoute, demoInptEval, &srvUrl)
 	}
 
 	if demoInptEval.renderCnt != 0 {
 		t.Errorf("Eval() shouldn't be called if no output is passed to ResultHandling()")
-	}
-}
-
-func TestMalformedJSON(t *testing.T) {
-	var (
-		srvUrl          = ""
-		demoRoute       = &routes.InputRoute{Name: "demo-route"}
-		demoInptEval    = &DemoInptEval{}
-		demoEmailOutput = &DemoEmailOutput{}
-	)
-
-	srv := new(MsgService)
-	srv.MsgHandling([]byte("{test:test}"), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
-
-	if demoEmailOutput.getEmailsCount() > 0 {
-		t.Errorf("Output shouldn't be called when evaluation is failed")
 	}
 }

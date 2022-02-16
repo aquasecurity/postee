@@ -2,14 +2,10 @@ package utils
 
 import (
 	"errors"
-	"log"
+
 	"os"
 	"path/filepath"
 	"strings"
-)
-
-var (
-	dbg = false
 )
 
 func GetEnvironmentVarOrPlain(value string) string {
@@ -18,21 +14,6 @@ func GetEnvironmentVarOrPlain(value string) string {
 		return os.Getenv(strings.TrimPrefix(value, VarPrefix))
 	}
 	return value
-}
-
-func InitDebug() {
-	if os.Getenv("AQUAALERT_DEBUG") != "" {
-		dbg = true
-	}
-	if os.Getenv("POSTEE_DEBUG") != "" {
-		dbg = true
-	}
-}
-
-func Debug(format string, v ...interface{}) {
-	if dbg != false {
-		log.Printf(format, v...)
-	}
 }
 
 func GetEnv(name string) (string, error) {
