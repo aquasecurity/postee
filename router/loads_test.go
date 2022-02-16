@@ -74,6 +74,7 @@ type ctxWrapper struct {
 	commonRegoFolder   string
 	buff               chan invctn
 }
+
 type invctn struct {
 	outputCls   string
 	templateCls string
@@ -132,6 +133,13 @@ func (ctxWrapper *ctxWrapper) teardown() {
 	dbservice.ChangeDbPath(ctxWrapper.savedDBPath)
 	getScanService = ctxWrapper.savedGetService
 	close(ctxWrapper.buff)
+}
+
+func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, _ []byte) bool {
+	if r.Name == "fail_evaluation" {
+		return false
+	}
+	return true
 }
 
 func TestLoads(t *testing.T) {

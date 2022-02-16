@@ -3,7 +3,6 @@
 ![Postee](postee.jpeg)
 
 ![Docker Pulls][docker-pull]
-[![Coverage Status][cov-img]][cov]
 [![Go Report Card][report-card-img]][report-card]
 ![](https://github.com/aquasecurity/postee/workflows/Go/badge.svg)
 [![License][license-img]][license]
@@ -13,8 +12,6 @@
 [release]: https://github.com/aquasecurity/postee/releases
 [docker-pull]: https://img.shields.io/docker/pulls/aquasec/postee?logo=docker&label=docker%20pulls%20%2F%20postee
 [go-doc-img]: https://godoc.org/github.com/aquasecurity/postee?status.svg
-[cov-img]: https://codecov.io/github/aquasecurity/postee/branch/main/graph/badge.svg
-[cov]: https://codecov.io/github/aquasecurity/postee
 [report-card-img]: https://goreportcard.com/badge/github.com/aquasecurity/postee
 [report-card]: https://goreportcard.com/report/github.com/aquasecurity/postee
 [license-img]: https://img.shields.io/badge/License-mit-blue.svg
