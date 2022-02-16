@@ -210,28 +210,28 @@ func TestJiraAPI_FetchBoardId(t *testing.T) {
 
 func TestJiraAPI_FetchSprintId(t *testing.T) {
 	tests := []struct {
-		name        string
-		sprints     *jira.SprintsList
-		wantJiraApi *JiraAPI
+		name         string
+		sprints      *jira.SprintsList
+		wantSprintId int
 	}{
 		{
-			name:        "happy path (2 sprints found)",
-			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint0"}, {Name: "sprint1"}}},
-			wantJiraApi: &JiraAPI{SprintId: 1},
+			name:         "happy path (2 sprints found)",
+			sprints:      &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint0"}, {Name: "sprint1"}}},
+			wantSprintId: 1,
 		},
 		{
-			name:        "happy path (1 sprint found)",
-			sprints:     &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint32", ID: 32}}},
-			wantJiraApi: &JiraAPI{SprintId: 32},
+			name:         "happy path (1 sprint found)",
+			sprints:      &jira.SprintsList{Values: []jira.Sprint{{Name: "sprint32", ID: 32}}},
+			wantSprintId: 32,
 		},
 		{
-			name:        "happy path (0 sprints found)",
-			sprints:     &jira.SprintsList{Values: []jira.Sprint{}},
-			wantJiraApi: &JiraAPI{SprintId: NotConfiguredSprintId},
+			name:         "happy path (0 sprints found)",
+			sprints:      &jira.SprintsList{Values: []jira.Sprint{}},
+			wantSprintId: NotConfiguredSprintId,
 		},
 		{
-			name:        "sad path (Failed to get all sprints)",
-			wantJiraApi: &JiraAPI{SprintId: NotConfiguredSprintId},
+			name:         "sad path (Failed to get all sprints)",
+			wantSprintId: NotConfiguredSprintId,
 		},
 	}
 	for _, test := range tests {
@@ -247,7 +247,7 @@ func TestJiraAPI_FetchSprintId(t *testing.T) {
 
 			jiraApi.fetchSprintId(client)
 
-			assert.Equal(t, test.wantJiraApi, jiraApi)
+			assert.Equal(t, test.wantSprintId, jiraApi.SprintId)
 		})
 	}
 }
@@ -555,7 +555,7 @@ func TestJiraAPI_Send(t *testing.T) {
 			mux.HandleFunc("/rest/api/2/issue", buildHttpHandler(test.issue, test.wantError))
 			ts := httptest.NewServer(mux)
 			defer ts.Close()
-			
+
 			createClient = func(ctx *JiraAPI) (*jira.Client, error) {
 				if test.wantError == "Failed to create client" {
 					return nil, fmt.Errorf(test.wantError)
