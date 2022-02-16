@@ -616,6 +616,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	log.Logger.Debugf("Starting Output %q: %q", settings.Type, settings.Name)
 
 	var plg outputs.Output
+	var err error
 
 	switch settings.Type {
 	case "jira":
@@ -634,10 +635,19 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		plg = buildSplunkOutput(settings)
 	case "stdout":
 		plg = buildStdoutOutput(settings)
+	case "exec":
+		plg = buildExecOutput(settings)
+	case "http":
+		plg, err = buildHTTPOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	default:
 		return nil, xerrors.Errorf("output %s has undefined or empty type: %q", settings.Name, settings.Type)
 	}
-	err := plg.Init()
+
+	err = plg.Init()
 	if err != nil {
 		log.Logger.Errorf("failed to Init : %v", err)
 	}
