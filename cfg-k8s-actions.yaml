@@ -13,13 +13,13 @@ routes:
   template: raw-json
 
 - name: actions-route
-  #input: contains(input.SigMetadata.ID, "TRC-2")
+  input: contains(input.SigMetadata.ID, "TRC-2")
   outputs: [my-k8s]
   template: raw-json
 
 # Templates are used to format a message
 templates:
-- name: raw-json                        # route message "As Is" to external webhook
+- name: raw-json                                   # route message "As Is" to external webhook
   rego-package: postee.rawmessage.json
 
 # Outputs are target services that should consume the messages
@@ -32,7 +32,7 @@ outputs:
 - name: my-k8s
   type: kubernetes
   enable: true
-  kube-namespace: "default"                         # Require. Kubernetes namespace to use.
+  kube-namespace: "default"                         # Required. Kubernetes namespace to use.
   kube-config-file: "/path/to/kubeconfig"           # Required. Path to .kubeconfig file
   kube-label-selector: "app=nginx-app"              # Required, if specifying labels or annotations.
   kube-labels:
