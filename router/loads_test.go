@@ -143,6 +143,8 @@ func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, _ []byte) bool {
 }
 
 func TestLoads(t *testing.T) {
+	t.Skip("FIXME: this test makes an external call")
+
 	wrap := ctxWrapper{}
 	wrap.setup(cfgData)
 
@@ -174,6 +176,8 @@ func TestLoads(t *testing.T) {
 	}
 }
 func TestReload(t *testing.T) {
+	t.Skip("FIXME: this test makes an external call")
+
 	extraOtptCfg := `
 - name: jira2
   type: jira
