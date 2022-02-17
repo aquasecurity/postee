@@ -15,55 +15,6 @@ import (
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
-var (
-	cfgData string = `
-name: tenant
-aqua-server: https://demolab.aquasec.com
-max-db-size: 13 # Max size of DB. MB. if empty then unlimited
-delete-old-data: 7 # delete data older than N day(s).  If empty then we do not delete.d
-
-routes:
-- name: route1      #  name must be unique
-  input: |
-   contains(input.image, "alpine")
-   input.vulnerability_summary.critical >= 3
-
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
-  template: raw       #  a template for this route
-  plugins:
-   policy-show-all: true
-
-- name: route2      #  name must be unique
-  input: |
-   contains(input.image, "alpine")
-
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
-  template: raw       #  a template for this route
-  plugins:
-   policy-show-all: true
-
-templates:
-- name: raw
-  body: input
-
-outputs:
-- name: splunk
-  type: splunk
-  enable: true
-  url: http://localhost:8088
-  token: 00aac750-a69c-4ebb-8771-41905f7369dd
-  size-limit: 1000
-
-- name: jira
-  type: jira
-  enable: true
-  url: "https://afdesk.atlassian.net/"
-  user: admin
-  password: admin
-  tls-verify: false
-  project-key: kcv`
-)
-
 type ctxWrapper struct {
 	instance           *Router
 	savedBaseForTicker time.Duration
@@ -144,6 +95,52 @@ func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, _ []byte) bool {
 
 func TestLoads(t *testing.T) {
 	t.Skip("FIXME: this test makes an external call")
+	cfgData := `
+name: tenant
+aqua-server: https://demolab.aquasec.com
+max-db-size: 13 # Max size of DB. MB. if empty then unlimited
+delete-old-data: 7 # delete data older than N day(s).  If empty then we do not delete.d
+
+routes:
+- name: route1      #  name must be unique
+  input: |
+   contains(input.image, "alpine")
+   input.vulnerability_summary.critical >= 3
+
+  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  template: raw       #  a template for this route
+  plugins:
+   policy-show-all: true
+
+- name: route2      #  name must be unique
+  input: |
+   contains(input.image, "alpine")
+
+  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  template: raw       #  a template for this route
+  plugins:
+   policy-show-all: true
+
+templates:
+- name: raw
+  body: input
+
+outputs:
+- name: splunk
+  type: splunk
+  enable: true
+  url: http://localhost:8088
+  token: 00aac750-a69c-4ebb-8771-41905f7369dd
+  size-limit: 1000
+
+- name: jira
+  type: jira
+  enable: true
+  url: "https://afdesk.atlassian.net/"
+  user: admin
+  password: admin
+  tls-verify: false
+  project-key: kcv`
 
 	wrap := ctxWrapper{}
 	wrap.setup(cfgData)
@@ -177,6 +174,52 @@ func TestLoads(t *testing.T) {
 }
 func TestReload(t *testing.T) {
 	t.Skip("FIXME: this test makes an external call")
+	cfgData := `
+name: tenant
+aqua-server: https://demolab.aquasec.com
+max-db-size: 13 # Max size of DB. MB. if empty then unlimited
+delete-old-data: 7 # delete data older than N day(s).  If empty then we do not delete.d
+
+routes:
+- name: route1      #  name must be unique
+  input: |
+   contains(input.image, "alpine")
+   input.vulnerability_summary.critical >= 3
+
+  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  template: raw       #  a template for this route
+  plugins:
+   policy-show-all: true
+
+- name: route2      #  name must be unique
+  input: |
+   contains(input.image, "alpine")
+
+  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  template: raw       #  a template for this route
+  plugins:
+   policy-show-all: true
+
+templates:
+- name: raw
+  body: input
+
+outputs:
+- name: splunk
+  type: splunk
+  enable: true
+  url: http://localhost:8088
+  token: 00aac750-a69c-4ebb-8771-41905f7369dd
+  size-limit: 1000
+
+- name: jira
+  type: jira
+  enable: true
+  url: "https://afdesk.atlassian.net/"
+  user: admin
+  password: admin
+  tls-verify: false
+  project-key: kcv`
 
 	extraOtptCfg := `
 - name: jira2
