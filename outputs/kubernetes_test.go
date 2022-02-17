@@ -42,7 +42,8 @@ func TestKubernetesClient_Send(t *testing.T) {
 
 		for _, tc := range testCases {
 			k := KubernetesClient{
-				clientset: fake.NewSimpleClientset(),
+				clientset:     fake.NewSimpleClientset(),
+				KubeNamespace: "testing",
 				KubeLabels: map[string]string{
 					"foo": "bar",
 				},
@@ -103,7 +104,8 @@ func TestKubernetesClient_Send(t *testing.T) {
 
 		for _, tc := range testCases {
 			k := KubernetesClient{
-				clientset: fake.NewSimpleClientset(),
+				clientset:     fake.NewSimpleClientset(),
+				KubeNamespace: "testing",
 				KubeAnnotations: map[string]string{
 					"foo": "bar",
 				},

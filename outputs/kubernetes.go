@@ -12,6 +12,17 @@ import (
 	"k8s.io/client-go/util/retry"
 )
 
+func updateMap(old map[string]string, new map[string]string) map[string]string {
+	newMap := make(map[string]string)
+	for k, v := range old {
+		newMap[k] = v
+	}
+	for k, v := range new {
+		newMap[k] = v
+	}
+	return newMap
+}
+
 type KubernetesClient struct {
 	clientset kubernetes.Interface
 
@@ -47,11 +58,10 @@ func (k KubernetesClient) Send(m map[string]string) error {
 	ctx := context.Background()
 
 	if k.KubeNamespace == "" {
-		return fmt.Errorf("kubernetes namespace needs to be set in config.yaml")
+		return fmt.Errorf("kubernetes namespace needs to be set in config yaml")
 	}
 
 	// TODO: Allow configuring of resource {pod, ds, ...}
-	// TODO: Allow input of resource name
 	pods, _ := k.clientset.CoreV1().Pods(k.KubeNamespace).List(ctx, metav1.ListOptions{
 		LabelSelector: k.KubeLabelSelector,
 	})
@@ -63,15 +73,7 @@ func (k KubernetesClient) Send(m map[string]string) error {
 					return fmt.Errorf("failed to get updated pod for labeling: %s, err: %w", pod.Name, err)
 				}
 
-				labels := make(map[string]string)
-				oldLabels := pod.GetLabels()
-				for k, v := range oldLabels {
-					labels[k] = v
-				}
-				for k, v := range k.KubeLabels {
-					labels[k] = v
-				}
-
+				labels := updateMap(pod.GetLabels(), k.KubeLabels)
 				pod.SetLabels(labels)
 				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
 				if err != nil {
@@ -93,15 +95,8 @@ func (k KubernetesClient) Send(m map[string]string) error {
 				if err != nil {
 					return fmt.Errorf("failed to get updated pod for annotating: %s, err: %w", pod.Name, err)
 				}
-				annotations := make(map[string]string)
-				oldAnnotations := pod.GetAnnotations()
-				for k, v := range oldAnnotations {
-					annotations[k] = v
-				}
-				for k, v := range k.KubeAnnotations {
-					annotations[k] = v
-				}
 
+				annotations := updateMap(pod.GetAnnotations(), k.KubeAnnotations)
 				pod.SetAnnotations(annotations)
 				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
 				if err != nil {
