@@ -21,7 +21,7 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -race -v ./...
+	go test -race -v -timeout=30s ./...
 
 cover :
 	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes -v -coverprofile=cover.out
