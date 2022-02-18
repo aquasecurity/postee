@@ -184,7 +184,7 @@ func TestJiraAPI_FetchBoardId(t *testing.T) {
 		},
 	}
 
-	savedCreateClient := createClient
+	oldCreateClient := createClient
 	defer func() { createClient = savedCreateClient }()
 
 	for _, test := range tests {
