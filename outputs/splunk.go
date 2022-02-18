@@ -51,7 +51,12 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 	}
 
 	scanInfo := new(data.ScanImageInfo)
-	err := json.Unmarshal([]byte(d["description"]), scanInfo)
+	body := []byte(d["description"])
+	if !json.Valid([]byte(body)) {
+		return errors.New("wrong template selected, choose a correct template")
+	}
+
+	err := json.Unmarshal(body, scanInfo)
 	if err != nil {
 		log.Printf("sending to %q error: %v", splunk.Name, err)
 		return err
