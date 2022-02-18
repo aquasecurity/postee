@@ -543,8 +543,8 @@ func TestJiraAPI_Send(t *testing.T) {
 		},
 	}
 
-	savedCreateClient := createClient
-	defer func() { createClient = savedCreateClient }()
+	oldCreateClient := createClient
+	defer func() { createClient = oldCreateClient }()
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
