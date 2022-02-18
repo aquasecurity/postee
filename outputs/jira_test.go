@@ -517,7 +517,7 @@ func TestJiraAPI_Send(t *testing.T) {
 			name:           "sad path (Failed to get issuetype)",
 			jiraApi:        &JiraAPI{Issuetype: "bogusIssueType", ProjectKey: "project"},
 			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
-			wantError:      "Failed to get issuetype",
+			wantError:      "Failed to get issuetype bogusIssueType",
 		},
 		{
 			name:           "sad path (Failed to create fields config)",
