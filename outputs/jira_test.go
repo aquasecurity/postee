@@ -570,7 +570,7 @@ func TestJiraAPI_Send(t *testing.T) {
 				require.NotNil(t, err)
 				assert.Contains(t, err.Error(), test.wantError)
 			} else {
-				require.Nil(t, err)
+				require.NoError(t, err)
 			}
 		})
 	}
