@@ -58,7 +58,7 @@ render_vlnrb(vlnrb_lst) = xml {
         vln_method := vlnrb.aqua_scoring_system
         vln_vectors := vlnrb.aqua_vectors
         vln_score := vlnrb.aqua_score
-        vln_solution := vlnrb.solution
+        vln_solution := with_default(vlnrb, "solution", "No solution available")
 
         r := sprintf(vlnrb_tpl, [vln_name, nvd_url, vln_score, vln_score, vln_score, vln_severity, vln_method, vln_vectors, vln_description, vln_solution])
     ]
