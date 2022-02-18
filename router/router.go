@@ -345,6 +345,8 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 			log.Println(err.Error())
 			return nil
 		}
+	case "kubernetes":
+		plg = buildKubernetesOutput(settings)
 	default:
 		log.Printf("Output type %q is undefined or empty. Output name is %q.",
 			settings.Type, settings.Name)
