@@ -91,15 +91,10 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 		Labels:          sourceSettings.Labels,
 		Unknowns:        sourceSettings.Unknowns,
 		SprintName:      sourceSettings.Sprint,
-		SprintId:        -1,
+		SprintId:        outputs.NotConfiguredSprintId,
 		BoardName:       sourceSettings.BoardName,
 	}
-	if jiraApi.Issuetype == "" {
-		jiraApi.Issuetype = IssueTypeDefault
-	}
-	if jiraApi.Priority == "" {
-		jiraApi.Priority = PriorityDefault
-	}
+
 	if len(jiraApi.Assignee) == 0 {
 		jiraApi.Assignee = []string{jiraApi.User}
 	}

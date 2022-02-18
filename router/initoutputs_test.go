@@ -145,16 +145,12 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				User:       "admin",
 				Password:   "admin",
 				ProjectKey: "PK",
-				IssueType:  "",
-				Priority:   "",
 			},
 			map[string]interface{}{
 				"Url":        "localhost:2990",
 				"User":       "admin",
 				"Password":   "admin",
 				"ProjectKey": "PK",
-				"Issuetype":  IssueTypeDefault,
-				"Priority":   PriorityDefault,
 				"Assignee":   []string{"admin"},
 			},
 			false,
@@ -193,6 +189,24 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"*outputs.ServiceNowOutput",
 		},
 		{
+			"ServiceNow output without BoardName",
+			OutputSettings{
+				Name:         "my-servicenow",
+				Type:         "serviceNow",
+				User:         "admin",
+				Password:     "secret",
+				InstanceName: "dev108148",
+			},
+			map[string]interface{}{
+				"User":     "admin",
+				"Password": "secret",
+				"Instance": "dev108148",
+				"Table":    ServiceNowTableDefault,
+			},
+			false,
+			"*outputs.ServiceNowOutput",
+		},
+		{
 			"Simple Teams output",
 			OutputSettings{
 				Url:  "https://outlook.office.com/webhook/ABCD",
@@ -204,6 +218,22 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			},
 			false,
 			"*outputs.TeamsOutput",
+		},
+		{
+			"Simple Splunk output",
+			OutputSettings{
+				Url:   "http://localhost:8088",
+				Name:  "my-splunk",
+				Type:  "splunk",
+				Token: "test_token_for_splunk",
+			},
+			map[string]interface{}{
+				"Url":   "http://localhost:8088",
+				"Name":  "my-splunk",
+				"Token": "test_token_for_splunk",
+			},
+			false,
+			"*outputs.SplunkOutput",
 		},
 		{
 			"HTTP Action output, with a timeout & body specified",
