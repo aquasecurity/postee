@@ -21,7 +21,7 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -race -coverprofile=coverage.txt -covermode=atomic ./router ./msgservice ./dbservice ./formatting ./data ./regoservice ./routes ./outputs
+	go test -race -v -timeout=30s ./...
 
 cover :
 	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes ./outputs -v -coverprofile=cover.out

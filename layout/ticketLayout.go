@@ -13,7 +13,7 @@ func GenTestDescription(provider LayoutProvider, raw string) string {
 
 	return builder.String()
 }
-func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.ScanImageInfo, link string) string {
+func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.ScanImageInfo, serverUrl, image_url_part string) string {
 	var builder bytes.Buffer
 	builder.WriteString(provider.P("Image name: " + scanInfo.Image))
 	builder.WriteString(provider.P("Registry: " + scanInfo.Registry))
@@ -72,6 +72,9 @@ func GenTicketDescription(provider LayoutProvider, scanInfo, prevScan *data.Scan
 		builder.WriteString(provider.TitleH2("Sensitive Data"))
 		RenderSensitiveData(scanInfo.SensitiveData, provider, &builder)
 	}
-	builder.WriteString(provider.P("See more: " + provider.A(link, link)))
+	// Checked that the aqua-server name is not empty
+	if len(serverUrl) > 0 && len(image_url_part) > 0 {
+		builder.WriteString(provider.P("See more: " + provider.A(serverUrl+image_url_part, serverUrl+image_url_part)))
+	}
 	return builder.String()
 }
