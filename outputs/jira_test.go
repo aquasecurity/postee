@@ -185,7 +185,7 @@ func TestJiraAPI_FetchBoardId(t *testing.T) {
 	}
 
 	oldCreateClient := createClient
-	defer func() { createClient = savedCreateClient }()
+	defer func() { createClient = oldCreateClient }()
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -517,7 +517,7 @@ func TestJiraAPI_Send(t *testing.T) {
 			name:           "sad path (Failed to get issuetype)",
 			jiraApi:        &JiraAPI{Issuetype: "bogusIssueType", ProjectKey: "project"},
 			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
-			wantError:      "Failed to get issuetype bogusIssueType",
+			wantError:      "Failed to get issuetype",
 		},
 		{
 			name:           "sad path (Failed to create fields config)",
@@ -901,8 +901,8 @@ func TestJiraAPI_CreateFieldsConfig(t *testing.T) {
 		},
 	}
 
-	savedGetIssuePriority := getIssuePriority
-	defer func() { getIssuePriority = savedGetIssuePriority }()
+	oldGetIssuePriority := getIssuePriority
+	defer func() { getIssuePriority = oldGetIssuePriority }()
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
