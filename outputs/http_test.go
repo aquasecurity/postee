@@ -28,12 +28,24 @@ func TestHTTPClient_Send(t *testing.T) {
 		name           string
 		method         string
 		body           string
+		headers        map[string]string
 		testServerFunc http.HandlerFunc
 		expectedError  string
 	}{
 		{
-			name:   "happy path method get",
-			method: http.MethodGet,
+			name:    "none headers in send method",
+			method:  http.MethodGet,
+			headers: nil,
+			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "bar value", r.Header.Get("fookey"))
+				assert.Equal(t, "", r.Header.Get("POSTEE_EVENT"))
+				fmt.Fprintln(w, "Hello, client")
+			},
+		},
+		{
+			name:    "happy path method get",
+			method:  http.MethodGet,
+			headers: map[string]string{"description": "foo bar baz header"},
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "bar value", r.Header.Get("fookey"))
 				assert.Equal(t, "foo bar baz header", r.Header.Get("POSTEE_EVENT"))
@@ -41,9 +53,10 @@ func TestHTTPClient_Send(t *testing.T) {
 			},
 		},
 		{
-			name:   "happy path method post",
-			method: http.MethodPost,
-			body:   "foo body",
+			name:    "happy path method post",
+			method:  http.MethodPost,
+			body:    "foo body",
+			headers: map[string]string{"description": "foo bar baz header"},
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "bar value", r.Header.Get("fookey"))
 				assert.Equal(t, "foo bar baz header", r.Header.Get("POSTEE_EVENT"))
@@ -66,6 +79,7 @@ func TestHTTPClient_Send(t *testing.T) {
 		{
 			name:          "sad path method get - bad url",
 			method:        http.MethodGet,
+			headers:       map[string]string{"description": "foo bar baz header"},
 			expectedError: `Get "path-to-nowhere": unsupported protocol scheme ""`,
 		},
 	}
@@ -88,9 +102,9 @@ func TestHTTPClient_Send(t *testing.T) {
 			}
 			switch {
 			case tc.expectedError != "":
-				require.EqualError(t, ec.Send(map[string]string{"description": "foo bar baz header"}), tc.expectedError, tc.name)
+				require.EqualError(t, ec.Send(tc.headers), tc.expectedError, tc.name)
 			default:
-				require.NoError(t, ec.Send(map[string]string{"description": "foo bar baz header"}), tc.name)
+				require.NoError(t, ec.Send(tc.headers), tc.name)
 			}
 		})
 	}

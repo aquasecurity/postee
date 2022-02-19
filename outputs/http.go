@@ -47,7 +47,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 		log.Println("error during HTTP Client execution: ", err.Error())
 		return err
 	}
-
+	defer resp.Body.Close()
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("unable to read HTTP response: %w", err)
