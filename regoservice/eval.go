@@ -185,8 +185,11 @@ func BuildBundledRegoEvaluator(rego_package string) (data.Inpteval, error) {
 }
 
 // loadsFuncs try to load rego files from the filesystem,
-// in case the file paths are not found it loads the regos from the embedded FS
-func loadFuncs(templatesDir []string, f func() []func(r *rego.Rego)) []func(r *rego.Rego) {
+// in case the file paths are not found it uses the regos from the embedded FS
+func loadFuncs(templatesDir []string,
+	f func(map[string]string) []func(r *rego.Rego),
+	templates map[string]string) []func(r *rego.Rego) {
+
 	foundPaths := make([]string, 0)
 	for _, path := range templatesDir {
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -198,15 +201,11 @@ func loadFuncs(templatesDir []string, f func() []func(r *rego.Rego)) []func(r *r
 		return []func(r *rego.Rego){rego.Load(foundPaths, nil)}
 	}
 
-	return f()
-}
-
-func buildTemplatesFuncs() (funcs []func(r *rego.Rego)) {
-	tmpls := rego_templates.EmbeddedTemplates()
-	for filename, input := range tmpls {
-		funcs = append(funcs, rego.Module(filename, input))
+	if f != nil {
+		return f(templates)
 	}
-	return
+
+	return []func(r *rego.Rego){}
 }
 
 func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, error) {
@@ -217,10 +216,10 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 		rego.Query(query),
 		jsonFmtFunc()}
 
-	commonFuncs := loadFuncs(commonRegoTemplates, buildCommonFuncs)
+	commonFuncs := loadFuncs(commonRegoTemplates, buildModuleFuncs, rego_templates.EmbeddedCommon())
 	opts = append(opts, commonFuncs...)
 
-	tmplFuncs := loadFuncs(regoTemplates, buildTemplatesFuncs)
+	tmplFuncs := loadFuncs(regoTemplates, buildModuleFuncs, rego_templates.EmbeddedTemplates())
 	opts = append(opts, tmplFuncs...)
 
 	r, err := rego.New(opts...).PrepareForEval(ctx)
@@ -266,9 +265,8 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 	return aggrQuery, nil
 }
 
-func buildCommonFuncs() (funcs []func(r *rego.Rego)) {
-	tmpls := rego_templates.EmbeddedCommon()
-	for filename, input := range tmpls {
+func buildModuleFuncs(templates map[string]string) (funcs []func(r *rego.Rego)) {
+	for filename, input := range templates {
 		funcs = append(funcs, rego.Module(filename, input))
 	}
 	return
@@ -282,7 +280,7 @@ func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, er
 		jsonFmtFunc(),
 		rego.Module(filename, body)}
 
-	commonFuncs := loadFuncs(commonRegoTemplates, buildCommonFuncs)
+	commonFuncs := loadFuncs(commonRegoTemplates, buildModuleFuncs, rego_templates.EmbeddedCommon())
 	opts = append(opts, commonFuncs...)
 
 	r, err := rego.New(opts...).PrepareForEval(ctx)

@@ -13,9 +13,9 @@ import (
 )
 
 const (
-	COMMON_DIR               = "common"
-	LOCAL_DIR                = "."
-	REGO_PACKAGE_DECLERATION = "package"
+	commonDir          = "common"
+	localDir           = "."
+	regoPkgDeclaration = "package"
 )
 
 var (
@@ -36,7 +36,7 @@ func EmbeddedTemplates() map[string]string {
 	if len(templates) != 0 {
 		return templates
 	}
-	populateFS(EmbeddedFiles, templates, LOCAL_DIR)
+	populateTemplates(EmbeddedFiles, templates, localDir)
 
 	return templates
 }
@@ -47,12 +47,12 @@ func EmbeddedCommon() map[string]string {
 	if len(commonTemplates) != 0 {
 		return commonTemplates
 	}
-	populateFS(EmbeddedCommonFiles, commonTemplates, COMMON_DIR)
+	populateTemplates(EmbeddedCommonFiles, commonTemplates, commonDir)
 
 	return commonTemplates
 }
 
-func populateFS(files embed.FS, storage map[string]string, dirPath string) {
+func populateTemplates(files embed.FS, storage map[string]string, dirPath string) {
 	dir, err := fs.ReadDir(files, dirPath)
 	if err != nil {
 		log.Logger.Errorf("failed to read embedded files: %s", err)
@@ -81,7 +81,7 @@ func GetAllTemplates() []data.Template {
 		scanner := bufio.NewScanner(strings.NewReader(file))
 		for scanner.Scan() {
 			line := scanner.Text()
-			if strings.HasPrefix(line, REGO_PACKAGE_DECLERATION+" ") {
+			if strings.HasPrefix(line, regoPkgDeclaration+" ") {
 				s := strings.Split(line, " ")
 				if len(s) < 2 {
 					log.Logger.Warnf("package decalration is misconfigured for rego template '%s': %s", name, line)
