@@ -21,13 +21,13 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -timeout 30s -race -coverprofile=coverage.txt -covermode=atomic ./router ./msgservice ./dbservice ./formatting ./data ./regoservice ./routes
+	go test -timeout 30s -race -coverprofile=coverage.txt -covermode=atomic ./rego-templates ./router ./msgservice ./dbservice ./formatting ./data ./regoservice ./routes
 
 lint :
 	golangci-lint run
 
 cover :
-	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes -v -coverprofile=cover.out
+	go test ./rego-templates ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes -v -coverprofile=cover.out
 	go tool cover -html=cover.out
 
 composer :
