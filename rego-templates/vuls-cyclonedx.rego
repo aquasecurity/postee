@@ -41,7 +41,6 @@ vlnrb_tpl := `
               <v:vector>%s</v:vector>
             </v:rating>
           </v:ratings>
-          <v:description>%s</v:description>
           <v:recommendations>
             <v:recommendation>%s</v:recommendation>
           </v:recommendations>
@@ -52,15 +51,15 @@ render_vlnrb(vlnrb_lst) = xml {
 	l := [r |
         vlnrb := vlnrb_lst[_]
         vln_name := vlnrb.name
-        vln_description := vlnrb.description
         nvd_url := vlnrb.nvd_url
+        # description is skipped
         vln_severity := vlnrb.aqua_severity
         vln_method := vlnrb.aqua_scoring_system
         vln_vectors := vlnrb.aqua_vectors
         vln_score := vlnrb.aqua_score
         vln_solution := with_default(vlnrb, "solution", "No solution available")
 
-        r := sprintf(vlnrb_tpl, [vln_name, nvd_url, vln_score, vln_score, vln_score, vln_severity, vln_method, vln_vectors, vln_description, vln_solution])
+        r := sprintf(vlnrb_tpl, [vln_name, nvd_url, vln_score, vln_score, vln_score, vln_severity, vln_method, vln_vectors, vln_solution])
     ]
 
     xml := sprintf(vlnrb_lst_tpl, [concat("", l)])
@@ -73,7 +72,8 @@ render_components := l {
                     component := item.resource
                     component_name := with_default(component, "name", "none")
                     component_version := with_default(component, "version", "none")
-                    component_license := with_default(component, "license", "not provided")
+                    # nexus iq has db limit for license field
+                    component_license := substring(with_default(component, "license", "not provided"), 0, 32)
 
                     vlnrb:=render_vlnrb(item.vulnerabilities)
 
