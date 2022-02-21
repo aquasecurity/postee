@@ -1,3 +1,4 @@
+.vscode/
 .idea/
 bin/
 pkg/
@@ -9,4 +10,5 @@ src/go.etcd.io/
 coverage.txt
 dist/
 postee
+*.pem
 

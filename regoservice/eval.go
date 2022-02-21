@@ -9,6 +9,7 @@ import (
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/log"
+	rego_templates "github.com/aquasecurity/postee/v2/rego-templates"
 	"github.com/open-policy-agent/opa/rego"
 )
 
@@ -19,8 +20,8 @@ const (
 )
 
 var (
-	buildinRegoTemplates = []string{"./rego-templates"}
-	commonRegoTemplates  = []string{"./rego-templates/common"}
+	regoTemplates       = []string{"./rego-templates"}
+	commonRegoTemplates = []string{"./rego-templates/common"}
 )
 
 type regoEvaluator struct {
@@ -63,7 +64,6 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 	}
 
 	description, err := asStringOrJson(data, result_prop)
-
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func getFirstElement(context map[string]interface{}, key string) interface{} {
 func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 	expr, ok := data[prop]
 	if !ok {
-		return "", fmt.Errorf(fmt.Sprintf("property %s is not found", prop))
+		return "", fmt.Errorf(fmt.Sprintf("property '%s' is not found", prop))
 	}
 	switch v := expr.(type) {
 	case string:
@@ -183,15 +183,46 @@ func BuildBundledRegoEvaluator(rego_package string) (data.Inpteval, error) {
 		aggrQuery:        aggrQuery,
 	}, nil
 }
+
+// loadsFuncs try to load rego files from the filesystem,
+// in case the file paths are not found it uses the regos from the embedded FS
+func loadFuncs(templatesDir []string,
+	f func(map[string]string) []func(r *rego.Rego),
+	templates map[string]string) []func(r *rego.Rego) {
+
+	foundPaths := make([]string, 0)
+	for _, path := range templatesDir {
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			foundPaths = append(foundPaths, path)
+		}
+	}
+
+	if len(foundPaths) != 0 {
+		return []func(r *rego.Rego){rego.Load(foundPaths, nil)}
+	}
+
+	if f != nil {
+		return f(templates)
+	}
+
+	return []func(r *rego.Rego){}
+}
+
 func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, error) {
 	ctx := context.Background()
 	query := fmt.Sprintf("data.%s", rego_package)
 
-	r, err := rego.New(
+	opts := []func(r *rego.Rego){
 		rego.Query(query),
-		jsonFmtFunc(),
-		rego.Load(buildinRegoTemplates, nil),
-	).PrepareForEval(ctx)
+		jsonFmtFunc()}
+
+	commonFuncs := loadFuncs(commonRegoTemplates, buildModuleFuncs, rego_templates.EmbeddedCommon())
+	opts = append(opts, commonFuncs...)
+
+	tmplFuncs := loadFuncs(regoTemplates, buildModuleFuncs, rego_templates.EmbeddedTemplates())
+	opts = append(opts, tmplFuncs...)
+
+	r, err := rego.New(opts...).PrepareForEval(ctx)
 
 	if err != nil {
 		return nil, err
@@ -234,23 +265,25 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 	return aggrQuery, nil
 }
 
+func buildModuleFuncs(templates map[string]string) (funcs []func(r *rego.Rego)) {
+	for filename, input := range templates {
+		funcs = append(funcs, rego.Module(filename, input))
+	}
+	return
+}
+
 func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, error) {
 	ctx := context.Background()
-	foundPaths := make([]string, 0)
 
-	for _, path := range commonRegoTemplates {
-		if _, err := os.Stat(commonRegoTemplates[0]); !os.IsNotExist(err) {
-			foundPaths = append(foundPaths, path)
-		}
-	}
-
-	r, err := rego.New(
+	opts := []func(r *rego.Rego){
 		rego.Query("data"),
 		jsonFmtFunc(),
-		rego.Load(foundPaths, nil), //only common modules
-		rego.Module(filename, body),
-	).PrepareForEval(ctx)
+		rego.Module(filename, body)}
 
+	commonFuncs := loadFuncs(commonRegoTemplates, buildModuleFuncs, rego_templates.EmbeddedCommon())
+	opts = append(opts, commonFuncs...)
+
+	r, err := rego.New(opts...).PrepareForEval(ctx)
 	if err != nil {
 		return nil, err
 	}

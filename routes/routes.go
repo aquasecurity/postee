@@ -3,7 +3,7 @@ package routes
 type InputRoute struct {
 	Name       string        `json:"name"`
 	Input      string        `json:"input"`
-	InputFiles []string      `json:"input-files"`
+	InputFiles []string      `json:"input-files"` // should be empty in library mode
 	Outputs    []string      `json:"outputs"`
 	Plugins    Plugins       `json:"plugins"`
 	Template   string        `json:"template"`
