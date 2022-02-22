@@ -91,51 +91,51 @@ func (ctx *ctxWrapper) MsgHandling(input map[string]interface{}, output outputs.
 	ctx.buff <- i
 }
 
-func (ctxWrapper *ctxWrapper) setup(cfg string) {
-	ctxWrapper.init()
+func (ctx *ctxWrapper) setup(cfg string) {
+	ctx.init()
 
-	ctxWrapper.cfgPath = "cfg_test.yaml"
-	err := ioutil.WriteFile(ctxWrapper.cfgPath, []byte(cfg), 0644)
+	ctx.cfgPath = "cfg_test.yaml"
+	err := ioutil.WriteFile(ctx.cfgPath, []byte(cfg), 0644)
 	if err != nil {
-		log.Printf("Can't write to %s", ctxWrapper.cfgPath)
+		log.Printf("Can't write to %s", ctx.cfgPath)
 	}
 }
-func (ctxWrapper *ctxWrapper) init() {
-	ctxWrapper.savedDBPath = "test_webhooks.db"
-	ctxWrapper.savedBaseForTicker = baseForTicker
-	ctxWrapper.savedGetService = getScanService
-	ctxWrapper.buff = make(chan invctn)
+func (ctx *ctxWrapper) init() {
+	ctx.savedDBPath = "test_webhooks.db"
+	ctx.savedBaseForTicker = baseForTicker
+	ctx.savedGetService = getScanService
+	ctx.buff = make(chan invctn)
 
 	baseForTicker = time.Microsecond
-	ctxWrapper.defaultRegoFolder = "rego-templates"
-	ctxWrapper.commonRegoFolder = ctxWrapper.defaultRegoFolder + "/common"
-	err := os.Mkdir(ctxWrapper.defaultRegoFolder, 0777)
+	ctx.defaultRegoFolder = "rego-templates"
+	ctx.commonRegoFolder = ctx.defaultRegoFolder + "/common"
+	err := os.Mkdir(ctx.defaultRegoFolder, 0777)
 	if err != nil {
-		log.Printf("Can't create %s %v", ctxWrapper.defaultRegoFolder, err)
+		log.Printf("Can't create %s %v", ctx.defaultRegoFolder, err)
 	}
-	err = os.Mkdir(ctxWrapper.commonRegoFolder, 0777)
+	err = os.Mkdir(ctx.commonRegoFolder, 0777)
 	if err != nil {
-		log.Printf("Can't create %s %v", ctxWrapper.defaultRegoFolder, err)
+		log.Printf("Can't create %s %v", ctx.defaultRegoFolder, err)
 	}
 
 	getScanService = func() service {
-		return ctxWrapper
+		return ctx
 	}
 
-	ctxWrapper.instance = Instance()
+	ctx.instance = Instance()
 }
 
-func (ctxWrapper *ctxWrapper) teardown() {
-	ctxWrapper.instance.Terminate()
+func (ctx *ctxWrapper) teardown() {
+	ctx.instance.Terminate()
 
-	baseForTicker = ctxWrapper.savedBaseForTicker
-	os.Remove(ctxWrapper.cfgPath)
-	os.Remove(ctxWrapper.savedDBPath)
-	os.Remove(ctxWrapper.commonRegoFolder)
-	os.Remove(ctxWrapper.defaultRegoFolder)
+	baseForTicker = ctx.savedBaseForTicker
+	os.Remove(ctx.cfgPath)
+	os.Remove(ctx.savedDBPath)
+	os.Remove(ctx.commonRegoFolder)
+	os.Remove(ctx.defaultRegoFolder)
 
-	getScanService = ctxWrapper.savedGetService
-	close(ctxWrapper.buff)
+	getScanService = ctx.savedGetService
+	close(ctx.buff)
 }
 
 func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
@@ -143,6 +143,10 @@ func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, input map[string]i
 		return false
 	}
 	return true
+}
+
+func (ctx *ctxWrapper) GetMessageUniqueId(in map[string]interface{}, props []string) string {
+	return ""
 }
 
 func TestLoads(t *testing.T) {

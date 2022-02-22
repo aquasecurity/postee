@@ -701,3 +701,39 @@ func TestEvaluate(t *testing.T) {
 		assert.Equal(t, test.expected, Evaluate(test.message))
 	}
 }
+
+func TestGetUniqueMessageProps(t *testing.T) {
+	var (
+		tests = []struct {
+			route    routes.InputRoute
+			message  []byte
+			expected string
+		}{
+			{
+				route: routes.InputRoute{
+					Name: "test_route",
+					Plugins: routes.Plugins{
+						UniqueMessageProps: []string{"key", "key2", "key3"},
+					},
+				},
+				message:  []byte("{\"key\":\"value\", \"key2\":\"value2\", \"key3\":\"value3\"}"),
+				expected: "value-value2-value3",
+			},
+		}
+	)
+
+	prevDB := dbservice.Db
+	dbservice.Db = nil
+	defer func() {
+		dbservice.Db = prevDB
+	}()
+
+	defer Instance().cleanInstance()
+
+	for _, test := range tests {
+		AddRoute(&test.route)
+		props, err := GetMessageUniqueId(test.message, test.route.Name)
+		assert.Equal(t, err, nil)
+		assert.Equal(t, test.expected, props)
+	}
+}

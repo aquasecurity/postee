@@ -152,3 +152,7 @@ var AggregateScanAndGetQueue = func(outputName string, currentContent map[string
 	}
 	return aggregatedScans
 }
+
+func (scan *MsgService) GetMessageUniqueId(in map[string]interface{}, props []string) string {
+	return GetMessageUniqueId(in, props)
+}
