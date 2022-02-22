@@ -694,7 +694,7 @@ func TestEvaluate(t *testing.T) {
 		dbservice.Db = prevDB
 	}()
 
-	Instance().addRoute(&route)
+	AddRoute(&route)
 	defer Instance().cleanInstance()
 
 	for _, test := range tests {

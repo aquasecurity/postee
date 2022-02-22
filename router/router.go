@@ -533,6 +533,7 @@ func (ctx *Router) loadCfgCacheSourceFromPostgres() (*data.TenantSettings, error
 
 type service interface {
 	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) error
 	EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool
 	GetMessageUniqueId(in map[string]interface{}, props []string) string
 }
@@ -618,6 +619,42 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 			go getScanService().MsgHandling(msg, pl, r, tmpl, &ctx.aquaServer)
 		}
 	}
+}
+
+func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *routes.InputRoute) []string {
+	var failedOutputNames []string
+	for _, outputName := range r.Outputs {
+		pl, ok := ctx.outputs[outputName]
+		if !ok {
+			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
+			failedOutputNames = append(failedOutputNames, outputName)
+			continue
+		}
+
+		templateName := r.Template
+		name, ok := ctx.outputsTemplate[outputName]
+		if ok && name != "" {
+			log.Logger.Infof("output '%s' is linked to a template of its own '%s'", outputName, templateName)
+			templateName = name
+		}
+
+		tmpl, ok := ctx.templates[templateName]
+		if !ok {
+			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
+				r.Name, templateName)
+			failedOutputNames = append(failedOutputNames, outputName)
+			continue
+		}
+		log.Logger.Infof("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
+
+		err := getScanService().HandleSendToOutput(msg, pl, r, tmpl, &ctx.aquaServer)
+		if err != nil {
+			log.Logger.Errorf("Failed sending message to output: %s", outputName)
+			failedOutputNames = append(failedOutputNames, outputName)
+		}
+	}
+
+	return failedOutputNames
 }
 
 func (ctx *Router) handle(in []byte) {
@@ -740,4 +777,28 @@ func (ctx *Router) GetMessageUniqueId(b []byte, routeName string) (string, error
 	}
 
 	return getScanService().GetMessageUniqueId(msg, route.Plugins.UniqueMessageProps), nil
+}
+
+func (ctx *Router) sendByRoute(in []byte, routeName string) error {
+	route, exists := ctx.inputRoutes[routeName]
+	if !exists {
+		return xerrors.Errorf("route %s does not exists", routeName)
+	}
+
+	if len(route.Outputs) == 0 {
+		log.Logger.Warnf("route %q has no outputs", routeName)
+		return nil
+	}
+
+	inMsg, err := parseInputMessage(in)
+	if err != nil {
+		return xerrors.Errorf("failed parsing input message: %s", err.Error())
+	}
+
+	failedOutputs := ctx.publishToOutputWithRetry(inMsg, route)
+	if len(failedOutputs) != 0 {
+		return xerrors.Errorf("failed sending message to route %s outputs", routeName)
+	}
+
+	return nil
 }
