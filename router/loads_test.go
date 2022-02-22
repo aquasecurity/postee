@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
-	"github.com/aquasecurity/postee/v2/msgservice"
 	"github.com/aquasecurity/postee/v2/outputs"
+
+	"github.com/aquasecurity/postee/v2/msgservice"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
@@ -81,25 +82,6 @@ type invctn struct {
 	found       bool
 }
 
-func (ctx *ctxWrapper) MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
-	i := invctn{
-		fmt.Sprintf("%T", output),
-		fmt.Sprintf("%T", inpteval),
-		route.Name,
-		false,
-	}
-	ctx.buff <- i
-}
-
-func (ctx *ctxWrapper) setup(cfg string) {
-	ctx.init()
-
-	ctx.cfgPath = "cfg_test.yaml"
-	err := ioutil.WriteFile(ctx.cfgPath, []byte(cfg), 0644)
-	if err != nil {
-		log.Printf("Can't write to %s", ctx.cfgPath)
-	}
-}
 func (ctx *ctxWrapper) init() {
 	ctx.savedDBPath = "test_webhooks.db"
 	ctx.savedBaseForTicker = baseForTicker
@@ -125,6 +107,43 @@ func (ctx *ctxWrapper) init() {
 	ctx.instance = Instance()
 }
 
+func (ctx *ctxWrapper) MsgHandling(_ map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, _ *string) {
+	i := invctn{
+		fmt.Sprintf("%T", output),
+		fmt.Sprintf("%T", inpteval),
+		route.Name,
+		false,
+	}
+	ctx.buff <- i
+}
+
+func (ctx *ctxWrapper) HandleSendToOutput(_ map[string]interface{}, _ outputs.Output, _ *routes.InputRoute, _ data.Inpteval, _ *string) error {
+	// TODO: implement
+	return nil
+}
+
+func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
+	if r.Name == "fail_evaluation" {
+		return false
+	}
+	return true
+}
+
+func (ctx *ctxWrapper) GetMessageUniqueId(in map[string]interface{}, props []string) string {
+	// TODO: implement
+	return ""
+}
+
+func (ctx *ctxWrapper) setup(cfg string) {
+	ctx.init()
+
+	ctx.cfgPath = "cfg_test.yaml"
+	err := ioutil.WriteFile(ctx.cfgPath, []byte(cfg), 0644)
+	if err != nil {
+		log.Printf("Can't write to %s", ctx.cfgPath)
+	}
+}
+
 func (ctx *ctxWrapper) teardown() {
 	ctx.instance.Terminate()
 
@@ -136,17 +155,6 @@ func (ctx *ctxWrapper) teardown() {
 
 	getScanService = ctx.savedGetService
 	close(ctx.buff)
-}
-
-func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
-	if r.Name == "fail_evaluation" {
-		return false
-	}
-	return true
-}
-
-func (ctx *ctxWrapper) GetMessageUniqueId(in map[string]interface{}, props []string) string {
-	return ""
 }
 
 func TestLoads(t *testing.T) {

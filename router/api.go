@@ -174,7 +174,12 @@ func GetEmbeddedTemplates() []data.Template {
 //-----------------------------------------------
 
 func Send(b []byte) {
-	Instance().handle(bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''}))
+	Instance().handle(parseBytes(b))
+}
+
+// SendByRoute sends the input message to a route with retry on the output send
+func SendByRoute(b []byte, routeName string) error {
+	return Instance().sendByRoute(parseBytes(b), routeName)
 }
 
 // Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.

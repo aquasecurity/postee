@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/xerrors"
+
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/log"
@@ -94,6 +96,66 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 	}
 }
 
+func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) error {
+	if output == nil {
+		return xerrors.Errorf("The given output is nil")
+	}
+
+	//TODO move logic below somewhere close to Jira output implementation
+	owners := ""
+	applicationScopeOwnersObj, ok := in["application_scope_owners"]
+	if ok {
+		applicationScopeOwners := make([]string, 0)
+
+		applicationScopeOwners = append(applicationScopeOwners, applicationScopeOwnersObj.([]string)...)
+
+		if len(applicationScopeOwners) > 0 {
+			owners = strings.Join(applicationScopeOwners, ";")
+		}
+	}
+
+	posteeOpts := map[string]string{
+		"AquaServer": *AquaServer,
+	}
+
+	in["postee"] = posteeOpts
+
+	content, err := inpteval.Eval(in, *AquaServer)
+	if err != nil {
+		log.Logger.Errorf("Error while evaluating input: %v", err)
+		return err
+	}
+
+	if owners != "" {
+		content["owners"] = owners
+	}
+
+	if route.Plugins.AggregateMessageNumber > 0 && inpteval.IsAggregationSupported() {
+		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateMessageNumber, false)
+		if len(aggregated) > 0 {
+			content, err = inpteval.BuildAggregatedContent(aggregated)
+			if err != nil {
+				log.Logger.Errorf("Error while building aggregated content: %v", err)
+				return err
+			}
+			return sendWithRetry(output, content)
+		}
+	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
+		AggregateScanAndGetQueue(route.Name, content, 0, true)
+
+		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
+			log.Logger.Infof("about to schedule %s", route.Name)
+			RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
+		} else {
+			log.Logger.Infof("%s is already scheduled", route.Name)
+		}
+	} else {
+		return sendWithRetry(output, content)
+	}
+
+	return nil
+}
+
 // EvaluateRegoRule returns true in case the given input ([]byte) matches the input of the given route
 func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
 	if ok, err := regoservice.DoesMatchRegoCriteria(input, r.InputFiles, r.Input); err != nil {
@@ -127,6 +189,29 @@ func send(otpt outputs.Output, cnt map[string]string) {
 	if err != nil {
 		log.Logger.Errorf("Error while building aggregated content: %v", err)
 		return
+	}
+
+}
+
+func sendWithRetry(o outputs.Output, message map[string]string) error {
+	var (
+		retryAttempts       = 3
+		intervalBetweenSend = 1 * time.Second
+	)
+	for {
+		if retryAttempts == 0 {
+			return xerrors.Errorf("failed sending message to output. Number of retries: %d", retryAttempts)
+		}
+
+		err := o.Send(message)
+		if err == nil {
+			return nil
+		}
+
+		log.Logger.Errorf("Error while sending event: %v, will retry", err)
+		retryAttempts--
+		time.Sleep(intervalBetweenSend)
+		intervalBetweenSend += 3 * time.Second
 	}
 
 }
