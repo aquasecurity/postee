@@ -534,6 +534,7 @@ func (ctx *Router) loadCfgCacheSourceFromPostgres() (*data.TenantSettings, error
 type service interface {
 	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
 	EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool
+	GetMessageUniqueId(in map[string]interface{}, props []string) string
 }
 
 var getScanService = func() service {
@@ -625,8 +626,6 @@ func (ctx *Router) handle(in []byte) {
 	}
 }
 
-// Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
-// In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
 func (ctx *Router) Evaluate(in []byte) []string {
 	routesNames := []string{}
 	for routeName := range ctx.inputRoutes {
@@ -727,4 +726,18 @@ func (ctx *Router) listen() {
 			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
 		}
 	}
+}
+
+func (ctx *Router) GetMessageUniqueId(b []byte, routeName string) (string, error) {
+	msg, err := parseInputMessage(b)
+	if err != nil {
+		return "", xerrors.Errorf("error when trying to parse input message: %s", err.Error())
+	}
+
+	route, exists := ctx.inputRoutes[routeName]
+	if !exists {
+		return "", xerrors.Errorf("route %ss was not found in the current router", routeName)
+	}
+
+	return getScanService().GetMessageUniqueId(msg, route.Plugins.UniqueMessageProps), nil
 }

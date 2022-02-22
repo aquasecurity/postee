@@ -174,13 +174,19 @@ func GetEmbeddedTemplates() []data.Template {
 //-----------------------------------------------
 
 func Send(b []byte) {
-	//Instance().Send(b)
 	Instance().handle(bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''}))
 }
 
-// Evaluate returns true in case one of the configured routes inputs is satisfied for the given input message
+// Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
+// In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
 func Evaluate(b []byte) []string {
-	return Instance().Evaluate(bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''}))
+	return Instance().Evaluate(parseBytes(b))
+}
+
+// GetMessageUniqueId receives a message and route name as an input and returns a unique id for from the given
+// message that uniquely identifies the message for the input route
+func GetMessageUniqueId(b []byte, routeName string) (string, error) {
+	return Instance().GetMessageUniqueId(parseBytes(b), routeName)
 }
 
 func buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) string {
@@ -204,4 +210,8 @@ func buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode 
 		RawQuery: rawQuery,
 	}
 	return url.String()
+}
+
+func parseBytes(b []byte) []byte {
+	return bytes.ReplaceAll(b, []byte{'`'}, []byte{'\''})
 }
