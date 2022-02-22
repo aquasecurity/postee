@@ -42,6 +42,7 @@ type Router struct {
 	cfgfile                string
 	aquaServer             string
 	outputs                map[string]outputs.Output
+	outputsTemplate        map[string]string
 	inputRoutes            map[string]*routes.InputRoute
 	templates              map[string]data.Inpteval
 	synchronous            bool
@@ -63,6 +64,7 @@ func Instance() *Router {
 	initCtx.Do(func() {
 		routerCtx = &Router{
 			mutexScan:              sync.Mutex{},
+			outputsTemplate:        make(map[string]string),
 			outputs:                make(map[string]outputs.Output),
 			inputRoutes:            make(map[string]*routes.InputRoute),
 			templates:              make(map[string]data.Inpteval),
@@ -178,6 +180,7 @@ func (ctx *Router) Terminate() {
 	ctx.cleanInstance()
 }
 func (ctx *Router) cleanInstance() {
+	ctx.outputsTemplate = map[string]string{}
 	ctx.outputs = map[string]outputs.Output{}
 	ctx.inputRoutes = map[string]*routes.InputRoute{}
 	ctx.templates = map[string]data.Inpteval{}
@@ -439,6 +442,9 @@ func (ctx *Router) addOutput(settings *data.OutputSettings) error {
 
 		ctx.outputs[settings.Name] = plg
 
+		if settings.Template != "" {
+			ctx.outputsTemplate[settings.Name] = settings.Template
+		}
 	}
 
 	ctx.databaseCfgCacheSource.Outputs = append(ctx.databaseCfgCacheSource.Outputs, *settings)
@@ -589,13 +595,21 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
 			continue
 		}
-		tmpl, ok := ctx.templates[r.Template]
+
+		templateName := r.Template
+		name, ok := ctx.outputsTemplate[outputName]
+		if ok && name != "" {
+			log.Logger.Infof("output '%s' is linked to a template of its own '%s'", outputName, templateName)
+			templateName = name
+		}
+
+		tmpl, ok := ctx.templates[templateName]
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
-				r.Name, r.Template)
+				r.Name, templateName)
 			continue
 		}
-		log.Logger.Infof("route %q is associated with template %q", r.Name, r.Template)
+		log.Logger.Infof("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
 
 		if ctx.synchronous {
 			getScanService().MsgHandling(msg, pl, r, tmpl, &ctx.aquaServer)

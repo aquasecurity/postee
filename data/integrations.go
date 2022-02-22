@@ -33,4 +33,5 @@ type OutputSettings struct {
 	Method          string              `json:"method,omitempty"`
 	Timeout         string              `json:"timeout,omitempty"`
 	Headers         map[string][]string `json:"headers,omitempty"`
+	Template        string              `json:"template,omitempty"`
 }
