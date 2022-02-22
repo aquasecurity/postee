@@ -80,6 +80,31 @@ func TestAddOutput(t *testing.T) {
 
 }
 
+func TestAddOutputsTemplate(t *testing.T) {
+	if len(Instance().outputs) > 0 {
+		Instance().cleanInstance()
+	}
+	defer Instance().cleanInstance()
+
+	var outputSettings = &data.OutputSettings{
+		Type:     "slack",
+		Name:     "my-slack",
+		Url:      "https://hooks.slack.com/services/TAAAA/BBB/",
+		Enable:   true,
+		Template: "test-slack",
+	}
+
+	if err := AddOutput(outputSettings); err != nil {
+		t.Errorf("Can't add output: %v", err)
+	}
+	assert.Equal(t, 1, len(Instance().outputs), "one output expected")
+	assert.Contains(t, Instance().outputs, "my-slack")
+	assert.Equal(t, "my-slack", Instance().outputs["my-slack"].GetName(), "check name failed")
+	assert.Equal(t, "*outputs.SlackOutput", fmt.Sprintf("%T", Instance().outputs["my-slack"]), "check name failed")
+	assert.Equal(t, "test-slack", Instance().outputsTemplate["my-slack"], "output template check name failed")
+
+}
+
 func TestDeleteOutput(t *testing.T) {
 	if len(Instance().inputRoutes) > 0 || len(Instance().outputs) > 0 {
 		Instance().cleanInstance()

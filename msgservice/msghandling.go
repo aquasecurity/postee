@@ -130,6 +130,7 @@ func send(otpt outputs.Output, cnt map[string]string) {
 	}
 
 }
+
 func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
 	if UniqueMessageTimeoutSeconds == 0 {
 		return nil
