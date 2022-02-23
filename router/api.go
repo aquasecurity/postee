@@ -44,6 +44,13 @@ func WithNewConfig(tenantName string) error { //tenant name
 	return nil
 }
 
+// New - initialize new postee library instance
+func New() {
+	Instance().Terminate()
+	Instance().cleanChannels(true)
+	Instance().embedTemplates()
+}
+
 //initialize instance with custom db location
 func WithNewConfigAndDbPath(tenantName, dbPath string) error { //tenant name
 	Instance().Terminate()
