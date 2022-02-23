@@ -45,10 +45,14 @@ func WithNewConfig(tenantName string) error { //tenant name
 }
 
 // New - initialize new postee library instance
-func New() {
+func New() error {
 	Instance().Terminate()
 	Instance().cleanChannels(true)
-	Instance().embedTemplates()
+	err := Instance().embedTemplates()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //initialize instance with custom db location

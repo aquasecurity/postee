@@ -23,10 +23,13 @@ var (
 
 func main() {
 	// initialize new library instance
-	router.New()
+	err := router.New()
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 
 	// Add optional output
-	err := router.AddOutput(&data.OutputSettings{
+	err = router.AddOutput(&data.OutputSettings{
 		Name:   "stdout",
 		Type:   "stdout",
 		Enable: true,
