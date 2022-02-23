@@ -804,9 +804,13 @@ func (ctx *Router) sendByRoute(in []byte, routeName string) error {
 	return nil
 }
 
-func (ctx *Router) embedTemplates() {
+func (ctx *Router) embedTemplates() error {
 	templates := rego_templates.GetAllTemplates()
 	for _, t := range templates {
-		ctx.addTemplate(&t)
+		err := ctx.addTemplate(&t)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
