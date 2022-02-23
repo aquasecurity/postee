@@ -19,6 +19,7 @@ import (
 	"github.com/aquasecurity/postee/v2/log"
 	"github.com/aquasecurity/postee/v2/msgservice"
 	"github.com/aquasecurity/postee/v2/outputs"
+	rego_templates "github.com/aquasecurity/postee/v2/rego-templates"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/aquasecurity/postee/v2/utils"
@@ -801,4 +802,11 @@ func (ctx *Router) sendByRoute(in []byte, routeName string) error {
 	}
 
 	return nil
+}
+
+func (ctx *Router) embedTemplates() {
+	templates := rego_templates.GetAllTemplates()
+	for _, t := range templates {
+		ctx.addTemplate(&t)
+	}
 }
