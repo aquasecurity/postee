@@ -280,7 +280,12 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 			continue
 		}
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
-		go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+
+		if r.SerializeOutputs {
+			getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+		} else {
+			go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+		}
 	}
 }
 

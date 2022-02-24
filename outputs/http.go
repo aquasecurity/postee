@@ -25,7 +25,6 @@ func (hc *HTTPClient) GetName() string {
 }
 
 func (hc *HTTPClient) Init() error {
-	hc.Name = "HTTP Output"
 	return nil
 }
 

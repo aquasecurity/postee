@@ -15,6 +15,7 @@ routes:
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
   outputs: [my-exec, my-http-get, my-http-post]
+  serialize-outputs: true                       # Optional. Serialize outputs in route.
   template: raw-json
 
 # Templates are used to format a message

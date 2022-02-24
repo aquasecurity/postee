@@ -18,9 +18,9 @@ func TestHTTPClient_Init(t *testing.T) {
 }
 
 func TestHTTPClient_GetName(t *testing.T) {
-	ec := HTTPClient{}
+	ec := HTTPClient{Name: "my-http-output"}
 	require.NoError(t, ec.Init())
-	require.Equal(t, "HTTP Output", ec.GetName())
+	require.Equal(t, "my-http-output", ec.GetName())
 }
 
 func TestHTTPClient_Send(t *testing.T) {

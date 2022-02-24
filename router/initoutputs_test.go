@@ -246,9 +246,9 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				BodyFile: "goldens/test.txt",
 			},
 			map[string]interface{}{
-				"Name":   "HTTP Output",
-				"Method": "GET",
-				"Body":   "foo bar baz",
+				"Name":     "my-http-output",
+				"Method":   "GET",
+				"BodyFile": "goldens/test.txt",
 			},
 			false,
 			"*outputs.HTTPClient",
@@ -327,7 +327,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 		}
 
 		for key, prop := range test.expctdProps {
-			t.Logf("key %s\n", key)
+			//t.Logf("key %s\n", key)
 			r := reflect.ValueOf(o)
 			v := reflect.Indirect(r).FieldByName(key)
 			if !v.IsValid() {
