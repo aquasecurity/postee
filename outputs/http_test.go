@@ -27,7 +27,8 @@ func TestHTTPClient_Send(t *testing.T) {
 	testCases := []struct {
 		name           string
 		method         string
-		body           string
+		inputEvent     string
+		bodyFile       string
 		testServerFunc http.HandlerFunc
 		expectedError  string
 	}{
@@ -36,20 +37,38 @@ func TestHTTPClient_Send(t *testing.T) {
 			method: http.MethodGet,
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "bar value", r.Header.Get("fookey"))
-				assert.Equal(t, "foo bar baz header", r.Header.Get("POSTEE_EVENT"))
+				assert.Empty(t, r.Header.Get("POSTEE_EVENT")) // no event sent
 				fmt.Fprintln(w, "Hello, client")
 			},
 		},
 		{
-			name:   "happy path method post",
-			method: http.MethodPost,
-			body:   "foo body",
+			name:       "happy path method post, string input event",
+			method:     http.MethodPost,
+			bodyFile:   "goldens/validbody.txt",
+			inputEvent: "foo bar baz header",
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "bar value", r.Header.Get("fookey"))
-				assert.Equal(t, "foo bar baz header", r.Header.Get("POSTEE_EVENT"))
+				assert.Equal(t, "Zm9vIGJhciBiYXogaGVhZGVy", r.Header.Get("POSTEE_EVENT"))
 
 				b, _ := ioutil.ReadAll(r.Body)
-				assert.Equal(t, "foo body", string(b))
+				assert.Equal(t, "foo bar baz body", string(b))
+
+				fmt.Fprintln(w, "Hello, client")
+			},
+		},
+		{
+			name:     "happy path method post, json input event",
+			method:   http.MethodPost,
+			bodyFile: "goldens/validbody.txt",
+			inputEvent: `{
+	"argsNum": 2
+}`,
+			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "bar value", r.Header.Get("fookey"))
+				assert.Equal(t, "ewoJImFyZ3NOdW0iOiAyCn0=", r.Header.Get("POSTEE_EVENT"))
+
+				b, _ := ioutil.ReadAll(r.Body)
+				assert.Equal(t, "foo bar baz body", string(b))
 
 				fmt.Fprintln(w, "Hello, client")
 			},
@@ -68,6 +87,12 @@ func TestHTTPClient_Send(t *testing.T) {
 			method:        http.MethodGet,
 			expectedError: `Get "path-to-nowhere": unsupported protocol scheme ""`,
 		},
+		{
+			name:          "sad path, body file not found",
+			method:        http.MethodPost,
+			bodyFile:      "invalid.txt",
+			expectedError: "unable to read body file: invalid.txt, err: open invalid.txt: no such file or directory",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -81,16 +106,17 @@ func TestHTTPClient_Send(t *testing.T) {
 			}
 
 			ec := HTTPClient{
-				URL:     testUrl,
-				Body:    tc.body,
-				Method:  tc.method,
-				Headers: map[string][]string{"fookey": {"bar value"}},
+				URL:      testUrl,
+				Method:   tc.method,
+				Headers:  map[string][]string{"fookey": {"bar value"}},
+				BodyFile: tc.bodyFile,
 			}
+
 			switch {
 			case tc.expectedError != "":
 				require.EqualError(t, ec.Send(map[string]string{"description": "foo bar baz header"}), tc.expectedError, tc.name)
 			default:
-				require.NoError(t, ec.Send(map[string]string{"description": "foo bar baz header"}), tc.name)
+				require.NoError(t, ec.Send(map[string]string{"description": tc.inputEvent}), tc.name)
 			}
 		})
 	}

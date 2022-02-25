@@ -277,19 +277,6 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{
-			"HTTP Action output, with invalid body file specified",
-			OutputSettings{
-				Method:   "GET",
-				Url:      "https://foo.bar.com",
-				Name:     "my-http-output",
-				Type:     "http",
-				BodyFile: "no such body file",
-			},
-			map[string]interface{}{},
-			true,
-			"<nil>",
-		},
-		{
 			"HTTP Action output, with a invalid timeout",
 			OutputSettings{
 				Method:  "GET",
