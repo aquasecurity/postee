@@ -1,6 +1,6 @@
 # Postee
 
-![Postee](postee.jpeg)
+![Postee](postee.svg)
 
 ![Docker Pulls][docker-pull]
 [![Go Report Card][report-card-img]][report-card]
