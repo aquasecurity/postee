@@ -19,7 +19,7 @@ func TestAggregateByTimeout(t *testing.T) {
 	schedulerInvctCnt := 0
 	defer func() {
 		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		dbservice.ChangeDbPath(dbPathReal)
 		RunScheduler = savedRunScheduler
 	}()
 	RunScheduler = func(
@@ -36,6 +36,7 @@ func TestAggregateByTimeout(t *testing.T) {
 		schedulerInvctCnt++
 	}
 
+	dbservice.ChangeDbPath("test_webhooks.db")
 	dbservice.DbPath = "test_webhooks.db"
 
 	demoRoute := &routes.InputRoute{
