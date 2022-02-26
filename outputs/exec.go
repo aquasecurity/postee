@@ -40,7 +40,7 @@ func (e *ExecClient) Send(m map[string]string) error {
 
 	var err error
 	if e.Output, err = cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("error while executing script: %w", err)
+		return fmt.Errorf("error while executing script: %w, output: %s", err, string(e.Output))
 	}
 	log.Println("execution output: ", "len: ", len(e.Output), "out: ", string(e.Output))
 	return nil
