@@ -14,7 +14,7 @@ routes:
 
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  outputs: [my-exec, my-http-get, my-http-post]
+  outputs: [my-exec, my-exec-2, my-http-get, my-http-post]
   template: raw-json
 
 # Templates are used to format a message
@@ -33,7 +33,15 @@ outputs:
   type: exec
   enable: true
   env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
-  input-file: /tmp/exec-test.sh                        # Required. Specify the path to the script to run
+  input-file: /tmp/exec-test.sh                        # Specify the path to the script to run
+
+- name: my-exec-2
+  type: exec
+  enable: true
+  env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
+  exec-script: |                                       # Specify the script to run
+    #!/bin/sh
+    echo "hello world"
 
 - name: my-http-get
   type: http
