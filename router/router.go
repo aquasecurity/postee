@@ -463,6 +463,7 @@ func (ctx *Router) deleteOutput(outputName string, removeFromRoutes bool) error 
 		return err
 	}
 	delete(ctx.outputs, outputName)
+	delete(ctx.outputsTemplate, outputName)
 
 	if removeFromRoutes {
 		for _, route := range ctx.inputRoutes {
