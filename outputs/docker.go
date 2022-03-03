@@ -9,6 +9,7 @@ import (
 	"github.com/aquasecurity/postee/v2/layout"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/google/uuid"
@@ -20,6 +21,7 @@ type DocketClient struct {
 	Name      string
 	ImageName string
 	Cmd       []string
+	Volumes   map[string]string
 }
 
 func (d DocketClient) GetName() string {
@@ -45,12 +47,19 @@ func (d DocketClient) Send(m map[string]string) error {
 		return fmt.Errorf("docker action failed to pull docker image: %w", err)
 	}
 
+	var hc container.HostConfig
+	if len(d.Volumes) > 0 {
+		for src, dst := range d.Volumes {
+			hc.Mounts = append(hc.Mounts, mount.Mount{Type: mount.TypeBind, Source: src, Target: dst})
+		}
+	}
+
 	ctrName := fmt.Sprintf("postee-%s-%s", d.GetName(), uuid.New())
 	resp, err := d.client.ContainerCreate(ctx, &container.Config{
 		Image: d.ImageName,
 		Cmd:   d.Cmd,
 		Tty:   false,
-	}, nil, nil, nil, ctrName)
+	}, &hc, nil, nil, ctrName)
 	if err != nil {
 		return fmt.Errorf("docker action failed to create docker container: %w", err)
 	}

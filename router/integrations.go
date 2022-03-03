@@ -40,4 +40,5 @@ type OutputSettings struct {
 	KubeNamespace     string              `json:"kube-namespace,omitempty"`
 	DockerImageName   string              `json:"docker-image-name,omitempty"`
 	DockerCmd         []string            `json:"docker-cmd,omitempty"`
+	DockerVolumes     map[string]string   `json:"docker-volume-mounts,omitempty"`
 }
