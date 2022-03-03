@@ -160,5 +160,6 @@ func buildDockerOutput(sourceSettings *OutputSettings) (*outputs.DockerClient, e
 		ImageName: sourceSettings.DockerImageName,
 		Cmd:       sourceSettings.DockerCmd,
 		Volumes:   sourceSettings.DockerVolumes,
+		Env:       sourceSettings.DockerEnv,
 	}, nil
 }

@@ -34,5 +34,6 @@ outputs:
   enable: true
   docker-image-name: "docker.io/library/alpine"   # Required. Image name of container to run.
   docker-cmd: ["echo", "hello world"]             # Required. Command to run when starting container.
-  docker-volume-mounts:                           # Optional. Volume mounts present inside the container
+  docker-env: ["FOO=bar-value"]                   # Optional. Environment variables to set in the container.
+  docker-volume-mounts:                          # Optional. Volume mounts present inside the container
     "/path/to/dir": "/path/to/destination"

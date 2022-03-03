@@ -41,4 +41,5 @@ type OutputSettings struct {
 	DockerImageName   string              `json:"docker-image-name,omitempty"`
 	DockerCmd         []string            `json:"docker-cmd,omitempty"`
 	DockerVolumes     map[string]string   `json:"docker-volume-mounts,omitempty"`
+	DockerEnv         []string            `json:"docker-env,omitempty"`
 }

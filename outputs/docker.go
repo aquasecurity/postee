@@ -22,6 +22,7 @@ type DockerClient struct {
 	ImageName string
 	Cmd       []string
 	Volumes   map[string]string
+	Env       []string
 }
 
 func (d DockerClient) GetName() string {
@@ -53,12 +54,14 @@ func (d DockerClient) Send(m map[string]string) error {
 			hc.Mounts = append(hc.Mounts, mount.Mount{Type: mount.TypeBind, Source: src, Target: dst})
 		}
 	}
+	d.Env = append(d.Env, fmt.Sprintf("POSTEE_EVENT=%s", m["description"]))
 
 	ctrName := fmt.Sprintf("postee-%s-%s", d.GetName(), uuid.New())
 	resp, err := d.client.ContainerCreate(ctx, &container.Config{
 		Image: d.ImageName,
 		Cmd:   d.Cmd,
 		Tty:   false,
+		Env:   d.Env,
 	}, &hc, nil, nil, ctrName)
 	if err != nil {
 		return fmt.Errorf("docker action failed to create docker container: %w", err)
