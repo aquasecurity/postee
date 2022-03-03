@@ -340,7 +340,11 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	case "stdout":
 		plg = buildStdoutOutput(settings)
 	case "exec":
-		plg = buildExecOutput(settings)
+		plg, err = buildExecOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	case "http":
 		plg, err = buildHTTPOutput(settings)
 		if err != nil {

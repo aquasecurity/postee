@@ -1,6 +1,6 @@
 # Postee
 
-![Postee](postee.jpeg)
+![Postee](postee.png)
 
 ![Docker Pulls][docker-pull]
 [![Go Report Card][report-card-img]][report-card]
@@ -8,7 +8,7 @@
 [![License][license-img]][license]
 
 [download]: https://img.shields.io/github/downloads/aquasecurity/postee/total?logo=github
-[release-img]: https://img.shields.io/github/release/aquasecurity/postee.svg?logo=github
+[release-img]: https://img.shields.io/github/release/aquasecurity/postee.png?logo=github
 [release]: https://github.com/aquasecurity/postee/releases
 [docker-pull]: https://img.shields.io/docker/pulls/aquasec/postee?logo=docker&label=docker%20pulls%20%2F%20postee
 [go-doc-img]: https://godoc.org/github.com/aquasecurity/postee?status.svg

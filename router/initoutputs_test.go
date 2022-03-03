@@ -286,7 +286,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			map[string]interface{}{}, true,
 			"<nil>",
 		},
-		{"Exec Action output",
+		{"Exec Action output, with input-file config",
 			OutputSettings{
 				Name:      "my-exec-output",
 				Env:       []string{"foo=bar"},
@@ -299,6 +299,45 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			},
 			false,
 			"*outputs.ExecClient",
+		},
+		{"Exec Action output, with exec-script config",
+			OutputSettings{
+				Name: "my-exec-output",
+				Env:  []string{"foo=bar"},
+				ExecScript: `#!/bin/sh
+echo "foo bar"`,
+				Type: "exec",
+			},
+			map[string]interface{}{
+				"Name": "Exec Output",
+				"ExecScript": `#!/bin/sh
+echo "foo bar"`,
+			},
+			false,
+			"*outputs.ExecClient",
+		},
+		{"Exec Action output, with invalid config (both file and script)",
+			OutputSettings{
+				Name:      "my-exec-output",
+				Env:       []string{"foo=bar"},
+				InputFile: "goldens/test.txt",
+				ExecScript: `#!/bin/sh
+echo "foo bar"`,
+				Type: "exec",
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
+		},
+		{"Exec Action output, with invalid config (no file nor script)",
+			OutputSettings{
+				Name: "my-exec-output",
+				Env:  []string{"foo=bar"},
+				Type: "exec",
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
 		},
 	}
 	for _, test := range tests {

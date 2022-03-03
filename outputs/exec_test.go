@@ -66,11 +66,13 @@ input foo env var
 
 	t.Run("sad path - exec fails", func(t *testing.T) {
 		ec := ExecClient{
+			ExecScript: `#!/bin/sh
+echo "foo bar baz"`,
 			ExecCmd: fakeExecCmdFailure,
 		}
 		require.EqualError(t, ec.Send(map[string]string{
 			"description": "foo bar baz",
-		}), "error while executing script: exit status 1")
+		}), "error while executing script: exit status 1, output: failure")
 	})
 
 }

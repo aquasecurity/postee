@@ -100,12 +100,29 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 	return jiraApi
 }
 
-func buildExecOutput(sourceSettings *OutputSettings) *outputs.ExecClient {
-	return &outputs.ExecClient{
-		Name:      sourceSettings.Name,
-		Env:       sourceSettings.Env,
-		InputFile: sourceSettings.InputFile,
+func buildExecOutput(sourceSettings *OutputSettings) (*outputs.ExecClient, error) {
+	if len(sourceSettings.InputFile) <= 0 && len(sourceSettings.ExecScript) <= 0 {
+		return nil, fmt.Errorf("exec action requires either input-file or exec-script to be set")
 	}
+
+	if len(sourceSettings.InputFile) > 0 && len(sourceSettings.ExecScript) > 0 {
+		return nil, fmt.Errorf("exec action only takes either input-file or exec-script, not both")
+	}
+
+	ec := &outputs.ExecClient{
+		Name: sourceSettings.Name,
+		Env:  sourceSettings.Env,
+	}
+
+	if len(sourceSettings.InputFile) > 0 {
+		ec.InputFile = sourceSettings.InputFile
+	}
+
+	if len(sourceSettings.ExecScript) > 0 {
+		ec.ExecScript = sourceSettings.ExecScript
+	}
+
+	return ec, nil
 }
 
 func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error) {
