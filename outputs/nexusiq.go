@@ -15,7 +15,7 @@ import (
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
-var notAllowed = regexp.MustCompile(`[\.:]`)
+var notAllowed = regexp.MustCompile(`[\.:\/]`)
 
 func sanitizedAppName(appName string) string {
 	return notAllowed.ReplaceAllString(appName, "_")
