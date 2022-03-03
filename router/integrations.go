@@ -28,6 +28,7 @@ type OutputSettings struct {
 	InstanceName      string              `json:"instance,omitempty"`
 	SizeLimit         int                 `json:"size-limit,omitempty"`
 	InputFile         string              `json:"input-file,omitempty"`
+	ExecScript        string              `json:"exec-script,omitempty"`
 	Env               []string            `json:"env,omitempty"`
 	BodyFile          string              `json:"bodyfile,omitempty"`
 	Method            string              `json:"method,omitempty"`
