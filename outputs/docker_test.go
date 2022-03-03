@@ -7,7 +7,7 @@ import (
 )
 
 func TestDocketClient_Send(t *testing.T) {
-	dc := DocketClient{
+	dc := DockerClient{
 		Name:      "my-docker-action",
 		ImageName: "docker.io/library/alpine",
 		Cmd:       []string{"echo", "hello world"},

@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type DocketClient struct {
+type DockerClient struct {
 	client *client.Client
 
 	Name      string
@@ -24,11 +24,11 @@ type DocketClient struct {
 	Volumes   map[string]string
 }
 
-func (d DocketClient) GetName() string {
+func (d DockerClient) GetName() string {
 	return d.Name
 }
 
-func (d *DocketClient) Init() error {
+func (d *DockerClient) Init() error {
 	var err error
 	d.client, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -39,7 +39,7 @@ func (d *DocketClient) Init() error {
 	return nil
 }
 
-func (d DocketClient) Send(m map[string]string) error {
+func (d DockerClient) Send(m map[string]string) error {
 	ctx := context.Background()
 
 	_, err := d.client.ImagePull(ctx, d.ImageName, types.ImagePullOptions{})
@@ -92,7 +92,7 @@ func (d DocketClient) Send(m map[string]string) error {
 	return nil
 }
 
-func (d DocketClient) Terminate() error {
+func (d DockerClient) Terminate() error {
 	if err := d.client.Close(); err != nil {
 		return fmt.Errorf("docker action unable to terminate: %w", err)
 	}
@@ -100,6 +100,6 @@ func (d DocketClient) Terminate() error {
 	return nil
 }
 
-func (d DocketClient) GetLayoutProvider() layout.LayoutProvider {
+func (d DockerClient) GetLayoutProvider() layout.LayoutProvider {
 	return nil
 }
