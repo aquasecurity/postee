@@ -16,7 +16,8 @@ import (
 )
 
 type DockerClient struct {
-	client *client.Client
+	client  client.APIClient
+	uuidNew func() uuid.UUID
 
 	Name      string
 	ImageName string
@@ -35,6 +36,7 @@ func (d *DockerClient) Init() error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize docker action: %w", err)
 	}
+	d.uuidNew = uuid.New
 
 	log.Println("docker action successfully initialized")
 	return nil
@@ -56,11 +58,10 @@ func (d DockerClient) Send(m map[string]string) error {
 	}
 	d.Env = append(d.Env, fmt.Sprintf("POSTEE_EVENT=%s", m["description"]))
 
-	ctrName := fmt.Sprintf("postee-%s-%s", d.GetName(), uuid.New())
-	resp, err := d.client.ContainerCreate(ctx, &container.Config{
+	ctrName := fmt.Sprintf("postee-%s-%s", d.GetName(), d.uuidNew())
+	_, err = d.client.ContainerCreate(ctx, &container.Config{
 		Image: d.ImageName,
 		Cmd:   d.Cmd,
-		Tty:   false,
 		Env:   d.Env,
 	}, &hc, nil, nil, ctrName)
 	if err != nil {
@@ -69,12 +70,11 @@ func (d DockerClient) Send(m map[string]string) error {
 	defer func() {
 		d.client.ContainerRemove(ctx, ctrName, types.ContainerRemoveOptions{Force: true})
 	}()
-
-	if err := d.client.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
+	if err := d.client.ContainerStart(ctx, ctrName, types.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("docker action failed to start container: %w", err)
 	}
 
-	statusCh, errCh := d.client.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	statusCh, errCh := d.client.ContainerWait(ctx, ctrName, container.WaitConditionNotRunning)
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -83,7 +83,7 @@ func (d DockerClient) Send(m map[string]string) error {
 	case <-statusCh:
 	}
 
-	out, err := d.client.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
+	out, err := d.client.ContainerLogs(ctx, ctrName, types.ContainerLogsOptions{
 		ShowStdout: true})
 	if err != nil {
 		return fmt.Errorf("docker action unable to fetch container logs: %w", err)
