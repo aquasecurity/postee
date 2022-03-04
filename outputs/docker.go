@@ -68,7 +68,7 @@ func (d DockerClient) Send(m map[string]string) error {
 		return fmt.Errorf("docker action failed to create docker container: %w", err)
 	}
 	defer func() {
-		d.client.ContainerRemove(ctx, ctrName, types.ContainerRemoveOptions{Force: true})
+		_ = d.client.ContainerRemove(ctx, ctrName, types.ContainerRemoveOptions{Force: true})
 	}()
 	if err := d.client.ContainerStart(ctx, ctrName, types.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("docker action failed to start container: %w", err)
@@ -90,7 +90,7 @@ func (d DockerClient) Send(m map[string]string) error {
 	}
 
 	var buf bytes.Buffer
-	stdcopy.StdCopy(&buf, &buf, out)
+	_, _ = stdcopy.StdCopy(&buf, &buf, out)
 	log.Println("docker action ran successfully, container logs: ", buf.String())
 	return nil
 }

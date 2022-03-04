@@ -8,18 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
-
-	"github.com/docker/docker/api/types/mount"
-
-	"github.com/stretchr/testify/assert"
-
 	"github.com/docker/docker/api/types"
-
 	containertypes "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	networktypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
+	"github.com/google/uuid"
 	specs "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/stretchr/testify/assert"
 )
 
 type mockDockerClient struct {
