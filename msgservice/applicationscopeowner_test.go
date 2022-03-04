@@ -24,9 +24,9 @@ func TestApplicationScopeOwner(t *testing.T) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		dbservice.ChangeDbPath(dbPathReal)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	dbservice.ChangeDbPath("test_webhooks.db")
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
