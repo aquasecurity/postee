@@ -549,6 +549,15 @@ var getHttpClient = func() *http.Client {
 }
 
 func (ctx *Router) HandleRoute(routeName string, in []byte) {
+	inMsg, err := parseInputMessage(in)
+	if err != nil {
+		return
+	}
+
+	ctx.handleRouteMsgParsed(routeName, inMsg)
+}
+
+func (ctx *Router) handleRouteMsgParsed(routeName string, inMsg map[string]interface{}) {
 	r, ok := ctx.inputRoutes[routeName]
 	if !ok || r == nil {
 		log.Logger.Errorf("There isn't route %q", routeName)
@@ -559,18 +568,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
-	inMsg := map[string]interface{}{}
-	if err := json.Unmarshal(in, &inMsg); err != nil {
-		log.PrnInputError("json.Unmarshal error for %q: %v", in, err)
-		return
-	}
-
 	inputCallbacks := ctx.inputCallBacks[routeName]
-	inMsg, err := parseInputMessage(in)
-	if err != nil {
-		return
-	}
-
 	for _, callback := range inputCallbacks {
 		if !callback(inMsg) {
 			return
@@ -665,17 +663,27 @@ func (ctx *Router) handle(in []byte) {
 	}
 }
 
+func (ctx *Router) handleMsg(msg map[string]interface{}) {
+	for routeName := range ctx.inputRoutes {
+		ctx.handleRouteMsgParsed(routeName, msg)
+	}
+}
+
 func (ctx *Router) Evaluate(in []byte) []string {
+	inMsg, err := parseInputMessage(in)
+	if err != nil {
+		return []string{}
+	}
+
+	return ctx.evaluateMsg(inMsg)
+}
+
+func (ctx *Router) evaluateMsg(inMsg map[string]interface{}) []string {
 	routesNames := []string{}
 	for routeName := range ctx.inputRoutes {
 		r, ok := ctx.inputRoutes[routeName]
 		if !ok || r == nil {
 			log.Logger.Errorf("There isn't route %q", routeName)
-			continue
-		}
-
-		inMsg, err := parseInputMessage(in)
-		if err != nil {
 			continue
 		}
 
@@ -782,6 +790,15 @@ func (ctx *Router) GetMessageUniqueId(b []byte, routeName string) (string, error
 }
 
 func (ctx *Router) sendByRoute(in []byte, routeName string) error {
+	inMsg, err := parseInputMessage(in)
+	if err != nil {
+		return xerrors.Errorf("failed parsing input message: %s", err.Error())
+	}
+
+	return ctx.sendMsgByRoute(inMsg, routeName)
+}
+
+func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) error {
 	route, exists := ctx.inputRoutes[routeName]
 	if !exists {
 		return xerrors.Errorf("route %s does not exists", routeName)
@@ -790,11 +807,6 @@ func (ctx *Router) sendByRoute(in []byte, routeName string) error {
 	if len(route.Outputs) == 0 {
 		log.Logger.Warnf("route %q has no outputs", routeName)
 		return nil
-	}
-
-	inMsg, err := parseInputMessage(in)
-	if err != nil {
-		return xerrors.Errorf("failed parsing input message: %s", err.Error())
 	}
 
 	failedOutputs := ctx.publishToOutputWithRetry(inMsg, route)

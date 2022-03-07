@@ -188,15 +188,30 @@ func Send(b []byte) {
 	Instance().handle(parseBytes(b))
 }
 
+func SendMsg(msg map[string]interface{}) {
+	Instance().handleMsg(msg)
+}
+
 // SendByRoute sends the input message to a route with retry on the output send
 func SendByRoute(b []byte, routeName string) error {
 	return Instance().sendByRoute(parseBytes(b), routeName)
+}
+
+// SendByRoute sends the input message to a route with retry on the output send
+func SendMsgByRoute(msg map[string]interface{}, routeName string) error {
+	return Instance().sendMsgByRoute(msg, routeName)
 }
 
 // Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
 // In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
 func Evaluate(b []byte) []string {
 	return Instance().Evaluate(parseBytes(b))
+}
+
+// Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
+// In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
+func EvaluateMsg(msg map[string]interface{}) []string {
+	return Instance().evaluateMsg(msg)
 }
 
 // GetMessageUniqueId receives a message and route name as an input and returns a unique id for from the given
