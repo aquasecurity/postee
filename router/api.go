@@ -220,6 +220,12 @@ func GetMessageUniqueId(b []byte, routeName string) (string, error) {
 	return Instance().GetMessageUniqueId(parseBytes(b), routeName)
 }
 
+// GetParsedUniqueId receives a parsed message and route name as an input and returns a unique id for from the given
+// message that uniquely identifies the message for the input route
+func GetParsedUniqueId(msg map[string]interface{}, routeName string) (string, error) {
+	return Instance().getMessageUniqueId(msg, routeName)
+}
+
 func buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) string {
 	hostname := dbHostName
 

@@ -781,6 +781,10 @@ func (ctx *Router) GetMessageUniqueId(b []byte, routeName string) (string, error
 		return "", xerrors.Errorf("error when trying to parse input message: %s", err.Error())
 	}
 
+	return ctx.getMessageUniqueId(msg, routeName)
+}
+
+func (ctx *Router) getMessageUniqueId(msg map[string]interface{}, routeName string) (string, error) {
 	route, exists := ctx.inputRoutes[routeName]
 	if !exists {
 		return "", xerrors.Errorf("route %ss was not found in the current router", routeName)
