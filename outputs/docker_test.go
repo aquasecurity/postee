@@ -34,7 +34,7 @@ func (m mockDockerClient) ImagePull(ctx context.Context, ref string, options typ
 		return m.imagePull(ctx, ref, options)
 	}
 
-	return nil, nil
+	return io.NopCloser(strings.NewReader(`pulling image foo bar`)), nil
 }
 
 func (m mockDockerClient) ContainerCreate(ctx context.Context, config *containertypes.Config, hostConfig *containertypes.HostConfig, networkingConfig *networktypes.NetworkingConfig, platform *specs.Platform, containerName string) (containertypes.ContainerCreateCreatedBody, error) {

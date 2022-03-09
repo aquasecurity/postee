@@ -45,10 +45,11 @@ func (d *DockerClient) Init() error {
 func (d DockerClient) Send(m map[string]string) error {
 	ctx := context.Background()
 
-	_, err := d.client.ImagePull(ctx, d.ImageName, types.ImagePullOptions{})
+	r, err := d.client.ImagePull(ctx, d.ImageName, types.ImagePullOptions{})
 	if err != nil {
 		return fmt.Errorf("docker action failed to pull docker image: %w", err)
 	}
+	defer r.Close()
 
 	var hc container.HostConfig
 	if len(d.Volumes) > 0 {
