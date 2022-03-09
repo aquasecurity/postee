@@ -379,6 +379,7 @@ Key | Description | Possible Values
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Webhook URL |
+*timeout*  | Webhook timeout  |  
 </details>
 
 ## Configure the Aqua Server with Webhook Integration
