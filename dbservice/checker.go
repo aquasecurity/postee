@@ -2,6 +2,7 @@ package dbservice
 
 import (
 	"bytes"
+	"github.com/aquasecurity/postee/v2/utils"
 	"log"
 	"time"
 
@@ -33,7 +34,15 @@ func CheckSizeLimit() {
 			size += len(v)
 		}
 		if size > DbSizeLimit {
-			return tx.DeleteBucket([]byte(dbBucketName))
+			err = tx.DeleteBucket([]byte(dbBucketName))
+			if err != nil {
+				return err
+			}
+			err = tx.DeleteBucket([]byte(dbBucketExpiryDates))
+			if err != nil {
+				return err
+			}
+			utils.Debug("DB size: %db is over size limit: %db, DB is cleared", size, DbSizeLimit)
 		}
 		return nil
 	}); err != nil {
