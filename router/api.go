@@ -233,7 +233,16 @@ func TestOutput(input map[string]interface{}, settings *data.OutputSettings) err
 		return err
 	}
 
-	template, err := regoservice.BuildBundledRegoEvaluator("postee.rawmessage.html")
+	templateRegoPkg := "postee.rawmessage.json"
+	//
+	switch settings.Type {
+	case "slack":
+		templateRegoPkg = "postee.vuls.slack"
+	case "teams", "email":
+		templateRegoPkg = "postee.vuls.html"
+	}
+
+	template, err := regoservice.BuildBundledRegoEvaluator(templateRegoPkg)
 	if err != nil {
 		return err
 	}
