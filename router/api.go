@@ -227,13 +227,23 @@ func GetParsedUniqueId(msg map[string]interface{}, routeName string) (string, er
 	return Instance().getMessageUniqueId(msg, routeName)
 }
 
+// TestOutput expects scan_results as an input
 func TestOutput(input map[string]interface{}, settings *data.OutputSettings) error {
 	output, err := buildAndInitOtpt(settings, "")
 	if err != nil {
 		return err
 	}
 
-	template, err := regoservice.BuildBundledRegoEvaluator("postee.rawmessage.html")
+	templateRegoPkg := "postee.rawmessage.json"
+	//
+	switch settings.Type {
+	case "slack":
+		templateRegoPkg = "postee.vuls.slack"
+	case "teams", "email":
+		templateRegoPkg = "postee.vuls.html"
+	}
+
+	template, err := regoservice.BuildBundledRegoEvaluator(templateRegoPkg)
 	if err != nil {
 		return err
 	}
