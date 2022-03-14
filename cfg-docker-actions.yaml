@@ -1,0 +1,39 @@
+# The configuration file contains a general settings section,
+# routes, templates and outputs sections.
+
+name: tenant            #  The tenant name
+aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+max-db-size: 1000       #  Max size of DB in MB. if empty then unlimited
+db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
+
+# Routes are used to define how to handle an incoming message
+routes:
+- name: stdout
+  outputs: [ stdout ]
+  template: raw-json
+
+- name: actions-route
+  input: contains(input.SigMetadata.ID, "TRC-2")
+  outputs: [my-docker]
+  template: raw-json
+
+# Templates are used to format a message
+templates:
+- name: raw-json                                   # route message "As Is" to external webhook
+  rego-package: postee.rawmessage.json
+
+# Outputs are target services that should consume the messages
+outputs:
+- name: stdout
+  type: stdout
+  enable: true
+
+# Define a custom output of Docker action, that can take params.
+- name: my-docker
+  type: docker
+  enable: true
+  docker-image-name: "docker.io/library/alpine"   # Required. Image name of container to run.
+  docker-cmd: ["echo", "hello world"]             # Required. Command to run when starting container.
+  docker-env: ["FOO=bar-value"]                   # Optional. Environment variables to set in the container.
+  docker-volume-mounts:                          # Optional. Volume mounts present inside the container
+    "/path/to/dir": "/path/to/destination"

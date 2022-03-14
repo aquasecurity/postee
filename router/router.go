@@ -353,6 +353,12 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		}
 	case "kubernetes":
 		plg = buildKubernetesOutput(settings)
+	case "docker":
+		plg, err = buildDockerOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	default:
 		log.Printf("Output type %q is undefined or empty. Output name is %q.",
 			settings.Type, settings.Name)

@@ -167,3 +167,17 @@ func buildKubernetesOutput(sourceSettings *OutputSettings) *outputs.KubernetesCl
 		KubeAnnotations:   sourceSettings.KubeAnnotations,
 	}
 }
+
+func buildDockerOutput(sourceSettings *OutputSettings) (*outputs.DockerClient, error) {
+	if len(sourceSettings.DockerImageName) < 0 {
+		return nil, fmt.Errorf("docker action requires an image name")
+	}
+
+	return &outputs.DockerClient{
+		Name:      sourceSettings.Name,
+		ImageName: sourceSettings.DockerImageName,
+		Cmd:       sourceSettings.DockerCmd,
+		Volumes:   sourceSettings.DockerVolumes,
+		Env:       sourceSettings.DockerEnv,
+	}, nil
+}

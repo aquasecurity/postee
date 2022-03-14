@@ -39,4 +39,8 @@ type OutputSettings struct {
 	KubeLabelSelector string              `json:"kube-label-selector,omitempty"`
 	KubeAnnotations   map[string]string   `json:"kube-annotations,omitempty"`
 	KubeNamespace     string              `json:"kube-namespace,omitempty"`
+	DockerImageName   string              `json:"docker-image-name,omitempty"`
+	DockerCmd         []string            `json:"docker-cmd,omitempty"`
+	DockerVolumes     map[string]string   `json:"docker-volume-mounts,omitempty"`
+	DockerEnv         []string            `json:"docker-env,omitempty"`
 }
