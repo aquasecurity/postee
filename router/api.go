@@ -9,6 +9,7 @@ import (
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
 	rego_templates "github.com/aquasecurity/postee/v2/rego-templates"
+	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
@@ -224,6 +225,25 @@ func GetMessageUniqueId(b []byte, routeName string) (string, error) {
 // message that uniquely identifies the message for the input route
 func GetParsedUniqueId(msg map[string]interface{}, routeName string) (string, error) {
 	return Instance().getMessageUniqueId(msg, routeName)
+}
+
+func TestOutput(input map[string]interface{}, settings *data.OutputSettings) error {
+	output, err := buildAndInitOtpt(settings, "")
+	if err != nil {
+		return err
+	}
+
+	template, err := regoservice.BuildBundledRegoEvaluator("postee.rawmessage.html")
+	if err != nil {
+		return err
+	}
+
+	content, err := template.Eval(input, "")
+	if err != nil {
+		return err
+	}
+
+	return output.Send(content)
 }
 
 func buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) string {
