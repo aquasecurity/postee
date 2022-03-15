@@ -57,10 +57,6 @@ func (k *KubernetesClient) Init() error {
 func (k KubernetesClient) Send(m map[string]string) error {
 	ctx := context.Background()
 
-	if k.KubeNamespace == "" {
-		return fmt.Errorf("kubernetes namespace needs to be set in config yaml")
-	}
-
 	// TODO: Allow configuring of resource {pod, ds, ...}
 	pods, _ := k.clientset.CoreV1().Pods(k.KubeNamespace).List(ctx, metav1.ListOptions{
 		LabelSelector: k.KubeLabelSelector,

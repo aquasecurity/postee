@@ -352,7 +352,11 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 			return nil
 		}
 	case "kubernetes":
-		plg = buildKubernetesOutput(settings)
+		plg, err = buildKubernetesOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	case "docker":
 		plg, err = buildDockerOutput(settings)
 		if err != nil {

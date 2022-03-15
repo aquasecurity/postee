@@ -157,7 +157,15 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 	}, nil
 }
 
-func buildKubernetesOutput(sourceSettings *OutputSettings) *outputs.KubernetesClient {
+func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesClient, error) {
+	if sourceSettings.KubeConfigFile == "" {
+		return nil, fmt.Errorf("kubernetes config file needs to be set in config yaml")
+	}
+
+	if sourceSettings.KubeNamespace == "" {
+		return nil, fmt.Errorf("kubernetes namespace needs to be set in config yaml")
+	}
+
 	return &outputs.KubernetesClient{
 		Name:              sourceSettings.Name,
 		KubeNamespace:     sourceSettings.KubeNamespace,
@@ -165,7 +173,7 @@ func buildKubernetesOutput(sourceSettings *OutputSettings) *outputs.KubernetesCl
 		KubeLabels:        sourceSettings.KubeLabels,
 		KubeLabelSelector: sourceSettings.KubeLabelSelector,
 		KubeAnnotations:   sourceSettings.KubeAnnotations,
-	}
+	}, nil
 }
 
 func buildDockerOutput(sourceSettings *OutputSettings) (*outputs.DockerClient, error) {
