@@ -235,7 +235,6 @@ func TestOutput(input map[string]interface{}, settings *data.OutputSettings) err
 	}
 
 	templateRegoPkg := "postee.rawmessage.json"
-	//
 	switch settings.Type {
 	case "slack":
 		templateRegoPkg = "postee.vuls.slack"

@@ -680,6 +680,7 @@ func (ctx *Router) Evaluate(in []byte) []string {
 
 func (ctx *Router) evaluateMsg(inMsg map[string]interface{}) []string {
 	routesNames := []string{}
+mainloop:
 	for routeName := range ctx.inputRoutes {
 		r, ok := ctx.inputRoutes[routeName]
 		if !ok || r == nil {
@@ -690,7 +691,7 @@ func (ctx *Router) evaluateMsg(inMsg map[string]interface{}) []string {
 		inputCallbacks := ctx.inputCallBacks[routeName]
 		for _, callback := range inputCallbacks {
 			if !callback(inMsg) {
-				continue
+				continue mainloop
 			}
 		}
 
