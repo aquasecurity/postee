@@ -170,9 +170,8 @@ func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesC
 		Name:              sourceSettings.Name,
 		KubeNamespace:     sourceSettings.KubeNamespace,
 		KubeConfigFile:    sourceSettings.KubeConfigFile,
-		KubeLabels:        sourceSettings.KubeLabels,
 		KubeLabelSelector: sourceSettings.KubeLabelSelector,
-		KubeAnnotations:   sourceSettings.KubeAnnotations,
+		KubeActions:       sourceSettings.KubeActions,
 	}, nil
 }
 

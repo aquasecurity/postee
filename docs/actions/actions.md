@@ -71,15 +71,15 @@ docker run --rm --name=postee \
 
 ## Kubernetes Action
 In addition to the Exec and HTTP actions, we have also implemented a Kubernetes action that today can add labels and annotations to pods. It can be used as follows:
+
 ![img_4.png](img_4.png)
 
-| Option              | Usage                                          |
-|---------------------|------------------------------------------------|
-| kube-namespace      | Required. Kubernetes namespace to use.         |
-| kube-config-file    | Required. Path to .kubeconfig file             |
-| kube-label-selector | Required, if specifying labels or annotations. |
-| kube-labels         | Optional, key-value pair of labels to add      |
-| kube-annotations    | Optional, key-value pair of annotations to add |
+| Option              | Usage                                                                                                                           |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| kube-namespace      | Required. Kubernetes namespace to use.                                                                                          |
+| kube-config-file    | Required. Path to .kubeconfig file                                                                                              |
+| kube-label-selector | Required, if specifying labels or annotations.                                                                                  |
+| kube-actions        | Optional, key-value pair of labels and annotations<br/>Labels must be added via "labels" key and Annotations via "annotations". |
 
 
 ## Docker Action

@@ -44,8 +44,8 @@ func TestKubernetesClient_Send(t *testing.T) {
 			k := KubernetesClient{
 				clientset:     fake.NewSimpleClientset(),
 				KubeNamespace: "testing",
-				KubeLabels: map[string]string{
-					"foo": "bar",
+				KubeActions: map[string]map[string]string{
+					"labels": {"foo": "bar"},
 				},
 				KubeLabelSelector: "app=nginx",
 			}
@@ -106,8 +106,8 @@ func TestKubernetesClient_Send(t *testing.T) {
 			k := KubernetesClient{
 				clientset:     fake.NewSimpleClientset(),
 				KubeNamespace: "testing",
-				KubeAnnotations: map[string]string{
-					"foo": "bar",
+				KubeActions: map[string]map[string]string{
+					"annotations": {"foo": "bar"},
 				},
 			}
 

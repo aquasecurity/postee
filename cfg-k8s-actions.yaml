@@ -35,7 +35,8 @@ outputs:
   kube-namespace: "default"                         # Required. Kubernetes namespace to use.
   kube-config-file: "/path/to/kubeconfig"           # Required. Path to .kubeconfig file
   kube-label-selector: "app=nginx-app"              # Required, if specifying labels or annotations.
-  kube-labels:
-    foo-label: "bar-value"
-  kube-annotations:
-    foo-annotation: "bar-value"
+  kube-actions:
+    labels:
+      foo-label: "bar-value"
+    annotations:
+      foo-annotation: "bar-value"
