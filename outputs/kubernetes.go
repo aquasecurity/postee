@@ -29,9 +29,8 @@ type KubernetesClient struct {
 	Name              string
 	KubeNamespace     string
 	KubeConfigFile    string
-	KubeLabels        map[string]string
 	KubeLabelSelector string
-	KubeAnnotations   map[string]string
+	KubeActions       map[string]map[string]string
 }
 
 func (k KubernetesClient) GetName() string {
@@ -57,23 +56,19 @@ func (k *KubernetesClient) Init() error {
 func (k KubernetesClient) Send(m map[string]string) error {
 	ctx := context.Background()
 
-	if k.KubeNamespace == "" {
-		return fmt.Errorf("kubernetes namespace needs to be set in config yaml")
-	}
-
 	// TODO: Allow configuring of resource {pod, ds, ...}
 	pods, _ := k.clientset.CoreV1().Pods(k.KubeNamespace).List(ctx, metav1.ListOptions{
 		LabelSelector: k.KubeLabelSelector,
 	})
 	for _, pod := range pods.Items {
-		if len(k.KubeLabels) > 0 {
+		if len(k.KubeActions["labels"]) > 0 {
 			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
 				if err != nil {
 					return fmt.Errorf("failed to get updated pod for labeling: %s, err: %w", pod.Name, err)
 				}
 
-				labels := updateMap(pod.GetLabels(), k.KubeLabels)
+				labels := updateMap(pod.GetLabels(), k.KubeActions["labels"])
 				pod.SetLabels(labels)
 				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
 				if err != nil {
@@ -89,14 +84,14 @@ func (k KubernetesClient) Send(m map[string]string) error {
 			}
 		}
 
-		if len(k.KubeAnnotations) > 0 {
+		if len(k.KubeActions["annotations"]) > 0 {
 			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
 				if err != nil {
 					return fmt.Errorf("failed to get updated pod for annotating: %s, err: %w", pod.Name, err)
 				}
 
-				annotations := updateMap(pod.GetAnnotations(), k.KubeAnnotations)
+				annotations := updateMap(pod.GetAnnotations(), k.KubeActions["annotations"])
 				pod.SetAnnotations(annotations)
 				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
 				if err != nil {
