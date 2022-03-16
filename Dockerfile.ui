@@ -6,7 +6,7 @@ RUN yarn install
 RUN yarn build
 
 
-FROM golang:1.17-alpine as gobuilder
+FROM golang:1.18.0-alpine as gobuilder
 
 COPY . /server
 WORKDIR /server/ui/backend
