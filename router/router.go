@@ -270,7 +270,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
-			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
+			log.Printf("route %q contains an output %q, which isn't enabled now.", routeName, outputName)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
@@ -372,6 +372,7 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	err = plg.Init()
 	if err != nil {
 		log.Printf("failed to Init : %v", err)
+		return nil
 	}
 
 	return plg
