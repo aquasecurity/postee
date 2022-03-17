@@ -54,14 +54,13 @@ dockers:
       - rego-filters/
       - cfg.yaml
     build_flag_templates:
-      - "--label=org.label-schema.schema-version=1.0"
-      - "--label=org.label-schema.name={{ .ProjectName }}"
-      - "--label=org.label-schema.description=Command line interface for Postee"
-      - "--label=org.label-schema.vendor=Aqua Security"
-      - "--label=org.label-schema.version={{ .Version }}"
-      - "--label=org.label-schema.build-date={{ .Date }}"
-      - "--label=org.label-schema.vcs=https://github.com/aquasecurity/postee"
-      - "--label=org.label-schema.vcs-ref={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Command line interface for Postee"
+      - "--label=org.opencontainers.image.vendor=Aqua Security"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.source=https://github.com/aquasecurity/postee"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
   - dockerfile: Dockerfile.ui
     use: buildx
     image_templates:
@@ -77,11 +76,10 @@ dockers:
       - cfg.yaml
       - ui/
     build_flag_templates:
-      - "--label=org.label-schema.schema-version=1.0"
-      - "--label=org.label-schema.name={{ .ProjectName }}"
-      - "--label=org.label-schema.description=Postee UI"
-      - "--label=org.label-schema.vendor=Aqua Security"
-      - "--label=org.label-schema.version={{ .Version }}"
-      - "--label=org.label-schema.build-date={{ .Date }}"
-      - "--label=org.label-schema.vcs=https://github.com/aquasecurity/postee"
-      - "--label=org.label-schema.vcs-ref={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Postee UI"
+      - "--label=org.opencontainers.image.vendor=Aqua Security"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.source=https://github.com/aquasecurity/postee"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
