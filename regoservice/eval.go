@@ -106,7 +106,7 @@ func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 	if !ok {
 		return "", errors.New(fmt.Sprintf("property %s is not found", prop))
 	}
-	switch v := expr.(type) {
+	switch v := expr.(type) { // TODO: Use json.Valid() instead
 	case string:
 		return v, nil
 	default:

@@ -19,18 +19,47 @@ func TestKubernetesClient_Send(t *testing.T) {
 	t.Run("labels", func(t *testing.T) {
 		testCases := []struct {
 			name           string
+			inputEvent     string
 			reactorFunc    func(k8stesting.Action) (bool, runtime.Object, error)
+			inputActions   map[string]map[string]string
 			expectedLabels map[string]string
 		}{
 			{
-				name: "happy path, labels are added",
+				name:       "happy path, labels are added",
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
+				inputActions: map[string]map[string]string{
+					"labels": {"foo": "bar"},
+				},
 				expectedLabels: map[string]string{
 					"app": "nginx",
 					"foo": "bar",
 				},
 			},
 			{
-				name: "sad path, unable to add label",
+				name:       "happy path, json input event, relative input labels are added",
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
+				inputActions: map[string]map[string]string{
+					"labels": {"foo": "event.input.SigMetadata.ID"},
+				},
+				expectedLabels: map[string]string{
+					"app": "nginx",
+					"foo": "TRC-2",
+				},
+			},
+			{
+				name:       "happy path, string input event, relative input labels are added",
+				inputEvent: `foo bar baz`,
+				inputActions: map[string]map[string]string{
+					"labels": {"foo": "event.input"},
+				},
+				expectedLabels: map[string]string{
+					"app": "nginx",
+					"foo": "foo bar baz",
+				},
+			},
+			{
+				name:       "sad path, unable to add label",
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
 				reactorFunc: func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, fmt.Errorf("failed to update label")
 				},
@@ -41,58 +70,86 @@ func TestKubernetesClient_Send(t *testing.T) {
 		}
 
 		for _, tc := range testCases {
-			k := KubernetesClient{
-				clientset:     fake.NewSimpleClientset(),
-				KubeNamespace: "testing",
-				KubeActions: map[string]map[string]string{
-					"labels": {"foo": "bar"},
-				},
-				KubeLabelSelector: "app=nginx",
-			}
+			t.Run(tc.name, func(t *testing.T) {
+				k := KubernetesClient{
+					clientset:         fake.NewSimpleClientset(),
+					KubeNamespace:     "testing",
+					KubeActions:       tc.inputActions,
+					KubeLabelSelector: "app=nginx",
+				}
 
-			if tc.reactorFunc != nil {
-				k.clientset.CoreV1().(*fake2.FakeCoreV1).Fake.PrependReactor("update", "pods", func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
-					return true, nil, fmt.Errorf("failed to update label")
-				})
-			}
+				if tc.reactorFunc != nil {
+					k.clientset.CoreV1().(*fake2.FakeCoreV1).Fake.PrependReactor("update", "pods", func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
+						return true, nil, fmt.Errorf("failed to update label")
+					})
+				}
 
-			pod := &v1.Pod{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "Pod",
-					APIVersion: "v1",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-pod",
-					Namespace: "testing",
-					Labels:    map[string]string{"app": "nginx"},
-				},
-			}
+				pod := &v1.Pod{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Pod",
+						APIVersion: "v1",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-pod",
+						Namespace: "testing",
+						Labels:    map[string]string{"app": "nginx"},
+					},
+				}
 
-			_, err := k.clientset.CoreV1().Pods("testing").Create(context.TODO(), pod, metav1.CreateOptions{})
-			require.NoError(t, err, tc.name)
-			require.NoError(t, k.Send(nil), tc.name)
+				_, err := k.clientset.CoreV1().Pods("testing").Create(context.TODO(), pod, metav1.CreateOptions{})
+				require.NoError(t, err, tc.name)
+				require.NoError(t, k.Send(map[string]string{"description": tc.inputEvent}), tc.name)
 
-			pods, _ := k.clientset.CoreV1().Pods("testing").Get(context.TODO(), "test-pod", metav1.GetOptions{})
-			assert.Equal(t, tc.expectedLabels, pods.Labels, tc.name)
+				pods, _ := k.clientset.CoreV1().Pods("testing").Get(context.TODO(), "test-pod", metav1.GetOptions{})
+				assert.Equal(t, tc.expectedLabels, pods.Labels, tc.name)
+			})
 		}
-
 	})
 
 	t.Run("annotations", func(t *testing.T) {
 		testCases := []struct {
 			name                string
+			inputEvent          string
 			reactorFunc         func(k8stesting.Action) (bool, runtime.Object, error)
+			inputActions        map[string]map[string]string
 			expectedAnnotations map[string]string
 		}{
 			{
-				name: "happy path, labels are added",
+				name:       "happy path, labels are added",
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
+				inputActions: map[string]map[string]string{
+					"annotations": {"foo": "bar"},
+				},
 				expectedAnnotations: map[string]string{
 					"app": "nginx",
 					"foo": "bar",
 				},
 			},
 			{
-				name: "sad path, unable to add annotations",
+				name:       "happy path, json input event, relative input annotations are added",
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
+				inputActions: map[string]map[string]string{
+					"annotations": {"foo": "event.input.SigMetadata.ID"},
+				},
+				expectedAnnotations: map[string]string{
+					"app": "nginx",
+					"foo": "TRC-2",
+				},
+			},
+			{
+				name:       "happy path, string input event, relative input annotations are added",
+				inputEvent: `foo bar baz`,
+				inputActions: map[string]map[string]string{
+					"annotations": {"foo": "event.input"},
+				},
+				expectedAnnotations: map[string]string{
+					"app": "nginx",
+					"foo": "foo bar baz",
+				},
+			},
+			{
+				name:       "sad path, unable to add annotations",
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
 				reactorFunc: func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, fmt.Errorf("failed to update label")
 				},
@@ -106,9 +163,7 @@ func TestKubernetesClient_Send(t *testing.T) {
 			k := KubernetesClient{
 				clientset:     fake.NewSimpleClientset(),
 				KubeNamespace: "testing",
-				KubeActions: map[string]map[string]string{
-					"annotations": {"foo": "bar"},
-				},
+				KubeActions:   tc.inputActions,
 			}
 
 			if tc.reactorFunc != nil {
@@ -130,7 +185,7 @@ func TestKubernetesClient_Send(t *testing.T) {
 
 			_, err := k.clientset.CoreV1().Pods("testing").Create(context.TODO(), pod, metav1.CreateOptions{})
 			require.NoError(t, err, tc.name)
-			require.NoError(t, k.Send(nil), tc.name)
+			require.NoError(t, k.Send(map[string]string{"description": tc.inputEvent}), tc.name)
 
 			pods, _ := k.clientset.CoreV1().Pods("testing").Get(context.TODO(), "test-pod", metav1.GetOptions{})
 			assert.Equal(t, tc.expectedAnnotations, pods.Annotations, tc.name)
