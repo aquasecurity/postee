@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -134,10 +133,6 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 
 	if len(sourceSettings.BodyFile) > 0 && len(sourceSettings.BodyContent) > 0 {
 		return nil, fmt.Errorf("http action requires only supports body-file or body-content, not both")
-	}
-
-	if len(sourceSettings.BodyFile) <= 0 && len(sourceSettings.BodyContent) <= 0 {
-		log.Println("no body specified with http action, will send empty body")
 	}
 
 	var duration time.Duration
