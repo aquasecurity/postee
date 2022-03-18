@@ -2,15 +2,22 @@ package outputs
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/tidwall/gjson"
+)
+
+var (
+	regoInputRegex = fmt.Sprintf(`(%s).*(.*)`, regoInputPrefix)
 )
 
 type HTTPClient struct {
@@ -57,7 +64,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 	}
 
 	if len(hc.BodyContent) > 0 {
-		req.Body = io.NopCloser(strings.NewReader(hc.BodyContent))
+		req.Body = io.NopCloser(strings.NewReader(parseBody(m, hc.BodyContent)))
 	}
 
 	resp, err := hc.Client.Do(req)
@@ -78,6 +85,24 @@ func (hc HTTPClient) Send(m map[string]string) error {
 
 	log.Printf("http %s execution to url %s successful", hc.Method, hc.URL)
 	return nil
+}
+
+func parseBody(inputEvent map[string]string, bodyContent string) string {
+	re := regexp.MustCompile(regoInputRegex)
+	subs := re.FindAllString(bodyContent, -1)
+	if subs == nil {
+		return bodyContent
+	}
+
+	for _, sub := range subs {
+		if ok := json.Valid([]byte(inputEvent["description"])); ok {
+			bodyContent = strings.Replace(bodyContent, sub, gjson.Get(inputEvent["description"], strings.TrimPrefix(sub, "event.input.")).String(), 1)
+		} else {
+			bodyContent = strings.Replace(bodyContent, "event.input", inputEvent["description"], 1)
+		}
+	}
+
+	return bodyContent
 }
 
 func (hc HTTPClient) Terminate() error {
