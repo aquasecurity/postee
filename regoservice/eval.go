@@ -14,6 +14,7 @@ import (
 const (
 	result_prop          = "result"
 	title_prop           = "title"
+	url_prop             = "url"
 	aggregation_pkg_prop = "aggregation_pkg"
 )
 
@@ -67,10 +68,15 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		return nil, err
 	}
 
+	shortMessageUrl, ok := data[url_prop].(string)
+	if !ok {
+		shortMessageUrl = ""
+	}
+
 	return map[string]string{
 		"title":       title,
 		"description": description,
-		"url":         serverUrl,
+		"url":         shortMessageUrl,
 	}, nil
 
 }
@@ -127,6 +133,8 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 
 		item["title"] = scan["title"]
 
+		item[url_prop] = scan[url_prop]
+
 		aggregatedJson = append(aggregatedJson, item)
 	}
 
@@ -157,9 +165,15 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 		return nil, err
 	}
 
+	shortMessageUrl, ok := data[url_prop].(string)
+	if !ok {
+		shortMessageUrl = ""
+	}
+
 	return map[string]string{
 		"title":       title,
 		"description": description,
+		"url":         shortMessageUrl,
 	}, nil
 }
 

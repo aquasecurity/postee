@@ -65,9 +65,9 @@ func validateInputValue(t *testing.T, caseDesc string, input []byte, shouldPass 
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		dbservice.ChangeDbPath(dbPathReal)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	dbservice.ChangeDbPath("test_webhooks.db")
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -104,9 +104,9 @@ func TestEvalError(t *testing.T) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		dbservice.ChangeDbPath(dbPathReal)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	dbservice.ChangeDbPath("test_webhooks.db")
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -137,9 +137,9 @@ func TestAggrEvalError(t *testing.T) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		dbservice.ChangeDbPath(dbPathReal)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	dbservice.ChangeDbPath("test_webhooks.db")
 
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
@@ -173,9 +173,9 @@ func TestEmptyInput(t *testing.T) {
 	dbPathReal := dbservice.DbPath
 	defer func() {
 		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
+		dbservice.ChangeDbPath(dbPathReal)
 	}()
-	dbservice.DbPath = "test_webhooks.db"
+	dbservice.ChangeDbPath("test_webhooks.db")
 
 	srvUrl := ""
 

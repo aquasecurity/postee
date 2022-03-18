@@ -13,8 +13,17 @@ var (
 package rego1
 title:="Audit event received"
 result:=sprintf("Audit event received from %s", [input.user])	
+url:="Audit-registry-received/Audit-image-received"
 `
 	regoJson = `
+package rego1
+title:="Audit event received"
+result:={
+	"assignee": input.user
+}
+url:="Audit-registry-received/Audit-image-received"
+`
+	regoJsonWithoutUrl = `
 package rego1
 title:="Audit event received"
 result:={
@@ -37,6 +46,7 @@ default input = false
 package postee.rego1
 title:="Audit event received"
 result:=sprintf("Audit event received from %s", [input.user])	
+url:="Audit-registry-received/Audit-image-received"
 `
 
 	input = `{
@@ -72,6 +82,7 @@ func TestEval(t *testing.T) {
 			expectedValues: map[string]string{
 				"title":       "Audit event received",
 				"description": "Audit event received from demo",
+				"url":         "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
@@ -82,6 +93,7 @@ func TestEval(t *testing.T) {
 			expectedValues: map[string]string{
 				"title":       "Audit event received",
 				"description": "Audit event received from demo",
+				"url":         "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
@@ -92,6 +104,18 @@ func TestEval(t *testing.T) {
 			expectedValues: map[string]string{
 				"title":       "Audit event received",
 				"description": `{"assignee":"demo"}`,
+				"url":         "Audit-registry-received/Audit-image-received",
+			},
+		},
+		{
+			regoRule:    &regoJsonWithoutUrl,
+			caseDesc:    "producing json output",
+			input:       &input,
+			regoPackage: "rego1",
+			expectedValues: map[string]string{
+				"title":       "Audit event received",
+				"description": `{"assignee":"demo"}`,
+				"url":         "",
 			},
 		},
 		/* cases which should fail are below*/

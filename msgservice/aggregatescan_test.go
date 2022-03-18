@@ -32,19 +32,19 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 		},
 	}
 
+	dbPathReal := dbservice.DbPath
+	defer func() {
+		os.Remove(dbservice.DbPath)
+		dbservice.ChangeDbPath(dbPathReal)
+	}()
+	dbservice.ChangeDbPath("test_webhooks.db")
+
 	for _, test := range tests {
 		doAggregate(t, test.caseDesc, test.expectedSntCnt, test.expectedRenderCnt, test.expectedAggrRenderCnt, test.skipAggrSpprt)
 	}
 
 }
 func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRenderCnt int, expectedAggrRenderCnt int, skipAggrSpprt bool) {
-	dbPathReal := dbservice.DbPath
-	defer func() {
-		os.Remove(dbservice.DbPath)
-		dbservice.DbPath = dbPathReal
-	}()
-	dbservice.DbPath = "test_webhooks.db"
-
 	demoEmailOutput := &DemoEmailOutput{
 		emailCounts: 0,
 	}
@@ -72,14 +72,14 @@ func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRend
 	demoEmailOutput.wg.Wait()
 
 	if demoEmailOutput.getEmailsCount() != expectedSntCnt {
-		t.Errorf("The number of sent email doesn't match expected value. Sent: %d, expected: %d ", demoEmailOutput.getEmailsCount(), expectedSntCnt)
+		t.Errorf("%s: The number of sent email doesn't match expected value. Sent: %d, expected: %d ", caseDesc, demoEmailOutput.getEmailsCount(), expectedSntCnt)
 	}
 
 	if demoInptEval.renderCnt != expectedRenderCnt {
-		t.Errorf("The number of render procedure invocations doesn't match expected value. It's called %d times, expected: %d ", demoInptEval.renderCnt, expectedRenderCnt)
+		t.Errorf("%s: The number of render procedure invocations doesn't match expected value. It's called %d times, expected: %d ", caseDesc, demoInptEval.renderCnt, expectedRenderCnt)
 	}
 
 	if demoInptEval.aggrCnt != expectedAggrRenderCnt {
-		t.Errorf("The number of aggregation procedure invocations doesn't match expected value. It's called %d times, expected: %d ", demoInptEval.aggrCnt, expectedAggrRenderCnt)
+		t.Errorf("%s: The number of aggregation procedure invocations doesn't match expected value. It's called %d times, expected: %d ", caseDesc, demoInptEval.aggrCnt, expectedAggrRenderCnt)
 	}
 }

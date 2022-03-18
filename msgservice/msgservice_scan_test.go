@@ -133,7 +133,7 @@ func Equal(A, B *data.ScanImageInfo) bool {
 func BenchmarkGenTicketDescription(b *testing.B) {
 	provider := new(formatting.JiraLayoutProvider)
 	for i := 0; i < b.N; i++ {
-		layout.GenTicketDescription(provider, &AlpineImageResult, nil, "https://demolab.aquasec.com/")
+		layout.GenTicketDescription(provider, &AlpineImageResult, nil, "https://demolab.aquasec.com/", "")
 	}
 }
 
@@ -153,7 +153,7 @@ func TestGenTicketDescription(t *testing.T) {
 
 	for _, provider := range providers {
 		for _, test := range tests {
-			got := layout.GenTicketDescription(provider, test.currentScan, test.previousScan, "https://demolab.aquasec.com")
+			got := layout.GenTicketDescription(provider, test.currentScan, test.previousScan, "https://demolab.aquasec.com", "")
 			important := getImportantData(test.currentScan)
 			for k, v := range important {
 				if !strings.Contains(got, k) {
@@ -162,4 +162,29 @@ func TestGenTicketDescription(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestGenTicketDescriptionFieldSeeMore(t *testing.T) {
+	var tests = []struct {
+		name           string
+		serverUrl      string
+		image_url_part string
+		expectedSuffix string
+	}{
+		{"serverUrl is fill", "https://demolab.aquasec.com/", "alpine:3.9.6",
+			"|CVE-2019-5747|busybox|1.28.4-r3|none|\n\nSee more: [https://demolab.aquasec.com/alpine:3.9.6|https://demolab.aquasec.com/alpine:3.9.6]\n"},
+		{"serverUrl is empty", "", "alpine:3.9.6",
+			"|CVE-2019-5747|busybox|1.28.4-r3|none|\n\n"},
+	}
+
+	provider := new(formatting.JiraLayoutProvider)
+	scan := &AlpineImageResult
+
+	for _, test := range tests {
+		got := layout.GenTicketDescription(provider, scan, nil, test.serverUrl, test.image_url_part)
+		if !strings.HasSuffix(got, test.expectedSuffix) {
+			t.Errorf("Rendered data doesn't have expected suffix:%s, got:%s", test.expectedSuffix, got)
+		}
+	}
+
 }

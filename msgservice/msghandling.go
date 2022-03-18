@@ -82,7 +82,11 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 				log.Printf("Error while building aggregated content: %v", err)
 				return
 			}
-			send(output, content)
+			if route.SerializeOutputs {
+				send(output, content)
+			} else {
+				go send(output, content)
+			}
 		}
 	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
 		AggregateScanAndGetQueue(route.Name, content, 0, true)
@@ -94,8 +98,11 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 			log.Printf("%s is already scheduled\n", route.Name)
 		}
 	} else {
-		send(output, content)
-
+		if route.SerializeOutputs {
+			send(output, content)
+		} else {
+			go send(output, content)
+		}
 	}
 }
 
@@ -127,14 +134,12 @@ func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input []byte) boo
 }
 
 func send(otpt outputs.Output, cnt map[string]string) {
-	go func() {
-		err := otpt.Send(cnt)
-		if err != nil {
-			log.Printf("Error while sending event: %v", err)
-		}
-	}()
+	err := otpt.Send(cnt)
+	if err != nil {
+		log.Printf("Error while sending event: %v", err)
+	}
 
-	err := dbservice.RegisterPlgnInvctn(otpt.GetName())
+	err = dbservice.RegisterPlgnInvctn(otpt.GetName())
 	if err != nil {
 		log.Printf("Error while building aggregated content: %v", err)
 		return

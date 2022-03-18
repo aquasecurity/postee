@@ -26,7 +26,7 @@ tpl:=`
 %s
 <!-- Negligible severity vulnerabilities -->
 %s
-<p>See more: <a href='%s'>%s</a></p>
+%s
 `
 
 vlnrb_tpl = `
@@ -164,6 +164,7 @@ aqua_server := with_default(postee, "AquaServer", "")
 title = sprintf("%s vulnerability scan report", [input.image])
 href := sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
 text := sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
+url := by_flag("", href, aqua_server == "")
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
@@ -195,7 +196,9 @@ result = msg {
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
 
-    href, #src for link
-    text #title for link
+    by_flag(
+     "", 
+     sprintf(`<p>See more: <a href='%s'>%s</a></p>`,[href, text]), #link
+     aqua_server == "")
     ])
 }

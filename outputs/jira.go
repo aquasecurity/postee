@@ -19,6 +19,13 @@ import (
 	"github.com/aquasecurity/go-jira"
 )
 
+const (
+	defaultIssueType      = "Task"
+	defaultIssuePriority  = "High"
+	defaultSprintPlugin   = "com.pyxis.greenhopper.jira:gh-sprint"
+	NotConfiguredSprintId = -1
+)
+
 type JiraAPI struct {
 	Name            string
 	Url             string
@@ -48,7 +55,7 @@ func (ctx *JiraAPI) GetName() string {
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
-	client, err := ctx.createClient()
+	client, err := createClient(ctx)
 	if err != nil {
 		log.Printf("unable to create Jira client: %s, please check your credentials.", err)
 		return
@@ -78,7 +85,7 @@ func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	}
 }
 
-func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
+func (ctx *JiraAPI) fetchSprintId(client *jira.Client) {
 	sprints, _, err := client.Board.GetAllSprintsWithOptions(ctx.boardId, &jira.GetAllSprintsOptions{State: "active"})
 	if err != nil {
 		log.Printf("failed to get active sprint for board ID %d from Jira API. %s", ctx.boardId, err)
@@ -150,7 +157,7 @@ func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 	}
 }
 
-func (ctx *JiraAPI) createClient() (*jira.Client, error) {
+var createClient = func(ctx *JiraAPI) (*jira.Client, error) {
 	tpClient, err := ctx.buildTransportClient()
 	if err != nil {
 		return nil, fmt.Errorf("unable to create new JIRA client. %w", err)
@@ -163,19 +170,24 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 }
 
 func (ctx *JiraAPI) Send(content map[string]string) error {
-	client, err := ctx.createClient()
+	client, err := createClient(ctx)
 	if err != nil {
 		log.Printf("unable to create Jira client: %s", err)
 		return err
 	}
 
 	if ctx.boardType == "scrum" {
-		ctx.fetchSprintId(*client)
+		ctx.fetchSprintId(client)
 	}
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
 		return fmt.Errorf("Failed to create meta project: %w", err)
+	}
+
+	ctx.Issuetype, err = getIssueType(ctx, metaProject)
+	if err != nil {
+		return fmt.Errorf("Failed to get issuetype: %w", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
@@ -186,36 +198,13 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	ctx.Summary = content["title"]
 	ctx.Description = content["description"]
 
-	assignee := ctx.User
-	if len(ctx.Assignee) > 0 {
-		assignees := getHandledRecipients(ctx.Assignee, &content, ctx.Name)
-		if len(assignees) > 0 {
-			assignee = assignees[0]
-		}
-	}
-
-	fieldsConfig := map[string]string{
-		"Issue Type":  ctx.Issuetype,
-		"Project":     ctx.ProjectKey,
-		"Priority":    ctx.Priority,
-		"Assignee":    assignee,
-		"Description": ctx.Description,
-		"Summary":     ctx.Summary,
-	}
-	if ctx.SprintId > 0 {
-		fieldsConfig["Sprint"] = strconv.Itoa(ctx.SprintId)
-	}
-
-	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom User defined in jira.
-	for k, v := range ctx.Unknowns {
-		fieldsConfig[k] = v
-	}
-	if len(ctx.Unknowns) > 0 {
-		log.Printf("added %d custom fields to issue.", len(ctx.Unknowns))
-	}
-
 	type Version struct {
 		Name string `json:"name"`
+	}
+
+	fieldsConfig, err := createFieldsConfig(ctx, client, &content)
+	if err != nil {
+		return fmt.Errorf("Failed to create fields config: %w", err)
 	}
 
 	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, isServerJira(ctx.Url))
@@ -285,6 +274,124 @@ func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error
 	return metaProject, nil
 }
 
+func getIssueType(ctx *JiraAPI, metaProject *jira.MetaProject) (string, error) {
+	if ctx.Issuetype != "" {
+		if validateIssueType(ctx.Issuetype, metaProject) { // check IssueType from context
+			return ctx.Issuetype, nil
+		} else {
+			return "", fmt.Errorf("project %q doesn't have issueType %q", metaProject.Name, ctx.Issuetype)
+		}
+	} else {
+		if validateIssueType(defaultIssueType, metaProject) { // check default Issue Type
+			return defaultIssueType, nil
+		}
+		if len(metaProject.IssueTypes) > 0 { // use 1st issueType from REST API
+			return metaProject.IssueTypes[0].Name, nil
+		} else {
+			return "", fmt.Errorf("project %q doesn't have issueTypes", metaProject.Name)
+		}
+	}
+}
+
+func validateIssueType(issueType string, metaProject *jira.MetaProject) bool {
+	for _, it := range metaProject.IssueTypes { // get issueTypes list from REST API
+		if issueType == it.Name {
+			return true
+		}
+	}
+	return false
+}
+
+var getIssuePriority = func(ctx *JiraAPI, client *jira.Client) (string, error) {
+	issuePriorityList, _, err := client.Priority.GetList()
+	if err != nil {
+		return "", err
+	}
+
+	if ctx.Priority != "" {
+		if validateIssuePriority(ctx.Priority, issuePriorityList) { // check Priority from context
+			return ctx.Priority, nil
+		} else {
+			return "", fmt.Errorf("project doesn't have issue priority %q", ctx.Priority)
+		}
+	} else {
+		if validateIssuePriority(defaultIssuePriority, issuePriorityList) { // check default Priority
+			return defaultIssuePriority, nil
+		} else {
+			if len(issuePriorityList) > 0 {
+				return issuePriorityList[0].Name, nil // use 1st priority from REST API
+			} else {
+				return "", fmt.Errorf("project doesn't have issue priorities")
+			}
+		}
+	}
+}
+
+func validateIssuePriority(priority string, priorityList []jira.Priority) bool {
+	for _, p := range priorityList {
+		if priority == p.Name {
+			return true
+		}
+	}
+	return false
+}
+
+func createFieldsConfig(ctx *JiraAPI, client *jira.Client, content *map[string]string) (map[string]string, error) {
+	fields, _, err := client.Field.GetList()
+	if err != nil {
+		return nil, err
+	}
+
+	assignee := ctx.User
+	if len(ctx.Assignee) > 0 {
+		assignees := getHandledRecipients(ctx.Assignee, content, ctx.Name)
+		if len(assignees) > 0 {
+			assignee = assignees[0]
+		}
+	}
+
+	ctx.Priority, err = getIssuePriority(ctx, client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get issue priority: %w", err)
+	}
+
+	fieldsConfig := make(map[string]string)
+
+	for _, field := range fields {
+		switch field.ID {
+		case "issuetype":
+			fieldsConfig[field.Name] = ctx.Issuetype
+		case "project":
+			fieldsConfig[field.Name] = ctx.ProjectKey
+		case "priority":
+			fieldsConfig[field.Name] = ctx.Priority
+		case "assignee":
+			fieldsConfig[field.Name] = assignee
+		case "description":
+			fieldsConfig[field.Name] = ctx.Description
+		case "summary":
+			fieldsConfig[field.Name] = ctx.Summary
+		default:
+			// Sprint is jira custom field. We found field.Name for sprint by plugin name.
+			// "com.pyxis.greenhopper.jira:gh-sprint" is custom field that come bundled with Jira.
+			// https://support.atlassian.com/jira-cloud-administration/docs/import-data-from-json
+			if ctx.SprintId > 0 && field.Schema.Custom == defaultSprintPlugin {
+				fieldsConfig[field.Name] = strconv.Itoa(ctx.SprintId)
+			}
+		}
+	}
+
+	//Add all custom fields that are unknown to fieldsConfig. Unknown are fields that are custom User defined in jira.
+	for k, v := range ctx.Unknowns {
+		fieldsConfig[k] = v
+	}
+	if len(ctx.Unknowns) > 0 {
+		log.Printf("added %d custom fields to issue.", len(ctx.Unknowns))
+	}
+
+	return fieldsConfig, nil
+}
+
 func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira.MetaIssueType, error) {
 	metaIssuetype := metaProject.GetIssueTypeWithName(issueType)
 	if metaIssuetype == nil {
@@ -336,7 +443,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 				if key == "Sprint" {
 					num, err := strconv.Atoi(value)
 					if err != nil {
-						return nil, err
+						return nil, fmt.Errorf("Failed convert 'Sprint' value(string) to int: %w\n", err)
 					}
 					issueFields.Unknowns[jiraKey] = num // Due to Jira REST API behavior, needed to specify not a slice but a number.
 				} else {
@@ -346,7 +453,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 		case "number":
 			val, err := strconv.Atoi(value)
 			if err != nil {
-				fmt.Printf("Failed convert value(string) to int: %s\n", err)
+				return nil, fmt.Errorf("Failed convert '%s' value(string) to int: %w\n", key, err)
 			}
 			issueFields.Unknowns[jiraKey] = val
 

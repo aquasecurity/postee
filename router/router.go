@@ -23,9 +23,6 @@ import (
 )
 
 const (
-	IssueTypeDefault = "Task"
-	PriorityDefault  = "High"
-
 	ServiceNowTableDefault = "incident"
 	AnonymizeReplacement   = "<hidden>"
 )
@@ -273,7 +270,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
-			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
+			log.Printf("route %q contains an output %q, which isn't enabled now.", routeName, outputName)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
@@ -283,7 +280,12 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 			continue
 		}
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
-		go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+
+		if r.SerializeOutputs {
+			getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+		} else {
+			go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
+		}
 	}
 }
 
@@ -340,9 +342,25 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	case "nexusIq":
 		plg = buildNexusIqOutput(settings)
 	case "exec":
-		plg = buildExecOutput(settings)
+		plg, err = buildExecOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	case "http":
 		plg, err = buildHTTPOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
+	case "kubernetes":
+		plg, err = buildKubernetesOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
+	case "docker":
+		plg, err = buildDockerOutput(settings)
 		if err != nil {
 			log.Println(err.Error())
 			return nil
@@ -356,6 +374,7 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	err = plg.Init()
 	if err != nil {
 		log.Printf("failed to Init : %v", err)
+		return nil
 	}
 
 	return plg

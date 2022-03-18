@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -26,8 +25,9 @@ func buildSplunkOutput(sourceSettings *OutputSettings) *outputs.SplunkOutput {
 
 func buildWebhookOutput(sourceSettings *OutputSettings) *outputs.WebhookOutput {
 	return &outputs.WebhookOutput{
-		Name: sourceSettings.Name,
-		Url:  sourceSettings.Url,
+		Name:    sourceSettings.Name,
+		Url:     sourceSettings.Url,
+		Timeout: sourceSettings.Timeout,
 	}
 }
 
@@ -100,27 +100,39 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 		Labels:          sourceSettings.Labels,
 		Unknowns:        sourceSettings.Unknowns,
 		SprintName:      sourceSettings.Sprint,
-		SprintId:        -1,
+		SprintId:        outputs.NotConfiguredSprintId,
 		BoardName:       sourceSettings.BoardName,
 	}
-	if jiraApi.Issuetype == "" {
-		jiraApi.Issuetype = IssueTypeDefault
-	}
-	if jiraApi.Priority == "" {
-		jiraApi.Priority = PriorityDefault
-	}
+
 	if len(jiraApi.Assignee) == 0 {
 		jiraApi.Assignee = []string{jiraApi.User}
 	}
 	return jiraApi
 }
 
-func buildExecOutput(sourceSettings *OutputSettings) *outputs.ExecClient {
-	return &outputs.ExecClient{
-		Name:      sourceSettings.Name,
-		Env:       sourceSettings.Env,
-		InputFile: sourceSettings.InputFile,
+func buildExecOutput(sourceSettings *OutputSettings) (*outputs.ExecClient, error) {
+	if len(sourceSettings.InputFile) <= 0 && len(sourceSettings.ExecScript) <= 0 {
+		return nil, fmt.Errorf("exec action requires either input-file or exec-script to be set")
 	}
+
+	if len(sourceSettings.InputFile) > 0 && len(sourceSettings.ExecScript) > 0 {
+		return nil, fmt.Errorf("exec action only takes either input-file or exec-script, not both")
+	}
+
+	ec := &outputs.ExecClient{
+		Name: sourceSettings.Name,
+		Env:  sourceSettings.Env,
+	}
+
+	if len(sourceSettings.InputFile) > 0 {
+		ec.InputFile = sourceSettings.InputFile
+	}
+
+	if len(sourceSettings.ExecScript) > 0 {
+		ec.ExecScript = sourceSettings.ExecScript
+	}
+
+	return ec, nil
 }
 
 func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error) {
@@ -144,21 +156,44 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		return nil, fmt.Errorf("error building HTTP url: %w", err)
 	}
 
-	var body []byte
-	if len(sourceSettings.BodyFile) > 0 {
-		var err error
-		body, err = ioutil.ReadFile(sourceSettings.BodyFile)
-		if err != nil {
-			return nil, fmt.Errorf("http action unable to specified body-file: %s, err: %w", sourceSettings.BodyFile, err)
-		}
+	return &outputs.HTTPClient{
+		Name:     sourceSettings.Name,
+		Client:   http.Client{Timeout: duration},
+		URL:      reqUrl,
+		Method:   strings.ToUpper(sourceSettings.Method),
+		BodyFile: sourceSettings.BodyFile,
+		Headers:  sourceSettings.Headers,
+	}, nil
+}
+
+func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesClient, error) {
+	if sourceSettings.KubeConfigFile == "" {
+		return nil, fmt.Errorf("kubernetes config file needs to be set in config yaml")
 	}
 
-	return &outputs.HTTPClient{
-		Name:    sourceSettings.Name,
-		Client:  http.Client{Timeout: duration},
-		URL:     reqUrl,
-		Method:  strings.ToUpper(sourceSettings.Method),
-		Body:    string(body),
-		Headers: sourceSettings.Headers,
+	if sourceSettings.KubeNamespace == "" {
+		return nil, fmt.Errorf("kubernetes namespace needs to be set in config yaml")
+	}
+
+	return &outputs.KubernetesClient{
+		Name:              sourceSettings.Name,
+		KubeNamespace:     sourceSettings.KubeNamespace,
+		KubeConfigFile:    sourceSettings.KubeConfigFile,
+		KubeLabelSelector: sourceSettings.KubeLabelSelector,
+		KubeActions:       sourceSettings.KubeActions,
+	}, nil
+}
+
+func buildDockerOutput(sourceSettings *OutputSettings) (*outputs.DockerClient, error) {
+	if len(sourceSettings.DockerImageName) < 0 {
+		return nil, fmt.Errorf("docker action requires an image name")
+	}
+
+	return &outputs.DockerClient{
+		Name:      sourceSettings.Name,
+		ImageName: sourceSettings.DockerImageName,
+		Cmd:       sourceSettings.DockerCmd,
+		Volumes:   sourceSettings.DockerVolumes,
+		Env:       sourceSettings.DockerEnv,
 	}, nil
 }
