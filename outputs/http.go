@@ -30,21 +30,20 @@ func (hc *HTTPClient) Init() error {
 }
 
 func (hc HTTPClient) Send(m map[string]string) error {
-	headers := make(map[string][]string)
-	for k, v := range hc.Headers {
-		headers[k] = v
-	}
-
 	// encode headers as base64 to conform HTTP spec
 	// https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
 	pe := base64.StdEncoding.EncodeToString([]byte(m["description"]))
 
-	headers["POSTEE_EVENT"] = []string{pe} // preserve and transmit postee header
+	req, err := http.NewRequest(hc.Method, hc.URL.String(), nil)
+	if err != nil {
+		return fmt.Errorf("unable to initialize http request err: %w", err)
+	}
 
-	req := &http.Request{
-		Method: hc.Method,
-		URL:    hc.URL,
-		Header: headers,
+	req.Header.Add("Postee-Event", pe) // preserve and transmit postee header
+	for k, vals := range hc.Headers {
+		for _, val := range vals {
+			req.Header.Add(k, val)
+		}
 	}
 
 	if len(hc.BodyFile) > 0 {

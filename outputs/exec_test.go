@@ -33,9 +33,9 @@ func TestExecClient_Init(t *testing.T) {
 }
 
 func TestExecClient_GetName(t *testing.T) {
-	ec := ExecClient{}
+	ec := ExecClient{Name: "my-exec-output"}
 	require.NoError(t, ec.Init())
-	require.Equal(t, "Exec Output", ec.GetName())
+	require.Equal(t, "my-exec-output", ec.GetName())
 }
 
 func TestExecClient_Send(t *testing.T) {

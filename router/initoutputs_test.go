@@ -296,7 +296,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				Type:      "exec",
 			},
 			map[string]interface{}{
-				"Name":      "Exec Output",
+				"Name":      "my-exec-output",
 				"InputFile": "goldens/test.txt",
 			},
 			false,
@@ -311,7 +311,7 @@ echo "foo bar"`,
 				Type: "exec",
 			},
 			map[string]interface{}{
-				"Name": "Exec Output",
+				"Name": "my-exec-output",
 				"ExecScript": `#!/bin/sh
 echo "foo bar"`,
 			},
