@@ -238,9 +238,9 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"*outputs.SplunkOutput",
 		},
 		{
-			"HTTP Action output, with a timeout & body specified",
+			"HTTP Action output, with a timeout & body file specified",
 			OutputSettings{
-				Method:   "GET",
+				Method:   "POST",
 				Timeout:  "10s",
 				Url:      "https://foo.bar.com",
 				Name:     "my-http-output",
@@ -249,11 +249,44 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			},
 			map[string]interface{}{
 				"Name":     "my-http-output",
-				"Method":   "GET",
+				"Method":   "POST",
 				"BodyFile": "goldens/test.txt",
 			},
 			false,
 			"*outputs.HTTPClient",
+		},
+		{
+			"HTTP Action output, with a timeout & body content specified",
+			OutputSettings{
+				Method:      "POST",
+				Timeout:     "10s",
+				Url:         "https://foo.bar.com",
+				Name:        "my-http-output",
+				Type:        "http",
+				BodyContent: "foo bar baz body",
+			},
+			map[string]interface{}{
+				"Name":        "my-http-output",
+				"Method":      "POST",
+				"BodyContent": "foo bar baz body",
+			},
+			false,
+			"*outputs.HTTPClient",
+		},
+		{
+			"HTTP Action output, with a timeout & both body content and file specified",
+			OutputSettings{
+				Method:      "POST",
+				Timeout:     "10s",
+				Url:         "https://foo.bar.com",
+				Name:        "my-http-output",
+				Type:        "http",
+				BodyFile:    "goldens/test.txt",
+				BodyContent: "foo bar baz body",
+			},
+			map[string]interface{}{},
+			true,
+			"<nil>",
 		},
 		{
 			"HTTP Action output, with no method specified",

@@ -30,28 +30,13 @@ outputs:
   enable: true
 
 # Define a custom output of exec action, that can take params.
-- name: my-exec
-  type: exec
-  enable: true
-  env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
-  input-file: /tmp/exec-test.sh                        # Specify the path to the script to run
-
 - name: my-exec-2
   type: exec
   enable: true
   env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
   exec-script: |                                       # Specify the script to run
     #!/bin/sh
-    echo "hello world"
-
-- name: my-http-get
-  type: http
-  enable: true
-  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
-  method: GET                         # Required. Method to use. CONNECT is not supported at this time
-  headers:                            # Optional. Headers to pass in for the request
-    "Foo": ["bar", "baz"]
-  timeout: 1s                         # Optional. Timeout value in XX(s,m,h)
+    echo $POSTEE_EVENT
 
 - name: my-http-post
   type: http
@@ -59,6 +44,10 @@ outputs:
   url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
   method: POST                        # Required. Method to use. CONNECT is not supported at this time
   headers:                            # Optional. Headers to pass in for the request.
-    "Foo": ["bar", "baz"]
-  timeout: 10s                        # Optional. Timeout value in XX(s,m,h)
-  bodyFile: /tmp/tracee.event.logs    # Optional. Body of the HTTP request
+    "Foo": ["bar"]
+    "Haz": ["baz"]
+  timeout: 10s                          # Optional. Timeout value in XX(s,m,h)
+#  body-file: /tmp/tracee.event.logs    # Optional. Body file of the HTTP request
+  body-content: |                       # Optional. Body inline content of the HTTP request
+    This is an example of a inline body
+    Event ID: event.input.Signature.ID

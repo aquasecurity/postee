@@ -8,17 +8,19 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
 type HTTPClient struct {
-	Name     string
-	Client   http.Client
-	URL      *url.URL
-	Method   string
-	BodyFile string
-	Headers  map[string][]string
+	Name        string
+	Client      http.Client
+	URL         *url.URL
+	Method      string
+	BodyFile    string
+	BodyContent string
+	Headers     map[string][]string
 }
 
 func (hc *HTTPClient) GetName() string {
@@ -52,6 +54,10 @@ func (hc HTTPClient) Send(m map[string]string) error {
 			return fmt.Errorf("unable to read body file: %s, err: %w", hc.BodyFile, err)
 		}
 		req.Body = bf
+	}
+
+	if len(hc.BodyContent) > 0 {
+		req.Body = io.NopCloser(strings.NewReader(hc.BodyContent))
 	}
 
 	resp, err := hc.Client.Do(req)
