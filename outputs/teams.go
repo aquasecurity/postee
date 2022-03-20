@@ -36,13 +36,13 @@ func (teams *TeamsOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (teams *TeamsOutput) Init() error {
-	log.Logger.Infof("Starting MS Teams output %q....", teams.Name)
+	log.Logger.Infof("Init MS Teams output %q", teams.Name)
 	teams.teamsLayout = new(formatting.HtmlProvider)
 	return nil
 }
 
 func (teams *TeamsOutput) Send(input map[string]string) error {
-	log.Logger.Infof("Sending to MS Teams via %q...", teams.Name)
+	log.Logger.Infof("Sending to MS Teams via %q", teams.Name)
 	log.Logger.Debugf("Title for %q: %q", teams.Name, input["title"])
 	log.Logger.Debugf("Url(s) for %q: %q", teams.Name, input["url"])
 	log.Logger.Debugf("Webhook for %q: %q", teams.Name, teams.Webhook)
@@ -72,7 +72,7 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 		return err
 	}
 
-	log.Logger.Infof("Sending to MS Teams via %q was successful!", teams.Name)
+	log.Logger.Debugf("Sending to MS Teams via %q was successful!", teams.Name)
 	return nil
 }
 

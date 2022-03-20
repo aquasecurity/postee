@@ -8,6 +8,7 @@ import (
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
+	"github.com/aquasecurity/postee/v2/log"
 	rego_templates "github.com/aquasecurity/postee/v2/rego-templates"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
@@ -45,8 +46,19 @@ func WithNewConfig(tenantName string) error { //tenant name
 	return nil
 }
 
-// New - initialize new postee library instance
-func New() error {
+// New - initialize new postee library instance (with optional logger instance)
+func New(logger ...log.LoggerType) error {
+	Instance(logger...).Terminate()
+	Instance().cleanChannels(true)
+	err := Instance().embedTemplates()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// WithLogger - initialize new postee library instance
+func WithLogger(logger log.LoggerType) error {
 	Instance().Terminate()
 	Instance().cleanChannels(true)
 	err := Instance().embedTemplates()

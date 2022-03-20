@@ -36,29 +36,29 @@ func (sn *ServiceNowOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (sn *ServiceNowOutput) Init() error {
-	log.Logger.Infof("Starting ServiceNow output %q....", sn.Name)
-	log.Logger.Infof("Your ServiceNow Table is %q on '%s.%s'", sn.Table, sn.Instance, servicenow.BaseServer)
+	log.Logger.Infof("Init ServiceNow output %q", sn.Name)
+	log.Logger.Debugf("Your ServiceNow Table is %q on '%s.%s'", sn.Table, sn.Instance, servicenow.BaseServer)
 	sn.layoutProvider = new(formatting.HtmlProvider)
 	return nil
 }
 
 func (sn *ServiceNowOutput) Send(content map[string]string) error {
-	log.Logger.Infof("Sending via ServiceNow %q", sn.Name)
+	log.Logger.Infof("Sending to ServiceNow via %q", sn.Name)
 	d := &servicenow.ServiceNowData{
 		ShortDescription: content["title"],
 		WorkNotes:        "[code]" + content["description"] + "[/code]",
 	}
 	body, err := json.Marshal(d)
 	if err != nil {
-		log.Logger.Error("ServiceNow Error:", err)
+		log.Logger.Error("ServiceNow Error: ", err)
 		return err
 	}
 	err = servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Instance, sn.Table, body)
 	if err != nil {
-		log.Logger.Error("ServiceNow Error:", err)
+		log.Logger.Error("ServiceNow Error: ", err)
 		return err
 	}
-	log.Logger.Infof("Sending via ServiceNow %q was successful!", sn.Name)
+	log.Logger.Debugf("Sending via ServiceNow %q was successful!", sn.Name)
 	return nil
 }
 
