@@ -42,12 +42,12 @@ func (splunk *SplunkOutput) CloneSettings() *data.OutputSettings {
 
 func (splunk *SplunkOutput) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
-	log.Logger.Infof("Starting Splunk output %q....", splunk.Name)
+	log.Logger.Infof("Init Splunk output %q", splunk.Name)
 	return nil
 }
 
 func (splunk *SplunkOutput) Send(d map[string]string) error {
-	log.Logger.Infof("Sending a message to %q", splunk.Name)
+	log.Logger.Infof("Sending to Splunk via %q", splunk.Name)
 
 	if splunk.EventLimit == 0 {
 		splunk.EventLimit = defaultSizeLimit
@@ -122,7 +122,7 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 		log.Logger.Errorf("Splunk sending error: failed response status %q. Body: %q", resp.Status, string(b))
 		return errors.New("failed response status for Splunk sending")
 	}
-	log.Logger.Infof("Sending a message to %q was successful!", splunk.Name)
+	log.Logger.Debugf("Sending a message to Splunk via %q was successful!", splunk.Name)
 	return nil
 }
 

@@ -61,8 +61,13 @@ var (
 	}
 )
 
-func Instance() *Router {
+func Instance(loggers ...log.LoggerType) *Router {
 	initCtx.Do(func() {
+		if len(loggers) > 0 {
+			if l := loggers[0]; l != nil {
+				log.SetLogger(l)
+			}
+		}
 		routerCtx = &Router{
 			mutexScan:              sync.Mutex{},
 			outputsTemplate:        make(map[string]string),
@@ -154,14 +159,14 @@ func (ctx *Router) Terminate() {
 			log.Logger.Errorf("failed to terminate output: %v", err)
 		}
 	}
-	log.Logger.Info("Outputs terminated")
+	log.Logger.Debug("Outputs terminated")
 
 	for _, route := range ctx.inputRoutes {
 		route.StopScheduler()
 	}
-	log.Logger.Info("Route schedulers stopped")
+	log.Logger.Debug("Route schedulers stopped")
 
-	log.Logger.Infof("ctx.quit %v", ctx.quit)
+	log.Logger.Debugf("ctx.quit %v", ctx.quit)
 
 	if ctx.quit != nil {
 		ctx.quit <- struct{}{}
@@ -180,6 +185,7 @@ func (ctx *Router) Terminate() {
 
 	ctx.cleanInstance()
 }
+
 func (ctx *Router) cleanInstance() {
 	ctx.outputsTemplate = map[string]string{}
 	ctx.outputs = map[string]outputs.Output{}
@@ -240,15 +246,13 @@ func removeTemplateFromCfgCacheSource(outputs *data.TenantSettings, templateName
 }
 
 func (ctx *Router) initTemplate(template *data.Template) error {
-	log.Logger.Infof("Configuring template %s", template.Name)
-
 	if template.LegacyScanRenderer != "" {
 		inpteval, err := formatting.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
 		if err != nil {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Logger.Infof("Configured with legacy renderer %s", template.LegacyScanRenderer)
+		log.Logger.Infof("Configured template '%s' with legacy renderer %s", template.Name, template.LegacyScanRenderer)
 	}
 
 	if template.RegoPackage != "" {
@@ -260,7 +264,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 		log.Logger.Infof("Configured template '%s' with Rego package %s", template.Name, template.RegoPackage)
 	}
 	if template.Url != "" {
-		log.Logger.Infof("Configured with url: %s", template.Url)
+		log.Logger.Infof("Configured template '%s' with url: %s", template.Name, template.Url)
 
 		r, err := http.NewRequest("GET", template.Url, nil)
 		if err != nil {
@@ -378,6 +382,7 @@ func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallback
 }
 
 func (ctx *Router) addRoute(r *routes.InputRoute) {
+	log.Logger.Infof("Adding new route: %v", r.Name)
 	ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(r)
 	ctx.databaseCfgCacheSource.InputRoutes = append(ctx.databaseCfgCacheSource.InputRoutes, *r)
 	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
@@ -601,7 +606,7 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 		templateName := r.Template
 		name, ok := ctx.outputsTemplate[outputName]
 		if ok && name != "" {
-			log.Logger.Infof("output '%s' is linked to a template of its own '%s'", outputName, templateName)
+			log.Logger.Infof("output '%s' is linked to a template of its own '%s'", outputName, name)
 			templateName = name
 		}
 
@@ -645,7 +650,7 @@ func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *route
 			failedOutputNames = append(failedOutputNames, outputName)
 			continue
 		}
-		log.Logger.Infof("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
+		log.Logger.Debugf("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
 
 		err := getScanService().HandleSendToOutput(msg, pl, r, tmpl, &ctx.aquaServer)
 		if err != nil {
@@ -724,7 +729,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		}
 	}
 
-	log.Logger.Debugf("Starting Output %q: %q", settings.Type, settings.Name)
+	log.Logger.Debugf("Building Output %q: %q", settings.Type, settings.Name)
 
 	var plg outputs.Output
 	var err error

@@ -7,7 +7,7 @@ import (
 	"github.com/aquasecurity/postee/v2/log/zaplogger"
 )
 
-var Logger LoggerType = initDefaultLogger()
+var Logger LoggerType = NewWrapper(initDefaultLogger())
 
 type LoggerType interface {
 	Info(args ...interface{})
@@ -42,8 +42,9 @@ func initDefaultLogger() LoggerType {
 }
 
 func SetLogger(logger LoggerType) {
-	Logger = logger
+	Logger = NewWrapper(logger)
 }
+
 func maybeTruncateArguments(v ...interface{}) {
 	maxLen := 20
 	for idx, e := range v {
@@ -55,6 +56,7 @@ func maybeTruncateArguments(v ...interface{}) {
 		}
 	}
 }
+
 func PrnInputError(msg string, v ...interface{}) {
 	maybeTruncateArguments(v...)
 	Logger.Errorf(msg, v...)

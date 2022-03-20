@@ -51,7 +51,7 @@ func (email *EmailOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (email *EmailOutput) Init() error {
-	log.Logger.Infof("Starting Email output %q...", email.Name)
+	log.Logger.Infof("Init Email output %q", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
@@ -70,6 +70,7 @@ func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
 }
 
 func (email *EmailOutput) Send(content map[string]string) error {
+	log.Logger.Infof("Sending to email via %q", email.Name)
 	subject := content["title"]
 	body := content["description"]
 	port := strconv.Itoa(email.Port)

@@ -31,7 +31,7 @@ func (webhook *WebhookOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (webhook *WebhookOutput) Init() error {
-	log.Logger.Infof("Starting Webhook output %q, for sending to %q",
+	log.Logger.Infof("Init Webhook output %q, for sending to %q",
 		webhook.Name, webhook.Url)
 	return nil
 }
@@ -55,7 +55,7 @@ func (webhook *WebhookOutput) Send(content map[string]string) error {
 		msg := "sending webhook wrong status: %q. Body: %s"
 		return fmt.Errorf(msg, resp.StatusCode, body)
 	}
-	log.Logger.Infof("Sending Webhook to %q was successful!", webhook.Name)
+	log.Logger.Debugf("Sending Webhook to %q was successful!", webhook.Name)
 	return nil
 }
 

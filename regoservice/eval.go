@@ -260,7 +260,7 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 		}
 	} else {
 		//it's ok skip aggregation package - no aggregation features will be available
-		log.Logger.Infof("No aggregation package configured!!!")
+		log.Logger.Debugf("No aggregation package configured!!!")
 	}
 	return aggrQuery, nil
 }

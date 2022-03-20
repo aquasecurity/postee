@@ -167,7 +167,7 @@ func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input map[string]
 		return false
 	} else if !ok {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-			log.PrnInputInfo("Input %s... doesn't match a REGO rule: %s", input, r.Input)
+			log.Logger.Debugf("Input doesn't match for route '%s' and REGO rule: %s", r.Name, r.Input)
 		} else {
 			log.PrnInputInfo("Input %s... doesn't match a REGO input files rule", input)
 		}
@@ -196,7 +196,7 @@ func send(otpt outputs.Output, cnt map[string]string) {
 func sendWithRetry(o outputs.Output, message map[string]string) error {
 	var (
 		retryAttempts       = 3
-		intervalBetweenSend = 1 * time.Second
+		intervalBetweenSend = 2
 	)
 	for {
 		if retryAttempts == 0 {
@@ -208,10 +208,10 @@ func sendWithRetry(o outputs.Output, message map[string]string) error {
 			return nil
 		}
 
-		log.Logger.Errorf("Error while sending event: %v, will retry", err)
+		log.Logger.Errorf("Error occurred while sending event to '%s': %v, will retry in (%v) seconds", o.GetName(), err, intervalBetweenSend)
 		retryAttempts--
-		time.Sleep(intervalBetweenSend)
-		intervalBetweenSend += 3 * time.Second
+		time.Sleep(time.Duration(intervalBetweenSend) * time.Second)
+		intervalBetweenSend *= 2
 	}
 
 }

@@ -3,13 +3,14 @@ package outputs
 import (
 	"fmt"
 	"io"
-	"log"
+
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/aquasecurity/postee/v2/log"
 )
 
 type HTTPClient struct {
@@ -26,11 +27,13 @@ func (hc *HTTPClient) GetName() string {
 }
 
 func (hc *HTTPClient) Init() error {
+	log.Logger.Info("Init HTTP output")
 	hc.Name = "HTTP Output"
 	return nil
 }
 
 func (hc HTTPClient) Send(m map[string]string) error {
+	log.Logger.Infof("Sending HTTP via %q", hc.Name)
 	headers := make(map[string][]string)
 	for k, v := range hc.Headers {
 		headers[k] = v
@@ -45,7 +48,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 		Body:   io.NopCloser(strings.NewReader(hc.Body)),
 	})
 	if err != nil {
-		log.Println("error during HTTP Client execution: ", err.Error())
+		log.Logger.Error("error during HTTP Client execution: ", err.Error())
 		return err
 	}
 
@@ -54,16 +57,17 @@ func (hc HTTPClient) Send(m map[string]string) error {
 		return fmt.Errorf("unable to read HTTP response: %w", err)
 	}
 
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("http status NOT OK: HTTP %d %s, response: %s", resp.StatusCode, http.StatusText(resp.StatusCode), string(b))
+	code := resp.StatusCode
+	if code < 200 || code > 299 {
+		return fmt.Errorf("http status NOT OK: HTTP %d %s, response: %s", resp.StatusCode, http.StatusText(code), string(b))
 	}
 
-	log.Printf("http execution to url %s successful", hc.URL)
+	log.Logger.Debugf("http execution to url %s successful", hc.URL)
 	return nil
 }
 
 func (hc HTTPClient) Terminate() error {
-	log.Printf("HTTP output terminated\n")
+	log.Logger.Info("HTTP output terminated")
 	return nil
 }
 

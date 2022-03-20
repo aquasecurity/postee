@@ -92,12 +92,12 @@ func (ctx *JiraAPI) fetchBoardId(boardName string) {
 	}
 
 	if matches > 1 {
-		log.Logger.Infof("found more than one boards with name %q, working with board id %d", boardName, ctx.boardId)
+		log.Logger.Debugf("found more than one boards with name %q, working with board id %d", boardName, ctx.boardId)
 	} else if matches == 0 {
-		log.Logger.Infof("no boards found with name %s when getting all boards for User", boardName)
+		log.Logger.Debugf("no boards found with name %s when getting all boards for User", boardName)
 		return
 	} else {
-		log.Logger.Infof("using board ID %d with Name %q", ctx.boardId, boardName)
+		log.Logger.Debugf("using board ID %d with Name %q", ctx.boardId, boardName)
 	}
 }
 
@@ -109,14 +109,14 @@ func (ctx *JiraAPI) fetchSprintId(client jira.Client) {
 	}
 	if len(sprints.Values) > 1 {
 		ctx.SprintId = len(sprints.Values) - 1
-		log.Logger.Infof("Found more than one active sprint, using sprint id %d as the active sprint", ctx.SprintId)
+		log.Logger.Debugf("Found more than one active sprint, using sprint id %d as the active sprint", ctx.SprintId)
 	} else if len(sprints.Values) == 1 {
 		if sprints.Values[0].ID != ctx.SprintId {
 			ctx.SprintId = sprints.Values[0].ID
-			log.Logger.Infof("using sprint id %d as the active sprint", ctx.SprintId)
+			log.Logger.Debugf("using sprint id %d as the active sprint", ctx.SprintId)
 		}
 	} else {
-		log.Logger.Infof("no active sprints exist in board ID %d Name %s", ctx.boardId, ctx.ProjectKey)
+		log.Logger.Debugf("no active sprints exist in board ID %d Name %s", ctx.boardId, ctx.ProjectKey)
 	}
 }
 
@@ -131,7 +131,7 @@ func (ctx *JiraAPI) Init() error {
 	}
 	ctx.fetchBoardId(ctx.BoardName)
 
-	log.Logger.Infof("Starting Jira output %q....", ctx.Name)
+	log.Logger.Infof("Init Jira output %q", ctx.Name)
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}
@@ -186,6 +186,7 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 }
 
 func (ctx *JiraAPI) Send(content map[string]string) error {
+	log.Logger.Infof("Sending to JIRA via %q", ctx.Name)
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Logger.Errorf("unable to create Jira client: %s", err)
@@ -198,12 +199,12 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
-		return fmt.Errorf("Failed to create meta project: %w", err)
+		return fmt.Errorf("failed to create meta project: %w", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
-		return fmt.Errorf("Failed to create meta issue type: %w", err)
+		return fmt.Errorf("failed to create meta issue type: %w", err)
 	}
 
 	ctx.Summary = content["title"]
@@ -234,7 +235,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 		fieldsConfig[k] = v
 	}
 	if len(ctx.Unknowns) > 0 {
-		log.Logger.Infof("added %d custom fields to issue.", len(ctx.Unknowns))
+		log.Logger.Debugf("added %d custom fields to issue.", len(ctx.Unknowns))
 	}
 
 	type Version struct {
@@ -268,7 +269,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 			})
 		}
 		issue.Fields.Unknowns["versions"] = affectsVersions
-		log.Logger.Infof("added %d affected versions into Versions field", len(ctx.AffectsVersions))
+		log.Logger.Debugf("added %d affected versions into Versions field", len(ctx.AffectsVersions))
 	}
 
 	i, err := ctx.openIssue(client, issue)

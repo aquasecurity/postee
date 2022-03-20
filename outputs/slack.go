@@ -39,7 +39,7 @@ func (slack *SlackOutput) CloneSettings() *data.OutputSettings {
 
 func (slack *SlackOutput) Init() error {
 	slack.slackLayout = new(formatting.SlackMrkdwnProvider)
-	log.Logger.Infof("Starting Slack output %q....", slack.Name)
+	log.Logger.Infof("Init Slack output %q", slack.Name)
 	return nil
 }
 
@@ -63,7 +63,7 @@ func buildSlackBlock(title string, data []byte) []byte {
 }
 
 func (slack *SlackOutput) Send(input map[string]string) error {
-	log.Logger.Infof("Sending via Slack %q", slack.Name)
+	log.Logger.Infof("Sending to Slack via %q", slack.Name)
 	title := clearSlackText(slack.slackLayout.TitleH2(input["title"]))
 	var body string
 	if strings.HasSuffix(input["description"], ",") {
@@ -89,7 +89,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
 			return err
 		}
-		log.Logger.Infof("Sending via Slack %q was successful!", slack.Name)
+		log.Logger.Debugf("Sending to Slack %q was successful!", slack.Name)
 	} else {
 		for n := 0; n < length; {
 			d := length - n
@@ -99,10 +99,10 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 			cutData, _ := json.Marshal(rawBlock[n : n+d])
 			cutData = cutData[1 : len(cutData)-1]
 			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
-				log.Logger.Errorf("Sending to %q was finished with error: %v", slack.Name, err)
+				log.Logger.Errorf("Sending to Slack via %q was finished with error: %v", slack.Name, err)
 				return err
 			} else {
-				log.Logger.Infof("Sending [%d/%d part] to %q was successful!",
+				log.Logger.Debugf("Sending to Slack [%d/%d part] via %q was successful!",
 					int(n/49)+1, int(length/49)+1,
 					slack.Name)
 			}
