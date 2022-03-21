@@ -1,6 +1,7 @@
 package regoservice
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -105,7 +106,7 @@ func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 	if !ok {
 		return "", errors.New(fmt.Sprintf("property %s is not found", prop))
 	}
-	switch v := expr.(type) {
+	switch v := expr.(type) { // TODO: Use json.Valid() instead
 	case string:
 		return v, nil
 	default:
@@ -113,7 +114,13 @@ func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return string(val), nil
+
+		var out bytes.Buffer
+		if err = json.Compact(&out, val); err != nil { // Remove extra '\n' et al.
+			return "", err
+		}
+
+		return out.String(), nil
 	}
 }
 func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]string) (map[string]string, error) {

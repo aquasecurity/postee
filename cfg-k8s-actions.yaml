@@ -37,6 +37,8 @@ outputs:
   kube-label-selector: "app=nginx-app"              # Required, if specifying labels or annotations.
   kube-actions:
     labels:
-      foo-label: "bar-value"
+      foo-label: "bar-value"                        # Required. Label to add.
+      bar-label: event.input.SigMetadata.ID         # Optional. It is also possible to add labels based on event inputs.
     annotations:
       foo-annotation: "bar-value"
+      bar-annotation: event.input.SigMetadata.ID
