@@ -85,7 +85,6 @@ func TestCheckSizeLimit(t *testing.T) {
 			db, err := bolt.Open(DbPath, 0666, nil)
 			if err != nil {
 				t.Fatal("Can't open db:", DbPath)
-				return
 			}
 			defer func() {
 				os.Remove(DbPath)
