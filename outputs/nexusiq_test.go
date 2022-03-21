@@ -115,7 +115,7 @@ func configureHttp(t *testing.T, applicationsJson, expctdCreateAppPld, expctdApp
 	//get applications
 	router.HandleFunc("/api/v2/applications/organization/{organization:[a-z0-9]+}", func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "GET", r.Method)
-		w.Write([]byte(applicationsJson))
+		_, _ = w.Write([]byte(applicationsJson))
 	})
 
 	//create application
@@ -127,7 +127,7 @@ func configureHttp(t *testing.T, applicationsJson, expctdCreateAppPld, expctdApp
 		assert.Equal(t, "POST", r.Method)
 		assert.Equal(t, expctdCreateAppPld, string(body))
 
-		w.Write([]byte(fmt.Sprintf(`{"id":"%s"}`, createdAppId)))
+		_, _ = w.Write([]byte(fmt.Sprintf(`{"id":"%s"}`, createdAppId)))
 	})
 
 	//register bom
@@ -136,7 +136,7 @@ func configureHttp(t *testing.T, applicationsJson, expctdCreateAppPld, expctdApp
 		assert.Equal(t, "POST", r.Method)
 		assert.Equal(t, expctdAppId, vars["app"])
 
-		w.Write([]byte("{}"))
+		_, _ = w.Write([]byte("{}"))
 	})
 
 	return httptest.NewServer(router)
