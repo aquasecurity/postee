@@ -27,7 +27,6 @@ func (e *ExecClient) GetName() string {
 
 func (e *ExecClient) Init() error {
 	e.ExecCmd = exec.Command
-	e.Name = "Exec Output"
 	return nil
 }
 
@@ -56,7 +55,7 @@ func (e *ExecClient) Send(m map[string]string) error {
 }
 
 func (e *ExecClient) Terminate() error {
-	log.Printf("Exec output terminated\n")
+	log.Printf("Exec output %s terminated\n", e.GetName())
 	return nil
 }
 

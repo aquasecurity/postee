@@ -131,6 +131,10 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		return nil, fmt.Errorf("http action requires a method to be specified")
 	}
 
+	if len(sourceSettings.BodyFile) > 0 && len(sourceSettings.BodyContent) > 0 {
+		return nil, fmt.Errorf("http action requires only supports body-file or body-content, not both")
+	}
+
 	var duration time.Duration
 	if len(sourceSettings.Timeout) > 0 {
 		var err error
@@ -147,14 +151,22 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		return nil, fmt.Errorf("error building HTTP url: %w", err)
 	}
 
-	return &outputs.HTTPClient{
-		Name:     sourceSettings.Name,
-		Client:   http.Client{Timeout: duration},
-		URL:      reqUrl,
-		Method:   strings.ToUpper(sourceSettings.Method),
-		BodyFile: sourceSettings.BodyFile,
-		Headers:  sourceSettings.Headers,
-	}, nil
+	hc := &outputs.HTTPClient{
+		Name:    sourceSettings.Name,
+		Client:  http.Client{Timeout: duration},
+		URL:     reqUrl,
+		Method:  strings.ToUpper(sourceSettings.Method),
+		Headers: sourceSettings.Headers,
+	}
+
+	if len(sourceSettings.BodyFile) > 0 {
+		hc.BodyFile = sourceSettings.BodyFile
+	}
+	if len(sourceSettings.BodyContent) > 0 {
+		hc.BodyContent = sourceSettings.BodyContent
+	}
+
+	return hc, nil
 }
 
 func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesClient, error) {

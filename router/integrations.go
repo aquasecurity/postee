@@ -30,7 +30,8 @@ type OutputSettings struct {
 	InputFile         string                       `json:"input-file,omitempty"`
 	ExecScript        string                       `json:"exec-script,omitempty"`
 	Env               []string                     `json:"env,omitempty"`
-	BodyFile          string                       `json:"bodyfile,omitempty"`
+	BodyFile          string                       `json:"body-file,omitempty"`
+	BodyContent       string                       `json:"body-content,omitempty"`
 	Method            string                       `json:"method,omitempty"`
 	Timeout           string                       `json:"timeout,omitempty"`
 	Headers           map[string][]string          `json:"headers,omitempty"`
