@@ -177,7 +177,6 @@ func TestDbDelete(t *testing.T) {
 	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		t.Fatal("Can't open db:", DbPath)
-		return
 	}
 	defer db.Close()
 
@@ -219,7 +218,6 @@ func TestWithoutAccessToDb(t *testing.T) {
 	db, err := bolt.Open(DbPath, 0220, nil)
 	if err != nil {
 		t.Fatal("Can't open db:", DbPath)
-		return
 	}
 	db.Close()
 	DbSizeLimit = 1
