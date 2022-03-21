@@ -72,7 +72,7 @@ func (nexus *NexusIqOutput) execute(method string, url string, payload string, h
 		return nil, err
 	}
 
-	if resp.StatusCode/100 != 2 {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		msg := "received incorrect response status: %d. Body: %s"
 		return nil, fmt.Errorf(msg, resp.StatusCode, body)
 	}
@@ -161,8 +161,6 @@ func (nexus *NexusIqOutput) Send(content map[string]string) error {
 	}
 
 	data := content["description"]
-
-	log.Printf("%s\n", data)
 
 	err = nexus.registerBom(appId, data)
 	if err != nil {
