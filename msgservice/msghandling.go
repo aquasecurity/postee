@@ -185,10 +185,12 @@ func send(otpt outputs.Output, cnt map[string]string) {
 		}
 	}()
 
-	err := dbservice.Db.RegisterPlgnInvctn(otpt.GetName())
-	if err != nil {
-		log.Logger.Errorf("Error while building aggregated content: %v", err)
-		return
+	if dbservice.Db != nil {
+		err := dbservice.Db.RegisterPlgnInvctn(otpt.GetName())
+		if err != nil {
+			log.Logger.Errorf("Error while building aggregated content: %v", err)
+			return
+		}
 	}
 
 }

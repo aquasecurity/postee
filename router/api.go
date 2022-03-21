@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"sync"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
@@ -12,6 +13,10 @@ import (
 	rego_templates "github.com/aquasecurity/postee/v2/rego-templates"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
+)
+
+var (
+	mu sync.RWMutex
 )
 
 const (
@@ -25,6 +30,8 @@ type InputCallbackFunc func(inputMessage map[string]interface{}) bool
 //it will be added to the rego with && operator and the entire input evaluation will pass through only if the callback returns true
 
 func SetInputCallbackFunc(routeName string, callback InputCallbackFunc) {
+	mu.Lock()
+	defer mu.Unlock()
 	Instance().setInputCallbackFunc(routeName, callback)
 }
 
@@ -48,6 +55,9 @@ func WithNewConfig(tenantName string) error { //tenant name
 
 // New - initialize new postee library instance (with optional logger instance)
 func New(logger ...log.LoggerType) error {
+	mu.Lock()
+	defer mu.Unlock()
+
 	Instance(logger...).Terminate()
 	Instance().cleanChannels(true)
 	err := Instance().embedTemplates()
@@ -103,20 +113,30 @@ func DBRemoveOldData(dbRemoveOldData int) { //optional
 
 //------------------Outputs-------------------
 func AddOutput(output *data.OutputSettings) error {
+	mu.Lock()
+	defer mu.Unlock()
 	return Instance().addOutput(output)
 }
+
 func UpdateOutput(output *data.OutputSettings) error {
+	mu.Lock()
+	defer mu.Unlock()
 	err := Instance().deleteOutput(output.Name, false)
 	if err != nil {
 		return err
 	}
 	return Instance().addOutput(output)
 }
+
 func ListOutputs() []data.OutputSettings {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().listOutputs()
 }
 
 func DeleteOutput(name string) error {
+	mu.Lock()
+	defer mu.Unlock()
 	return Instance().deleteOutput(name, true)
 }
 
@@ -124,16 +144,26 @@ func DeleteOutput(name string) error {
 
 //------------------Routes--------------------
 func AddRoute(route *routes.InputRoute) {
+	mu.Lock()
+	defer mu.Unlock()
 	Instance().addRoute(route)
 }
 
 func DeleteRoute(name string) error {
+	mu.Lock()
+	defer mu.Unlock()
 	return Instance().deleteRoute(name)
 }
+
 func ListRoutes() []routes.InputRoute {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().listRoutes()
 }
+
 func UpdateRoute(route *routes.InputRoute) error {
+	mu.Lock()
+	defer mu.Unlock()
 	err := Instance().deleteRoute(route.Name)
 	if err != nil {
 		return err
@@ -146,13 +176,14 @@ func UpdateRoute(route *routes.InputRoute) error {
 
 //-------------------Templates-------------------
 func AddTemplate(template *data.Template) error {
+	mu.Lock()
+	defer mu.Unlock()
 	return Instance().addTemplate(template)
 }
 
 //helper method
 func AddRegoTemplateFromFile(name, filename string) error {
 	b, err := os.ReadFile(filename)
-
 	if err != nil {
 		return err
 	}
@@ -165,8 +196,9 @@ func AddRegoTemplateFromFile(name, filename string) error {
 }
 
 func UpdateTemplate(template *data.Template) error {
+	mu.Lock()
+	defer mu.Unlock()
 	err := Instance().deleteTemplate(template.Name, true)
-
 	if err != nil {
 		return err
 	}
@@ -175,10 +207,14 @@ func UpdateTemplate(template *data.Template) error {
 }
 
 func DeleteTemplate(name string) error {
+	mu.Lock()
+	defer mu.Unlock()
 	return Instance().deleteTemplate(name, true)
 }
 
 func ListTemplates() []string {
+	mu.RLock()
+	defer mu.RUnlock()
 	/*
 		There is nothing to update (as only one property defines template).
 		So only list of template names returned
@@ -198,44 +234,60 @@ func GetEmbeddedTemplates() []data.Template {
 //-----------------------------------------------
 
 func Send(b []byte) {
+	mu.RLock()
+	defer mu.RUnlock()
 	Instance().handle(parseBytes(b))
 }
 
 func SendMsg(msg map[string]interface{}) {
+	mu.RLock()
+	defer mu.RUnlock()
 	Instance().handleMsg(msg)
 }
 
 // SendByRoute sends the input message to a route with retry on the output send
 func SendByRoute(b []byte, routeName string) error {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().sendByRoute(parseBytes(b), routeName)
 }
 
 // SendByRoute sends the input message to a route with retry on the output send
 func SendMsgByRoute(msg map[string]interface{}, routeName string) error {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().sendMsgByRoute(msg, routeName)
 }
 
 // Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
 // In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
 func Evaluate(b []byte) []string {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().Evaluate(parseBytes(b))
 }
 
 // Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
 // In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
 func EvaluateMsg(msg map[string]interface{}) []string {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().evaluateMsg(msg)
 }
 
 // GetMessageUniqueId receives a message and route name as an input and returns a unique id for from the given
 // message that uniquely identifies the message for the input route
 func GetMessageUniqueId(b []byte, routeName string) (string, error) {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().GetMessageUniqueId(parseBytes(b), routeName)
 }
 
 // GetParsedUniqueId receives a parsed message and route name as an input and returns a unique id for from the given
 // message that uniquely identifies the message for the input route
 func GetParsedUniqueId(msg map[string]interface{}, routeName string) (string, error) {
+	mu.RLock()
+	defer mu.RUnlock()
 	return Instance().getMessageUniqueId(msg, routeName)
 }
 
