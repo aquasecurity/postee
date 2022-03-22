@@ -1,3 +1,5 @@
+# Troubleshooting of Rego Templates
+
 Rego templates provide very flexible way for transformation of received json. You can convert received information to html or json.
 On the flip side sometimes it may be difficult to find root cause of issue (if you run into any while configuring custom template).
 Postee application doesn't have many options to provide detailed error message. Very often if something goes wrong then 'result' property is omitted from rego evaluation result and it causes errors like:
