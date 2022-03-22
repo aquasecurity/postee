@@ -44,7 +44,7 @@ func (nexus *NexusIqOutput) auth() string {
 func (nexus *NexusIqOutput) execute(method string, url string, payload string, headers map[string]string) (map[string]interface{}, error) {
 	client := http.DefaultClient
 
-	var reader io.Reader = nil
+	var reader io.Reader
 
 	if payload != "" {
 		reader = strings.NewReader(payload)
@@ -79,7 +79,7 @@ func (nexus *NexusIqOutput) execute(method string, url string, payload string, h
 
 	r := make(map[string]interface{})
 
-	err = json.Unmarshal([]byte(body), &r)
+	err = json.Unmarshal(body, &r)
 
 	if err != nil {
 		return nil, err
@@ -145,7 +145,7 @@ func (nexus *NexusIqOutput) createOrGetApp(appName string) (string, error) {
 func (nexus *NexusIqOutput) registerBom(appId string, bom string) error {
 	url := fmt.Sprintf("%s/api/v2/scan/applications/%s/sources/cyclone", nexus.Url, appId)
 
-	_, err := nexus.execute("POST", url, string(bom), map[string]string{"Content-Type": "application/xml"})
+	_, err := nexus.execute("POST", url, bom, map[string]string{"Content-Type": "application/xml"})
 
 	if err != nil {
 		return fmt.Errorf("error registering bom: %w", err)
