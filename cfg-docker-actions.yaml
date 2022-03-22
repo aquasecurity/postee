@@ -3,7 +3,7 @@
 
 name: tenant            #  The tenant name
 aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
-max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
+max-db-size: 1000       #  Max size of DB in MB. if empty then unlimited
 db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
 
 # Routes are used to define how to handle an incoming message
@@ -14,7 +14,7 @@ routes:
 
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  outputs: [my-k8s]
+  outputs: [my-docker]
   template: raw-json
 
 # Templates are used to format a message
@@ -28,17 +28,12 @@ outputs:
   type: stdout
   enable: true
 
-# Define a custom output of k8s action, that can take params.
-- name: my-k8s
-  type: kubernetes
+# Define a custom output of Docker action, that can take params.
+- name: my-docker
+  type: docker
   enable: true
-  kube-namespace: "default"                         # Required. Kubernetes namespace to use.
-  kube-config-file: "/path/to/kubeconfig"           # Required. Path to .kubeconfig file
-  kube-label-selector: "app=nginx-app"              # Required, if specifying labels or annotations.
-  kube-actions:
-    labels:
-      foo-label: "bar-value"                        # Required. Label to add.
-      bar-label: event.input.SigMetadata.ID         # Optional. It is also possible to add labels based on event inputs.
-    annotations:
-      foo-annotation: "bar-value"
-      bar-annotation: event.input.SigMetadata.ID
+  docker-image-name: "docker.io/library/alpine"   # Required. Image name of container to run.
+  docker-cmd: ["echo", "hello world"]             # Required. Command to run when starting container.
+  docker-env: ["FOO=bar-value"]                   # Optional. Environment variables to set in the container.
+  docker-volume-mounts:                          # Optional. Volume mounts present inside the container
+    "/path/to/dir": "/path/to/destination"

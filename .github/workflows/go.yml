@@ -29,7 +29,7 @@ jobs:
       - name: check spell
         uses: codespell-project/actions-codespell@master
         with:
-          skip: src,rego-templates,ui
+          skip: src,rego-templates,ui,go.mod,go.sum
 
       - name: Build
         run: make all

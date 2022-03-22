@@ -2,14 +2,24 @@ package outputs
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aquasecurity/postee/v2/layout"
+	"github.com/tidwall/gjson"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
+)
+
+const (
+	regoInputPrefix = "event.input"
+
+	KubernetesLabelKey      = "labels"
+	KubernetesAnnotationKey = "annotations"
 )
 
 func updateMap(old map[string]string, new map[string]string) map[string]string {
@@ -29,9 +39,8 @@ type KubernetesClient struct {
 	Name              string
 	KubeNamespace     string
 	KubeConfigFile    string
-	KubeLabels        map[string]string
 	KubeLabelSelector string
-	KubeAnnotations   map[string]string
+	KubeActions       map[string]map[string]string
 }
 
 func (k KubernetesClient) GetName() string {
@@ -54,26 +63,45 @@ func (k *KubernetesClient) Init() error {
 	return nil
 }
 
+func (k KubernetesClient) prepareInputs(input map[string]string) map[string]map[string]string {
+	a := make(map[string]map[string]string)
+
+	for key, m := range k.KubeActions {
+		for id, val := range m {
+			var calcVal string
+			if strings.HasPrefix(val, regoInputPrefix) {
+				if ok := json.Valid([]byte(input["description"])); ok { // input is json
+					calcVal = gjson.Get(input["description"], strings.TrimPrefix(val, regoInputPrefix+".")).String()
+				} else {
+					calcVal = input["description"] // input is a string
+				}
+			} else {
+				calcVal = val // no rego to parse
+			}
+			a[key] = map[string]string{id: calcVal}
+		}
+	}
+
+	return a
+}
+
 func (k KubernetesClient) Send(m map[string]string) error {
 	ctx := context.Background()
-
-	if k.KubeNamespace == "" {
-		return fmt.Errorf("kubernetes namespace needs to be set in config yaml")
-	}
+	actions := k.prepareInputs(m)
 
 	// TODO: Allow configuring of resource {pod, ds, ...}
 	pods, _ := k.clientset.CoreV1().Pods(k.KubeNamespace).List(ctx, metav1.ListOptions{
 		LabelSelector: k.KubeLabelSelector,
 	})
 	for _, pod := range pods.Items {
-		if len(k.KubeLabels) > 0 {
+		if len(actions[KubernetesLabelKey]) > 0 {
 			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
 				if err != nil {
 					return fmt.Errorf("failed to get updated pod for labeling: %s, err: %w", pod.Name, err)
 				}
 
-				labels := updateMap(pod.GetLabels(), k.KubeLabels)
+				labels := updateMap(pod.GetLabels(), actions[KubernetesLabelKey])
 				pod.SetLabels(labels)
 				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
 				if err != nil {
@@ -89,14 +117,14 @@ func (k KubernetesClient) Send(m map[string]string) error {
 			}
 		}
 
-		if len(k.KubeAnnotations) > 0 {
+		if len(actions[KubernetesAnnotationKey]) > 0 {
 			retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 				pod, err := k.clientset.CoreV1().Pods(pod.GetNamespace()).Get(ctx, pod.Name, metav1.GetOptions{})
 				if err != nil {
 					return fmt.Errorf("failed to get updated pod for annotating: %s, err: %w", pod.Name, err)
 				}
 
-				annotations := updateMap(pod.GetAnnotations(), k.KubeAnnotations)
+				annotations := updateMap(pod.GetAnnotations(), actions[KubernetesAnnotationKey])
 				pod.SetAnnotations(annotations)
 				_, err = k.clientset.CoreV1().Pods(pod.GetNamespace()).Update(ctx, pod, metav1.UpdateOptions{})
 				if err != nil {

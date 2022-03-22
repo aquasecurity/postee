@@ -270,7 +270,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs[outputName]
 		if !ok {
-			log.Printf("route %q contains an output %q, which doesn't enable now.", routeName, outputName)
+			log.Printf("route %q contains an output %q, which isn't enabled now.", routeName, outputName)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
@@ -352,7 +352,17 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 			return nil
 		}
 	case "kubernetes":
-		plg = buildKubernetesOutput(settings)
+		plg, err = buildKubernetesOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
+	case "docker":
+		plg, err = buildDockerOutput(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	default:
 		log.Printf("Output type %q is undefined or empty. Output name is %q.",
 			settings.Type, settings.Name)
@@ -362,6 +372,7 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 	err = plg.Init()
 	if err != nil {
 		log.Printf("failed to Init : %v", err)
+		return nil
 	}
 
 	return plg

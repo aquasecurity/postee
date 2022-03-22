@@ -15,7 +15,7 @@ routes:
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
   serialize-outputs: true                       # Optional. Serialize outputs in route.
-  outputs: [my-exec, my-exec-2, my-http-get, my-http-post]
+  outputs: [my-exec, my-exec-2, my-http-get, my-http-post-file, my-http-post-content]
   template: raw-json
 
 # Templates are used to format a message
@@ -34,31 +34,41 @@ outputs:
   type: exec
   enable: true
   env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
-  input-file: /tmp/exec-test.sh                        # Specify the path to the script to run
+  exec-script: |                                       # Specify the script to run
+    #!/bin/sh
+    echo $POSTEE_EVENT
 
 - name: my-exec-2
   type: exec
   enable: true
   env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
-  exec-script: |                                       # Specify the script to run
-    #!/bin/sh
-    echo "hello world"
+  input-file: /tmp/exec-test.sh                        # Specify the path to the script to run
 
 - name: my-http-get
-  type: http
-  enable: true
-  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
-  method: GET                         # Required. Method to use. CONNECT is not supported at this time
-  headers:                            # Optional. Headers to pass in for the request
-    "Foo": ["bar", "baz"]
-  timeout: 1s                         # Optional. Timeout value in XX(s,m,h)
+    type: http
+    enable: true
+    url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
+    method: GET                         # Required. Method to use. CONNECT is not supported at this time
+    headers:                            # Optional. Headers to pass in for the request
+      "Foo": ["bar", "baz"]
+    timeout: 1s                         # Optional. Timeout value in XX(s,m,h)
 
-- name: my-http-post
+- name: my-http-post-file
   type: http
   enable: true
-  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
-  method: POST                        # Required. Method to use. CONNECT is not supported at this time
-  headers:                            # Optional. Headers to pass in for the request.
-    "Foo": ["bar", "baz"]
-  timeout: 10s                        # Optional. Timeout value in XX(s,m,h)
-  bodyFile: /tmp/tracee.event.logs    # Optional. Body of the HTTP request
+  url: "https://my-fancy-url.com"       # Required. URL of the HTTP Request
+  method: POST                          # Required. Method to use. CONNECT is not supported at this time
+  body-file: /tmp/some.log.file         # Optional. Body file of the HTTP request
+
+- name: my-http-post-content
+  type: http
+  enable: true
+  url: "https://my-fancy-url.com"       # Required. URL of the HTTP Request
+  method: POST                          # Required. Method to use. CONNECT is not supported at this time
+  headers:                              # Optional. Headers to pass in for the request.
+    "Foo": [ "bar" ]
+    "Haz": [ "baz" ]
+  timeout: 10s                          # Optional. Timeout value in XX(s,m,h)
+  body-content: |                       # Optional. Body inline content of the HTTP request
+    This is an example of a inline body
+    Event ID: event.input.Signature.ID

@@ -1,7 +1,6 @@
 package outputs
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -29,6 +28,7 @@ func TestHTTPClient_Send(t *testing.T) {
 		method         string
 		inputEvent     string
 		bodyFile       string
+		bodyContent    string
 		testServerFunc http.HandlerFunc
 		expectedError  string
 	}{
@@ -36,24 +36,34 @@ func TestHTTPClient_Send(t *testing.T) {
 			name:   "happy path method get",
 			method: http.MethodGet,
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "bar value", r.Header.Get("fookey"))
-				assert.Empty(t, r.Header.Get("POSTEE_EVENT")) // no event sent
-				fmt.Fprintln(w, "Hello, client")
+				assert.Equal(t, []string{"bar", "baz"}, r.Header.Values("fookey"))
+				assert.Empty(t, r.Header.Get("Postee-Event")) // no event sent
 			},
 		},
 		{
-			name:       "happy path method post, string input event",
+			name:       "happy path method post with body file, string input event",
 			method:     http.MethodPost,
 			bodyFile:   "goldens/validbody.txt",
 			inputEvent: "foo bar baz header",
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "bar value", r.Header.Get("fookey"))
-				assert.Equal(t, "Zm9vIGJhciBiYXogaGVhZGVy", r.Header.Get("POSTEE_EVENT"))
+				assert.Equal(t, []string{"bar", "baz"}, r.Header.Values("fookey"))
+				assert.Equal(t, "Zm9vIGJhciBiYXogaGVhZGVy", r.Header.Get("Postee-Event"))
 
 				b, _ := ioutil.ReadAll(r.Body)
 				assert.Equal(t, "foo bar baz body", string(b))
+			},
+		},
+		{
+			name:        "happy path method post with body content, string input event",
+			method:      http.MethodPost,
+			bodyContent: "foo bar baz body",
+			inputEvent:  "foo bar baz header",
+			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, []string{"bar", "baz"}, r.Header.Values("fookey"))
+				assert.Equal(t, "Zm9vIGJhciBiYXogaGVhZGVy", r.Header.Get("Postee-Event"))
 
-				fmt.Fprintln(w, "Hello, client")
+				b, _ := ioutil.ReadAll(r.Body)
+				assert.Equal(t, "foo bar baz body", string(b))
 			},
 		},
 		{
@@ -64,13 +74,44 @@ func TestHTTPClient_Send(t *testing.T) {
 	"argsNum": 2
 }`,
 			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "bar value", r.Header.Get("fookey"))
-				assert.Equal(t, "ewoJImFyZ3NOdW0iOiAyCn0=", r.Header.Get("POSTEE_EVENT"))
+				assert.Equal(t, []string{"bar", "baz"}, r.Header.Values("fookey"))
+				assert.Equal(t, "ewoJImFyZ3NOdW0iOiAyCn0=", r.Header.Get("Postee-Event"))
 
 				b, _ := ioutil.ReadAll(r.Body)
 				assert.Equal(t, "foo bar baz body", string(b))
+			},
+		},
+		{
+			name:   "happy path method post, with relative body content, json input event",
+			method: http.MethodPost,
+			bodyContent: `argsNum: event.input.argsNum
+eventID: event.input.eventID`,
+			inputEvent: `{
+	"argsNum": 2,
+	"eventID": "TRC-2"
+}`,
+			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, []string{"bar", "baz"}, r.Header.Values("fookey"))
+				assert.Equal(t, "ewoJImFyZ3NOdW0iOiAyLAoJImV2ZW50SUQiOiAiVFJDLTIiCn0=", r.Header.Get("Postee-Event"))
 
-				fmt.Fprintln(w, "Hello, client")
+				b, _ := ioutil.ReadAll(r.Body)
+				assert.Equal(t, `argsNum: 2
+eventID: TRC-2`, string(b))
+			},
+		},
+		{
+			name:   "happy path method post, with relative body content, string input event",
+			method: http.MethodPost,
+			bodyContent: `event1: event.input
+event1: event.input`,
+			inputEvent: `"argsNum": 2, "eventID": "TRC-2"`,
+			testServerFunc: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, []string{"bar", "baz"}, r.Header.Values("fookey"))
+				assert.Equal(t, "ImFyZ3NOdW0iOiAyLCAiZXZlbnRJRCI6ICJUUkMtMiI=", r.Header.Get("Postee-Event"))
+
+				b, _ := ioutil.ReadAll(r.Body)
+				assert.Equal(t, `event1: "argsNum": 2, "eventID": "TRC-2"
+event1: "argsNum": 2, "eventID": "TRC-2"`, string(b))
 			},
 		},
 		{
@@ -106,10 +147,11 @@ func TestHTTPClient_Send(t *testing.T) {
 			}
 
 			ec := HTTPClient{
-				URL:      testUrl,
-				Method:   tc.method,
-				Headers:  map[string][]string{"fookey": {"bar value"}},
-				BodyFile: tc.bodyFile,
+				URL:         testUrl,
+				Method:      tc.method,
+				Headers:     map[string][]string{"fookey": {"bar", "baz"}},
+				BodyFile:    tc.bodyFile,
+				BodyContent: tc.bodyContent,
 			}
 
 			switch {
