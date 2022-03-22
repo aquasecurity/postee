@@ -98,7 +98,7 @@ func TestLoads(t *testing.T) {
 	cfgData := `
 name: tenant
 aqua-server: https://demolab.aquasec.com
-max-db-size: 13 # Max size of DB. MB. if empty then unlimited
+max-db-size: 13MB #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
 delete-old-data: 7 # delete data older than N day(s).  If empty then we do not delete.d
 
 routes:
@@ -177,7 +177,7 @@ func TestReload(t *testing.T) {
 	cfgData := `
 name: tenant
 aqua-server: https://demolab.aquasec.com
-max-db-size: 13 # Max size of DB. MB. if empty then unlimited
+max-db-size: 13MB #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
 delete-old-data: 7 # delete data older than N day(s).  If empty then we do not delete.d
 
 routes:
