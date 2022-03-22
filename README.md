@@ -290,7 +290,43 @@ Key | Description | Possible Values
 
 For Jira you can also specify custom fields that will be populated with values.
 Use the `unknowns` parameter in cfg.yaml for custom fields.
-Under the `unknowns` parameter, specify the list of fields names to provide value for.
+Under the `unknowns` parameter, specify the list of fields **names** to provide value for.
+You can get field name from [Jira REST API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-fields/#api-rest-api-3-field-get). `Name` field can contain spaces.
+  
+  For example:
+  
+  <details><summary> Jira REST API response </summary>
+    
+  ```
+  ...
+      "id": "customfield_10014",
+      "key": "customfield_10014",
+      "name": "Epic Link",
+      "untranslatedName": "Epic Link",
+      "custom": true,
+      "orderable": true,
+      "navigable": true,
+      "searchable": true,
+      "clauseNames": [
+        "cf[10014]",
+        "Epic Link"
+      ],
+      "schema": {
+        "type": "any",
+        "custom": "com.pyxis.greenhopper.jira:gh-epic-link",
+        "customId": 10014
+      }
+    },
+  ...
+  ```
+    
+  </details>
+  
+```yaml
+unknowns:
+     Epic Link: "K8S-1"
+```
+  
 You can add "-numeric-field", "-multiple-value", "multiple-line-text-field", "-date-time-picker" and "-field-url" as suffix to the custom field name, to specify what is the field type.
 
 For example: 
