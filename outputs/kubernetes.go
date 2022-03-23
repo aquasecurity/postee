@@ -78,7 +78,11 @@ func (k KubernetesClient) prepareInputs(input map[string]string) map[string]map[
 			} else {
 				calcVal = val // no rego to parse
 			}
-			a[key] = map[string]string{id: calcVal}
+			if _, ok := a[key][id]; !ok && len(a[key]) <= 0 {
+				a[key] = map[string]string{id: calcVal}
+			} else {
+				a[key][id] = calcVal
+			}
 		}
 	}
 

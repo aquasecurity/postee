@@ -37,13 +37,17 @@ func TestKubernetesClient_Send(t *testing.T) {
 			},
 			{
 				name:       "happy path, json input event, relative input labels are added",
-				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2", "Hostname":"foo.com"}}`,
 				inputActions: map[string]map[string]string{
-					"labels": {"foo": "event.input.SigMetadata.ID"},
+					"labels": {
+						"foo":      "event.input.SigMetadata.ID",
+						"hostname": "event.input.SigMetadata.Hostname",
+					},
 				},
 				expectedLabels: map[string]string{
-					"app": "nginx",
-					"foo": "TRC-2",
+					"app":      "nginx",
+					"foo":      "TRC-2",
+					"hostname": "foo.com",
 				},
 			},
 			{
