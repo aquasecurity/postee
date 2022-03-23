@@ -1,8 +1,7 @@
 package dbservice
 
 import (
-	"errors"
-	"fmt"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
@@ -53,45 +52,81 @@ func TestExpiredDates(t *testing.T) {
 	}
 }
 
-func TestDbSizeLimnit(t *testing.T) {
+func TestCheckSizeLimit(t *testing.T) {
 	dbPathReal := DbPath
 	realSizeLimit := DbSizeLimit
 	defer func() {
-		os.Remove(DbPath)
 		DbPath = dbPathReal
 		DbSizeLimit = realSizeLimit
 	}()
+
 	DbPath = "test_webhooks.db"
 
 	tests := []struct {
-		title   string
-		limit   int
-		needRun bool
-		isNew   bool
+		name        string
+		dbSizeLimit int
+		wasCleared  bool
 	}{
-		{"First scan", 0, false, true},
-		{"Second scan", 0, true, false},
-		{"Third scan", 1, true, true},
+		{
+			name:        "DB has been cleared",
+			dbSizeLimit: 1,
+			wasCleared:  true,
+		},
+		{
+			name:       "DB not cleared",
+			wasCleared: false,
+		},
 	}
 
-	DbSizeLimit = 1
-	CheckSizeLimit()
-
 	for _, test := range tests {
-		t.Log(test.title)
-		DbSizeLimit = test.limit
-		if test.needRun {
+		t.Run(test.name, func(t *testing.T) {
+			DbSizeLimit = test.dbSizeLimit
+
+			db, err := bolt.Open(DbPath, 0666, nil)
+			if err != nil {
+				t.Fatal("Can't open db:", DbPath)
+			}
+			defer func() {
+				os.Remove(DbPath)
+				db.Close()
+			}()
+
+			err = dbInsert(db, dbBucketName, []byte("sha256:12345"), []byte("input_struct"))
+			if err != nil {
+				t.Fatal("TestDbDelete dbInsert: ", err)
+			}
+
+			err = dbInsert(db, dbBucketExpiryDates, []byte("2222-02-22T04:37:25.251356543Z"), []byte("sha256:12345"))
+			if err != nil {
+				t.Fatal("TestDbDelete dbInsert: ", err)
+			}
+
+			err = db.Close() // CheckSizeLimit() will open DB. We must close DB before doing this.
+			if err != nil {
+				t.Errorf("unable close DB: %v", err)
+			}
+
 			CheckSizeLimit()
-		}
 
-		isNew, err := MayBeStoreMessage([]byte(AlpineImageResult), AlpineImageKey, nil)
-		if err != nil {
-			t.Fatal("First Add AlpineImageResult Error", err)
-		}
+			existDbBucketName, err := dbBucketExists(db, dbBucketName)
+			if err != nil {
+				t.Errorf("Unable to check if bucket exists: %v", err)
+			}
 
-		if isNew != test.isNew {
-			t.Errorf("Error handling! Want isNew: %t, rgot: %t", test.isNew, isNew)
-		}
+			existDbBucketExpiryDates, err := dbBucketExists(db, dbBucketExpiryDates)
+			if err != nil {
+				t.Errorf("Unable to check if bucket exists: %v", err)
+			}
+
+			if test.wasCleared {
+				assert.False(t, existDbBucketName)
+				assert.False(t, existDbBucketExpiryDates)
+			} else {
+				assert.True(t, existDbBucketName)
+				assert.True(t, existDbBucketExpiryDates)
+			}
+
+		})
 	}
 }
 
@@ -141,7 +176,6 @@ func TestDbDelete(t *testing.T) {
 	db, err := bolt.Open(DbPath, 0666, nil)
 	if err != nil {
 		t.Fatal("Can't open db:", DbPath)
-		return
 	}
 	defer db.Close()
 
@@ -157,16 +191,19 @@ func TestDbDelete(t *testing.T) {
 	if err != nil {
 		t.Fatal("TestDbDelete dbInsert: ", err)
 	}
-	err = dbDelete(db, bucket, [][]byte{key})
+
+	err = db.Close()
 	if err != nil {
-		t.Fatal("TestDbDelete dbInsert: ", err)
+		t.Errorf("Unable close DB: %v", err)
 	}
 
-	bucket = ""
-	err = dbInsert(db, bucket, key, value)
-	expectedError := fmt.Errorf("bucket name required")
-	if errors.Is(err, expectedError) {
-		t.Errorf("Unexpected error: expected %s, got %s \n", expectedError, err)
+	exist, err := dbBucketExists(db, bucket)
+	if err != nil {
+		t.Errorf("Unable to check if bucket exists: %v", err)
+	}
+
+	if !exist {
+		t.Errorf("bucket hasn't been removed ")
 	}
 }
 
@@ -180,10 +217,34 @@ func TestWithoutAccessToDb(t *testing.T) {
 	db, err := bolt.Open(DbPath, 0220, nil)
 	if err != nil {
 		t.Fatal("Can't open db:", DbPath)
-		return
 	}
 	db.Close()
 	DbSizeLimit = 1
 	CheckSizeLimit()
 	CheckExpiredData()
+}
+
+func dbBucketExists(db *bolt.DB, bucket string) (bool, error) {
+	bucketExist := false
+
+	db, err := bolt.Open(DbPath, 0666, nil)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		db.Close()
+	}()
+
+	err = db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		if b != nil {
+			bucketExist = true
+			return nil
+		}
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return bucketExist, nil
 }

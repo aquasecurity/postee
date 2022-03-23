@@ -198,7 +198,7 @@ func (ctx *Router) load() error {
 		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", tenant.AquaServer, slash)
 	}
 
-	dbservice.DbSizeLimit = tenant.DBMaxSize
+	dbservice.DbSizeLimit = parseSize(tenant.DBMaxSize)
 	if tenant.DBTestInterval == 0 {
 		tenant.DBTestInterval = 1
 	}

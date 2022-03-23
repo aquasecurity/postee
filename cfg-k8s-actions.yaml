@@ -3,7 +3,7 @@
 
 name: tenant            #  The tenant name
 aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
-max-db-size: 1000       #  Max size of DB in MB. if empty then unlimited
+max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
 db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
 
 # Routes are used to define how to handle an incoming message

@@ -6,7 +6,7 @@ import (
 
 type TenantSettings struct {
 	AquaServer      string              `json:"aqua-server,omitempty"`
-	DBMaxSize       int                 `json:"max-db-size,omitempty"`
+	DBMaxSize       string              `json:"max-db-size,omitempty"`
 	DBRemoveOldData int                 `json:"delete-old-data,omitempty"`
 	DBTestInterval  int                 `json:"db-verify-interval,omitempty"`
 	Outputs         []OutputSettings    `json:"outputs"`

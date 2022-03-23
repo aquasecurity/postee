@@ -3,7 +3,7 @@
 
 name: myserver
 aqua-server: https://myserver.com
-max-db-size: 1000       # Max size of DB. MB. if empty then unlimited
+max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
 delete-old-data: 100    # delete data older than N day(s).  If empty then we do not delete.
 db-verify-interval: 1   # hours. an Interval between tests of DB. Default: 1 hour
 
