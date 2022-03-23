@@ -87,15 +87,21 @@ We have also added a Docker Action, that can help you run docker images as an ac
 
 ![img_5.png](img_5.png)
 
-| Option               | Usage                                                    |
-|----------------------|----------------------------------------------------------|
-| docker-image-name    | Required. Image name of the docker image.                |
-| docker-cmd           | Required. Command to run inside the docker image.        |
-| docker-env           | Optional. Environment variables to set in the container. |
-| docker-volume-mounts | Optional. Volume mounts present inside the container.    |
+| Option               | Usage                                                                                                                                                                    |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| docker-image-name    | Required. Image name of the docker image.                                                                                                                                |
+| docker-cmd           | Required. Command to run inside the docker image.                                                                                                                        |
+| docker-env           | Optional. Environment variables to set in the container.                                                                                                                 |
+| docker-network       | Optional. Connect the action container to the specified network. {e.g. "host"}                                                                                           |
+| docker-volume-mounts | Optional*. Volume mounts present inside the container.<br/> * _If you have specified volume mounts, you also need to pass them through into the postee docker container_ |
 
 ### Note
 When running Postee in a Docker container, it is required to mount the Docker socket within the Postee container to be able to spin up Docker Action container instances. This can be done as follows:
 ```
 docker run --rm --name=postee --group-add $(stat -c '%g' /var/run/docker.sock) -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/cfg.yaml:/config/cfg.yaml  -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084     -e POSTEE_HTTPS=0.0.0.0:8444     -p 8084:8084 -p 8444:8444 aquasecurity/postee:latest
+```
+
+If you have specified volume mounts for a docker container and use Postee in a docker container as well, remember to mount them within the Postee container as well:
+```
+docker run --rm --name=postee --group-add $(stat -c '%g' /var/run/docker.sock) -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/cfg.yaml:/config/cfg.yaml  -v /my/custom/volume:/my/custom/volume -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084     -e POSTEE_HTTPS=0.0.0.0:8444     -p 8084:8084 -p 8444:8444 aquasecurity/postee:latest
 ```

@@ -14,7 +14,7 @@ routes:
 
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  outputs: [my-docker]
+  outputs: [stop-vulnerable-pod]
   template: raw-json
 
 # Templates are used to format a message
@@ -29,11 +29,11 @@ outputs:
   enable: true
 
 # Define a custom output of Docker action, that can take params.
-- name: my-docker
+- name: stop-vulnerable-pod
   type: docker
   enable: true
-  docker-image-name: "docker.io/library/alpine"   # Required. Image name of container to run.
-  docker-cmd: ["echo", "hello world"]             # Required. Command to run when starting container.
-  docker-env: ["FOO=bar-value"]                   # Optional. Environment variables to set in the container.
-  docker-volume-mounts:                          # Optional. Volume mounts present inside the container
-    "/path/to/dir": "/path/to/destination"
+  docker-image-name: "bitnami/kubectl:latest"                          # Required. Image name of container to run.
+  docker-cmd: ["delete", "pod", event.input.SigMetadata.hostname]      # Required. Command to run when starting container.
+  docker-network: "host"                                               # Optional. Network name for docker container.
+  docker-volume-mounts:                                                # Optional. Volume mounts present inside the container
+    "path/to/.kube/config": "/.kube/config"
