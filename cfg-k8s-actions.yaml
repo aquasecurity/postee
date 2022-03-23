@@ -33,7 +33,7 @@ outputs:
   type: kubernetes
   enable: true
   kube-namespace: "default"                         # Required. Kubernetes namespace to use.
-  kube-config-file: "/path/to/kubeconfig"           # Required. Path to .kubeconfig file
+  kube-config-file: "/path/to/kubeconfig"           # Required if not running on K8S, Optional otherwise.
   kube-label-selector: "app=nginx-app"              # Required, if specifying labels or annotations.
   kube-actions:
     labels:

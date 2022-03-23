@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -170,8 +171,10 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 }
 
 func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesClient, error) {
-	if sourceSettings.KubeConfigFile == "" {
-		return nil, fmt.Errorf("kubernetes config file needs to be set in config yaml")
+	if !IsK8s() {
+		if sourceSettings.KubeConfigFile == "" {
+			return nil, fmt.Errorf("kubernetes config file needs to be set in config yaml")
+		}
 	}
 
 	if sourceSettings.KubeNamespace == "" {
@@ -185,6 +188,11 @@ func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesC
 		KubeLabelSelector: sourceSettings.KubeLabelSelector,
 		KubeActions:       sourceSettings.KubeActions,
 	}, nil
+}
+
+func IsK8s() bool {
+	_, ok := os.LookupEnv("KUBERNETES_SERVICE_HOST")
+	return ok
 }
 
 func buildDockerOutput(sourceSettings *OutputSettings) (*outputs.DockerClient, error) {
