@@ -290,13 +290,30 @@ Key | Description | Possible Values
 
 For Jira you can also specify custom fields that will be populated with values.
 Use the `unknowns` parameter in cfg.yaml for custom fields.
-Under the `unknowns` parameter, specify the list of fields **names** to provide value for.
-You can get field name from [Jira REST API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-fields/#api-rest-api-3-field-get). `Name` field can contain spaces.
+Under the `unknowns` parameter, specify the list of fields **names** to provide value for. Field name can contains spaces.
   
-  For example:
+Possible options for getting the field name:
+
+<details> <summary> Get field name from Jira UI </summary>
+
+1. Move to your jira.
+2. Navigate to **Settings**(![cog](https://user-images.githubusercontent.com/91113035/159643662-b7a21717-58f0-4a5e-87a0-0d840046e215.png)) > **Issues** > **Custom fields** under the Fields section:
+![Снимок экрана от 2022-03-23 13-17-48](https://user-images.githubusercontent.com/91113035/159644478-cb3d880f-0a2d-4e95-b54f-600b753e0b12.png)
+3. Click on the required field.
   
-  <details><summary> Jira REST API response </summary>
+![Снимок экрана от 2022-03-23 13-19-07](https://user-images.githubusercontent.com/91113035/159646058-1e8e25c2-fb65-46e7-83e9-e439ef447904.png)
+  
+4. Get value from **Name** field.
+
+
+</details>
+  
+<details> <summary> Get field name from Jira REST API </summary>
     
+  
+1. Get all Jira fields [according to instructions](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-fields/#api-rest-api-3-field-get) 
+2. Find needed field:
+  
   ```
   ...
       "id": "customfield_10014",
@@ -319,8 +336,11 @@ You can get field name from [Jira REST API](https://developer.atlassian.com/clou
     },
   ...
   ```
-    
-  </details>
+3. Get value from **Name** field.
+
+</details>
+  
+  Example of using the `unknowns` parameter in the cfg.yaml file:
   
 ```yaml
 unknowns:
