@@ -1,6 +1,6 @@
 # Postee
 
-![Postee](postee.png)
+![Postee](./docs/img/postee.png)
 
 ![Docker Pulls][docker-pull]
 [![Go Report Card][report-card-img]][report-card]
@@ -41,7 +41,10 @@
 - [Customizing Templates](#customizing-templates)
 - [Postee UI](#postee-ui)
 - [Misc](#misc)
-- [Troubleshooting](./troubleshooting-of-rego-templates.md)
+- Postee Architecture
+  - [Postee V2](./docs/PosteeV2.md)
+- Troubleshooting
+  - [Rego Templates](./docs/troubleshooting-of-rego-templates.md)
 
 
 ## Abstract
@@ -49,7 +52,7 @@ Postee is a simple message routing application that receives JSON input messages
 
 Primary use of Postee is to act as a notification component for Aqua Security products. It's extremely useful for sending vulnerability scan results or audit alerts from Aqua Platform to collaboration systems.
 
-![Postee v2 scheme](/postee-v2-scheme.png)
+![Postee v2 scheme](./docs/img/postee-v2-scheme.png)
 
 ## Installation
 
@@ -388,7 +391,7 @@ Postee can be integrated with Aqua Console to deliver vulnerability and audit me
 You can configure the Aqua Server to send a Webhook notification whenever a new vulnerability is found.
 Navigate to the **Image Scan Results Webhook** page, under the "Settings" menu.
 
-![Screenshot](webhook-integration.png)
+![Screenshot](./docs/img/webhook-integration.png)
 
 Click "Enable sending image scan results to webhook", and specify the URL of Postee.
 Now, scan an image and look at the Postee log files - you will see that Postee have received an incoming message once scan is done,
@@ -397,7 +400,7 @@ and that the message was routed based on the cfg.yaml configuration.
 You can also configure the Aqua Server to send a Webhook notification for every audit message.
 Navigate to the **Log Management** page, under the "Integrations" menu.
 
-![Screenshot](aqua-webhook-audit.jpg)
+![Screenshot](./docs/img/aqua-webhook-audit.jpg)
 
 Click on the "Webhook" item, and specify the URL of Postee.
 
@@ -451,9 +454,9 @@ Two examples are shipped with the app. One produces output for slack integration
 ## Postee UI
 Postee provides a simple Web UI to simplify the configuration management. 
 
-See [Postee UI](PosteeUI.md) for details how to setup the Postee UI.
+See [Postee UI](./docs/PosteeUI.md) for details how to setup the Postee UI.
 
-![Config app](/postee-output-config.png)
+![Config app](./docs/img/postee-output-config.png)
 
 
 
