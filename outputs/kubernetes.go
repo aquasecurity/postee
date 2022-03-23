@@ -63,39 +63,50 @@ func (k *KubernetesClient) Init() error {
 	return nil
 }
 
-func (k KubernetesClient) prepareInputs(input map[string]string) map[string]map[string]string {
-	a := make(map[string]map[string]string)
+func jsonOrString(input map[string]string, filter string) string {
+	var ret string
+	if ok := json.Valid([]byte(input["description"])); ok { // input is json
+		ret = gjson.Get(input["description"], filter).String()
+	} else {
+		ret = input["description"] // input is a string
+	}
+	return ret
+}
+
+func (k KubernetesClient) prepareInputs(input map[string]string) (string, map[string]map[string]string) {
+	retAction := make(map[string]map[string]string)
+	var retLabelSelector string
+
+	if strings.Contains(k.KubeLabelSelector, regoInputPrefix) {
+		retLabelSelector = jsonOrString(input, strings.TrimPrefix(k.KubeLabelSelector, regoInputPrefix+"."))
+	}
 
 	for key, m := range k.KubeActions {
 		for id, val := range m {
 			var calcVal string
 			if strings.HasPrefix(val, regoInputPrefix) {
-				if ok := json.Valid([]byte(input["description"])); ok { // input is json
-					calcVal = gjson.Get(input["description"], strings.TrimPrefix(val, regoInputPrefix+".")).String()
-				} else {
-					calcVal = input["description"] // input is a string
-				}
+				calcVal = jsonOrString(input, strings.TrimPrefix(val, regoInputPrefix+"."))
 			} else {
 				calcVal = val // no rego to parse
 			}
-			if _, ok := a[key][id]; !ok && len(a[key]) <= 0 {
-				a[key] = map[string]string{id: calcVal}
+			if _, ok := retAction[key][id]; !ok && len(retAction[key]) <= 0 {
+				retAction[key] = map[string]string{id: calcVal}
 			} else {
-				a[key][id] = calcVal
+				retAction[key][id] = calcVal
 			}
 		}
 	}
 
-	return a
+	return retLabelSelector, retAction
 }
 
 func (k KubernetesClient) Send(m map[string]string) error {
 	ctx := context.Background()
-	actions := k.prepareInputs(m)
+	labelSelector, actions := k.prepareInputs(m)
 
 	// TODO: Allow configuring of resource {pod, ds, ...}
 	pods, _ := k.clientset.CoreV1().Pods(k.KubeNamespace).List(ctx, metav1.ListOptions{
-		LabelSelector: k.KubeLabelSelector,
+		LabelSelector: labelSelector,
 	})
 	for _, pod := range pods.Items {
 		if len(actions[KubernetesLabelKey]) > 0 {
