@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/aquasecurity/postee/v2/layout"
@@ -21,6 +22,11 @@ const (
 	KubernetesLabelKey      = "labels"
 	KubernetesAnnotationKey = "annotations"
 )
+
+func IsK8s() bool {
+	_, ok := os.LookupEnv("KUBERNETES_SERVICE_HOST")
+	return ok
+}
 
 func updateMap(old map[string]string, new map[string]string) map[string]string {
 	newMap := make(map[string]string)
@@ -65,7 +71,7 @@ func (k *KubernetesClient) Init() error {
 
 func jsonOrString(input map[string]string, filter string) string {
 	var ret string
-	if ok := json.Valid([]byte(input["description"])); ok { // input is json
+	if json.Valid([]byte(input["description"])) { // input is json
 		ret = gjson.Get(input["description"], filter).String()
 	} else {
 		ret = input["description"] // input is a string
@@ -89,7 +95,7 @@ func (k KubernetesClient) prepareInputs(input map[string]string) (string, map[st
 			} else {
 				calcVal = val // no rego to parse
 			}
-			if _, ok := retAction[key][id]; !ok && len(retAction[key]) <= 0 {
+			if _, ok := retAction[key][id]; !ok && len(retAction[key]) == 0 {
 				retAction[key] = map[string]string{id: calcVal}
 			} else {
 				retAction[key][id] = calcVal
