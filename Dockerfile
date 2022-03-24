@@ -5,7 +5,7 @@ WORKDIR /server/
 RUN go build -o ./bin/postee main.go
 
 FROM alpine:3.15
-RUN apk update && apk add wget ca-certificates
+RUN apk update && apk add wget ca-certificates curl jq
 EXPOSE 8082
 EXPOSE 8445
 RUN mkdir /server

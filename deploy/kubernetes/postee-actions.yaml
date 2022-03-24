@@ -1,0 +1,361 @@
+## postee-configmap
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: postee-config
+data:
+  cfg.yaml: |
+    ---
+    # The configuration file contains a general settings section,
+    # routes, templates and outputs sections.
+
+    name: tenant            #  The tenant name
+    aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+    max-db-size: 1000       #  Max size of DB in MB. if empty then unlimited
+    db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
+
+    # Routes are used to define how to handle an incoming message
+    routes:
+    - name: stdout
+      outputs: [ stdout ]
+      template: raw-json
+
+    - name: actions-route
+      input: contains(input.SigMetadata.ID, "TRC-2")
+      serialize-outputs: true                       # Optional. Serialize outputs in route.
+      outputs: [save-tracee-event-log, send-event, tag-k8s-resources, kill-vulnerable-pod]
+      template: raw-json
+
+    # Templates are used to format a message
+    templates:
+    - name: raw-json                        # route message "As Is" to external webhook
+      rego-package: postee.rawmessage.json
+
+    # Outputs are target services that should consume the messages
+    outputs:
+    - name: stdout
+      type: stdout
+      enable: true
+
+    # Define a custom output of exec action, that can take params.
+    - name: save-tracee-event-log
+      type: exec
+      enable: true
+      env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]
+      exec-script: |    # We create a persistent volume "/postee-artifacts/" to store logs
+        #!/bin/sh
+        echo $POSTEE_EVENT >> /postee-artifacts/tracee.event.log
+        
+    - name: send-event
+      type: http
+      enable: true
+      url: "https://url-to-webhook.com"     # Required. URL of the HTTP Request
+      method: POST                          # Required. Method to use. CONNECT is not supported at this time
+      headers:                              # Optional. Headers to pass in for the request.
+        "Foo": ["bar", "baz"]
+      timeout: 10s                          # Optional. Timeout value in XX(s,m,h)
+      body-content: |                       # Optional. Body of the HTTP request
+        This is an example of sending a Postee Event
+        via an HTTP Action. 
+        
+        Event Details: 
+          ID: event.input.SigMetadata.ID
+          Date: event.input.SigMetadata.Hostname
+        
+    - name: create-jira-ticket
+      type: jira 
+      enable: false
+      url: https://foo-bar.atlassian.com
+      project-key: XYZ                     # Required. Specify the JIRA product key
+      user: johnwick@example.com           # Required. E.g :johndoe@gmail.com"
+      password: hunter2                    # Optional. Specify Jira user API key. Used only for Jira Cloud
+      board:  "postee-actions"             # Optional. Specify the Jira board name to open tickets on
+      labels: ["vulnerability"]            # Optional, specify array of labels to add to Ticket, for example: ["label1", "label2"]
+      priority:  "High"                    # Optional. Specify the issues severity. Default is "High"
+      assignee:  ["devops@example.com"]    # Optional. Specify the assigned user. Default is the user that opened the ticket
+
+    - name: tag-k8s-resources
+      type: kubernetes
+      enable: true
+      kube-namespace: "default"                           # Required. Kubernetes namespace to use.
+      kube-label-selector: "statefulset.kubernetes.io/pod-name=event.input.SigMetadata.Hostname"               # Required, if specifying labels or annotations.
+      kube-actions:
+        labels:
+          category: "vulnerability"                        # Required. Label to add.
+          id: event.input.Vulnerability.ID               # Optional. It is also possible to add labels based on event inputs.
+          severity: event.input.Vulnerability.Severity
+    
+    - name: kill-vulnerable-pod
+      type: exec
+      enable: true
+      exec-script: |
+        #!/bin/sh
+        PODNAME=$(echo $POSTEE_EVENT | jq -r .SigMetadata.Hostname)    
+    
+        curl -k -X DELETE \
+        -H "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+        https://kubernetes/api/v1/namespaces/default/pods/$PODNAME
+        
+## postee
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postee
+  name: postee-svc
+spec:
+  ports:
+  - name: https
+    port: 8445
+    protocol: TCP
+    targetPort: 8445
+  - name: http
+    port: 8082
+    protocol: TCP
+    targetPort: 8082
+  selector:
+    app: postee
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: postee
+  name: postee
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postee
+  serviceName: postee-svc
+  volumeClaimTemplates:
+  - metadata:
+      name: postee-db
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: postee-artifacts
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+  - metadata:
+      name: postee-config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+  - metadata:
+      name: rego-templates
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+  - metadata:
+      name: rego-filters
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+  template:
+    metadata:
+      labels:
+        app: postee
+      name: postee
+    spec:
+      initContainers:
+      - name: setting-db
+        image: busybox:1.34
+        command:
+        - /bin/chown
+        - -R
+        - "1099:1099"
+        - /server
+        volumeMounts:
+        - name: postee-db
+          mountPath: /server/database
+        - name: rego-templates
+          mountPath: /server/rego-templates/custom
+        - name: rego-filters
+          mountPath: /server/rego-filters/custom
+      - name: setting-cfg
+        image: busybox:1.34
+        command:
+        - cp
+        - /configmap/cfg.yaml
+        - /config/cfg.yaml
+        volumeMounts:
+        - name: configmap-vol
+          mountPath: /configmap
+          readOnly: false
+        - name: postee-config
+          mountPath: /config
+      containers:
+      - image: postee-local:latest
+        imagePullPolicy: IfNotPresent
+        name: postee
+        env:
+        - name: POSTEE_CFG
+          value: /config/cfg.yaml
+        - name: POSTEE_DEBUG
+          value: "not"
+        ports:
+        - name: http
+          containerPort: 8082
+          protocol: TCP
+        - name: tls
+          containerPort: 8445
+          protocol: TCP
+        volumeMounts:
+        - name: configmap-vol
+          mountPath: /configmap
+          readOnly: false
+        - name: postee-db
+          mountPath: /server/database
+        - name: postee-config
+          mountPath: /config
+        - name: rego-templates
+          mountPath: /server/rego-templates/custom
+        - name: rego-filters
+          mountPath: /server/rego-filters/custom
+        - name: postee-artifacts
+          mountPath: /postee-artifacts
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1099
+          runAsGroup: 1099
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8082
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8082
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: configmap-vol
+        configMap:
+          name: postee-config
+          items:
+          - key: cfg.yaml
+            path: cfg.yaml
+
+## postee-ui
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postee-ui-svc
+spec:
+  ports:
+  - name: postee-ui
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: postee-ui
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: postee-ui
+  name: postee-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postee-ui
+  template:
+    metadata:
+      labels:
+        app: postee-ui
+    spec:
+      initContainers:
+      - name: chmod-er
+        image: busybox:1.34
+        command:
+        - /bin/chown
+        - -R
+        - "1099:1099"
+        - /config
+        volumeMounts:
+        - name: postee-config
+          mountPath: /config
+      containers:
+      - image: aquasec/postee-ui:latest
+        imagePullPolicy: Always
+        name: postee-ui
+        env:
+        - name: POSTEE_UI_CFG
+          value: /config/cfg.yaml
+        - name: POSTEE_UI_PORT
+          value: "8000"
+        - name: POSTEE_UI_UPDATE_URL
+          value: "http://postee-svc:8082"
+        - name: POSTEE_ADMIN_USER
+          value: admin
+        - name: POSTEE_ADMIN_PASSWORD
+          value: admin
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        volumeMounts:
+        - name: postee-db
+          mountPath: /server/database
+        - name: postee-config
+          mountPath: /config
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1099
+          runAsGroup: 1099
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: postee-db
+        persistentVolumeClaim:
+          claimName: postee-db-postee-0
+      - name: postee-config
+        persistentVolumeClaim:
+          claimName: postee-config-postee-0
