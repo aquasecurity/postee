@@ -43,6 +43,7 @@ func (nexus *NexusIqOutput) auth() string {
 
 func (nexus *NexusIqOutput) execute(method string, url string, payload string, headers map[string]string) (map[string]interface{}, error) {
 	client := http.DefaultClient
+	client.Timeout = time.Second * 120
 
 	var reader io.Reader
 
