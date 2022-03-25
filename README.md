@@ -31,6 +31,7 @@
   - [Templates](#templates)
   - [Outputs](#outputs)
     - [ServiceNow](#serviceNow)
+    - [Nexus IQ](#nexus-iq-integration-parameters)
     - [Jira](#jira)
     - [Email](#email)
     - [Slack](#slack)
@@ -69,22 +70,22 @@ To run Postee as a Docker container, you mount the cfg.yaml to '/config/cfg.yaml
 
 ```bash
 docker run -d --name=postee -v /<path to configuration file>/cfg.yaml:/config/cfg.yaml \
-    -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084 -e POSTEE_HTTPS=0.0.0.0:8444 \ 
+    -e POSTEE_CFG=/config/cfg.yaml -e POSTEE_HTTP=0.0.0.0:8084 -e POSTEE_HTTPS=0.0.0.0:8444 \
     -p 8084:8084 -p 8444:8444 aquasec/postee:latest
 ```
 
 ### Kubernetes
-When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod. 
+When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod.
 
 See [Kubernetes instructions](./deploy/kubernetes/README.md) to run Postee on Kubernetes using deployment yamls.
 
 ### Helm
-When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod. 
+When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod.
 
 See [Helm instructions](./deploy/helm/README.md) to run Postee on Kubernetes using Helm chart.
 
 ### From Source
-Clone and build the project: 
+Clone and build the project:
 ```bash
 git clone git@github.com:aquasecurity/postee.git
 make build
@@ -176,7 +177,7 @@ Another example using regular expression:
 input: regex.match("alp:*", input.image)
 ```
 
-You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability. 
+You can create more complex input definitions using the Rego language. For example, the following input definition will match JSON messages that have 'image.name' field with value 'alpine' and that their registry is 'Docker Hub' and they have a critical vulnerability.
 
 ```
 input: |
@@ -248,11 +249,25 @@ Depending on the 'type', additional parameters are required.
 
 Key | Description | Possible Values
 --- | --- | ---
-*user* | ServiceNow user name | 
+*user* | ServiceNow user name |
 *password* | User API key / password |
 *instance* | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|
 *board* | ServiceNow board name to open tickets on. Default is "incident" |
 </details>
+
+### Nexus IQ integration parameters
+
+<details>
+<summary>Details</summary>
+
+Key | Description | Possible Values
+--- | --- | ---
+*user* | Nexus IQ user name |
+*password* | Nexus IQ password |
+*url* | Url of Nexus IQ server |
+*organization-id* | Organization UID like "222de33e8005408a844c12eab952c9b0" |
+</details>
+
 
 ### Jira
 
@@ -276,13 +291,14 @@ Select your profile picture at top right of the screen, then choose  Settings > 
 <details>
 <summary>Details</summary>
 
+### Jira integration parameters
 Key | Description | Possible Values
 --- | --- | ---
 *url* | Jira project url |
 *project-key* | The JIRA project key |
-*user* | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center | 
-*password* | Optional: User's password. API token can also be used for Cloud Jira instances. | 
-*token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center | 
+*user* | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center |
+*password* | Optional: User's password. API token can also be used for Cloud Jira instances. |
+*token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center |
 *board* |  Optional: JIRA board key |
 *priority*|  Optional: ticket priority, e.g., High |
 *assignee*| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value |
@@ -296,13 +312,13 @@ Use the `unknowns` parameter in cfg.yaml for custom fields.
 Under the `unknowns` parameter, specify the list of fields names to provide value for.
 You can add "-numeric-field", "-multiple-value", "multiple-line-text-field", "-date-time-picker" and "-field-url" as suffix to the custom field name, to specify what is the field type.
 
-For example: 
+For example:
 ```yaml
 unknowns:
      mycustom: "this is a text custom field"
      mycustom-numeric-field: 123
-     mycustom-multiple-value: 1,2,3 
-     mycustom-multiple-line-text-field: "text \n moretext" 
+     mycustom-multiple-value: 1,2,3
+     mycustom-multiple-line-text-field: "text \n moretext"
      mycustom-date-time-picker: 2014-04-11T12:14:26.880+0400
      mycustom-url: https://tour.golang.org/moretypes/7
 ```
@@ -316,8 +332,8 @@ Key | Description | Possible Values
 --- | --- | ---
 *use-mx* | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
 *user* | User name (usually email address) |
-*password* | Password | 
-*host* | SMTP host name | 
+*password* | Password |
+*host* | SMTP host name |
 *port* | SMTP port |
 *sender* |  Sender's email address |
 *recipients*|  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
@@ -369,7 +385,7 @@ URL, as part of the cfg.yaml settings.
 
 Key | Description | Possible Values
 --- | --- | ---
-*token* | The Splunk HTTP event collector token | 
+*token* | The Splunk HTTP event collector token |
 *url* | URL to Splunk HTTP event collector (e.g. http://server:8088) |
 *size-limit* | Optional. Maximum scan length, in bytes. Default: 10000 | 10000
 </details>
@@ -452,7 +468,7 @@ result:=sprintf("Vulnerabilities are found while scanning of image: <i>%s</i>", 
 Two examples are shipped with the app. One produces output for slack integration and another one builds html output which can be used across several integrations. These example can be used as starting point for message customization
 
 ## Postee UI
-Postee provides a simple Web UI to simplify the configuration management. 
+Postee provides a simple Web UI to simplify the configuration management.
 
 See [Postee UI](./docs/PosteeUI.md) for details how to setup the Postee UI.
 
@@ -483,4 +499,48 @@ outputs:
   user: $JIRA_USERNAME
   token: $JIRA_SERVER_TOKEN         
 ```
+
+### Getting the JIRA connection details
+
+Follow these steps to set up JIRA integration:
+1. Get a new token for user:
+    * Login to Jira Cloud.
+Go to the user profile API tokens (JIRA Cloud users can find it here: https://id.atlassian.com/manage-profile/security/api-tokens).
+Click on the Create API Token. A new API token for the user is created.
+    * Login to Jira Server/Data center
+Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created.
+2. Fill jira output in cfg.yaml:
+    * Jira Cloud:
+        * User: your email.
+        * Password: your API token.
+    * Jira Server/Data center:
+        * User: your UserName.
+        * Password: your Password.\
+        or
+        * Token: your Personal Access Tokens.
+
+### Getting the Slack connection details: [Slack Custom App](https://api.slack.com/)
+1. Visit api.slack.com
+2. Press "Create custom app"
+3. Fill app name and select slack workspace
+4. Open "Incoming webhooks" tab
+5. Enable "Incoming webhooks"
+6. Add webhook to workspace
+7. On next screen pick slack channel and click allow
+8. Copy webhook url to the Postee config
+
+### Getting the MS Teams connection details
+Open your Microsoft Teams client. Click on the "..." near the channel you would like to send notifications to.
+Choose "Connectors". The connectors window will open.
+Look for the "Incoming Webhook" connector (it is under the "All" category).
+Click "Add" near the Incoming Webhook connector. Click "Add" again.
+Provide a name and click "Create".
+You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
+
+### Configure the Splunk Integration
+You will need to carate an HTTP Event Collector in Splunk Enterprise or Splunk Cloud.
+This can usually be found in the Splunk console under "Settings -> Data Inputs -> HTTP Event Collector -> Add New".
+Once you create an HTTP Event Collector you will receive a token. You should provide this token, together with the Splunk HTTP Collector
+URL, as part of the cfg.yaml settings.
+
 

@@ -35,6 +35,7 @@ type OutputSettings struct {
 	Method            string                       `json:"method,omitempty"`
 	Timeout           string                       `json:"timeout,omitempty"`
 	Headers           map[string][]string          `json:"headers,omitempty"`
+	OrganizationId    string                       `json:"organization-id,omitempty"`
 	KubeConfigFile    string                       `json:"kube-config-file,omitempty"`
 	KubeLabelSelector string                       `json:"kube-label-selector,omitempty"`
 	KubeActions       map[string]map[string]string `json:"kube-actions,omitempty"`

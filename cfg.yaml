@@ -48,6 +48,9 @@ templates:
   url:                                  #  URL to custom REGO file
 - name: raw-json                        # route message "As Is" to external webhook
   rego-package: postee.rawmessage.json
+- name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
+  rego-package: postee.vuls.cyclondx
+
 
 
 # Outputs are target services that should consume the messages
@@ -118,4 +121,11 @@ outputs:
   password:  # Mandatory. Specify user API key
   instance:  # Mandatory. Name of ServiceN  ow Instance
   board:     #  Specify the ServiceNow board name to open tickets on. Default is "incident"
-  
+
+- name: my-nexus-iq
+  type: nexusIq
+  enable: false
+  user:             # Mandatory. User name
+  password:         # Mandatory. User password
+  url:              # Mandatory. Url of Nexus IQ server
+  organization-id:  # Mandatory. Organization UID like "222de33e8005408a844c12eab952c9b0"

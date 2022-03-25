@@ -339,6 +339,8 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		plg = buildSplunkOutput(settings)
 	case "stdout":
 		plg = buildStdoutOutput(settings)
+	case "nexusIq":
+		plg = buildNexusIqOutput(settings)
 	case "exec":
 		plg, err = buildExecOutput(settings)
 		if err != nil {
