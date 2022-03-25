@@ -99,7 +99,10 @@ func (mockUUID) New() uuid.UUID {
 
 func TestDocketClient_Send(t *testing.T) {
 	testCases := []struct {
-		name                string
+		name           string
+		inputEvent     string
+		inputDockerCmd []string
+
 		imagePullFunc       func(context.Context, string, types.ImagePullOptions) (io.ReadCloser, error)
 		containerCreateFunc func(ctx context.Context, config *containertypes.Config, hostConfig *containertypes.HostConfig, networkingConfig *networktypes.NetworkingConfig, platform *specs.Platform, containerName string) (containertypes.ContainerCreateCreatedBody, error)
 		containerRemoveFunc func(ctx context.Context, container string, options types.ContainerRemoveOptions) error
@@ -111,18 +114,48 @@ func TestDocketClient_Send(t *testing.T) {
 		expectedLogs  string
 	}{
 		{
-			name:         "happy path",
+			name:         "happy path, string input event",
+			inputEvent:   `foo bar baz`,
 			expectedLogs: "the logs of joy",
 			containerCreateFunc: func(ctx context.Context, config *containertypes.Config, hostConfig *containertypes.HostConfig, networkingConfig *networktypes.NetworkingConfig, platform *specs.Platform, containerName string) (containertypes.ContainerCreateCreatedBody, error) {
 
 				assert.Equal(t, containertypes.Config{
 					Image: "docker.io/library/alpine",
 					Cmd:   []string{"echo", "hello world"},
-					Env:   []string{"FOO=bar", `POSTEE_EVENT=foo bar baz`},
+					Env:   []string{"FOO=bar", `POSTEE_EVENT="foo bar baz"`},
 				}, *config)
 
 				assert.Equal(t, containertypes.HostConfig{
-					Mounts: []mount.Mount{{Type: mount.TypeBind, Source: "foo-src", Target: "bar-dst"}},
+					Mounts: []mount.Mount{{Type: mount.TypeBind, Source: "foo-src", Target: "bar-dst"}}, NetworkMode: "host",
+				}, *hostConfig)
+
+				assert.Contains(t, containerName, "postee-my-docker-action")
+
+				return containertypes.ContainerCreateCreatedBody{
+					ID: "foo-bar-123",
+				}, nil
+			},
+			containerRemoveFunc: func(ctx context.Context, container string, options types.ContainerRemoveOptions) error {
+
+				assert.Equal(t, "postee-my-docker-action-1471d64a-6c64-4527-bbd8-7bc772678db8", container)
+				return nil
+			},
+		},
+		{
+			name:           "happy path, relative json input event",
+			inputEvent:     `{"hostname":"foo.host"}`,
+			inputDockerCmd: []string{"kubectl", "delete", "pod", "event.input.hostname"},
+			expectedLogs:   "the logs of joy",
+			containerCreateFunc: func(ctx context.Context, config *containertypes.Config, hostConfig *containertypes.HostConfig, networkingConfig *networktypes.NetworkingConfig, platform *specs.Platform, containerName string) (containertypes.ContainerCreateCreatedBody, error) {
+
+				assert.Equal(t, containertypes.Config{
+					Image: "docker.io/library/alpine",
+					Cmd:   []string{"kubectl", "delete", "pod", "foo.host"},
+					Env:   []string{"FOO=bar", `POSTEE_EVENT="{"hostname":"foo.host"}"`},
+				}, *config)
+
+				assert.Equal(t, containertypes.HostConfig{
+					Mounts: []mount.Mount{{Type: mount.TypeBind, Source: "foo-src", Target: "bar-dst"}}, NetworkMode: "host",
 				}, *hostConfig)
 
 				assert.Contains(t, containerName, "postee-my-docker-action")
@@ -185,8 +218,8 @@ func TestDocketClient_Send(t *testing.T) {
 			dc := DockerClient{
 				Name:      "my-docker-action",
 				ImageName: "docker.io/library/alpine",
-				Cmd:       []string{"echo", "hello world"},
 				Env:       []string{"FOO=bar"},
+				Network:   "host",
 				Volumes: map[string]string{
 					"foo-src": "bar-dst",
 				},
@@ -201,7 +234,14 @@ func TestDocketClient_Send(t *testing.T) {
 				uuidNew: mockUUID{}.New,
 			}
 
-			err := dc.Send(map[string]string{"description": "foo bar baz"})
+			switch {
+			case tc.inputDockerCmd != nil:
+				dc.Cmd = tc.inputDockerCmd
+			default:
+				dc.Cmd = []string{"echo", "hello world"}
+			}
+
+			err := dc.Send(map[string]string{"description": tc.inputEvent})
 			if tc.expectedError != "" {
 				assert.Equal(t, tc.expectedError, err.Error(), tc.name)
 			} else {
