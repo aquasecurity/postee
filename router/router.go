@@ -606,7 +606,6 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 		templateName := r.Template
 		name, ok := ctx.outputsTemplate[outputName]
 		if ok && name != "" {
-			log.Logger.Infof("output '%s' is linked to a template of its own '%s'", outputName, name)
 			templateName = name
 		}
 
@@ -639,7 +638,7 @@ func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *route
 		templateName := r.Template
 		name, ok := ctx.outputsTemplate[outputName]
 		if ok && name != "" {
-			log.Logger.Infof("output '%s' is linked to a template of its own '%s'", outputName, templateName)
+
 			templateName = name
 		}
 
