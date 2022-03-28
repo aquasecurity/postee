@@ -298,10 +298,10 @@ Possible options for getting the field name:
 
 1. Move to your jira.
 2. Navigate to **Settings**(![cog](https://user-images.githubusercontent.com/91113035/159643662-b7a21717-58f0-4a5e-87a0-0d840046e215.png)) > **Issues** > **Custom fields** under the Fields section:
-![Снимок экрана от 2022-03-23 13-17-48](https://user-images.githubusercontent.com/91113035/159644478-cb3d880f-0a2d-4e95-b54f-600b753e0b12.png)
+![Custom_fields](docs/img/jira-custom_fields.png)
 3. Click on the required field.
   
-![Снимок экрана от 2022-03-23 13-19-07](https://user-images.githubusercontent.com/91113035/159646058-1e8e25c2-fb65-46e7-83e9-e439ef447904.png)
+![Field_information](docs/img/jira-field_information.png)
   
 4. Get value from **Name** field.
 
