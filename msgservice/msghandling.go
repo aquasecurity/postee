@@ -2,7 +2,7 @@ package msgservice
 
 import (
 	"encoding/json"
-	"strings"
+	"fmt"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -30,12 +30,18 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 	owners := ""
 	applicationScopeOwnersObj, ok := in["application_scope_owners"]
 	if ok {
-		applicationScopeOwners := make([]string, 0)
-
-		applicationScopeOwners = append(applicationScopeOwners, applicationScopeOwnersObj.([]string)...)
-
-		if len(applicationScopeOwners) > 0 {
-			owners = strings.Join(applicationScopeOwners, ";")
+		ownersList, ok := applicationScopeOwnersObj.([]interface{})
+		if !ok {
+			log.Logger.Error("Error while asserting application_scope_owners attribute: type of []interface{} is expected")
+		} else {
+			if len(ownersList) > 0 {
+				for i, owner := range ownersList {
+					if i > 0 {
+						owners += ";"
+					}
+					owners += fmt.Sprint(owner)
+				}
+			}
 		}
 	}
 
@@ -105,12 +111,18 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 	owners := ""
 	applicationScopeOwnersObj, ok := in["application_scope_owners"]
 	if ok {
-		applicationScopeOwners := make([]string, 0)
-
-		applicationScopeOwners = append(applicationScopeOwners, applicationScopeOwnersObj.([]string)...)
-
-		if len(applicationScopeOwners) > 0 {
-			owners = strings.Join(applicationScopeOwners, ";")
+		ownersList, ok := applicationScopeOwnersObj.([]interface{})
+		if !ok {
+			log.Logger.Error("Error while asserting application_scope_owners attribute: type of []interface{} is expected")
+		} else {
+			if len(ownersList) > 0 {
+				for i, owner := range ownersList {
+					if i > 0 {
+						owners += ";"
+					}
+					owners += fmt.Sprint(owner)
+				}
+			}
 		}
 	}
 

@@ -17,7 +17,7 @@ var (
 		"registry":                 "registry1",
 		"vulnerability_summary":    map[string]int{"critical": 0, "high": 1, "medium": 3, "low": 4, "negligible": 5},
 		"image_assurance_results":  map[string]interface{}{"disallowed": true},
-		"application_scope_owners": []string{"recipient1@aquasec.com", "recipient1@aquasec.com"},
+		"application_scope_owners": []interface{}{"recipient1@aquasec.com", "recipient1@aquasec.com"},
 	}
 )
 
