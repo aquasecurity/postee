@@ -179,8 +179,10 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 }
 
 func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesClient, error) {
-	if sourceSettings.KubeConfigFile == "" {
-		return nil, fmt.Errorf("kubernetes config file needs to be set in config yaml")
+	if !outputs.IsK8s() {
+		if sourceSettings.KubeConfigFile == "" {
+			return nil, fmt.Errorf("kubernetes config file needs to be set in config yaml")
+		}
 	}
 
 	if sourceSettings.KubeNamespace == "" {

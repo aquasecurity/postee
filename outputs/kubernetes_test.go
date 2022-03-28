@@ -18,11 +18,12 @@ import (
 func TestKubernetesClient_Send(t *testing.T) {
 	t.Run("labels", func(t *testing.T) {
 		testCases := []struct {
-			name           string
-			inputEvent     string
-			reactorFunc    func(k8stesting.Action) (bool, runtime.Object, error)
-			inputActions   map[string]map[string]string
-			expectedLabels map[string]string
+			name               string
+			inputEvent         string
+			reactorFunc        func(k8stesting.Action) (bool, runtime.Object, error)
+			inputActions       map[string]map[string]string
+			inputLabelSelector string
+			expectedLabels     map[string]string
 		}{
 			{
 				name:       "happy path, labels are added",
@@ -30,6 +31,19 @@ func TestKubernetesClient_Send(t *testing.T) {
 				inputActions: map[string]map[string]string{
 					"labels": {"foo": "bar"},
 				},
+				inputLabelSelector: "app=nginx",
+				expectedLabels: map[string]string{
+					"app": "nginx",
+					"foo": "bar",
+				},
+			},
+			{
+				name:       "happy path, relative label selector and labels are added",
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2", "Hostname":"nginx"}}`,
+				inputActions: map[string]map[string]string{
+					"labels": {"foo": "bar"},
+				},
+				inputLabelSelector: "app=event.input.SigMetadata.Hostname",
 				expectedLabels: map[string]string{
 					"app": "nginx",
 					"foo": "bar",
@@ -37,13 +51,18 @@ func TestKubernetesClient_Send(t *testing.T) {
 			},
 			{
 				name:       "happy path, json input event, relative input labels are added",
-				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
+				inputEvent: `{"SigMetadata":{"ID":"TRC-2", "Hostname":"foo.com"}}`,
 				inputActions: map[string]map[string]string{
-					"labels": {"foo": "event.input.SigMetadata.ID"},
+					"labels": {
+						"foo":      "event.input.SigMetadata.ID",
+						"hostname": "event.input.SigMetadata.Hostname",
+					},
 				},
+				inputLabelSelector: "app=nginx",
 				expectedLabels: map[string]string{
-					"app": "nginx",
-					"foo": "TRC-2",
+					"app":      "nginx",
+					"foo":      "TRC-2",
+					"hostname": "foo.com",
 				},
 			},
 			{
@@ -52,14 +71,16 @@ func TestKubernetesClient_Send(t *testing.T) {
 				inputActions: map[string]map[string]string{
 					"labels": {"foo": "event.input"},
 				},
+				inputLabelSelector: "app=nginx",
 				expectedLabels: map[string]string{
 					"app": "nginx",
 					"foo": "foo bar baz",
 				},
 			},
 			{
-				name:       "sad path, unable to add label",
-				inputEvent: `{"SigMetadata":{"ID":"TRC-2"}}`,
+				name:               "sad path, unable to add label",
+				inputEvent:         `{"SigMetadata":{"ID":"TRC-2"}}`,
+				inputLabelSelector: "app=nginx",
 				reactorFunc: func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
 					return true, nil, fmt.Errorf("failed to update label")
 				},
@@ -75,7 +96,7 @@ func TestKubernetesClient_Send(t *testing.T) {
 					clientset:         fake.NewSimpleClientset(),
 					KubeNamespace:     "testing",
 					KubeActions:       tc.inputActions,
-					KubeLabelSelector: "app=nginx",
+					KubeLabelSelector: tc.inputLabelSelector,
 				}
 
 				if tc.reactorFunc != nil {
