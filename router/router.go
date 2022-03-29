@@ -252,7 +252,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Logger.Infof("Configured template '%s' with legacy renderer %s", template.Name, template.LegacyScanRenderer)
+		log.Logger.Debugf("Configured template '%s' with legacy renderer %s", template.Name, template.LegacyScanRenderer)
 	}
 
 	if template.RegoPackage != "" {
@@ -261,10 +261,10 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 		ctx.templates[template.Name] = inpteval
-		log.Logger.Infof("Configured template '%s' with Rego package %s", template.Name, template.RegoPackage)
+		log.Logger.Debugf("Configured template '%s' with Rego package %s", template.Name, template.RegoPackage)
 	}
 	if template.Url != "" {
-		log.Logger.Infof("Configured template '%s' with url: %s", template.Name, template.Url)
+		log.Logger.Debugf("Configured template '%s' with url: %s", template.Name, template.Url)
 
 		r, err := http.NewRequest("GET", template.Url, nil)
 		if err != nil {
