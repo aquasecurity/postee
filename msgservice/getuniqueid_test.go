@@ -208,3 +208,53 @@ func TestGetMessageUniqueId(t *testing.T) {
 	}
 
 }
+
+func TestGetMessageUniqueIdJSONStr(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []byte
+		props    []string
+		expected string
+	}{
+		{
+			name: "valid",
+			input: []byte(`{
+				"a":1,
+				"b":"str",
+				"data": "{\"id\":\"aaa-bbbb\"}"
+			}`),
+			props:    []string{"a", "data.id"},
+			expected: "1-aaa-bbbb",
+		},
+		{
+			name: "invalid",
+			input: []byte(`{
+				"a":1,
+				"b":"str",
+				"data": "\"id\":\"aaa-bbbb\"}"
+			}`),
+			props:    []string{"a", "data.id"},
+			expected: "1",
+		},
+		{
+			name: "json",
+			input: []byte(`{
+				"a":1,
+				"b":"str",
+				"data": {"id":"aaa-bbbb"}
+			}`),
+			props:    []string{"a", "data.id"},
+			expected: "1-aaa-bbbb",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			m := make(map[string]interface{})
+			_ = json.Unmarshal(test.input, &m)
+			key := GetMessageUniqueId(m, test.props)
+			assert.Equal(t, test.expected, key)
+		})
+	}
+
+}

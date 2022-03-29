@@ -1,6 +1,7 @@
 package msgservice
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -44,9 +45,23 @@ func getSingleValue(o interface{}, parts []string) string {
 				if len(x) > 0 {
 					return getSingleValue(x[0], parts[1:]) //re-iterate with first element
 				}
+			case string:
+				js, ok := isJSON(x)
+				if ok {
+					return getSingleValue(js, parts[1:])
+				}
+
 			}
 		}
 
 	}
 	return ""
+}
+
+func isJSON(s string) (map[string]interface{}, bool) {
+	js := make(map[string]interface{})
+	if json.Unmarshal([]byte(s), &js) != nil {
+		return js, false
+	}
+	return js, true
 }
