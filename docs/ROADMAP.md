@@ -34,12 +34,12 @@
 ![img_3.png](img_3.png)
 #### Pros/Cons of Monolith model
 
-| Pros                                              | Cons                                                          |
-|---------------------------------------------------|---------------------------------------------------------------|
-| Follows existing model of 1 Postee per deployment | Single point of failure                                       |
-| Ease of configuration, single YAML                | Outputs like Actions only possible with remote execution      |
-|                                                   | Complex as Postee needs to keep global state                  |
-|                                                   | Configurations are specfic to deployment and cannot be reused |
+| Pros                                              | Cons                                                           |
+|---------------------------------------------------|----------------------------------------------------------------|
+| Follows existing model of 1 Postee per deployment | Single point of failure                                        |
+| Ease of configuration, single YAML                | Outputs like Actions only possible with remote execution       |
+|                                                   | Complex as Postee needs to keep global state                   |
+|                                                   | Configurations are specific to deployment and cannot be reused |
 
 
 ### Postee Actions
@@ -50,4 +50,4 @@
 
 ### Configuration via YAML/Rego
 1. Today Postee config lives in YAML files. Postee can evaluate rules that are written in Rego. 
-2. If Postee UI is used, the configuration can be intially loaded via the config yaml but later on as the UI is configured (new outputs are enabled, disabled) the config can live in memory and also be saved to disk.
+2. If Postee UI is used, the configuration can be initially loaded via the config yaml but later on as the UI is configured (new outputs are enabled, disabled) the config can live in memory and also be saved to disk.
