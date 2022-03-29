@@ -45,7 +45,7 @@ For example, if Postee Agent is configured to run an HTTP action that sends a pa
 In certain cases, it may be required that the Postee Agent runs on the same host/node/environment that the Event was generated from. For example, if the Postee Agent is configured to run an Exec Postee Action, that removes vulnerable images as they are discovered. In this case it would only make sense to run the Postee Action in the same environment where the Event was produced (vulnerable image found).
 
 
-### Practical Scneario: Postee and Tracee
+### Practical Scenario: Postee and Tracee
 
 Tracee is an Open Source tool that can generate events for a service like Postee to act upon. 
 
