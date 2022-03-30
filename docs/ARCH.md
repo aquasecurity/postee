@@ -63,5 +63,4 @@ A ladder diagram to explain the above sequence of events is as follows:
 ![img_9.png](img_9.png)
 
 ### Pros/Cons of Controller/Agent approach
-
 ![img_10.png](img_10.png)
