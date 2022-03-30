@@ -16,6 +16,9 @@ Postee Agents and their associated Postee Actions can be pre-defined in the Post
 
 Postee Controllers are configured with each of the Postee Agents they are responsible for delegating the Postee Actions to. This configuration must be loaded by the Postee Operator.
 
+The exchange between the Postee Agent and Controller can be visualized as below:
+![img_11.png](img_11.png)
+
 // TODO: Add an example config for Postee Controller that configures Postee Agents and the Postee Actions associated with them.
 
 
