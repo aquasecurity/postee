@@ -609,6 +609,11 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 			templateName = name
 		}
 
+		name, ok = r.OverrideTemplate[outputName]
+		if ok && name != "" {
+			templateName = name
+		}
+
 		tmpl, ok := ctx.templates[templateName]
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
@@ -638,7 +643,11 @@ func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *route
 		templateName := r.Template
 		name, ok := ctx.outputsTemplate[outputName]
 		if ok && name != "" {
+			templateName = name
+		}
 
+		name, ok = r.OverrideTemplate[outputName]
+		if ok && name != "" {
 			templateName = name
 		}
 
