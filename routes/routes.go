@@ -1,13 +1,14 @@
 package routes
 
 type InputRoute struct {
-	Name       string        `json:"name"`
-	Input      string        `json:"input"`
-	InputFiles []string      `json:"input-files"` // should be empty in library mode
-	Outputs    []string      `json:"outputs"`
-	Plugins    Plugins       `json:"plugins"`
-	Template   string        `json:"template"`
-	Scheduling chan struct{} `json:"-"`
+	Name             string            `json:"name"`
+	Input            string            `json:"input"`
+	InputFiles       []string          `json:"input-files"` // should be empty in library mode
+	Outputs          []string          `json:"outputs"`
+	Plugins          Plugins           `json:"plugins"`
+	Template         string            `json:"template"`
+	OverrideTemplate map[string]string `json:"overrideTemplates"` // a map between a output and a template
+	Scheduling       chan struct{}     `json:"-"`
 }
 
 type Plugins struct {
