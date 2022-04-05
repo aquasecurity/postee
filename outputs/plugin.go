@@ -11,6 +11,10 @@ import (
 
 const (
 	ApplicationScopeOwner = "<%application_scope_owner%>"
+
+	EventCategoryAttribute = "event_category"
+	CategoryIncident       = "incident"
+	CategoryScanResult     = "scan_result"
 )
 
 type Output interface {
