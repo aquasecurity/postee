@@ -12,6 +12,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/nats-io/nats-server/v2/server"
+
+	"github.com/nats-io/nats.go"
+
 	"github.com/aquasecurity/postee/v2/actions"
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
@@ -28,6 +32,12 @@ const (
 )
 
 type Router struct {
+	ConfigCh      chan *nats.Msg
+	Mode          string
+	NatsServer    *server.Server
+	RunnerName    string
+	ControllerURL string
+
 	mutexScan   sync.Mutex
 	quit        chan struct{}
 	queue       chan []byte
@@ -267,6 +277,21 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
+	fmt.Println("name: ", r.Name, ">>> RunsOn: ", r.RunsOn, "mode: ", ctx.Mode, "event: ", string(in))
+	if r.RunsOn != "" && ctx.Mode == "controller" {
+		nc, err := nats.Connect(ctx.NatsServer.ClientURL())
+		if err != nil {
+			panic(err)
+		}
+
+		eventSubj := "events." + r.RunsOn
+		fmt.Println(">>> forwarding event to runner: ", eventSubj, "event: ", string(in))
+		if err := nc.Publish(eventSubj, in); err != nil {
+			panic(err)
+		}
+		return
+	}
+
 	for _, outputName := range r.Actions {
 		pl, ok := ctx.actions[outputName]
 		if !ok {
@@ -381,12 +406,53 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 }
 
 func (ctx *Router) listen() {
+	//var eventsCh chan *nats.Msg
+	eventsCh := make(chan *nats.Msg)
+
+	if ctx.Mode == "runner" {
+		fmt.Println(">>> 411 ", ctx.ControllerURL)
+		nc, err := nats.Connect(ctx.ControllerURL, SetupConnOptions(nil)...)
+		if err != nil {
+			panic(err)
+		}
+
+		eventSubj := "events." + ctx.RunnerName
+		fmt.Println("subscribing to events on: ", eventSubj)
+		nc.ChanSubscribe(eventSubj, eventsCh)
+	}
+
+	fmt.Println("ok")
 	for {
 		select {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
 			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
+		case msg := <-ctx.ConfigCh:
+			fmt.Println("someone requested config: ", string(msg.Data))
+			b, _ := ioutil.ReadFile(ctx.cfgfile)
+			msg.Respond(b)
+		case msg := <-eventsCh:
+			fmt.Println("received incoming event: ", string(msg.Data))
+			go ctx.handle(bytes.ReplaceAll(msg.Data, []byte{'`'}, []byte{'\''}))
 		}
 	}
+}
+
+func SetupConnOptions(opts []nats.Option) []nats.Option {
+	totalWait := 10 * time.Minute
+	reconnectDelay := time.Second
+
+	opts = append(opts, nats.ReconnectWait(reconnectDelay))
+	opts = append(opts, nats.MaxReconnects(int(totalWait/reconnectDelay)))
+	opts = append(opts, nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
+		log.Printf("Disconnected due to:%s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
+	}))
+	opts = append(opts, nats.ReconnectHandler(func(nc *nats.Conn) {
+		log.Printf("Reconnected [%s]", nc.ConnectedUrl())
+	}))
+	opts = append(opts, nats.ClosedHandler(func(nc *nats.Conn) {
+		log.Fatalf("Exiting: %v", nc.LastError())
+	}))
+	return opts
 }
