@@ -46,7 +46,7 @@ func (splunk *SplunkOutput) Init() error {
 	return nil
 }
 
-func (splunk *SplunkOutput) Send(d map[string]string) error {
+func (splunk *SplunkOutput) Send(input map[string]string) error {
 	log.Logger.Infof("Sending to Splunk via %q", splunk.Name)
 
 	if splunk.EventLimit == 0 {
@@ -61,48 +61,65 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 		splunk.Url += "/"
 	}
 
-	scanInfo := new(data.ScanImageInfo)
-	err := json.Unmarshal([]byte(d["description"]), scanInfo)
+	rawEventData, ok := input["description"]
+	if !ok {
+		log.Logger.Error("Splunk sending error: empty content")
+		return nil
+	}
+
+	eventData := make(map[string]interface{})
+	err := json.Unmarshal([]byte(rawEventData), &eventData)
 	if err != nil {
-		log.Logger.Errorf("sending to %q error: %v", splunk.Name, err)
+		log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
 		return err
 	}
 
 	eventFormat := "{\"sourcetype\": \"_json\", \"event\": "
 	constLimit := len(eventFormat) - 1
 
-	var fields []byte
-
-	for {
-		fields, err = json.Marshal(scanInfo)
+	var rawMsg []byte
+	category, ok := eventData[EventCategoryAttribute]
+	if ok && category == CategoryIncident {
+		rawMsg = []byte(rawEventData)
+	} else {
+		scanInfo := new(data.ScanImageInfo)
+		err := json.Unmarshal([]byte(rawEventData), scanInfo)
 		if err != nil {
 			log.Logger.Errorf("sending to %q error: %v", splunk.Name, err)
 			return err
 		}
-		if len(fields) < splunk.EventLimit-constLimit {
-			break
-		}
-		switch {
-		case len(scanInfo.Resources) > 0:
-			scanInfo.Resources = nil
-			continue
-		case len(scanInfo.Malwares) > 0:
-			scanInfo.Malwares = nil
-			continue
-		case len(scanInfo.SensitiveData) > 0:
-			scanInfo.SensitiveData = nil
-			continue
-		default:
-			msg := fmt.Sprintf("Scan result for %q is large for %q , its size if %d (limit %d)",
-				scanInfo.Image, splunk.Name, len(fields), splunk.EventLimit)
-			log.Logger.Infof(msg)
-			return errors.New(msg)
+
+		for {
+			rawMsg, err = json.Marshal(scanInfo)
+			if err != nil {
+				log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
+				return err
+			}
+			if len(rawMsg) < splunk.EventLimit-constLimit {
+				break
+			}
+			switch {
+			case len(scanInfo.Resources) > 0:
+				scanInfo.Resources = nil
+				continue
+			case len(scanInfo.Malwares) > 0:
+				scanInfo.Malwares = nil
+				continue
+			case len(scanInfo.SensitiveData) > 0:
+				scanInfo.SensitiveData = nil
+				continue
+			default:
+				msg := fmt.Sprintf("Scan result for %q is large for %q , its size if %d (limit %d)",
+					scanInfo.Image, splunk.Name, len(rawMsg), splunk.EventLimit)
+				log.Logger.Infof(msg)
+				return errors.New(msg)
+			}
 		}
 	}
 
 	var buff bytes.Buffer
 	buff.WriteString(eventFormat)
-	buff.Write(fields)
+	buff.Write(rawMsg)
 	buff.WriteByte('}')
 
 	req, err := http.NewRequest("POST", splunk.Url+"services/collector", &buff)
