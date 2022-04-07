@@ -12,6 +12,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ghodss/yaml"
+
+	//goyaml "github.com/goccy/go-yaml"
+
 	"github.com/nats-io/nats-server/v2/server"
 
 	"github.com/nats-io/nats.go"
@@ -429,14 +433,68 @@ func (ctx *Router) listen() {
 		case data := <-ctx.queue:
 			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
 		case msg := <-ctx.ConfigCh:
-			fmt.Println("someone requested config: ", string(msg.Data))
-			b, _ := ioutil.ReadFile(ctx.cfgfile)
-			msg.Respond(b)
+			fmt.Println("a runner requested config: ", string(msg.Data))
+			cfg, err := buildRunnerConfig(string(msg.Data), ctx.cfgfile)
+			if err != nil {
+				fmt.Println("failed to send config to runner: ", string(msg.Data), "err: ", err)
+			}
+			msg.Respond([]byte(cfg))
 		case msg := <-eventsCh:
 			fmt.Println("received incoming event: ", string(msg.Data))
 			go ctx.handle(bytes.ReplaceAll(msg.Data, []byte{'`'}, []byte{'\''}))
 		}
 	}
+}
+
+// FIXME: Improve parsing logic
+func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
+	tenant, err := Parsev2cfg(cfgFile)
+	if err != nil {
+		return "", err
+	}
+
+	var runnerRoutes []routes.InputRoute
+	var runnerOutputs []OutputSettings
+	var runnerTemplates []Template
+
+	for _, route := range tenant.InputRoutes {
+		if route.RunsOn == runnerName {
+			runnerRoutes = append(runnerRoutes, route)
+		}
+	}
+
+	for _, rr := range runnerRoutes {
+		for _, inputRoute := range tenant.InputRoutes {
+			if inputRoute.Name == rr.Name {
+				for _, inputOutput := range tenant.Outputs {
+					for _, runnerOutput := range rr.Outputs {
+						if runnerOutput == inputOutput.Name {
+							runnerOutputs = append(runnerOutputs, inputOutput)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for _, rr := range runnerRoutes {
+		for _, inputTemplate := range tenant.Templates {
+			if inputTemplate.Name == rr.Template {
+				runnerTemplates = append(runnerTemplates, inputTemplate)
+			}
+		}
+	}
+
+	tenant.InputRoutes = runnerRoutes
+	tenant.Outputs = runnerOutputs
+	tenant.Templates = runnerTemplates
+
+	cfgB, err := yaml.Marshal(tenant)
+	if err != nil {
+		return "", err
+	}
+
+	return string(cfgB), nil
 }
 
 func SetupConnOptions(opts []nats.Option) []nats.Option {
