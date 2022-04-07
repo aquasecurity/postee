@@ -183,17 +183,7 @@ result = res {
 
     href:=sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
     text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
-    urlText :=sprintf("See more: \u003c%s|%s\u003e", [href, text])
 
-    footers := [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": urlText
-            }
-        }
-    ]
     res := flat_array([
         headers,
         vln_list("critical"), 
@@ -201,8 +191,7 @@ result = res {
         vln_list("medium"),
         vln_list("low"),
         vln_list("negligible"),
-        malware_list,
-        footers
+        malware_list
     ])
 
 }
