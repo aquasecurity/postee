@@ -1,0 +1,86 @@
+version: v4
+type: controller
+name: Postee-CA-Demo
+
+# AS a postee uesr
+# I want to run,
+# 5 tracee in kubernetes
+
+# As a postee user (in k8s)
+# I want to kill the pod that was found malicious by tracee
+
+# As a postee user (non k8s)
+# I want to kill the pod that was found malicious by tracee
+
+aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
+db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
+
+# Routes are used to define how to handle an incoming message
+routes:
+- name: stdout
+  outputs: [ stdout ]
+  template: raw-json
+
+- name: local-route
+  input: contains(input.image, "alpine:3.10")
+  outputs: [my-http-post-from-controller]
+  template: raw-json
+
+- name: remote-route
+  input: contains(input.SigMetadata.ID, "TRC-2")
+  runs-on: "postee-runner-1"
+#  runs-on: "postee-runner"
+  serialize-outputs: true
+  outputs: [my-exec-from-runner, my-http-post-from-runner]
+  template: raw-json
+
+#- name: remote-route-2
+#  input: contains(input.SigMetadata.ID, "TRC-3")
+#  runs-on: "postee-runner-2"
+#  serialize-outputs: true
+#  outputs: [ my-exec-from-runner, my-http-post-from-runner ]
+#  template: raw-json
+
+# Templates are used to format a message
+templates:
+- name: raw-json                        # route message "As Is" to external webhook
+  rego-package: postee.rawmessage.json
+
+# Outputs are target services that should consume the messages
+outputs:
+- name: stdout
+  type: stdout
+  enable: true
+
+- name: my-http-post-from-controller
+  type: http
+  enable: true
+  url: "https://webhook.site/e3b85ae7-a631-4321-ad3d-879921fa500a"       # Required. URL of the HTTP Request
+  method: POST                          # Required. Method to use. CONNECT is not supported at this time
+  headers:                              # Optional. Headers to pass in for the request.
+    "Foo": [ "bar" ]
+  timeout: 10s                          # Optional. Timeout value in XX(s,m,h)
+  body-content: |                       # Optional. Body inline content of the HTTP request
+    This is an example of a inline body
+    Input Image: event.input.image
+    
+
+- name: my-exec-from-runner
+  type: exec
+  enable: true
+  env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
+  exec-script: |                                       # Specify the script to run
+    #!/bin/sh
+    echo $POSTEE_EVENT
+    echo "this is hello from postee"
+    
+
+- name: my-http-post-from-runner
+  type: http
+  enable: true
+  url: "https://webhook.site/e3b85ae7-a631-4321-ad3d-879921fa500a"       # Required. URL of the HTTP Request
+  method: POST                          # Required. Method to use. CONNECT is not supported at this time
+  body-content: |                       # Optional. Body inline content of the HTTP request
+    This is an another example of a inline body
+    Event ID: event.input.SigMetadata.ID
