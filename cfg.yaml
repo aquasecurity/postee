@@ -133,3 +133,6 @@ outputs:
 - name: my-opsgenie
   type: opsgenie
   enable: false
+  token: <API Key>  # Mandatory. an API key from an API integration.
+  url:              # Optional. Url of OpsGeneie instance. Default value is https://api.opsgenie.com
+                    # If using the EU instance of Opsgenie, the URL needs to be https://api.eu.opsgenie.com
