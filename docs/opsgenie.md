@@ -16,5 +16,7 @@ At first, customers should set up an integration and get API key:
 
 7. When done with all configurations, select Save Integration to enable the integration.
 
-[Set up an integrated tool for Opsgenie](https://support.atlassian.com/opsgenie/docs/set-up-an-integrated-tool/)
+[Set up an integrated tool for Opsgenie](https://support.atlassian.com/opsgenie/docs/set-up-an-integrated-tool/).
+
+Also there is an interesting mark about Authentication problem: [OpsGenie API (Create alert) Authentication problem](https://community.atlassian.com/t5/Opsgenie-questions/OpsGenie-API-Create-alert-Authentication-problem/qaq-p/1531047).
 
