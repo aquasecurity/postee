@@ -281,17 +281,19 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
-	fmt.Println("name: ", r.Name, ">>> RunsOn: ", r.RunsOn, "mode: ", ctx.Mode, "event: ", string(in))
+	//fmt.Println("name: ", r.Name, ">>> RunsOn: ", r.RunsOn, "mode: ", ctx.Mode, "event: ", string(in))
 	if r.RunsOn != "" && ctx.Mode == "controller" {
 		nc, err := nats.Connect(ctx.NatsServer.ClientURL())
 		if err != nil {
-			panic(err)
+			log.Println("Unable to connect to controller backplane to forward event: ", err)
+			return
 		}
 
 		eventSubj := "events." + r.RunsOn
-		fmt.Println(">>> forwarding event to runner: ", eventSubj, "event: ", string(in))
+		log.Println("Forwarding event to Runner: ", eventSubj, "event: ", string(in))
 		if err := nc.Publish(eventSubj, in); err != nil {
-			panic(err)
+			log.Println("Unable to send event to Runner: ", eventSubj, "err: ", err)
+			return
 		}
 		return
 	}
@@ -410,22 +412,19 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 }
 
 func (ctx *Router) listen() {
-	//var eventsCh chan *nats.Msg
 	eventsCh := make(chan *nats.Msg)
 
 	if ctx.Mode == "runner" {
-		fmt.Println(">>> 411 ", ctx.ControllerURL)
 		nc, err := nats.Connect(ctx.ControllerURL, SetupConnOptions(nil)...)
 		if err != nil {
-			panic(err)
+			log.Fatal("Unable to connect to the controller at url: ", ctx.ControllerURL, "err: ", err)
 		}
 
 		eventSubj := "events." + ctx.RunnerName
-		fmt.Println("subscribing to events on: ", eventSubj)
+		log.Println("Subscribing to events on: ", eventSubj)
 		nc.ChanSubscribe(eventSubj, eventsCh)
 	}
 
-	fmt.Println("ok")
 	for {
 		select {
 		case <-ctx.quit:
@@ -433,14 +432,14 @@ func (ctx *Router) listen() {
 		case data := <-ctx.queue:
 			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
 		case msg := <-ctx.ConfigCh:
-			fmt.Println("a runner requested config: ", string(msg.Data))
+			log.Println("A runner requested config: ", string(msg.Data))
 			cfg, err := buildRunnerConfig(string(msg.Data), ctx.cfgfile)
 			if err != nil {
-				fmt.Println("failed to send config to runner: ", string(msg.Data), "err: ", err)
+				log.Println("Failed to send config to runner: ", string(msg.Data), "err: ", err)
 			}
 			msg.Respond([]byte(cfg))
 		case msg := <-eventsCh:
-			fmt.Println("received incoming event: ", string(msg.Data))
+			log.Println("Received incoming event from controller: ", string(msg.Data))
 			go ctx.handle(bytes.ReplaceAll(msg.Data, []byte{'`'}, []byte{'\''}))
 		}
 	}
