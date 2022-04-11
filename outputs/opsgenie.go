@@ -36,10 +36,6 @@ func getUserResponders(users []string) []alert.Responder {
 	return responders
 }
 
-func (ops *OpsGenieOutput) getVisibleTo() []alert.Responder {
-	return nil
-}
-
 func getString(i interface{}) string {
 	if i == nil {
 		return ""
