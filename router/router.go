@@ -341,6 +341,8 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		plg = buildStdoutOutput(settings)
 	case "nexusIq":
 		plg = buildNexusIqOutput(settings)
+	case "opsgenie":
+		plg = buildOpsGenieOutput(settings)
 	case "exec":
 		plg, err = buildExecOutput(settings)
 		if err != nil {

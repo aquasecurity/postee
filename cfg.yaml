@@ -129,3 +129,7 @@ outputs:
   password:         # Mandatory. User password
   url:              # Mandatory. Url of Nexus IQ server
   organization-id:  # Mandatory. Organization UID like "222de33e8005408a844c12eab952c9b0"
+
+- name: my-opsgenie
+  type: opsgenie
+  enable: false
