@@ -1,13 +1,21 @@
 package outputs
 
 import (
+	"encoding/json"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 	"log"
+
+	"github.com/opsgenie/opsgenie-go-sdk-v2/alert"
+	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
 )
 
 type OpsGenieOutput struct {
-	Name string
+	Name       string
+	User       string
+	APIKey     string
+	Responders []string
+	VisibleTo  []string
 }
 
 func (ops *OpsGenieOutput) GetName() string {
@@ -19,8 +27,72 @@ func (ops *OpsGenieOutput) Init() error {
 	return nil
 }
 
+func getUserResponders(users []string) []alert.Responder {
+	responders := []alert.Responder{}
+	for _, user := range users {
+		responder := alert.Responder{Type: alert.UserResponder, Username: user}
+		responders = append(responders, responder)
+	}
+	return responders
+}
+
+func (ops *OpsGenieOutput) getVisibleTo() []alert.Responder {
+	return nil
+}
+
+func getString(i interface{}) string {
+	if i == nil {
+		return ""
+	}
+	return i.(string)
+}
+
+func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[string]interface{}) *alert.CreateAlertRequest {
+	description := getString(content["description"])
+	alias := getString(content["alias"])
+	entity := getString(content["alias"])
+	priority := alert.P3
+	if content["priority"] != nil {
+		priority = content["priority"].(alert.Priority)
+	}
+	tags := []string{}
+	if content["tags"] != nil {
+		tags = content["tags"].([]string)
+	}
+
+	return &alert.CreateAlertRequest{
+		Message:     title,
+		Description: description,
+		Alias:       alias,
+		Entity:      entity,
+		Priority:    priority,
+		Tags:        tags,
+		Responders:  getUserResponders(ops.Responders),
+		VisibleTo:   getUserResponders(ops.VisibleTo),
+	}
+}
+
 func (ops *OpsGenieOutput) Send(input map[string]string) error {
-	log.Printf("Sending to %q was successful!", ops.Name)
+	data := map[string]interface{}{}
+	if err := json.Unmarshal([]byte(input["description"]), &data); err != nil {
+		return err
+	}
+	r := ops.convertResultToOpsGenie(input["title"], data)
+	r.User = ops.User
+
+	alertClient, err := alert.NewClient(&client.Config{
+		ApiKey: ops.APIKey,
+	})
+	if err != nil {
+		return err
+	}
+
+	alertResult, err := alertClient.Create(nil, r)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Sending to %q was successful: %s", ops.Name, alertResult.Result)
 	return nil
 }
 
