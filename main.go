@@ -25,17 +25,16 @@ const (
 	TLS       = "0.0.0.0:8445"
 	URL_USAGE = "The socket to bind to, specified using host:port."
 	TLS_USAGE = "The TLS socket to bind to, specified using host:port."
-	//	CFG_USAGE  = "The folder which contains alert configuration files."
-	//	CFG_FOLDER = "/config/"
 	CFG_FILE  = "/config/cfg.yaml"
 	CFG_USAGE = "The alert configuration file."
+
+	NATSConfigSubject = "config.postee"
 )
 
 var (
 	url            = ""
 	tls            = ""
 	cfgfile        = ""
-	runnerMode     = false
 	controllerMode = false
 	runnerName     = ""
 	controllerURL  = ""
@@ -52,7 +51,6 @@ func init() {
 	rootCmd.Flags().StringVar(&tls, "tls", TLS, TLS_USAGE)
 	rootCmd.Flags().StringVar(&cfgfile, "cfgfile", CFG_FILE, CFG_USAGE)
 
-	rootCmd.Flags().BoolVar(&runnerMode, "runner-mode", false, "run postee in runner mode")
 	rootCmd.Flags().StringVar(&runnerName, "runner-name", "", "postee runner name")
 	rootCmd.Flags().StringVar(&controllerURL, "controller-url", "", "postee controller URL")
 	rootCmd.Flags().BoolVar(&controllerMode, "controller-mode", false, "run postee in controller mode")
@@ -63,33 +61,29 @@ func main() {
 	utils.InitDebug()
 
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
+		r := router.Instance()
 
-		if runnerMode {
-			fmt.Println(">>>>> running in runner mode")
-			if runnerName == "" {
-				panic("please specify runner name")
-			}
+		if runnerName != "" {
+			log.Println("Running in runner mode")
 
 			if controllerURL == "" {
-				panic("please specify controller url")
+				log.Fatal("Runner mode requires a valid controller url")
 			}
 
 			nc, err := nats.Connect(controllerURL, router.SetupConnOptions(nil)...)
 			if err != nil {
-				panic(err)
+				log.Fatal("Unable to connect to controller at url: ", controllerURL, "err: ", err)
 			}
 
-			cfgSubj := "config.postee"
-			msg, err := nc.Request(cfgSubj, []byte(runnerName), time.Second*5)
+			msg, err := nc.Request(NATSConfigSubject, []byte(runnerName), time.Second*5)
 			if err != nil {
-				panic(err)
+				log.Fatal("Unable to obtain runner config from url: ", controllerURL, "err: ", err)
 			}
-			fmt.Println(">>>> config obtained")
 
-			//configData := strings.ReplaceAll(string(msg.Data), "8082", "9082")
+			log.Println("Runner configuration obtained from: ", controllerURL)
 			f, err := ioutil.TempFile("", "temp-config-*") // TODO: Find a better way
 			if err != nil {
-				panic(err)
+				log.Fatal("Unable to save runner config to disk: ", err)
 			}
 			f.Write(msg.Data)
 			cfgfile = f.Name()
@@ -97,36 +91,38 @@ func main() {
 			url = "0.0.0.0:9082" // TODO: Change for runner to prevent conflict, Randomize?
 			tls = "0.0.0.0:9445"
 
-			// Subscribe to events
-			//eventSubj := "events." + runnerName
-			//nc.Subscribe(eventSubj, func(msg *nats.Msg) {
-			//
-			//})
+			r.ControllerURL = controllerURL
+			r.Mode = "runner"
 		}
 
-		var configCh chan *nats.Msg
-		var natsServer *server.Server
 		if controllerMode {
-			fmt.Println(">>>> running in controller mode")
+			var configCh chan *nats.Msg
+			var natsServer *server.Server
+
+			log.Println("Running in controller mode")
 			var err error
 			natsServer, err = server.NewServer(&server.Options{})
 			if err != nil {
-				panic(err)
+				log.Fatal("Unable to start controller backplane: ", err)
 			}
 			go natsServer.Start()
 			if !natsServer.ReadyForConnections(time.Second * 10) {
-				panic("not ready for connections")
+				log.Fatal("Controller backplane is not ready to receive connections, try restarting controller")
 			}
 
 			configCh = make(chan *nats.Msg)
 			nc, err := nats.Connect(natsServer.ClientURL(), router.SetupConnOptions(nil)...)
 			if err != nil {
-				panic(err)
+				log.Fatal("Unable to setup controller: ", err)
 			}
-			nc.ChanSubscribe("config.postee", configCh)
 
-			//b, _ := ioutil.ReadFile(cfgfile)
+			log.Println("Listening to config requests on: ", NATSConfigSubject)
+			nc.ChanSubscribe(NATSConfigSubject, configCh)
 
+			r.RunnerName = runnerName
+			r.ConfigCh = configCh
+			r.NatsServer = natsServer
+			r.Mode = "controller"
 		}
 
 		if os.Getenv("AQUAALERT_URL") != "" {
@@ -155,20 +151,6 @@ func main() {
 
 		if os.Getenv("PATH_TO_DB") != "" {
 			dbservice.SetNewDbPathFromEnv()
-		}
-
-		r := router.Instance()
-		r.ConfigCh = configCh
-		if runnerMode {
-			r.ControllerURL = controllerURL
-		}
-		r.NatsServer = natsServer
-		r.RunnerName = runnerName
-
-		if controllerMode {
-			r.Mode = "controller"
-		} else if runnerMode {
-			r.Mode = "runner"
 		}
 
 		err := r.Start(cfgfile)
