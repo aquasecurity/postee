@@ -86,8 +86,11 @@ func buildNexusIqOutput(sourceSettings *OutputSettings) *outputs.NexusIqOutput {
 func buildOpsGenieOutput(sourceSettings *OutputSettings) *outputs.OpsGenieOutput {
 	return &outputs.OpsGenieOutput{
 		Name:        sourceSettings.Name,
+		User:        sourceSettings.User,
 		APIKey:      sourceSettings.Token,
 		APIAlertURL: sourceSettings.Url,
+		Responders:  sourceSettings.Assignee,
+		VisibleTo:   sourceSettings.Recipients,
 	}
 }
 

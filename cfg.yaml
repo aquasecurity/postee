@@ -133,6 +133,10 @@ outputs:
 - name: my-opsgenie
   type: opsgenie
   enable: false
-  token: <API Key>  # Mandatory. an API key from an API integration.
+  token: <API Key>  # Mandatory. an API key from an API integration
+  user:             # Optional. Display name of the request owner.
+  assignee:         # Optional. Comma separated list of teams, users, escalations and schedules that the alert will be routed to send notifications
+  recipients: [""]  # Optional. Comma separated list of teams and users that the alert will become visible to without sending any notification
   url:              # Optional. Url of OpsGeneie instance. Default value is https://api.opsgenie.com
                     # If using the EU instance of Opsgenie, the URL needs to be https://api.eu.opsgenie.com
+
