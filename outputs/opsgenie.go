@@ -10,6 +10,8 @@ import (
 	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
 )
 
+const defaultPriority = alert.P3
+
 type OpsGenieOutput struct {
 	Name       string
 	User       string
@@ -28,6 +30,9 @@ func (ops *OpsGenieOutput) Init() error {
 }
 
 func getUserResponders(users []string) []alert.Responder {
+	if len(users) == 0 {
+		return nil
+	}
 	responders := []alert.Responder{}
 	for _, user := range users {
 		responder := alert.Responder{Type: alert.UserResponder, Username: user}
@@ -46,12 +51,12 @@ func getString(i interface{}) string {
 func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[string]interface{}) *alert.CreateAlertRequest {
 	description := getString(content["description"])
 	alias := getString(content["alias"])
-	entity := getString(content["alias"])
-	priority := alert.P3
+	entity := getString(content["entity"])
+	priority := defaultPriority
 	if content["priority"] != nil {
 		priority = content["priority"].(alert.Priority)
 	}
-	tags := []string{}
+	var tags []string
 	if content["tags"] != nil {
 		tags = content["tags"].([]string)
 	}
