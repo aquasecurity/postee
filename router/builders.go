@@ -94,6 +94,7 @@ func buildJiraOutput(sourceSettings *data.OutputSettings) *outputs.JiraAPI {
 		SprintName:      sourceSettings.Sprint,
 		SprintId:        -1,
 		BoardName:       sourceSettings.BoardName,
+		Summary:         sourceSettings.Summary,
 	}
 	if jiraApi.Issuetype == "" {
 		jiraApi.Issuetype = IssueTypeDefault

@@ -207,7 +207,13 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 		return fmt.Errorf("failed to create meta issue type: %w", err)
 	}
 
-	ctx.Summary = content["title"]
+	summary, ok := content["title"]
+	if ok && summary != "" {
+		trimmed := strings.Trim(summary, " ")
+		if trimmed != "-" {
+			ctx.Summary = summary
+		}
+	}
 	ctx.Description = content["description"]
 
 	assignee := ctx.User
