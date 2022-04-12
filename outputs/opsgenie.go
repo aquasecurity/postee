@@ -54,7 +54,7 @@ func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[str
 	entity := getString(content["entity"])
 	priority := defaultPriority
 	if content["priority"] != nil {
-		priority = content["priority"].(alert.Priority)
+		priority = alert.Priority(getString(content["priority"]))
 	}
 	var tags []string
 	if content["tags"] != nil {
