@@ -29,6 +29,7 @@ const (
 	CFG_USAGE = "The alert configuration file."
 
 	NATSConfigSubject = "config.postee"
+	NATSEventSubject  = "events."
 )
 
 var (
@@ -70,12 +71,13 @@ func main() {
 				log.Fatal("Runner mode requires a valid controller url")
 			}
 
-			nc, err := nats.Connect(controllerURL, router.SetupConnOptions(nil)...)
+			var err error
+			r.NatsConn, err = nats.Connect(controllerURL, router.SetupConnOptions(nil)...)
 			if err != nil {
 				log.Fatal("Unable to connect to controller at url: ", controllerURL, "err: ", err)
 			}
 
-			msg, err := nc.Request(NATSConfigSubject, []byte(runnerName), time.Second*5)
+			msg, err := r.NatsConn.Request(NATSConfigSubject, []byte(runnerName), time.Second*5)
 			if err != nil {
 				log.Fatal("Unable to obtain runner config from url: ", controllerURL, "err: ", err)
 			}
@@ -92,7 +94,13 @@ func main() {
 			tls = "0.0.0.0:9445"
 
 			r.ControllerURL = controllerURL
+			r.RunnerName = runnerName
 			r.Mode = "runner"
+
+			r.NatsMsgCh = make(chan *nats.Msg)
+			eventSubj := NATSEventSubject + r.RunnerName
+			log.Println("Subscribing to events on: ", eventSubj)
+			r.NatsConn.ChanSubscribe(eventSubj, r.NatsMsgCh)
 		}
 
 		if controllerMode {
@@ -119,7 +127,6 @@ func main() {
 			log.Println("Listening to config requests on: ", NATSConfigSubject)
 			nc.ChanSubscribe(NATSConfigSubject, configCh)
 
-			r.RunnerName = runnerName
 			r.ConfigCh = configCh
 			r.NatsServer = natsServer
 			r.Mode = "controller"

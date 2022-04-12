@@ -39,6 +39,8 @@ type Router struct {
 	ConfigCh      chan *nats.Msg
 	Mode          string
 	NatsServer    *server.Server
+	NatsConn      *nats.Conn
+	NatsMsgCh     chan *nats.Msg
 	RunnerName    string
 	ControllerURL string
 
@@ -106,6 +108,10 @@ func (ctx *Router) Start(cfgfile string) error {
 
 func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
+
+	log.Println("Closing NATS connection")
+	ctx.NatsConn.Close()
+	log.Println("NATS termination complete")
 
 	for _, pl := range ctx.actions {
 		err := pl.Terminate()
@@ -412,19 +418,6 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 }
 
 func (ctx *Router) listen() {
-	eventsCh := make(chan *nats.Msg)
-
-	if ctx.Mode == "runner" {
-		nc, err := nats.Connect(ctx.ControllerURL, SetupConnOptions(nil)...)
-		if err != nil {
-			log.Fatal("Unable to connect to the controller at url: ", ctx.ControllerURL, "err: ", err)
-		}
-
-		eventSubj := "events." + ctx.RunnerName
-		log.Println("Subscribing to events on: ", eventSubj)
-		nc.ChanSubscribe(eventSubj, eventsCh)
-	}
-
 	for {
 		select {
 		case <-ctx.quit:
@@ -438,7 +431,7 @@ func (ctx *Router) listen() {
 				log.Println("Failed to send config to runner: ", string(msg.Data), "err: ", err)
 			}
 			msg.Respond([]byte(cfg))
-		case msg := <-eventsCh:
+		case msg := <-ctx.NatsMsgCh:
 			log.Println("Received incoming event from controller: ", string(msg.Data))
 			go ctx.handle(bytes.ReplaceAll(msg.Data, []byte{'`'}, []byte{'\''}))
 		}
@@ -498,18 +491,15 @@ func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 
 func SetupConnOptions(opts []nats.Option) []nats.Option {
 	totalWait := 10 * time.Minute
-	reconnectDelay := time.Second
+	reconnectDelay := 2 * time.Second
 
 	opts = append(opts, nats.ReconnectWait(reconnectDelay))
 	opts = append(opts, nats.MaxReconnects(int(totalWait/reconnectDelay)))
 	opts = append(opts, nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
-		log.Printf("Disconnected due to:%s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
+		log.Printf("Disconnected due to: %s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
 	}))
 	opts = append(opts, nats.ReconnectHandler(func(nc *nats.Conn) {
 		log.Printf("Reconnected [%s]", nc.ConnectedUrl())
-	}))
-	opts = append(opts, nats.ClosedHandler(func(nc *nats.Conn) {
-		log.Fatalf("Exiting: %v", nc.LastError())
 	}))
 	return opts
 }
