@@ -35,10 +35,10 @@ jobs:
           severity: 'CRITICAL'
           exit-code: 0
 
-      - name: Run Trivy vulnerability scanner in IaC mode
+      - name: Run Trivy vulnerability scanner against Aqua Cloud
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'config'
+          scan-type: 'fs'
           hide-progress: false
           format: 'table'
         env:
