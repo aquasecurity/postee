@@ -240,16 +240,6 @@ func (ctx *Router) deleteTemplate(name string, removeFromRoutes bool) error {
 	return nil
 }
 
-func removeTemplateFromCfgCacheSource(outputs *data.TenantSettings, templateName string) {
-	filtered := make([]data.Template, 0)
-	for _, template := range outputs.Templates {
-		if template.Name != templateName {
-			filtered = append(filtered, template)
-		}
-	}
-	outputs.Templates = filtered
-}
-
 func (ctx *Router) initTemplate(template *data.Template) error {
 	if template.LegacyScanRenderer != "" {
 		inpteval, err := formatting.BuildLegacyScnEvaluator(template.LegacyScanRenderer)
@@ -436,16 +426,6 @@ func (ctx *Router) listRoutes() []routes.InputRoute {
 	return list
 }
 
-func removeRouteFromCfgCacheSource(outputs *data.TenantSettings, routeName string) {
-	filtered := make([]routes.InputRoute, 0)
-	for _, route := range outputs.InputRoutes {
-		if route.Name != routeName {
-			filtered = append(filtered, route)
-		}
-	}
-	outputs.InputRoutes = filtered
-}
-
 func (ctx *Router) addOutput(settings *data.OutputSettings) error {
 	if settings.Enable {
 		plg, err := buildAndInitOtpt(settings, ctx.aquaServer)
@@ -509,16 +489,6 @@ func removeOutputFromRoute(r *routes.InputRoute, outputName string) {
 		}
 	}
 	r.Outputs = filtered
-}
-
-func removeOutputFromCfgCacheSource(outputs *data.TenantSettings, outputName string) {
-	filtered := make([]data.OutputSettings, 0)
-	for _, output := range outputs.Outputs {
-		if output.Name != outputName {
-			filtered = append(filtered, output)
-		}
-	}
-	outputs.Outputs = filtered
 }
 
 func (ctx *Router) saveCfgCacheSourceInPostgres() error {
