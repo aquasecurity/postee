@@ -216,10 +216,6 @@ func (ctx *Router) addTemplate(template *data.Template) error {
 		return err
 	}
 
-	ctx.databaseCfgCacheSource.Templates = append(ctx.databaseCfgCacheSource.Templates, *template)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -241,10 +237,6 @@ func (ctx *Router) deleteTemplate(name string, removeFromRoutes bool) error {
 		})
 	}
 
-	removeTemplateFromCfgCacheSource(ctx.databaseCfgCacheSource, name)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -324,10 +316,6 @@ func (ctx *Router) setAquaServerUrl(url string) {
 		}
 		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", url, slash)
 	}
-	ctx.databaseCfgCacheSource.AquaServer = url
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		log.Logger.Errorf("Can't save cfgSource Source: %v", err)
-	}
 }
 
 func (ctx *Router) initTenantSettings(tenant *data.TenantSettings, synchronous bool) error {
@@ -399,10 +387,6 @@ func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallback
 func (ctx *Router) addRoute(r *routes.InputRoute) {
 	log.Logger.Infof("Adding new route: %v", r.Name)
 	ctx.inputRoutes.Store(r.Name, routes.ConfigureTimeouts(r))
-	ctx.databaseCfgCacheSource.InputRoutes = append(ctx.databaseCfgCacheSource.InputRoutes, *r)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		log.Logger.Errorf("Can't save cfgSource Source: %v", err)
-	}
 }
 
 func (ctx *Router) deleteCallback(name string) {
@@ -422,12 +406,6 @@ func (ctx *Router) deleteRoute(name string) error {
 		r.StopScheduler()
 	}
 	ctx.deleteCallback(name)
-
-	removeRouteFromCfgCacheSource(ctx.databaseCfgCacheSource, name)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -482,10 +460,6 @@ func (ctx *Router) addOutput(settings *data.OutputSettings) error {
 		}
 	}
 
-	ctx.databaseCfgCacheSource.Outputs = append(ctx.databaseCfgCacheSource.Outputs, *settings)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
-	}
 	return nil
 }
 func (ctx *Router) deleteOutput(outputName string, removeFromRoutes bool) error {
@@ -511,10 +485,6 @@ func (ctx *Router) deleteOutput(outputName string, removeFromRoutes bool) error 
 			}
 			return true
 		})
-	}
-	removeOutputFromCfgCacheSource(ctx.databaseCfgCacheSource, outputName)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
 	}
 
 	return nil
