@@ -53,7 +53,6 @@ type Router struct {
 	synchronous            bool
 	inputCallBacks         map[string][]InputCallbackFunc
 	databaseCfgCacheSource *data.TenantSettings
-	routesCache            *cache.Cache
 	callbackMu             sync.RWMutex
 }
 
@@ -633,14 +632,7 @@ func (ctx *Router) handleRouteMsgParsed(routeName string, inMsg map[string]inter
 		return
 	}
 
-	inputCallbacks := ctx.getCallbacks(routeName)
-	for _, callback := range inputCallbacks {
-		if !callback(inMsg) {
-			return
-		}
-	}
-
-	if !getScanService().EvaluateRegoRule(r, inMsg) {
+	if !ctx.isRouteMatch(r, inMsg) {
 		return
 	}
 
@@ -659,7 +651,7 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs.Load(outputName)
 		if !ok {
-			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
+			log.Logger.Debugf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
 			continue
 		}
 
@@ -763,36 +755,25 @@ func (ctx *Router) Evaluate(in []byte) []string {
 	return ctx.evaluateMsg(inMsg)
 }
 
+func (ctx *Router) isRouteMatch(route *routes.InputRoute, inMsg map[string]interface{}) bool {
+	inputCallbacks := ctx.getCallbacks(route.Name)
+	for _, callback := range inputCallbacks {
+		if !callback(inMsg) {
+			return false
+		}
+	}
+
+	return getScanService().EvaluateRegoRule(route, inMsg)
+}
+
 func (ctx *Router) evaluateMsg(inMsg map[string]interface{}) []string {
-	// val, ok := ctx.routesCache.Get("routes")
-	// if ok {
-	// 	inputRoutes, ok := val.([]routes.InputRoute)
-	// 	if ok {
-
-	// 	}
-	// }
-
 	routesNames := []string{}
-	ctx.inputRoutes.Range(func(key, value interface{}) bool {
+	ctx.inputRoutes.Range(func(_, value interface{}) bool {
 		r, ok := value.(*routes.InputRoute)
 		if ok {
-			routeName, ok := key.(string)
-			if !ok {
-				return true
+			if ctx.isRouteMatch(r, inMsg) {
+				routesNames = append(routesNames, r.Name)
 			}
-
-			inputCallbacks := ctx.getCallbacks(routeName)
-			for _, callback := range inputCallbacks {
-				if !callback(inMsg) {
-					return true
-				}
-			}
-
-			if !getScanService().EvaluateRegoRule(r, inMsg) {
-				return true
-			}
-
-			routesNames = append(routesNames, r.Name)
 		}
 		return true
 	})
