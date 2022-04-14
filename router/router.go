@@ -23,7 +23,6 @@ import (
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/aquasecurity/postee/v2/utils"
-	"github.com/patrickmn/go-cache"
 	"golang.org/x/xerrors"
 )
 
@@ -77,7 +76,6 @@ func Instance(loggers ...log.LoggerType) *Router {
 			mutexScan:              sync.Mutex{},
 			synchronous:            false,
 			databaseCfgCacheSource: &data.TenantSettings{},
-			routesCache:            cache.New(cacheExpirationTime, cacheCleanupInterval),
 		}
 	})
 	return routerCtx
