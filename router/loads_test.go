@@ -170,11 +170,11 @@ func TestLoads(t *testing.T) {
 	}
 
 	expectedOutputsCnt := 2
-	if len(demoCtx.outputs) != expectedOutputsCnt {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(demoCtx.outputs))
+	if outsLen := syncMapLen(&demoCtx.outputs); outsLen != expectedOutputsCnt {
+		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, outsLen)
 	}
 
-	_, ok := demoCtx.outputs["jira"]
+	_, ok := demoCtx.outputs.Load("jira")
 	if !ok {
 		t.Errorf("'jira' output didn't start!")
 	}
@@ -184,7 +184,7 @@ func TestLoads(t *testing.T) {
 		t.Errorf("Wrong init of AquaServer link.\nWait: %q\nGot: %q", expectedSrvUrl, demoCtx.aquaServer)
 	}
 
-	if _, ok := demoCtx.outputs["splunk"]; !ok {
+	if _, ok := demoCtx.outputs.Load("splunk"); !ok {
 		t.Errorf("Output 'splunk' didn't run!")
 	}
 }
@@ -213,8 +213,8 @@ func TestReload(t *testing.T) {
 	}
 
 	expectedOutputsCnt := 2
-	if len(demoCtx.outputs) != expectedOutputsCnt {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(demoCtx.outputs))
+	if outsLen := syncMapLen(&demoCtx.outputs); outsLen != expectedOutputsCnt {
+		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, outsLen)
 	}
 
 	f, err := os.OpenFile(wrap.cfgPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -228,8 +228,8 @@ func TestReload(t *testing.T) {
 	demoCtx.ReloadConfig()
 	expectedOutputsAfterReload := 3
 
-	if len(demoCtx.outputs) != expectedOutputsAfterReload {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsAfterReload, len(demoCtx.outputs))
+	if outsLen := syncMapLen(&demoCtx.outputs); outsLen != expectedOutputsAfterReload {
+		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsAfterReload, outsLen)
 	}
 
 }

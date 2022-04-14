@@ -123,11 +123,11 @@ func doInitTemplate(t *testing.T, caseDesc string, template *data.Template, expe
 		return
 	}
 
-	initialized, ok := demoCtx.templates[template.Name]
+	initialized, ok := demoCtx.templates.Load(template.Name)
 	if !ok {
 		t.Fatalf("[%s] template %s is not initialized", caseDesc, template.Name)
 	}
-	actualCls := fmt.Sprintf("%T", initialized)
+	actualCls := fmt.Sprintf("%T", initialized.(data.Inpteval))
 	if actualCls != expectedCls {
 		t.Errorf("[%s] Unexpected type of input evaluator. Expected %s, got %s \n", caseDesc, expectedCls, actualCls)
 	}

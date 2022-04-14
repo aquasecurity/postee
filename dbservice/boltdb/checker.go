@@ -36,7 +36,7 @@ func (boltDb *BoltDb) CheckSizeLimit() {
 		}
 		return nil
 	}); err != nil {
-		log.Logger.Errorf("Unable to delete bucket: %v", err)
+		log.Logger.Debugf("Unable to delete bucket: %v", err)
 		return
 	}
 }
@@ -49,12 +49,12 @@ func (boltDb *BoltDb) CheckExpiredData() {
 
 	expired, err := boltDb.getExpired(db)
 	if err != nil {
-		log.Logger.Errorf("Can't select expired data: %v", err)
+		log.Logger.Debugf("Can't select expired data: %v", err)
 		return
 	}
 
 	if err := dbDelete(db, dbparam.DbBucketName, expired); err != nil {
-		log.Logger.Errorf("Can't remove expired data: %v", err)
+		log.Logger.Debugf("Can't remove expired data: %v", err)
 	}
 }
 

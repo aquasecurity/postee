@@ -42,13 +42,14 @@ type Router struct {
 	stopTicker             chan struct{}
 	cfgfile                string
 	aquaServer             string
-	outputs                map[string]outputs.Output
-	outputsTemplate        map[string]string
-	inputRoutes            map[string]*routes.InputRoute
-	templates              map[string]data.Inpteval
+	outputs                sync.Map //map[string]outputs.Output
+	outputsTemplate        sync.Map
+	inputRoutes            sync.Map //map[string]*routes.InputRoute
+	templates              sync.Map //map[string]data.Inpteval
 	synchronous            bool
 	inputCallBacks         map[string][]InputCallbackFunc
 	databaseCfgCacheSource *data.TenantSettings
+	callbackMu             sync.RWMutex
 }
 
 var (
@@ -70,10 +71,6 @@ func Instance(loggers ...log.LoggerType) *Router {
 		}
 		routerCtx = &Router{
 			mutexScan:              sync.Mutex{},
-			outputsTemplate:        make(map[string]string),
-			outputs:                make(map[string]outputs.Output),
-			inputRoutes:            make(map[string]*routes.InputRoute),
-			templates:              make(map[string]data.Inpteval),
 			synchronous:            false,
 			databaseCfgCacheSource: &data.TenantSettings{},
 		}
@@ -153,17 +150,27 @@ func (ctx *Router) applyTenantCfg(tenant *data.TenantSettings, synchronous bool)
 func (ctx *Router) Terminate() {
 	log.Logger.Info("Terminating Router....")
 
-	for _, pl := range ctx.outputs {
-		err := pl.Terminate()
-		if err != nil {
-			log.Logger.Errorf("failed to terminate output: %v", err)
+	ctx.outputs.Range(func(_, value interface{}) bool {
+		out, ok := value.(outputs.Output)
+		if ok {
+			err := out.Terminate()
+			if err != nil {
+				log.Logger.Errorf("failed to terminate output: %v", err)
+			}
 		}
-	}
+		return true
+	})
+
 	log.Logger.Debug("Outputs terminated")
 
-	for _, route := range ctx.inputRoutes {
-		route.StopScheduler()
-	}
+	ctx.inputRoutes.Range(func(_, value interface{}) bool {
+		route, ok := value.(*routes.InputRoute)
+		if ok {
+			route.StopScheduler()
+		}
+		return true
+	})
+
 	log.Logger.Debug("Route schedulers stopped")
 
 	log.Logger.Debugf("ctx.quit %v", ctx.quit)
@@ -187,11 +194,14 @@ func (ctx *Router) Terminate() {
 }
 
 func (ctx *Router) cleanInstance() {
-	ctx.outputsTemplate = map[string]string{}
-	ctx.outputs = map[string]outputs.Output{}
-	ctx.inputRoutes = map[string]*routes.InputRoute{}
-	ctx.templates = map[string]data.Inpteval{}
+	ctx.outputsTemplate = sync.Map{}
+	ctx.outputs = sync.Map{}
+	ctx.inputRoutes = sync.Map{}
+	ctx.templates = sync.Map{}
+
+	ctx.callbackMu.Lock()
 	ctx.inputCallBacks = map[string][]InputCallbackFunc{}
+	ctx.callbackMu.Unlock()
 
 	ctx.ticker = nil
 	ctx.quit = nil
@@ -206,43 +216,28 @@ func (ctx *Router) addTemplate(template *data.Template) error {
 		return err
 	}
 
-	ctx.databaseCfgCacheSource.Templates = append(ctx.databaseCfgCacheSource.Templates, *template)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
-	}
 	return nil
 }
 
 func (ctx *Router) deleteTemplate(name string, removeFromRoutes bool) error {
-	_, ok := ctx.templates[name]
+	_, ok := ctx.templates.LoadAndDelete(name)
 	if !ok {
 		return xerrors.Errorf("template %s is not found", name)
 	}
-	delete(ctx.templates, name)
 
 	if removeFromRoutes {
-		for _, route := range ctx.inputRoutes {
-			if route.Template == name {
-				route.Template = ""
+		ctx.inputRoutes.Range(func(_, value interface{}) bool {
+			route, ok := value.(*routes.InputRoute)
+			if ok {
+				if route.Template == name {
+					route.Template = ""
+				}
 			}
-		}
+			return true
+		})
 	}
 
-	removeTemplateFromCfgCacheSource(ctx.databaseCfgCacheSource, name)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
-	}
 	return nil
-}
-
-func removeTemplateFromCfgCacheSource(outputs *data.TenantSettings, templateName string) {
-	filtered := make([]data.Template, 0)
-	for _, template := range outputs.Templates {
-		if template.Name != templateName {
-			filtered = append(filtered, template)
-		}
-	}
-	outputs.Templates = filtered
 }
 
 func (ctx *Router) initTemplate(template *data.Template) error {
@@ -251,7 +246,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 		if err != nil {
 			return err
 		}
-		ctx.templates[template.Name] = inpteval
+		ctx.templates.Store(template.Name, inpteval)
 		log.Logger.Debugf("Configured template '%s' with legacy renderer %s", template.Name, template.LegacyScanRenderer)
 	}
 
@@ -260,7 +255,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 		if err != nil {
 			return err
 		}
-		ctx.templates[template.Name] = inpteval
+		ctx.templates.Store(template.Name, inpteval)
 		log.Logger.Debugf("Configured template '%s' with Rego package %s", template.Name, template.RegoPackage)
 	}
 	if template.Url != "" {
@@ -291,7 +286,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 			return err
 		}
 
-		ctx.templates[template.Name] = inpteval
+		ctx.templates.Store(template.Name, inpteval)
 	}
 	//body goes last to provide an option to keep body in config but not use it
 	if template.Body != "" {
@@ -299,7 +294,7 @@ func (ctx *Router) initTemplate(template *data.Template) error {
 		if err != nil {
 			return err
 		}
-		ctx.templates[template.Name] = inpteval
+		ctx.templates.Store(template.Name, inpteval)
 	}
 	return nil
 }
@@ -310,10 +305,6 @@ func (ctx *Router) setAquaServerUrl(url string) {
 			slash = "/"
 		}
 		ctx.aquaServer = fmt.Sprintf("%s%s#/images/", url, slash)
-	}
-	ctx.databaseCfgCacheSource.AquaServer = url
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		log.Logger.Errorf("Can't save cfgSource Source: %v", err)
 	}
 }
 
@@ -375,6 +366,8 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings, synchronous b
 	return nil
 }
 func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallbackFunc) {
+	ctx.callbackMu.Lock()
+	defer ctx.callbackMu.Unlock()
 	inputCallBacks := ctx.inputCallBacks[routeName]
 	inputCallBacks = append(inputCallBacks, callback)
 
@@ -383,110 +376,109 @@ func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallback
 
 func (ctx *Router) addRoute(r *routes.InputRoute) {
 	log.Logger.Infof("Adding new route: %v", r.Name)
-	ctx.inputRoutes[r.Name] = routes.ConfigureTimeouts(r)
-	ctx.databaseCfgCacheSource.InputRoutes = append(ctx.databaseCfgCacheSource.InputRoutes, *r)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		log.Logger.Errorf("Can't save cfgSource Source: %v", err)
-	}
+	ctx.inputRoutes.Store(r.Name, routes.ConfigureTimeouts(r))
+}
+
+func (ctx *Router) deleteCallback(name string) {
+	ctx.callbackMu.Lock()
+	defer ctx.callbackMu.Unlock()
+	delete(ctx.inputCallBacks, name)
 }
 
 func (ctx *Router) deleteRoute(name string) error {
-	r, ok := ctx.inputRoutes[name]
+	val, ok := ctx.inputRoutes.LoadAndDelete(name)
 	if !ok {
 		return xerrors.Errorf("output %s is not found", name)
 	}
-	r.StopScheduler()
-	delete(ctx.inputRoutes, name)
-	delete(ctx.inputCallBacks, name)
 
-	removeRouteFromCfgCacheSource(ctx.databaseCfgCacheSource, name)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
+	r, ok := val.(*routes.InputRoute)
+	if ok {
+		r.StopScheduler()
 	}
-
+	ctx.deleteCallback(name)
 	return nil
 }
 
 func (ctx *Router) listRoutes() []routes.InputRoute {
-	list := make([]routes.InputRoute, 0, len(ctx.inputRoutes))
-	for _, r := range ctx.inputRoutes {
-		list = append(list, routes.InputRoute{
-			Name:    r.Name,
-			Input:   r.Input,
-			Outputs: data.CopyStringArray(r.Outputs),
-			Plugins: routes.Plugins{
-				AggregateMessageNumber:      r.Plugins.AggregateMessageNumber,
-				AggregateMessageTimeout:     r.Plugins.AggregateMessageTimeout,
-				AggregateTimeoutSeconds:     r.Plugins.AggregateTimeoutSeconds,
-				UniqueMessageProps:          r.Plugins.UniqueMessageProps,
-				UniqueMessageTimeout:        r.Plugins.UniqueMessageTimeout,
-				UniqueMessageTimeoutSeconds: r.Plugins.UniqueMessageTimeoutSeconds,
-			},
-			Template: r.Template,
-		})
-	}
-	return list
-}
-
-func removeRouteFromCfgCacheSource(outputs *data.TenantSettings, routeName string) {
-	filtered := make([]routes.InputRoute, 0)
-	for _, route := range outputs.InputRoutes {
-		if route.Name != routeName {
-			filtered = append(filtered, route)
+	list := make([]routes.InputRoute, 0)
+	ctx.inputRoutes.Range(func(_, value interface{}) bool {
+		r, ok := value.(*routes.InputRoute)
+		if ok {
+			list = append(list, routes.InputRoute{
+				Name:    r.Name,
+				Input:   r.Input,
+				Outputs: data.CopyStringArray(r.Outputs),
+				Plugins: routes.Plugins{
+					AggregateMessageNumber:      r.Plugins.AggregateMessageNumber,
+					AggregateMessageTimeout:     r.Plugins.AggregateMessageTimeout,
+					AggregateTimeoutSeconds:     r.Plugins.AggregateTimeoutSeconds,
+					UniqueMessageProps:          r.Plugins.UniqueMessageProps,
+					UniqueMessageTimeout:        r.Plugins.UniqueMessageTimeout,
+					UniqueMessageTimeoutSeconds: r.Plugins.UniqueMessageTimeoutSeconds,
+				},
+				Template: r.Template,
+			})
 		}
-	}
-	outputs.InputRoutes = filtered
+
+		return true
+	})
+
+	return list
 }
 
 func (ctx *Router) addOutput(settings *data.OutputSettings) error {
 	if settings.Enable {
 		plg, err := buildAndInitOtpt(settings, ctx.aquaServer)
-
 		if err != nil {
 			return err
 		}
 
-		ctx.outputs[settings.Name] = plg
+		ctx.outputs.Store(settings.Name, plg)
 
 		if settings.Template != "" {
-			ctx.outputsTemplate[settings.Name] = settings.Template
+			ctx.outputsTemplate.Store(settings.Name, settings.Template)
 		}
 	}
 
-	ctx.databaseCfgCacheSource.Outputs = append(ctx.databaseCfgCacheSource.Outputs, *settings)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
-	}
 	return nil
 }
 func (ctx *Router) deleteOutput(outputName string, removeFromRoutes bool) error {
-	output, ok := ctx.outputs[outputName]
+	val, ok := ctx.outputs.LoadAndDelete(outputName)
 	if !ok {
 		return xerrors.Errorf("output %s is not found", outputName)
 	}
-	if err := output.Terminate(); err != nil {
-		return err
-	}
-	delete(ctx.outputs, outputName)
-	delete(ctx.outputsTemplate, outputName)
 
-	if removeFromRoutes {
-		for _, route := range ctx.inputRoutes {
-			removeOutputFromRoute(route, outputName)
+	output, ok := val.(outputs.Output)
+	if ok {
+		if err := output.Terminate(); err != nil {
+			return err
 		}
 	}
-	removeOutputFromCfgCacheSource(ctx.databaseCfgCacheSource, outputName)
-	if err := ctx.saveCfgCacheSourceInPostgres(); err != nil {
-		return err
+
+	ctx.outputsTemplate.Delete(outputName)
+
+	if removeFromRoutes {
+		ctx.inputRoutes.Range(func(_, value interface{}) bool {
+			route, ok := value.(*routes.InputRoute)
+			if ok {
+				removeOutputFromRoute(route, outputName)
+			}
+			return true
+		})
 	}
 
 	return nil
 }
 func (ctx *Router) listOutputs() []data.OutputSettings {
 	r := make([]data.OutputSettings, 0)
-	for _, output := range ctx.outputs {
-		r = append(r, *output.CloneSettings())
-	}
+	ctx.outputs.Range(func(_, value interface{}) bool {
+		output, ok := value.(outputs.Output)
+		if ok {
+			r = append(r, *output.CloneSettings())
+		}
+		return true
+	})
+
 	return r
 }
 func removeOutputFromRoute(r *routes.InputRoute, outputName string) {
@@ -497,16 +489,6 @@ func removeOutputFromRoute(r *routes.InputRoute, outputName string) {
 		}
 	}
 	r.Outputs = filtered
-}
-
-func removeOutputFromCfgCacheSource(outputs *data.TenantSettings, outputName string) {
-	filtered := make([]data.OutputSettings, 0)
-	for _, output := range outputs.Outputs {
-		if output.Name != outputName {
-			filtered = append(filtered, output)
-		}
-	}
-	outputs.Outputs = filtered
 }
 
 func (ctx *Router) saveCfgCacheSourceInPostgres() error {
@@ -562,25 +544,30 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	ctx.handleRouteMsgParsed(routeName, inMsg)
 }
 
+func (ctx *Router) getCallbacks(name string) []InputCallbackFunc {
+	ctx.callbackMu.RLock()
+	defer ctx.callbackMu.RUnlock()
+	return ctx.inputCallBacks[name]
+}
+
 func (ctx *Router) handleRouteMsgParsed(routeName string, inMsg map[string]interface{}) {
-	r, ok := ctx.inputRoutes[routeName]
-	if !ok || r == nil {
+	val, ok := ctx.inputRoutes.Load(routeName)
+	if !ok {
 		log.Logger.Errorf("There isn't route %q", routeName)
 		return
 	}
+	r, ok := val.(*routes.InputRoute)
+	if !ok || r == nil {
+		log.Logger.Errorf("route %q is nil", routeName)
+		return
+	}
+
 	if len(r.Outputs) == 0 {
 		log.Logger.Errorf("route %q has no outputs", routeName)
 		return
 	}
 
-	inputCallbacks := ctx.inputCallBacks[routeName]
-	for _, callback := range inputCallbacks {
-		if !callback(inMsg) {
-			return
-		}
-	}
-
-	if !getScanService().EvaluateRegoRule(r, inMsg) {
+	if !ctx.isRouteMatch(r, inMsg) {
 		return
 	}
 
@@ -597,24 +584,26 @@ func parseInputMessage(in []byte) (msg map[string]interface{}, err error) {
 
 func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRoute) {
 	for _, outputName := range r.Outputs {
-		pl, ok := ctx.outputs[outputName]
+		pl, ok := ctx.outputs.Load(outputName)
 		if !ok {
-			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
+			log.Logger.Debugf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
 			continue
 		}
 
 		templateName := r.Template
-		name, ok := ctx.outputsTemplate[outputName]
+		val, ok := ctx.outputsTemplate.Load(outputName)
+		if ok {
+			if name, ok := val.(string); ok && name != "" {
+				templateName = name
+			}
+		}
+
+		name, ok := r.OverrideTemplate[outputName]
 		if ok && name != "" {
 			templateName = name
 		}
 
-		name, ok = r.OverrideTemplate[outputName]
-		if ok && name != "" {
-			templateName = name
-		}
-
-		tmpl, ok := ctx.templates[templateName]
+		tmpl, ok := ctx.templates.Load(templateName)
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
 				r.Name, templateName)
@@ -623,9 +612,9 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 		log.Logger.Infof("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
 
 		if ctx.synchronous {
-			getScanService().MsgHandling(msg, pl, r, tmpl, &ctx.aquaServer)
+			getScanService().MsgHandling(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 		} else {
-			go getScanService().MsgHandling(msg, pl, r, tmpl, &ctx.aquaServer)
+			go getScanService().MsgHandling(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 		}
 	}
 }
@@ -633,7 +622,7 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *routes.InputRoute) []string {
 	var failedOutputNames []string
 	for _, outputName := range r.Outputs {
-		pl, ok := ctx.outputs[outputName]
+		pl, ok := ctx.outputs.Load(outputName)
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
 			failedOutputNames = append(failedOutputNames, outputName)
@@ -641,17 +630,19 @@ func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *route
 		}
 
 		templateName := r.Template
-		name, ok := ctx.outputsTemplate[outputName]
+		val, ok := ctx.outputsTemplate.Load(outputName)
+		if ok {
+			if name, ok := val.(string); ok && name != "" {
+				templateName = name
+			}
+		}
+
+		name, ok := r.OverrideTemplate[outputName]
 		if ok && name != "" {
 			templateName = name
 		}
 
-		name, ok = r.OverrideTemplate[outputName]
-		if ok && name != "" {
-			templateName = name
-		}
-
-		tmpl, ok := ctx.templates[templateName]
+		tmpl, ok := ctx.templates.Load(templateName)
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
 				r.Name, templateName)
@@ -660,7 +651,7 @@ func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *route
 		}
 		log.Logger.Debugf("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
 
-		err := getScanService().HandleSendToOutput(msg, pl, r, tmpl, &ctx.aquaServer)
+		err := getScanService().HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 		if err != nil {
 			log.Logger.Errorf("Failed sending message to output: %s", outputName)
 			failedOutputNames = append(failedOutputNames, outputName)
@@ -671,15 +662,23 @@ func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *route
 }
 
 func (ctx *Router) handle(in []byte) {
-	for routeName := range ctx.inputRoutes {
-		ctx.HandleRoute(routeName, in)
-	}
+	ctx.inputRoutes.Range(func(key, _ interface{}) bool {
+		routeName, ok := key.(string)
+		if ok {
+			ctx.HandleRoute(routeName, in)
+		}
+		return true
+	})
 }
 
 func (ctx *Router) handleMsg(msg map[string]interface{}) {
-	for routeName := range ctx.inputRoutes {
-		ctx.handleRouteMsgParsed(routeName, msg)
-	}
+	ctx.inputRoutes.Range(func(key, _ interface{}) bool {
+		routeName, ok := key.(string)
+		if ok {
+			ctx.handleRouteMsgParsed(routeName, msg)
+		}
+		return true
+	})
 }
 
 func (ctx *Router) Evaluate(in []byte) []string {
@@ -691,29 +690,28 @@ func (ctx *Router) Evaluate(in []byte) []string {
 	return ctx.evaluateMsg(inMsg)
 }
 
+func (ctx *Router) isRouteMatch(route *routes.InputRoute, inMsg map[string]interface{}) bool {
+	inputCallbacks := ctx.getCallbacks(route.Name)
+	for _, callback := range inputCallbacks {
+		if !callback(inMsg) {
+			return false
+		}
+	}
+
+	return getScanService().EvaluateRegoRule(route, inMsg)
+}
+
 func (ctx *Router) evaluateMsg(inMsg map[string]interface{}) []string {
 	routesNames := []string{}
-mainloop:
-	for routeName := range ctx.inputRoutes {
-		r, ok := ctx.inputRoutes[routeName]
-		if !ok || r == nil {
-			log.Logger.Errorf("There isn't route %q", routeName)
-			continue
-		}
-
-		inputCallbacks := ctx.inputCallBacks[routeName]
-		for _, callback := range inputCallbacks {
-			if !callback(inMsg) {
-				continue mainloop
+	ctx.inputRoutes.Range(func(_, value interface{}) bool {
+		r, ok := value.(*routes.InputRoute)
+		if ok {
+			if ctx.isRouteMatch(r, inMsg) {
+				routesNames = append(routesNames, r.Name)
 			}
 		}
-
-		if !getScanService().EvaluateRegoRule(r, inMsg) {
-			continue
-		}
-
-		routesNames = append(routesNames, r.Name)
-	}
+		return true
+	})
 
 	return routesNames
 }
@@ -799,12 +797,12 @@ func (ctx *Router) GetMessageUniqueId(b []byte, routeName string) (string, error
 }
 
 func (ctx *Router) getMessageUniqueId(msg map[string]interface{}, routeName string) (string, error) {
-	route, exists := ctx.inputRoutes[routeName]
+	route, exists := ctx.inputRoutes.Load(routeName)
 	if !exists {
 		return "", xerrors.Errorf("route %ss was not found in the current router", routeName)
 	}
 
-	return getScanService().GetMessageUniqueId(msg, route.Plugins.UniqueMessageProps), nil
+	return getScanService().GetMessageUniqueId(msg, route.(*routes.InputRoute).Plugins.UniqueMessageProps), nil
 }
 
 func (ctx *Router) sendByRoute(in []byte, routeName string) error {
@@ -817,19 +815,22 @@ func (ctx *Router) sendByRoute(in []byte, routeName string) error {
 }
 
 func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) error {
-	route, exists := ctx.inputRoutes[routeName]
+	val, exists := ctx.inputRoutes.Load(routeName)
 	if !exists {
 		return xerrors.Errorf("route %s does not exists", routeName)
 	}
 
-	if len(route.Outputs) == 0 {
-		log.Logger.Warnf("route %q has no outputs", routeName)
-		return nil
-	}
+	route, ok := val.(*routes.InputRoute)
+	if ok {
+		if len(route.Outputs) == 0 {
+			log.Logger.Warnf("route %q has no outputs", routeName)
+			return nil
+		}
 
-	failedOutputs := ctx.publishToOutputWithRetry(inMsg, route)
-	if len(failedOutputs) != 0 {
-		return xerrors.Errorf("failed sending message to route %s outputs", routeName)
+		failedOutputs := ctx.publishToOutputWithRetry(inMsg, route)
+		if len(failedOutputs) != 0 {
+			return xerrors.Errorf("failed sending message to route %s outputs", routeName)
+		}
 	}
 
 	return nil
