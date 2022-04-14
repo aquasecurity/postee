@@ -170,7 +170,7 @@ func TestLoads(t *testing.T) {
 	}
 
 	expectedOutputsCnt := 2
-	if outsLen := syncMapLen(demoCtx.outputs); outsLen != expectedOutputsCnt {
+	if outsLen := syncMapLen(&demoCtx.outputs); outsLen != expectedOutputsCnt {
 		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, outsLen)
 	}
 
@@ -213,7 +213,7 @@ func TestReload(t *testing.T) {
 	}
 
 	expectedOutputsCnt := 2
-	if outsLen := syncMapLen(demoCtx.outputs); outsLen != expectedOutputsCnt {
+	if outsLen := syncMapLen(&demoCtx.outputs); outsLen != expectedOutputsCnt {
 		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, outsLen)
 	}
 
@@ -228,7 +228,7 @@ func TestReload(t *testing.T) {
 	demoCtx.ReloadConfig()
 	expectedOutputsAfterReload := 3
 
-	if outsLen := syncMapLen(demoCtx.outputs); outsLen != expectedOutputsAfterReload {
+	if outsLen := syncMapLen(&demoCtx.outputs); outsLen != expectedOutputsAfterReload {
 		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsAfterReload, outsLen)
 	}
 

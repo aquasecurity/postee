@@ -32,9 +32,6 @@ const (
 
 	ServiceNowTableDefault = "incident"
 	AnonymizeReplacement   = "<hidden>"
-
-	cacheCleanupInterval = 5 * time.Minute
-	cacheExpirationTime  = time.Minute
 )
 
 type Router struct {

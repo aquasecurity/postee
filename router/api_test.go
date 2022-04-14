@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func syncMapLen(m sync.Map) int {
+func syncMapLen(m *sync.Map) int {
 	counter := 0
 	m.Range(func(key, value interface{}) bool {
 		counter++
@@ -75,7 +75,7 @@ var templateSlack = &data.Template{
 }
 
 func TestAddOutput(t *testing.T) {
-	if syncMapLen(Instance().outputs) > 0 {
+	if syncMapLen(&Instance().outputs) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -83,7 +83,7 @@ func TestAddOutput(t *testing.T) {
 	if err := AddOutput(outputSettings); err != nil {
 		t.Errorf("Can't add output: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().outputs), "one output expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().outputs), "one output expected")
 	tmp, ok := Instance().outputs.Load("my-slack")
 	out, _ := tmp.(outputs.Output)
 	assert.Equal(t, true, ok)
@@ -93,7 +93,7 @@ func TestAddOutput(t *testing.T) {
 }
 
 func TestAddOutputsTemplate(t *testing.T) {
-	if syncMapLen(Instance().outputs) > 0 {
+	if syncMapLen(&Instance().outputs) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -109,7 +109,7 @@ func TestAddOutputsTemplate(t *testing.T) {
 	if err := AddOutput(outputSettings); err != nil {
 		t.Errorf("Can't add output: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().outputs), "one output expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().outputs), "one output expected")
 	tmp, ok := Instance().outputs.Load("my-slack")
 	out, _ := tmp.(outputs.Output)
 	assert.Equal(t, true, ok)
@@ -121,7 +121,7 @@ func TestAddOutputsTemplate(t *testing.T) {
 }
 
 func TestDeleteOutput(t *testing.T) {
-	if syncMapLen(Instance().inputRoutes) > 0 || syncMapLen(Instance().outputs) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 || syncMapLen(&Instance().outputs) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -132,7 +132,7 @@ func TestDeleteOutput(t *testing.T) {
 	if err := AddOutput(outputSettingsTeams); err != nil {
 		t.Errorf("Can't add output: %v", err)
 	}
-	assert.Equal(t, 2, syncMapLen(Instance().outputs), "two output expected")
+	assert.Equal(t, 2, syncMapLen(&Instance().outputs), "two output expected")
 
 	AddRoute(&routes.InputRoute{Name: "my-route", Outputs: []string{"my-slack", "ms-teams"}})
 	val, _ := Instance().inputRoutes.Load("my-route")
@@ -141,7 +141,7 @@ func TestDeleteOutput(t *testing.T) {
 	if err := DeleteOutput("my-slack"); err != nil {
 		t.Errorf("Can't delete output: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().outputs), "one outputs expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().outputs), "one outputs expected")
 	_, ok := Instance().outputs.Load("my-slack")
 	assert.NotEqual(t, true, ok)
 
@@ -152,7 +152,7 @@ func TestDeleteOutput(t *testing.T) {
 }
 
 func TestEditOutput(t *testing.T) {
-	if syncMapLen(Instance().outputs) > 0 {
+	if syncMapLen(&Instance().outputs) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -162,7 +162,7 @@ func TestEditOutput(t *testing.T) {
 	if err := AddOutput(outputSettings); err != nil {
 		t.Errorf("Can't add output: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().outputs), "one output expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().outputs), "one output expected")
 
 	tmp, _ := Instance().outputs.Load("my-slack")
 	out, _ := tmp.(outputs.Output)
@@ -177,7 +177,7 @@ func TestEditOutput(t *testing.T) {
 	tmp, _ = Instance().outputs.Load("my-slack")
 	out, _ = tmp.(outputs.Output)
 
-	assert.Equal(t, 1, syncMapLen(Instance().outputs), "one output expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().outputs), "one output expected")
 	assert.Equal(t, modifiedUrl, out.(*outputs.SlackOutput).Url, "url is updated")
 
 	err := UpdateOutput(&data.OutputSettings{Name: "badName"})
@@ -187,7 +187,7 @@ func TestEditOutput(t *testing.T) {
 }
 
 func TestListOutput(t *testing.T) {
-	if syncMapLen(Instance().outputs) > 0 {
+	if syncMapLen(&Instance().outputs) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -195,7 +195,7 @@ func TestListOutput(t *testing.T) {
 	if err := AddOutput(outputSettings); err != nil {
 		t.Errorf("Unexpected AddOutput error: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().outputs), "one output expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().outputs), "one output expected")
 
 	outputs := ListOutputs()
 
@@ -209,13 +209,13 @@ func TestListOutput(t *testing.T) {
 }
 
 func TestAddRoute(t *testing.T) {
-	if syncMapLen(Instance().inputRoutes) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
 
 	AddRoute(inputRoute)
-	assert.Equal(t, 1, syncMapLen(Instance().inputRoutes), "one route expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().inputRoutes), "one route expected")
 	val, ok := Instance().inputRoutes.Load("my-route")
 	r, _ := val.(*routes.InputRoute)
 	assert.Equal(t, true, ok)
@@ -225,7 +225,7 @@ func TestAddRoute(t *testing.T) {
 }
 
 func TestDeleteRoute(t *testing.T) {
-	if syncMapLen(Instance().inputRoutes) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -233,18 +233,18 @@ func TestDeleteRoute(t *testing.T) {
 	AddRoute(inputRoute)
 	AddRoute(inputRouteJira)
 	AddRoute(inputRouteHtml)
-	assert.Equal(t, 3, syncMapLen(Instance().inputRoutes), "three route expected")
+	assert.Equal(t, 3, syncMapLen(&Instance().inputRoutes), "three route expected")
 
 	if err := DeleteRoute("my-route"); err != nil {
 		t.Errorf("Unexpected DeleteRoute error: %v", err)
 	}
-	assert.Equal(t, 2, syncMapLen(Instance().inputRoutes), "two routes expected")
+	assert.Equal(t, 2, syncMapLen(&Instance().inputRoutes), "two routes expected")
 	_, ok := Instance().inputRoutes.Load("my-route")
 	assert.NotEqual(t, true, ok)
 }
 
 func TestEditRoute(t *testing.T) {
-	if syncMapLen(Instance().inputRoutes) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -252,7 +252,7 @@ func TestEditRoute(t *testing.T) {
 	expectedError := "output badName is not found"
 
 	AddRoute(inputRoute)
-	assert.Equal(t, 1, syncMapLen(Instance().inputRoutes), "one route expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().inputRoutes), "one route expected")
 
 	val, _ := Instance().inputRoutes.Load("my-route")
 	rTmp, _ := val.(*routes.InputRoute)
@@ -268,7 +268,7 @@ func TestEditRoute(t *testing.T) {
 		t.Errorf("Unexpected AddTemplate error: %v", err)
 	}
 
-	assert.Equal(t, 1, syncMapLen(Instance().inputRoutes), "one route expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().inputRoutes), "one route expected")
 	val, _ = Instance().inputRoutes.Load("my-route")
 	rTmp, _ = val.(*routes.InputRoute)
 	assert.Equal(t, modifiedTemplate, rTmp.Template, "template is updated")
@@ -280,7 +280,7 @@ func TestEditRoute(t *testing.T) {
 }
 
 func TestListRoute(t *testing.T) {
-	if syncMapLen(Instance().inputRoutes) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -289,7 +289,7 @@ func TestListRoute(t *testing.T) {
 	assert.Equal(t, 0, len(routes), "no route expected")
 
 	AddRoute(inputRoute)
-	assert.Equal(t, 1, syncMapLen(Instance().inputRoutes), "one route expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().inputRoutes), "one route expected")
 
 	routes = ListRoutes()
 
@@ -297,7 +297,7 @@ func TestListRoute(t *testing.T) {
 }
 
 func TestAddTemplate(t *testing.T) {
-	if syncMapLen(Instance().templates) > 0 {
+	if syncMapLen(&Instance().templates) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -305,14 +305,14 @@ func TestAddTemplate(t *testing.T) {
 	if err := AddTemplate(template); err != nil {
 		t.Errorf("Unexpected AddTemplate error: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().templates), "one template expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().templates), "one template expected")
 	tmp, ok := Instance().templates.Load("legacy")
 	assert.Equal(t, true, ok)
 	assert.Equal(t, "*formatting.legacyScnEvaluator", fmt.Sprintf("%T", tmp.(data.Inpteval)), "check name failed")
 }
 
 func TestAddTemplateFromFile(t *testing.T) {
-	if syncMapLen(Instance().templates) > 0 {
+	if syncMapLen(&Instance().templates) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -332,14 +332,14 @@ hello {
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().templates), "one template expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().templates), "one template expected")
 	tmp, ok := Instance().templates.Load("rego-template")
 	assert.Equal(t, true, ok)
 	assert.Equal(t, "*regoservice.regoEvaluator", fmt.Sprintf("%T", tmp.(data.Inpteval)), "check evaluator failed")
 }
 
 func TestDeleteTemplate(t *testing.T) {
-	if syncMapLen(Instance().inputRoutes) > 0 || syncMapLen(Instance().templates) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 || syncMapLen(&Instance().templates) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -351,7 +351,7 @@ func TestDeleteTemplate(t *testing.T) {
 	if err := AddTemplate(templateSlack); err != nil {
 		t.Errorf("Unexpected AddTemplate error: %v", err)
 	}
-	assert.Equal(t, 2, syncMapLen(Instance().templates), "two template expected")
+	assert.Equal(t, 2, syncMapLen(&Instance().templates), "two template expected")
 	AddRoute(&routes.InputRoute{Name: "my-route", Template: "legacy"})
 	val, _ := Instance().inputRoutes.Load("my-route")
 	rTmp, _ := val.(*routes.InputRoute)
@@ -360,7 +360,7 @@ func TestDeleteTemplate(t *testing.T) {
 	if err := DeleteTemplate("legacy"); err != nil {
 		t.Errorf("Unexpected DeleteTemplate error: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().templates), "one templates expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().templates), "one templates expected")
 	_, ok := Instance().templates.Load("legacy")
 	assert.NotEqual(t, true, ok)
 
@@ -370,7 +370,7 @@ func TestDeleteTemplate(t *testing.T) {
 }
 
 func TestEditTemplate(t *testing.T) {
-	if syncMapLen(Instance().templates) > 0 {
+	if syncMapLen(&Instance().templates) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -379,7 +379,7 @@ func TestEditTemplate(t *testing.T) {
 	if err := AddTemplate(template); err != nil {
 		t.Errorf("Unexpected AddTemplate error: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().templates), "one template expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().templates), "one template expected")
 	tmp, _ := Instance().templates.Load("legacy")
 	assert.Equal(t, "*formatting.legacyScnEvaluator", fmt.Sprintf("%T", tmp.(data.Inpteval)), "legacyScnEvaluator expected")
 
@@ -393,7 +393,7 @@ func TestEditTemplate(t *testing.T) {
 		t.Errorf("unexpected errpr: %v", err)
 	}
 
-	assert.Equal(t, 1, syncMapLen(Instance().templates), "one template expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().templates), "one template expected")
 	tmp, _ = Instance().templates.Load("legacy")
 	assert.Equal(t, "*regoservice.regoEvaluator", fmt.Sprintf("%T", tmp.(data.Inpteval)), "ScanRenderer is updated")
 
@@ -404,7 +404,7 @@ func TestEditTemplate(t *testing.T) {
 }
 
 func TestListTemplate(t *testing.T) {
-	if syncMapLen(Instance().templates) > 0 {
+	if syncMapLen(&Instance().templates) > 0 {
 		Instance().cleanInstance()
 	}
 	defer Instance().cleanInstance()
@@ -412,7 +412,7 @@ func TestListTemplate(t *testing.T) {
 	if err := AddTemplate(template); err != nil {
 		t.Errorf("Unexpected AddTemplate error: %v", err)
 	}
-	assert.Equal(t, 1, syncMapLen(Instance().templates), "one route expected")
+	assert.Equal(t, 1, syncMapLen(&Instance().templates), "one route expected")
 
 	templates := ListTemplates()
 
@@ -439,7 +439,7 @@ func TestSetInputCallbackFunc(t *testing.T) {
 }
 
 func TestConfigFuncs(t *testing.T) {
-	if syncMapLen(Instance().inputRoutes) > 0 || syncMapLen(Instance().outputs) > 0 || syncMapLen(Instance().templates) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 || syncMapLen(&Instance().outputs) > 0 || syncMapLen(&Instance().templates) > 0 {
 		Instance().cleanInstance()
 	}
 	tests := []struct {
@@ -471,21 +471,21 @@ func TestConfigFuncs(t *testing.T) {
 				t.Errorf("unexpected error: %v", err)
 			}
 			if test.clearCfg {
-				assert.Equal(t, 0, syncMapLen(Instance().templates), "no template expected")
-				assert.Equal(t, 0, syncMapLen(Instance().outputs), "no output expected")
-				assert.Equal(t, 0, syncMapLen(Instance().inputRoutes), "no route expected")
+				assert.Equal(t, 0, syncMapLen(&Instance().templates), "no template expected")
+				assert.Equal(t, 0, syncMapLen(&Instance().outputs), "no output expected")
+				assert.Equal(t, 0, syncMapLen(&Instance().inputRoutes), "no route expected")
 			} else {
-				assert.Equal(t, 1, syncMapLen(Instance().templates), "one template expected")
+				assert.Equal(t, 1, syncMapLen(&Instance().templates), "one template expected")
 				_, ok := Instance().templates.Load(test.templateName)
 				assert.Equal(t, true, ok)
 				//assert.Contains(t, Instance().templates, test.templateName)
 
-				assert.Equal(t, 1, syncMapLen(Instance().outputs), "one output expected")
+				assert.Equal(t, 1, syncMapLen(&Instance().outputs), "one output expected")
 				val, ok := Instance().outputs.Load(test.outputName)
 				assert.Equal(t, true, ok)
 				assert.Equal(t, test.outputName, val.(outputs.Output).GetName(), "check name failed")
 
-				assert.Equal(t, 1, syncMapLen(Instance().inputRoutes), "one route expected")
+				assert.Equal(t, 1, syncMapLen(&Instance().inputRoutes), "one route expected")
 
 				val, ok = Instance().inputRoutes.Load(test.routeName)
 				rTmp, _ := val.(*routes.InputRoute)
@@ -729,7 +729,7 @@ func TestEvaluate(t *testing.T) {
 		}
 	)
 
-	if syncMapLen(Instance().inputRoutes) > 0 {
+	if syncMapLen(&Instance().inputRoutes) > 0 {
 		Instance().cleanInstance()
 	}
 

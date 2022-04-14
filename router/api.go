@@ -185,10 +185,9 @@ func ListTemplates() []string {
 		There is nothing to update (as only one property defines template).
 		So only list of template names returned
 	*/
-	templates := Instance().templates
 	var names []string
 
-	templates.Range(func(key, value interface{}) bool {
+	Instance().templates.Range(func(key, value interface{}) bool {
 		names = append(names, key.(string))
 		return true
 	})
