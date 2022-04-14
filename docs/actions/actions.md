@@ -26,8 +26,11 @@ In this case, the incoming security event from Tracee is received by Postee and 
 
 ![img.png](img.png)
 
-As seen above, the route has a Rego rule that evaluates the input to contain a certain signature ID, TRC-2, which represents anti-debugging activity. In addition, if the input is matched, the output is triggered. In this case, we call the Exec Action first and then the HTTP Action. They are defined as the following:
+As seen above, the route has a Rego rule that evaluates the input to contain a certain signature ID, TRC-2, which represents anti-debugging activity. In addition, if the input is matched, the output is triggered.
 
+## Exec Action
+
+In this case, we call the Exec Action first and then the HTTP Action. They are defined as the following:
 
 The Exec Action can take in the following parameters:
 
@@ -44,6 +47,8 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 ![img_3.png](img_3.png)
 
 As you can see, we capture the incoming Postee event and write this event to the Tracee event log for forensic purposes.
+
+## HTTP Action
 
 Finally, we can configure the Postee HTTP Post Action to ship the captured event logs via our HTTP Action to our remote server.
 
@@ -67,7 +72,6 @@ docker run --rm --name=postee \
 -e POSTEE_HTTPS=0.0.0.0:8444  \
 -p 8084:8084 -p 8444:8444 aquasecurity/postee:latest
 ```
-
 
 ## Kubernetes Action
 In addition to the Exec and HTTP actions, we have also implemented a Kubernetes action that today can add labels and annotations to pods. It can be used as follows:
