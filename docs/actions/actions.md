@@ -48,7 +48,7 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
 As you can see, we capture the incoming Postee event and write this event to the Tracee event log for forensic purposes.
 
-## Http Action
+## HTTP Action
 
 Finally, we can configure the Postee HTTP Post Action to ship the captured event logs via our HTTP Action to our remote server.
 

@@ -31,7 +31,7 @@
   - [Templates](#templates)
   - [Actions](./docs/actions/actions.md#postee-actions)
     - [Exec Action](./docs/actions/actions.md#exec-action)
-    - [Http Action](./docs/actions/actions.md#http-action)
+    - [HTTP Action](./docs/actions/actions.md#http-action)
     - [Kubernetes Action](./docs/actions/actions.md#kubernetes-action)
     - [Docker Action](./docs/actions/actions.md#docker-action)
   - [Outputs](#outputs)
