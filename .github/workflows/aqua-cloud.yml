@@ -14,9 +14,6 @@ on:
   schedule:
     - cron: '15 21 * * 2'
 
-permissions:
-  contents: read
-
 jobs:
   build:
     permissions:
