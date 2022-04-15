@@ -32,19 +32,10 @@ archives:
       - postee
     replacements:
       amd64: 64bit
-      386: 32bit
       arm: ARM
       arm64: ARM64
-      ppc64le: PPC64LE
       darwin: macOS
       linux: Linux
-      openbsd: OpenBSD
-      netbsd: NetBSD
-      freebsd: FreeBSD
-      dragonfly: DragonFlyBSD
-    format_overrides:
-      - goos: windows
-        format: zip
 checksum:
   name_template: "checksums.txt"
 snapshot:
