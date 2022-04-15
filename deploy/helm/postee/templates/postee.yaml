@@ -1,0 +1,122 @@
+{{- $fullName := include "postee.fullname" . -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postee.fullname" . }}
+  labels:
+    {{- include "postee.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "postee.selectorLabels" . | nindent 6 }}
+  serviceName: {{ include "postee.fullname" . }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ $fullName }}-db
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+    - metadata:
+        name: {{ $fullName }}-config
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+    - metadata:
+        name: {{ $fullName }}-rego-template
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+    - metadata:
+        name: {{ $fullName }}-filters
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 100Mi
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "postee.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "postee.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: setting-db
+          image: "{{ .Values.imageInit.repository }}:{{ .Values.imageInit.tag }}"
+          imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
+          command: ["/bin/chown", "-R", "1099", "{{ .Values.persistentVolume.mountPathDb }}"]
+          volumeMounts:
+            - name: {{ $fullName }}-db
+              mountPath: {{ .Values.persistentVolume.mountPathDb }}
+        - name: setting-cfg
+          image: "{{ .Values.imageInit.repository }}:{{ .Values.imageInit.tag }}"
+          imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
+          command: ["/bin/cp", "/k8s/cfg.yaml", "/data/cfg.yaml"]
+          volumeMounts:
+            - name: {{ $fullName }}-configmap-vol
+              mountPath: /k8s
+            - name: {{ $fullName }}-config
+              mountPath: {{ .Values.persistentVolume.mountPathConfig }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTEE_CFG
+              value: /data/cfg.yaml
+            - name: POSTEE_DEBUG
+              value: "not"
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+            - name: tls
+              containerPort: {{ .Values.service.targetPortSsl }}
+              protocol: TCP
+          volumeMounts:
+            - name: {{ $fullName }}-db
+              mountPath: {{ .Values.persistentVolume.mountPathDb }}
+            - name: {{ $fullName }}-config
+              mountPath: {{ .Values.persistentVolume.mountPathConfig }}
+            - name: {{ $fullName }}-rego-template
+              mountPath: {{ .Values.persistentVolume.mountPathRego }}
+            - name: {{ $fullName }}-filters
+              mountPath: {{ .Values.persistentVolume.mountPathFilters }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - configMap:
+            name: {{ $fullName }}-cfg
+          name: {{ $fullName }}-configmap-vol
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

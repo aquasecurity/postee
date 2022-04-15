@@ -1,0 +1,85 @@
+{{- $fullName := include "postee.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "postee.ui.fullname" . }}
+  labels:
+    {{- include "postee.ui.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "postee.ui.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "postee.ui.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "postee.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: setting-cfg
+          image: "{{ .Values.imageInit.repository }}:{{ .Values.imageInit.tag }}"
+          imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
+          command: ["/bin/chown", "-R", "1099", "{{ .Values.persistentVolume.mountPathConfig }}"]
+          volumeMounts:
+            - name: postee-config
+              mountPath: {{ .Values.persistentVolume.mountPathConfig }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.posteUi.image }}:{{ .Values.posteUi.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTEE_UI_CFG
+              value: {{ .Values.persistentVolume.mountPathConfig }}/cfg.yaml
+            - name: POSTEE_UI_PORT
+              value: {{ .Values.posteUi.port | quote }}
+            - name: POSTEE_UI_UPDATE_URL
+              value: "http://{{ include "postee.fullname" . }}:{{ .Values.service.port }}"
+            - name: POSTEE_ADMIN_USER
+              value: {{ .Values.posteUi.user }}
+            - name: POSTEE_ADMIN_PASSWORD
+              value: {{ .Values.posteUi.pass }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.posteUi.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: postee-config
+              mountPath: {{ .Values.persistentVolume.mountPathConfig }}
+            - name: postee-db
+              mountPath: {{ .Values.persistentVolume.mountPathDb }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: postee-db
+          persistentVolumeClaim:
+            claimName: "{{ $fullName }}-db-{{ $fullName }}-0"
+        - name: postee-config
+          persistentVolumeClaim:
+            claimName: "{{ $fullName }}-config-{{ $fullName }}-0"
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
