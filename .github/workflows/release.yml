@@ -5,7 +5,7 @@ on:
       - "*"
   workflow_dispatch:
 env:
-  GO_VERSION: "1.17"
+  GO_VERSION: "1.18"
 jobs:
   unit-tests:
     name: Run unit tests
@@ -35,12 +35,13 @@ jobs:
           severity: 'CRITICAL'
           exit-code: 0
 
-      - name: Run Trivy vulnerability scanner in IaC mode
+      - name: Run Trivy vulnerability scanner against Aqua Cloud
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: 'config'
+          scan-type: 'fs'
           hide-progress: false
           format: 'table'
+          security-checks: 'vuln,config'
         env:
           AQUA_KEY: ${{ secrets.AQUA_KEY }}
           AQUA_SECRET: ${{ secrets.AQUA_SECRET }}

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postee.ui.fullname" . }}
+  labels:
+    {{- include "postee.ui.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.uiService.type }}
+  ports:
+    - port: {{ .Values.uiService.port }}
+      targetPort: {{ .Values.uiService.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "postee.ui.selectorLabels" . | nindent 4 }}

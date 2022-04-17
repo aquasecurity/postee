@@ -18,9 +18,9 @@ env:
   HELM_REP: helm-charts
   GH_OWNER: aquasecurity
   CHART_DIR: deploy/helm/postee
-  GO_VERSION: "1.17"
+  GO_VERSION: "1.18"
   KIND_VERSION: "v0.11.1"
-  KIND_IMAGE: "kindest/node:v1.19.7@sha256:a70639454e97a4b733f9d9b67e12c01f6b0297449d5b9cbbef87473458e26dca"
+  KIND_IMAGE: "kindest/node:v1.21.10@sha256:84709f09756ba4f863769bdcabe5edafc2ada72d3c8c44d6515fc581b66b029c"
 jobs:
   publish:
     runs-on: ubuntu-20.04
@@ -44,7 +44,7 @@ jobs:
             kubectl wait --for=condition=Ready pod -l app=postee --timeout=150s
             kubectl wait --for=condition=Ready pod -l app=postee-ui --timeout=150s
       - name: Install Helm
-        uses: azure/setup-helm@v2.0
+        uses: azure/setup-helm@v2.1
         with:
           version: v3.6.0
       - name: Testing Helm Postee manifest

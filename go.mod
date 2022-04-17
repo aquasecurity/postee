@@ -1,6 +1,6 @@
 module github.com/aquasecurity/postee/v2
 
-go 1.17
+go 1.18
 
 require (
 	github.com/aquasecurity/go-jira v0.0.0-20211103111421-b62ce48827be
