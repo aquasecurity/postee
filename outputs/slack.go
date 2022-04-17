@@ -3,6 +3,7 @@ package outputs
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/aquasecurity/postee/v2/data"
@@ -78,7 +79,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 	rawBlock := make([]data.SlackBlock, 0)
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
-		log.Logger.Errorf("Unable to parse json: %v", err)
+		log.Logger.Error(fmt.Errorf("unable to parse json: %w", err))
 		return err
 	}
 
@@ -99,7 +100,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 			cutData, _ := json.Marshal(rawBlock[n : n+d])
 			cutData = cutData[1 : len(cutData)-1]
 			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
-				log.Logger.Errorf("Sending to Slack via %q was finished with error: %v", slack.Name, err)
+				log.Logger.Error(fmt.Errorf("sending to Slack via %q was finished with error: %w", slack.Name, err))
 				return err
 			} else {
 				log.Logger.Debugf("Sending to Slack [%d/%d part] via %q was successful!",
@@ -113,7 +114,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 }
 
 func (slack *SlackOutput) Terminate() error {
-	log.Logger.Infof("Slack output %q terminated", slack.Name)
+	log.Logger.Debugf("Slack output %q terminated", slack.Name)
 	return nil
 }
 

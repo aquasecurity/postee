@@ -2,6 +2,7 @@ package outputs
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
@@ -50,7 +51,7 @@ func (sn *ServiceNowOutput) Send(content map[string]string) error {
 	}
 	body, err := json.Marshal(d)
 	if err != nil {
-		log.Logger.Error("ServiceNow Error: ", err)
+		log.Logger.Error(fmt.Errorf("serviceNow Error: %w", err))
 		return err
 	}
 	err = servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Instance, sn.Table, body)
@@ -63,7 +64,7 @@ func (sn *ServiceNowOutput) Send(content map[string]string) error {
 }
 
 func (sn *ServiceNowOutput) Terminate() error {
-	log.Logger.Infof("ServiceNow output %q terminated", sn.Name)
+	log.Logger.Debugf("ServiceNow output %q terminated", sn.Name)
 	return nil
 }
 

@@ -51,7 +51,7 @@ func (email *EmailOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (email *EmailOutput) Init() error {
-	log.Logger.Infof("Init Email output %q", email.Name)
+	log.Logger.Debugf("Init Email output %s", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
@@ -61,7 +61,7 @@ func (email *EmailOutput) Init() error {
 }
 
 func (email *EmailOutput) Terminate() error {
-	log.Logger.Infof("Email output terminated")
+	log.Logger.Debug("Email output terminated")
 	return nil
 }
 
@@ -98,8 +98,8 @@ func (email *EmailOutput) Send(content map[string]string) error {
 
 	err := email.sendFunc(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
-		log.Logger.Error("Placeholder is missed: ", err)
-		log.Logger.Errorf("From: %q, to %v via %q", email.Sender, email.Recipients, email.Host)
+		log.Logger.Error(fmt.Errorf("placeholder is missed: %w", err))
+		log.Logger.Debug(fmt.Sprintf("from: %q, to %v via %q", email.Sender, email.Recipients, email.Host))
 		return err
 	}
 	log.Logger.Debug("Email was sent successfully!")
@@ -110,21 +110,20 @@ func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []
 	for _, rcpt := range recipients {
 		at := strings.LastIndex(rcpt, "@")
 		if at < 0 {
-			log.Logger.Errorf("%q isn't valid email", rcpt)
+			log.Logger.Error(fmt.Errorf("%q isn't valid email", rcpt))
 			continue
 		}
 
 		host := rcpt[at+1:]
 		mxs, err := lookupMXFunc(host)
 		if err != nil {
-			log.Logger.Errorf("error looking up mx host: %v", err)
+			log.Logger.Error(fmt.Errorf("error looking up mx host: %w", err))
 			continue
 		}
 
 		for _, mx := range mxs {
 			if err := email.sendFunc(mx.Host+":"+port, nil, email.Sender, recipients, []byte(msg)); err != nil {
-				log.Logger.Errorf("SendMail error to %q via %q", rcpt, mx.Host)
-				log.Logger.Error(err)
+				log.Logger.Error(fmt.Errorf("sendMail error to %q via %q. Error: %w", rcpt, mx.Host, err))
 				continue
 			}
 			log.Logger.Debugf("The message to %q was sent successful via %q!", rcpt, mx.Host)

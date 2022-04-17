@@ -70,7 +70,7 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 	eventData := make(map[string]interface{})
 	err := json.Unmarshal([]byte(rawEventData), &eventData)
 	if err != nil {
-		log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
+		log.Logger.Errorf("sending to Splunk %q error: %w", splunk.Name, err)
 		return err
 	}
 
@@ -85,14 +85,14 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 		scanInfo := new(data.ScanImageInfo)
 		err := json.Unmarshal([]byte(rawEventData), scanInfo)
 		if err != nil {
-			log.Logger.Errorf("sending to %q error: %v", splunk.Name, err)
+			log.Logger.Errorf("sending to %q error: %w", splunk.Name, err)
 			return err
 		}
 
 		for {
 			rawMsg, err = json.Marshal(scanInfo)
 			if err != nil {
-				log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
+				log.Logger.Errorf("sending to Splunk %q error: %w", splunk.Name, err)
 				return err
 			}
 			if len(rawMsg) < splunk.EventLimit-constLimit {
@@ -136,7 +136,7 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 	if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
-		log.Logger.Errorf("Splunk sending error: failed response status %q. Body: %q", resp.Status, string(b))
+		log.Logger.Error(fmt.Errorf("splunk sending error: failed response status %q. Body: %q", resp.Status, string(b)))
 		return errors.New("failed response status for Splunk sending")
 	}
 	log.Logger.Debugf("Sending a message to Splunk via %q was successful!", splunk.Name)

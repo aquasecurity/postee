@@ -148,7 +148,7 @@ func (ctx *Router) applyTenantCfg(tenant *data.TenantSettings, synchronous bool)
 }
 
 func (ctx *Router) Terminate() {
-	log.Logger.Info("Terminating Router....")
+	log.Logger.Debug("Terminating Router....")
 
 	ctx.outputs.Range(func(_, value interface{}) bool {
 		out, ok := value.(outputs.Output)
