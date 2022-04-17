@@ -27,7 +27,7 @@ func (hc *HTTPClient) GetName() string {
 }
 
 func (hc *HTTPClient) Init() error {
-	log.Logger.Info("Init HTTP output")
+	log.Logger.Debug("Init HTTP output")
 	hc.Name = "HTTP Output"
 	return nil
 }
@@ -48,7 +48,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 		Body:   io.NopCloser(strings.NewReader(hc.Body)),
 	})
 	if err != nil {
-		log.Logger.Error("error during HTTP Client execution: ", err.Error())
+		log.Logger.Error(fmt.Errorf("error during HTTP Client execution: %w", err))
 		return err
 	}
 
@@ -67,7 +67,7 @@ func (hc HTTPClient) Send(m map[string]string) error {
 }
 
 func (hc HTTPClient) Terminate() error {
-	log.Logger.Info("HTTP output terminated")
+	log.Logger.Debug("HTTP output terminated")
 	return nil
 }
 

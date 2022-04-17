@@ -41,13 +41,13 @@ func (webhook *WebhookOutput) Send(content map[string]string) error {
 	data := content["description"] //it's not supposed to work with legacy renderer
 	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
-		log.Logger.Errorf("Sending webhook Error: %v", err)
+		log.Logger.Errorf("Sending webhook Error: %w", err)
 		return err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Logger.Errorf("Sending %q Error: %v", webhook.Name, err)
+		log.Logger.Error(fmt.Errorf("sending %q Error: %w", webhook.Name, err))
 		return err
 	}
 
@@ -60,7 +60,7 @@ func (webhook *WebhookOutput) Send(content map[string]string) error {
 }
 
 func (webhook *WebhookOutput) Terminate() error {
-	log.Logger.Infof("Webhook output %q terminated.", webhook.Name)
+	log.Logger.Debugf("Webhook output %q terminated.", webhook.Name)
 	return nil
 }
 

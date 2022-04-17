@@ -2,6 +2,7 @@ package outputs
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
@@ -61,14 +62,14 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 
 	escaped, err := escapeJSON(body)
 	if err != nil {
-		log.Logger.Errorf("Error while escaping payload: %v", err)
+		log.Logger.Errorf("Error while escaping payload: %w", err)
 		return err
 	}
 
 	err = msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"])+escaped)
 
 	if err != nil {
-		log.Logger.Errorf("TeamsOutput Send Error: %v", err)
+		log.Logger.Error(fmt.Errorf("TeamsOutput Send Error: %w", err))
 		return err
 	}
 
@@ -77,7 +78,7 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 }
 
 func (teams *TeamsOutput) Terminate() error {
-	log.Logger.Infof("MS Teams output %q terminated", teams.Name)
+	log.Logger.Debugf("MS Teams output %q terminated", teams.Name)
 	return nil
 }
 
