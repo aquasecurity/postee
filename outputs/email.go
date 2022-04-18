@@ -51,12 +51,13 @@ func (email *EmailOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (email *EmailOutput) Init() error {
-	log.Logger.Debugf("Init Email output %s", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
 
 	email.sendFunc = smtp.SendMail
+
+	log.Logger.Infof("Successfully initialized email output %s", email.Name)
 	return nil
 }
 

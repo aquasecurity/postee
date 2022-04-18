@@ -22,6 +22,7 @@ func (stdout StdoutOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (stdout StdoutOutput) GetName() string { return stdout.Name }
+
 func (stdout StdoutOutput) Init() error {
 	return nil
 }
@@ -29,9 +30,11 @@ func (stdout StdoutOutput) Send(data map[string]string) error {
 	_, err := fmt.Fprintf(os.Stdout, "%s", data["description"])
 	return err
 }
+
 func (stdout StdoutOutput) Terminate() error {
 	return nil
 }
+
 func (stdout StdoutOutput) GetLayoutProvider() layout.LayoutProvider {
 	return &formatting.HtmlProvider{}
 }
