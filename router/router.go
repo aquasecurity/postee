@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tidwall/gjson"
+
 	"github.com/ghodss/yaml"
 
 	//goyaml "github.com/goccy/go-yaml"
@@ -292,6 +294,15 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		nc, err := nats.Connect(ctx.NatsServer.ClientURL())
 		if err != nil {
 			log.Println("Unable to connect to controller backplane to forward event: ", err)
+			return
+		}
+
+		// Check if event metadata matches configuration
+		// if matches, send as configured
+		// if not, skip forwarding
+		dstRunner := gjson.GetBytes(in, "PosteeMetadata.Runner")
+		if dstRunner.String() != r.RunsOn {
+			log.Println("route destination mismatch, expected: ", r.RunsOn, "got: ", dstRunner, "skipping event...")
 			return
 		}
 
