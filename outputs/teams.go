@@ -37,8 +37,9 @@ func (teams *TeamsOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (teams *TeamsOutput) Init() error {
-	log.Logger.Infof("Init MS Teams output %q", teams.Name)
 	teams.teamsLayout = new(formatting.HtmlProvider)
+
+	log.Logger.Infof("Successfully initialized MS Teams output %q", teams.Name)
 	return nil
 }
 

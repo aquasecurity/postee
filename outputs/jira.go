@@ -131,10 +131,11 @@ func (ctx *JiraAPI) Init() error {
 	}
 	ctx.fetchBoardId(ctx.BoardName)
 
-	log.Logger.Infof("Init Jira output %q", ctx.Name)
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}
+
+	log.Logger.Infof("Successfully initialized Jira output %q", ctx.Name)
 	return nil
 }
 

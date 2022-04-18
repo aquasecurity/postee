@@ -27,8 +27,8 @@ func (hc *HTTPClient) GetName() string {
 }
 
 func (hc *HTTPClient) Init() error {
-	log.Logger.Debug("Init HTTP output")
 	hc.Name = "HTTP Output"
+	log.Logger.Infof("Successfully initialized HTTP output: %q", hc.Name)
 	return nil
 }
 

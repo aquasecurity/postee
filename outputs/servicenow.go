@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
@@ -37,9 +39,10 @@ func (sn *ServiceNowOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (sn *ServiceNowOutput) Init() error {
-	log.Logger.Infof("Init ServiceNow output %q", sn.Name)
-	log.Logger.Debugf("Your ServiceNow Table is %q on '%s.%s'", sn.Table, sn.Instance, servicenow.BaseServer)
 	sn.layoutProvider = new(formatting.HtmlProvider)
+
+	log.Logger.Infof("Successfully initialized ServiceNow output %q", sn.Name)
+	log.Logger.Debugf("Your ServiceNow Table is %q on '%s.%s'", sn.Table, sn.Instance, servicenow.BaseServer)
 	return nil
 }
 
@@ -49,17 +52,20 @@ func (sn *ServiceNowOutput) Send(content map[string]string) error {
 		ShortDescription: content["title"],
 		WorkNotes:        "[code]" + content["description"] + "[/code]",
 	}
+
 	body, err := json.Marshal(d)
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("serviceNow Error: %w", err))
-		return err
+		return errors.New("Error when trying to parse ServiceNow integration data")
 	}
+
 	err = servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Instance, sn.Table, body)
 	if err != nil {
 		log.Logger.Error("ServiceNow Error: ", err)
-		return err
+		return errors.New("Failed inserting record to the ServiceNow table")
 	}
-	log.Logger.Debugf("Sending via ServiceNow %q was successful!", sn.Name)
+
+	log.Logger.Debugf("Successfully sent a message via ServiceNow %q", sn.Name)
 	return nil
 }
 

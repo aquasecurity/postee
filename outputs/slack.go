@@ -40,7 +40,7 @@ func (slack *SlackOutput) CloneSettings() *data.OutputSettings {
 
 func (slack *SlackOutput) Init() error {
 	slack.slackLayout = new(formatting.SlackMrkdwnProvider)
-	log.Logger.Infof("Init Slack output %q", slack.Name)
+	log.Logger.Infof("Successfully initialized Slack output %q", slack.Name)
 	return nil
 }
 

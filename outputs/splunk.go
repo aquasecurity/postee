@@ -42,7 +42,7 @@ func (splunk *SplunkOutput) CloneSettings() *data.OutputSettings {
 
 func (splunk *SplunkOutput) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
-	log.Logger.Infof("Init Splunk output %q", splunk.Name)
+	log.Logger.Infof("Successfully initialized Splunk output %q", splunk.Name)
 	return nil
 }
 

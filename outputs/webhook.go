@@ -31,7 +31,7 @@ func (webhook *WebhookOutput) CloneSettings() *data.OutputSettings {
 }
 
 func (webhook *WebhookOutput) Init() error {
-	log.Logger.Infof("Init Webhook output %q, for sending to %q",
+	log.Logger.Infof("Successfully initialized webhook output %q, for sending to %q",
 		webhook.Name, webhook.Url)
 	return nil
 }
