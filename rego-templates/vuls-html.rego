@@ -176,12 +176,12 @@ result = msg {
 	by_flag(
      "Malware found: Yes",
      "Malware found: No",
-     input.scan_options.scan_malware #reflects current logic
+     with_default(input.vulnerability_summary, "malware", 0) > 0 #reflects current logic
     ),
 	by_flag(
 	 "Sensitive data found: Yes",
      "Sensitive data found: No",
-     input.scan_options.scan_sensitive_data #reflects current logic
+     with_default(input.vulnerability_summary, "sensitive", 0) > 0 #reflects current logic
 	),
     render_table([], severities_stats),
     render_table(["#","Control","Policy Name", "Status"], assurance_controls),
