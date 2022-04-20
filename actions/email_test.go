@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"fmt"
@@ -28,11 +28,11 @@ type emailRecorder struct {
 	msg  []byte
 }
 
-func TestEmailOutput_Send(t *testing.T) {
+func TestEmailAction_Send(t *testing.T) {
 	testCases := []struct {
 		name               string
 		lookupMXFunc       func(name string) ([]*net.MX, error)
-		emailOutput        *EmailOutput
+		emailAction        *EmailAction
 		expectedMessage    string
 		sendError          error
 		expectedError      error
@@ -70,7 +70,7 @@ func TestEmailOutput_Send(t *testing.T) {
 		},
 		{
 			name:          "sad path, no recipients",
-			emailOutput:   &EmailOutput{Recipients: []string{}},
+			emailAction:   &EmailAction{Recipients: []string{}},
 			expectedError: errThereIsNoRecipient,
 		},
 		{
@@ -82,7 +82,7 @@ func TestEmailOutput_Send(t *testing.T) {
 		},
 		{
 			name: "sad path, use mx server, invalid recipient,",
-			emailOutput: &EmailOutput{
+			emailAction: &EmailAction{
 				Name:       "my-email",
 				User:       "user",
 				Password:   "pass",
@@ -123,11 +123,11 @@ func TestEmailOutput_Send(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var eo EmailOutput
-			if tc.emailOutput != nil {
-				eo = *tc.emailOutput
+			var eo EmailAction
+			if tc.emailAction != nil {
+				eo = *tc.emailAction
 			} else {
-				eo = EmailOutput{
+				eo = EmailAction{
 					Name:       "my-email",
 					User:       "user",
 					Password:   "pass",

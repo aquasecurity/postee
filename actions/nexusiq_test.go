@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"fmt"
@@ -43,12 +43,12 @@ func TestSanitizedAppName(t *testing.T) {
 }
 
 func TestNexusiq_Init(t *testing.T) {
-	nx := NexusIqOutput{}
+	nx := NexusIqAction{}
 	require.NoError(t, nx.Init())
 }
 
 func TestNexusiq_GetName(t *testing.T) {
-	nx := NexusIqOutput{Name: "my-nexusiq"}
+	nx := NexusIqAction{Name: "my-nexusiq"}
 	require.NoError(t, nx.Init())
 	require.Equal(t, "my-nexusiq", nx.GetName())
 }
@@ -101,7 +101,7 @@ func TestNexusiq_Send(t *testing.T) {
 				"description": string(b),
 			}
 			ts := configureHttp(t, tc.applications, tc.expctdCreateAppPld, tc.expctdAppId)
-			nx := NexusIqOutput{Name: "my-nexusiq", Url: ts.URL, User: "admin", Password: "admin", OrganizationId: "9beee80c6fc148dfa51e8b0359ee4d4e"}
+			nx := NexusIqAction{Name: "my-nexusiq", Url: ts.URL, User: "admin", Password: "admin", OrganizationId: "9beee80c6fc148dfa51e8b0359ee4d4e"}
 			require.NoError(t, nx.Send(input))
 			defer ts.Close()
 		})

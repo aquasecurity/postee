@@ -7,15 +7,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aquasecurity/postee/v2/outputs"
+	"github.com/aquasecurity/postee/v2/actions"
 )
 
-func buildStdoutOutput(sourceSettings *OutputSettings) *outputs.StdoutOutput {
-	return &outputs.StdoutOutput{Name: sourceSettings.Name}
+func buildStdoutAction(sourceSettings *ActionSettings) *actions.StdoutAction {
+	return &actions.StdoutAction{Name: sourceSettings.Name}
 }
 
-func buildSplunkOutput(sourceSettings *OutputSettings) *outputs.SplunkOutput {
-	return &outputs.SplunkOutput{
+func buildSplunkAction(sourceSettings *ActionSettings) *actions.SplunkAction {
+	return &actions.SplunkAction{
 		Name:       sourceSettings.Name,
 		Url:        sourceSettings.Url,
 		Token:      sourceSettings.Token,
@@ -23,24 +23,24 @@ func buildSplunkOutput(sourceSettings *OutputSettings) *outputs.SplunkOutput {
 	}
 }
 
-func buildWebhookOutput(sourceSettings *OutputSettings) *outputs.WebhookOutput {
-	return &outputs.WebhookOutput{
+func buildWebhookAction(sourceSettings *ActionSettings) *actions.WebhookAction {
+	return &actions.WebhookAction{
 		Name:    sourceSettings.Name,
 		Url:     sourceSettings.Url,
 		Timeout: sourceSettings.Timeout,
 	}
 }
 
-func buildTeamsOutput(sourceSettings *OutputSettings, aquaServer string) *outputs.TeamsOutput {
-	return &outputs.TeamsOutput{
+func buildTeamsAction(sourceSettings *ActionSettings, aquaServer string) *actions.TeamsAction {
+	return &actions.TeamsAction{
 		Name:       sourceSettings.Name,
 		AquaServer: aquaServer,
 		Webhook:    sourceSettings.Url,
 	}
 }
 
-func buildServiceNow(sourceSettings *OutputSettings) *outputs.ServiceNowOutput {
-	serviceNow := &outputs.ServiceNowOutput{
+func buildServiceNow(sourceSettings *ActionSettings) *actions.ServiceNowAction {
+	serviceNow := &actions.ServiceNowAction{
 		Name:     sourceSettings.Name,
 		User:     sourceSettings.User,
 		Password: sourceSettings.Password,
@@ -53,16 +53,16 @@ func buildServiceNow(sourceSettings *OutputSettings) *outputs.ServiceNowOutput {
 	return serviceNow
 }
 
-func buildSlackOutput(sourceSettings *OutputSettings, aqua string) *outputs.SlackOutput {
-	return &outputs.SlackOutput{
+func buildSlackAction(sourceSettings *ActionSettings, aqua string) *actions.SlackAction {
+	return &actions.SlackAction{
 		Name:       sourceSettings.Name,
 		AquaServer: aqua,
 		Url:        sourceSettings.Url,
 	}
 }
 
-func buildEmailOutput(sourceSettings *OutputSettings) *outputs.EmailOutput {
-	return &outputs.EmailOutput{
+func buildEmailAction(sourceSettings *ActionSettings) *actions.EmailAction {
+	return &actions.EmailAction{
 		Name:       sourceSettings.Name,
 		User:       sourceSettings.User,
 		Password:   sourceSettings.Password,
@@ -73,8 +73,8 @@ func buildEmailOutput(sourceSettings *OutputSettings) *outputs.EmailOutput {
 		UseMX:      sourceSettings.UseMX,
 	}
 }
-func buildNexusIqOutput(sourceSettings *OutputSettings) *outputs.NexusIqOutput {
-	return &outputs.NexusIqOutput{
+func buildNexusIqAction(sourceSettings *ActionSettings) *actions.NexusIqAction {
+	return &actions.NexusIqAction{
 		Name:           sourceSettings.Name,
 		Url:            sourceSettings.Url,
 		User:           sourceSettings.User,
@@ -83,8 +83,8 @@ func buildNexusIqOutput(sourceSettings *OutputSettings) *outputs.NexusIqOutput {
 	}
 }
 
-func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
-	jiraApi := &outputs.JiraAPI{
+func buildJiraAction(sourceSettings *ActionSettings) *actions.JiraAPI {
+	jiraApi := &actions.JiraAPI{
 		Name:            sourceSettings.Name,
 		Url:             sourceSettings.Url,
 		User:            sourceSettings.User,
@@ -100,7 +100,7 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 		Labels:          sourceSettings.Labels,
 		Unknowns:        sourceSettings.Unknowns,
 		SprintName:      sourceSettings.Sprint,
-		SprintId:        outputs.NotConfiguredSprintId,
+		SprintId:        actions.NotConfiguredSprintId,
 		BoardName:       sourceSettings.BoardName,
 	}
 
@@ -110,7 +110,7 @@ func buildJiraOutput(sourceSettings *OutputSettings) *outputs.JiraAPI {
 	return jiraApi
 }
 
-func buildExecOutput(sourceSettings *OutputSettings) (*outputs.ExecClient, error) {
+func buildExecAction(sourceSettings *ActionSettings) (*actions.ExecClient, error) {
 	if len(sourceSettings.InputFile) <= 0 && len(sourceSettings.ExecScript) <= 0 {
 		return nil, fmt.Errorf("exec action requires either input-file or exec-script to be set")
 	}
@@ -119,7 +119,7 @@ func buildExecOutput(sourceSettings *OutputSettings) (*outputs.ExecClient, error
 		return nil, fmt.Errorf("exec action only takes either input-file or exec-script, not both")
 	}
 
-	ec := &outputs.ExecClient{
+	ec := &actions.ExecClient{
 		Name: sourceSettings.Name,
 		Env:  sourceSettings.Env,
 	}
@@ -135,7 +135,7 @@ func buildExecOutput(sourceSettings *OutputSettings) (*outputs.ExecClient, error
 	return ec, nil
 }
 
-func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error) {
+func buildHTTPAction(sourceSettings *ActionSettings) (*actions.HTTPClient, error) {
 	if len(sourceSettings.Method) <= 0 {
 		return nil, fmt.Errorf("http action requires a method to be specified")
 	}
@@ -160,7 +160,7 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 		return nil, fmt.Errorf("error building HTTP url: %w", err)
 	}
 
-	hc := &outputs.HTTPClient{
+	hc := &actions.HTTPClient{
 		Name:    sourceSettings.Name,
 		Client:  http.Client{Timeout: duration},
 		URL:     reqUrl,
@@ -178,8 +178,8 @@ func buildHTTPOutput(sourceSettings *OutputSettings) (*outputs.HTTPClient, error
 	return hc, nil
 }
 
-func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesClient, error) {
-	if !outputs.IsK8s() {
+func buildKubernetesAction(sourceSettings *ActionSettings) (*actions.KubernetesClient, error) {
+	if !actions.IsK8s() {
 		if sourceSettings.KubeConfigFile == "" {
 			return nil, fmt.Errorf("kubernetes config file needs to be set in config yaml")
 		}
@@ -189,7 +189,7 @@ func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesC
 		return nil, fmt.Errorf("kubernetes namespace needs to be set in config yaml")
 	}
 
-	return &outputs.KubernetesClient{
+	return &actions.KubernetesClient{
 		Name:              sourceSettings.Name,
 		KubeNamespace:     sourceSettings.KubeNamespace,
 		KubeConfigFile:    sourceSettings.KubeConfigFile,
@@ -198,12 +198,12 @@ func buildKubernetesOutput(sourceSettings *OutputSettings) (*outputs.KubernetesC
 	}, nil
 }
 
-func buildDockerOutput(sourceSettings *OutputSettings) (*outputs.DockerClient, error) {
+func buildDockerAction(sourceSettings *ActionSettings) (*actions.DockerClient, error) {
 	if len(sourceSettings.DockerImageName) < 0 {
 		return nil, fmt.Errorf("docker action requires an image name")
 	}
 
-	return &outputs.DockerClient{
+	return &actions.DockerClient{
 		Name:      sourceSettings.Name,
 		ImageName: sourceSettings.DockerImageName,
 		Cmd:       sourceSettings.DockerCmd,

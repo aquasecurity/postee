@@ -60,26 +60,26 @@ func (inptEval *DemoInptEval) IsAggregationSupported() bool {
 	return !inptEval.skipAggrSpprt
 }
 
-type DemoEmailOutput struct {
+type DemoEmailAction struct {
 	wg          *sync.WaitGroup
 	mu          sync.Mutex
 	payloads    []map[string]string
 	emailCounts int
 }
 
-func (plg *DemoEmailOutput) GetName() string {
+func (plg *DemoEmailAction) GetName() string {
 	return "demo"
 }
 
-func (plg *DemoEmailOutput) getEmailsCount() int {
+func (plg *DemoEmailAction) getEmailsCount() int {
 	plg.mu.Lock()
 	e := plg.emailCounts
 	plg.mu.Unlock()
 	return e
 }
 
-func (plg *DemoEmailOutput) Init() error { return nil }
-func (plg *DemoEmailOutput) Send(data map[string]string) error {
+func (plg *DemoEmailAction) Init() error { return nil }
+func (plg *DemoEmailAction) Send(data map[string]string) error {
 	log.Printf("Sending through demo plugin..\n")
 	log.Printf("%s\n", data["title"])
 
@@ -93,7 +93,7 @@ func (plg *DemoEmailOutput) Send(data map[string]string) error {
 	return nil
 }
 
-func (plg *DemoEmailOutput) Terminate() error { return nil }
-func (plg *DemoEmailOutput) GetLayoutProvider() layout.LayoutProvider {
+func (plg *DemoEmailAction) Terminate() error { return nil }
+func (plg *DemoEmailAction) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }

@@ -11,7 +11,7 @@ Name: tenant
 
 routes:
 - name: route1
-  outputs: ["my-slack"]
+  actions: ["my-slack"]
   template: raw
   plugins:
    Policy-Show-All: true
@@ -22,12 +22,12 @@ templates:
    package postee
    result:=input
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	noAssociatedOutput string = `
+	noAssociatedAction string = `
 Name: tenant
 
 routes:
@@ -42,7 +42,7 @@ templates:
    package postee
    result:=input
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
@@ -52,13 +52,13 @@ Name: tenant
 
 routes:
 - name: route1
-  outputs: ["my-slack"]
+  actions: ["my-slack"]
   template: raw
   plugins:
    Policy-Show-All: true
 
 - name: route2
-  outputs: ["my-slack"]
+  actions: ["my-slack"]
   template: raw
   plugins:
    Policy-Show-All: true
@@ -69,18 +69,18 @@ templates:
    package postee
    result:=input
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
 
-	twoOutputs string = `
+	twoActions string = `
 Name: tenant
 
 routes:
 - name: route1
-  outputs: ["my-slack", "my-slack2"]
+  actions: ["my-slack", "my-slack2"]
   template: raw
   plugins:
    Policy-Show-All: true
@@ -91,7 +91,7 @@ templates:
    package postee
    result:=input
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
@@ -100,12 +100,12 @@ outputs:
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	noOutputs string = `
+	noActions string = `
 Name: tenant
 
 routes:
 - name: route1
-  outputs: ["my-slack3"]
+  actions: ["my-slack3"]
   template: raw
   plugins:
    Policy-Show-All: true
@@ -120,12 +120,12 @@ Name: tenant
 
 routes:
 - name: route1
-  outputs: ["my-slack", "my-slack2"]
+  actions: ["my-slack", "my-slack2"]
   template: raw
   plugins:
    Policy-Show-All: true
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
@@ -139,7 +139,7 @@ Name: tenant
 
 routes:
 - name: route1
-  outputs: ["my-slack"]
+  actions: ["my-slack"]
   template: rawx
   plugins:
    Policy-Show-All: true
@@ -150,17 +150,17 @@ templates:
    package postee
    result:=input
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
   url: https://hooks.slack.com/services/ABCDF/1234/TTT`
-	invalidOutput string = `
+	invalidAction string = `
 Name: tenant
 
 routes:
 - name: route1
-  outputs: ["x-slack"]
+  actions: ["x-slack"]
   template: raw
   plugins:
    Policy-Show-All: true
@@ -171,7 +171,7 @@ templates:
    package postee
    result:=input
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
@@ -181,7 +181,7 @@ Name: tenant
 
 routes:
 - name: fail_evaluation
-  outputs: ["my-slack"]
+  actions: ["my-slack"]
   template: raw
   input-files:
    - Allow-Registry.rego
@@ -192,7 +192,7 @@ templates:
    package postee
    result:=input
 
-outputs:
+actions:
 - name: my-slack
   type: slack
   enable: true
@@ -211,7 +211,7 @@ func TestHandling(t *testing.T) {
 			singleRoute,
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*actions.SlackAction", "*regoservice.regoEvaluator", "route1",
 				},
 			},
 		},
@@ -220,28 +220,28 @@ func TestHandling(t *testing.T) {
 			twoRoutes,
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*actions.SlackAction", "*regoservice.regoEvaluator", "route1",
 				},
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route2",
+					"*actions.SlackAction", "*regoservice.regoEvaluator", "route2",
 				},
 			},
 		},
 		{
-			"2 Outputs per single route",
-			twoOutputs,
+			"2 Actions per single route",
+			twoActions,
 			[]invctn{
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*actions.SlackAction", "*regoservice.regoEvaluator", "route1",
 				},
 				{
-					"*outputs.SlackOutput", "*regoservice.regoEvaluator", "route1",
+					"*actions.SlackAction", "*regoservice.regoEvaluator", "route1",
 				},
 			},
 		},
 		{
-			"No Outputs configured",
-			noOutputs,
+			"No Actions configured",
+			noActions,
 			[]invctn{},
 		},
 		{
@@ -250,8 +250,8 @@ func TestHandling(t *testing.T) {
 			[]invctn{},
 		},
 		{
-			"Invalid Output reference",
-			invalidOutput,
+			"Invalid Action reference",
+			invalidAction,
 			[]invctn{},
 		},
 		{
@@ -260,8 +260,8 @@ func TestHandling(t *testing.T) {
 			[]invctn{},
 		},
 		{
-			"No outputs associated with route",
-			noAssociatedOutput,
+			"No actions associated with route",
+			noAssociatedAction,
 			[]invctn{},
 		},
 	}
@@ -296,7 +296,7 @@ func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfg string, expctdI
 			}
 			return
 		case r := <-wrap.buff:
-			t.Logf("[%s] received invocation (%s, %s, %s)", caseDesc, r.routeName, r.outputCls, r.templateCls)
+			t.Logf("[%s] received invocation (%s, %s, %s)", caseDesc, r.routeName, r.actionCls, r.templateCls)
 			actualInvctCnt++
 			found := false
 			for _, expect := range expctdInvctns {
@@ -309,7 +309,7 @@ func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfg string, expctdI
 				return //everything is ok, exiting
 			}
 			if !found && len(expctdInvctns) > 0 {
-				t.Errorf("[%s] Unexpected invocation (%s, %s, %s)", caseDesc, r.routeName, r.outputCls, r.templateCls)
+				t.Errorf("[%s] Unexpected invocation (%s, %s, %s)", caseDesc, r.routeName, r.actionCls, r.templateCls)
 				return
 			}
 			if actualInvctCnt > len(expctdInvctns) {

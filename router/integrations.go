@@ -1,6 +1,6 @@
 package router
 
-type OutputSettings struct {
+type ActionSettings struct {
 	Name              string                       `json:"name,omitempty"`
 	Type              string                       `json:"type,omitempty"`
 	Enable            bool                         `json:"enable,omitempty"`

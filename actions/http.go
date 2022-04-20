@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"encoding/base64"
@@ -106,7 +106,7 @@ func parseBody(inputEvent map[string]string, bodyContent string) string {
 }
 
 func (hc HTTPClient) Terminate() error {
-	log.Printf("HTTP output terminated\n")
+	log.Printf("HTTP action terminated\n")
 	return nil
 }
 

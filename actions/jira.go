@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"crypto/tls"
@@ -105,7 +105,7 @@ func (ctx *JiraAPI) fetchSprintId(client *jira.Client) {
 }
 
 func (ctx *JiraAPI) Terminate() error {
-	log.Printf("Jira output terminated\n")
+	log.Printf("Jira action terminated\n")
 	return nil
 }
 
@@ -115,7 +115,7 @@ func (ctx *JiraAPI) Init() error {
 	}
 	ctx.fetchBoardId(ctx.BoardName)
 
-	log.Printf("Starting Jira output %q....", ctx.Name)
+	log.Printf("Starting Jira action %q....", ctx.Name)
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}

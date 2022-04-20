@@ -1,19 +1,20 @@
-package outputs
+package actions
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWebhook_GetName(t *testing.T) {
-	webhook := WebhookOutput{Name: "webhook output"}
+	webhook := WebhookAction{Name: "webhook action"}
 	require.NoError(t, webhook.Init())
-	require.Equal(t, "webhook output", webhook.GetName())
+	require.Equal(t, "webhook action", webhook.GetName())
 }
 
 func TestWebhook_Send(t *testing.T) {
@@ -23,14 +24,14 @@ func TestWebhook_Send(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		webhook WebhookOutput
+		webhook WebhookAction
 		content map[string]string
 		resp    response
 		wantErr string
 	}{
 		{
 			name: "happy path",
-			webhook: WebhookOutput{
+			webhook: WebhookAction{
 				Name:    "testName",
 				Url:     "%s/testUrl/webhook",
 				Timeout: "120s",
@@ -45,7 +46,7 @@ func TestWebhook_Send(t *testing.T) {
 		},
 		{
 			name: "sad path (timeout error)",
-			webhook: WebhookOutput{
+			webhook: WebhookAction{
 				Name:    "testName",
 				Url:     `%s/testUrl/webhook`,
 				Timeout: "0s",
@@ -61,7 +62,7 @@ func TestWebhook_Send(t *testing.T) {
 		},
 		{
 			name: "sad path (Bad URL error)",
-			webhook: WebhookOutput{
+			webhook: WebhookAction{
 				Name:    "testName",
 				Url:     "badurl%s",
 				Timeout: "1m",

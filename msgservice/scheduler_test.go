@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aquasecurity/postee/v2/outputs"
+	"github.com/aquasecurity/postee/v2/actions"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +17,7 @@ func TestScheduler(t *testing.T) {
 
 	demoRoute.Plugins.AggregateTimeoutSeconds = 3
 
-	demoSend := func(plg outputs.Output, cnt map[string]string) {
+	demoSend := func(plg actions.Action, cnt map[string]string) {
 		err := plg.Send(cnt)
 		if err != nil {
 			t.Fatal("error Send")
@@ -39,16 +39,16 @@ func TestScheduler(t *testing.T) {
 	}
 	demoInptEval := &DemoInptEval{}
 
-	demoEmailOutput := &DemoEmailOutput{
+	demoEmailAction := &DemoEmailAction{
 		emailCounts: 0,
 	}
 
-	demoEmailOutput.wg = &sync.WaitGroup{}
-	demoEmailOutput.wg.Add(1)
+	demoEmailAction.wg = &sync.WaitGroup{}
+	demoEmailAction.wg.Add(1)
 
-	RunScheduler(demoRoute, demoSend, demoAggregate, demoInptEval, &routeName, demoEmailOutput)
+	RunScheduler(demoRoute, demoSend, demoAggregate, demoInptEval, &routeName, demoEmailAction)
 
-	demoEmailOutput.wg.Wait()
+	demoEmailAction.wg.Wait()
 	demoRoute.StopScheduler()
 
 	time.Sleep(time.Duration(2*demoRoute.Plugins.AggregateTimeoutSeconds) * time.Second) //make sure ticker is not invoked anymore

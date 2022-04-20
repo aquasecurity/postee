@@ -24,7 +24,7 @@ test :
 	go test -race -v -timeout=30s ./...
 
 cover :
-	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes ./outputs -v -coverprofile=cover.out
+	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes ./actions -v -coverprofile=cover.out
 	go tool cover -html=cover.out
 
 composer :

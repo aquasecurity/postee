@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"fmt"
@@ -12,23 +12,23 @@ import (
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
-type WebhookOutput struct {
+type WebhookAction struct {
 	Name    string
 	Url     string
 	Timeout string
 }
 
-func (webhook *WebhookOutput) GetName() string {
+func (webhook *WebhookAction) GetName() string {
 	return webhook.Name
 }
 
-func (webhook *WebhookOutput) Init() error {
-	log.Printf("Starting Webhook output %q, for sending to %q",
+func (webhook *WebhookAction) Init() error {
+	log.Printf("Starting Webhook action %q, for sending to %q",
 		webhook.Name, webhook.Url)
 	return nil
 }
 
-func (webhook *WebhookOutput) Send(content map[string]string) error {
+func (webhook *WebhookAction) Send(content map[string]string) error {
 	log.Printf("Sending webhook to %q", webhook.Url)
 	data := content["description"] //it's not supposed to work with legacy renderer
 	client, err := newClient(webhook.Timeout)
@@ -56,12 +56,12 @@ func (webhook *WebhookOutput) Send(content map[string]string) error {
 	return nil
 }
 
-func (webhook *WebhookOutput) Terminate() error {
-	log.Printf("Webhook output %q terminated.", webhook.Name)
+func (webhook *WebhookAction) Terminate() error {
+	log.Printf("Webhook action %q terminated.", webhook.Name)
 	return nil
 }
 
-func (webhook *WebhookOutput) GetLayoutProvider() layout.LayoutProvider {
+func (webhook *WebhookAction) GetLayoutProvider() layout.LayoutProvider {
 	// Todo: This is MOCK. Because Formatting isn't need for Webhook
 	// todo: The App should work with `return nil`
 	return new(formatting.HtmlProvider)

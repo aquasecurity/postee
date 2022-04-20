@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ const (
 	ApplicationScopeOwner = "<%application_scope_owner%>"
 )
 
-type Output interface {
+type Action interface {
 	GetName() string
 	Init() error
 	Send(map[string]string) error

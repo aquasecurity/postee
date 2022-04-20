@@ -34,7 +34,6 @@
     - [HTTP Action](./docs/actions/actions.md#http-action)
     - [Kubernetes Action](./docs/actions/actions.md#kubernetes-action)
     - [Docker Action](./docs/actions/actions.md#docker-action)
-  - [Outputs](#outputs)
     - [ServiceNow](#serviceNow)
     - [Nexus IQ](#nexus-iq-integration-parameters)
     - [Jira](#jira)
@@ -149,7 +148,7 @@ Key | Description | Possible Values | Example
 *name*|Unique name of route| string | teams-vul-route
 *input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
 *input-files*|One or more files with Rego rules| Set of Rego language files | ["Policy-Registry.rego", "Policy-Min-Vulnerability.rego"] 
-*outputs*|One or more outputs that are defined in the "outputs" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
+*actions*|One or more actions that are defined in the "actions" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
 </details>
 
@@ -553,7 +552,7 @@ The "deploy/kubernetes" directory in this project contains an example deployment
 ### Using environment variables in Postee Configuration File   
 Postee supports use of environment variables for *Output* fields: **User**, **Password** and **Token**. Add preffix `$` to the environment variable name in the configuration file, for example:
 ```
-outputs:
+actions:
 - name: my-jira   
   type: jira     
   enable: true

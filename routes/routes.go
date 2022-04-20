@@ -4,10 +4,10 @@ type InputRoute struct {
 	Name             string   `json:"name"`
 	Input            string   `json:"input"`
 	InputFiles       []string `json:"input-files"`
-	Outputs          []string `json:"outputs"`
+	Actions          []string `json:"actions"`
 	Plugins          Plugins  `json:"plugins"`
 	Template         string   `json:"template"`
-	SerializeOutputs bool     `json:"serialize-outputs"`
+	SerializeActions bool     `json:"serialize-actions"`
 	Scheduling       chan struct{}
 }
 

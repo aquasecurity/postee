@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aquasecurity/postee/v2/actions"
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/msgservice"
-	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
@@ -27,14 +27,14 @@ type ctxWrapper struct {
 }
 
 type invctn struct {
-	outputCls   string
+	actionCls   string
 	templateCls string
 	routeName   string
 }
 
-func (ctx *ctxWrapper) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
+func (ctx *ctxWrapper) MsgHandling(input []byte, action actions.Action, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string) {
 	i := invctn{
-		fmt.Sprintf("%T", output),
+		fmt.Sprintf("%T", action),
 		fmt.Sprintf("%T", inpteval),
 		route.Name,
 	}
@@ -107,7 +107,7 @@ routes:
    contains(input.image, "alpine")
    input.vulnerability_summary.critical >= 3
 
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  actions: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
   template: raw       #  a template for this route
   plugins:
    policy-show-all: true
@@ -116,7 +116,7 @@ routes:
   input: |
    contains(input.image, "alpine")
 
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  actions: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
   template: raw       #  a template for this route
   plugins:
    policy-show-all: true
@@ -125,7 +125,7 @@ templates:
 - name: raw
   body: input
 
-outputs:
+actions:
 - name: splunk
   type: splunk
   enable: true
@@ -153,14 +153,14 @@ outputs:
 		t.Fatal(err)
 	}
 
-	expectedOutputsCnt := 2
-	if len(demoCtx.outputs) != expectedOutputsCnt {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(demoCtx.outputs))
+	expectedActionsCnt := 2
+	if len(demoCtx.actions) != expectedActionsCnt {
+		t.Errorf("There are stopped actions\nWaited: %d\nResult: %d", expectedActionsCnt, len(demoCtx.actions))
 	}
 
-	_, ok := demoCtx.outputs["jira"]
+	_, ok := demoCtx.actions["jira"]
 	if !ok {
-		t.Errorf("'jira' output didn't start!")
+		t.Errorf("'jira' action didn't start!")
 	}
 
 	expectedSrvUrl := "https://demolab.aquasec.com/#/images/"
@@ -168,8 +168,8 @@ outputs:
 		t.Errorf("Wrong init of AquaServer link.\nWait: %q\nGot: %q", expectedSrvUrl, demoCtx.aquaServer)
 	}
 
-	if _, ok := demoCtx.outputs["splunk"]; !ok {
-		t.Errorf("Output 'splunk' didn't run!")
+	if _, ok := demoCtx.actions["splunk"]; !ok {
+		t.Errorf("Action 'splunk' didn't run!")
 	}
 }
 func TestReload(t *testing.T) {
@@ -186,7 +186,7 @@ routes:
    contains(input.image, "alpine")
    input.vulnerability_summary.critical >= 3
 
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  actions: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
   template: raw       #  a template for this route
   plugins:
    policy-show-all: true
@@ -195,7 +195,7 @@ routes:
   input: |
    contains(input.image, "alpine")
 
-  outputs: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
+  actions: ["my-slack"]        #  a list of integrations which will receive a scan or an audit event
   template: raw       #  a template for this route
   plugins:
    policy-show-all: true
@@ -204,7 +204,7 @@ templates:
 - name: raw
   body: input
 
-outputs:
+actions:
 - name: splunk
   type: splunk
   enable: true
@@ -241,9 +241,9 @@ outputs:
 	if errStart != nil {
 		t.Fatal(errStart)
 	}
-	expectedOutputsCnt := 2
-	if len(demoCtx.outputs) != expectedOutputsCnt {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsCnt, len(demoCtx.outputs))
+	expectedActionsCnt := 2
+	if len(demoCtx.actions) != expectedActionsCnt {
+		t.Errorf("There are stopped actions\nWaited: %d\nResult: %d", expectedActionsCnt, len(demoCtx.actions))
 	}
 
 	f, err := os.OpenFile(wrap.cfgPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
@@ -255,10 +255,10 @@ outputs:
 		t.Errorf("Can't update config %v\n", err)
 	}
 	demoCtx.ReloadConfig()
-	expectedOutputsAfterReload := 3
+	expectedActionsAfterReload := 3
 
-	if len(demoCtx.outputs) != expectedOutputsAfterReload {
-		t.Errorf("There are stopped outputs\nWaited: %d\nResult: %d", expectedOutputsAfterReload, len(demoCtx.outputs))
+	if len(demoCtx.actions) != expectedActionsAfterReload {
+		t.Errorf("There are stopped actions\nWaited: %d\nResult: %d", expectedActionsAfterReload, len(demoCtx.actions))
 	}
 
 }

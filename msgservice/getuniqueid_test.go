@@ -95,7 +95,7 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, uniqueMessagePro
 	}()
 	dbservice.ChangeDbPath("test_webhooks.db")
 
-	demoEmailOutput := &DemoEmailOutput{
+	demoEmailAction := &DemoEmailAction{
 		emailCounts: 0,
 	}
 
@@ -107,20 +107,20 @@ func sendInputs(t *testing.T, caseDesc string, inputs []string, uniqueMessagePro
 
 	demoInptEval := &DemoInptEval{}
 
-	demoEmailOutput.wg = &sync.WaitGroup{}
-	demoEmailOutput.wg.Add(expected)
+	demoEmailAction.wg = &sync.WaitGroup{}
+	demoEmailAction.wg.Add(expected)
 
 	for _, inp := range inputs {
 		srv := new(MsgService)
 		if srv.EvaluateRegoRule(demoRoute, []byte(inp)) {
-			srv.MsgHandling([]byte(inp), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+			srv.MsgHandling([]byte(inp), demoEmailAction, demoRoute, demoInptEval, &srvUrl)
 		}
 	}
 
-	demoEmailOutput.wg.Wait()
+	demoEmailAction.wg.Wait()
 
-	if demoEmailOutput.getEmailsCount() != expected {
-		t.Errorf("[%s] Wrong number of Send method calls: expected %d, got %d", caseDesc, expected, demoEmailOutput.getEmailsCount())
+	if demoEmailAction.getEmailsCount() != expected {
+		t.Errorf("[%s] Wrong number of Send method calls: expected %d, got %d", caseDesc, expected, demoEmailAction.getEmailsCount())
 	}
 
 }

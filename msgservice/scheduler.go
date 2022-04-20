@@ -4,8 +4,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/aquasecurity/postee/v2/actions"
 	"github.com/aquasecurity/postee/v2/data"
-	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
@@ -14,11 +14,11 @@ var getTicker = func(seconds int) *time.Ticker {
 }
 var RunScheduler = func(
 	route *routes.InputRoute,
-	fnSend func(plg outputs.Output, cnt map[string]string),
+	fnSend func(plg actions.Action, cnt map[string]string),
 	fnAggregate func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string,
 	inpteval data.Inpteval,
 	name *string,
-	output outputs.Output,
+	output actions.Action,
 ) {
 	log.Printf("Scheduler is activated for route %q. Period: %d sec", route.Name, route.Plugins.AggregateTimeoutSeconds)
 

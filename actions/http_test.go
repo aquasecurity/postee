@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"io/ioutil"
@@ -17,9 +17,9 @@ func TestHTTPClient_Init(t *testing.T) {
 }
 
 func TestHTTPClient_GetName(t *testing.T) {
-	ec := HTTPClient{Name: "my-http-output"}
+	ec := HTTPClient{Name: "my-http-action"}
 	require.NoError(t, ec.Init())
-	require.Equal(t, "my-http-output", ec.GetName())
+	require.Equal(t, "my-http-action", ec.GetName())
 }
 
 func TestHTTPClient_Send(t *testing.T) {

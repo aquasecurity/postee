@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"fmt"
@@ -33,9 +33,9 @@ func TestExecClient_Init(t *testing.T) {
 }
 
 func TestExecClient_GetName(t *testing.T) {
-	ec := ExecClient{Name: "my-exec-output"}
+	ec := ExecClient{Name: "my-exec-action"}
 	require.NoError(t, ec.Init())
-	require.Equal(t, "my-exec-output", ec.GetName())
+	require.Equal(t, "my-exec-action", ec.GetName())
 }
 
 func TestExecClient_Send(t *testing.T) {
@@ -60,7 +60,7 @@ echo $INPUT_ENV`)
 		assert.Equal(t, `foo
 foo bar baz env variable
 input foo env var
-`, string(ec.Output))
+`, string(ec.Action))
 		assert.Equal(t, ec.Env, []string{"INPUT_ENV=input foo env var"})
 	})
 

@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"encoding/base64"
@@ -22,7 +22,7 @@ func sanitizedAppName(appName string) string {
 	return notAllowed.ReplaceAllString(appName, "_")
 }
 
-type NexusIqOutput struct {
+type NexusIqAction struct {
 	Name           string
 	Url            string
 	User           string
@@ -30,19 +30,19 @@ type NexusIqOutput struct {
 	OrganizationId string
 }
 
-func (nexus *NexusIqOutput) GetName() string {
+func (nexus *NexusIqAction) GetName() string {
 	return nexus.Name
 }
 
-func (nexus *NexusIqOutput) Init() error {
-	log.Printf("Starting Nexus IQ output %q, for sending to %q", nexus.Name, nexus.Url)
+func (nexus *NexusIqAction) Init() error {
+	log.Printf("Starting Nexus IQ action %q, for sending to %q", nexus.Name, nexus.Url)
 	return nil
 }
-func (nexus *NexusIqOutput) auth() string {
+func (nexus *NexusIqAction) auth() string {
 	return base64.StdEncoding.EncodeToString([]byte(nexus.User + ":" + nexus.Password))
 }
 
-func (nexus *NexusIqOutput) execute(method string, url string, payload string, headers map[string]string) (map[string]interface{}, error) {
+func (nexus *NexusIqAction) execute(method string, url string, payload string, headers map[string]string) (map[string]interface{}, error) {
 	client := http.DefaultClient
 	client.Timeout = time.Second * 120
 
@@ -91,7 +91,7 @@ func (nexus *NexusIqOutput) execute(method string, url string, payload string, h
 
 }
 
-func (nexus *NexusIqOutput) getAppByNameAndOrg(organizationId string, appName string) (string, error) {
+func (nexus *NexusIqAction) getAppByNameAndOrg(organizationId string, appName string) (string, error) {
 	sanitizedAppName := sanitizedAppName(appName)
 	url := fmt.Sprintf("%s/api/v2/applications/organization/%s", nexus.Url, organizationId)
 	r, err := nexus.execute("GET", url, "", map[string]string{"Content-Type": "application/json"})
@@ -107,7 +107,7 @@ func (nexus *NexusIqOutput) getAppByNameAndOrg(organizationId string, appName st
 	}
 	return "", nil
 }
-func (nexus *NexusIqOutput) createApp(organizationId string, appName string) (string, error) {
+func (nexus *NexusIqAction) createApp(organizationId string, appName string) (string, error) {
 	sanitizedAppName := sanitizedAppName(appName)
 	payload := map[string]string{
 		"publicId":       sanitizedAppName,
@@ -131,7 +131,7 @@ func (nexus *NexusIqOutput) createApp(organizationId string, appName string) (st
 	return r["id"].(string), nil
 }
 
-func (nexus *NexusIqOutput) createOrGetApp(appName string) (string, error) {
+func (nexus *NexusIqAction) createOrGetApp(appName string) (string, error) {
 	app, err := nexus.getAppByNameAndOrg(nexus.OrganizationId, appName)
 	if err != nil {
 		return "", err
@@ -144,7 +144,7 @@ func (nexus *NexusIqOutput) createOrGetApp(appName string) (string, error) {
 	}
 	return app, nil
 }
-func (nexus *NexusIqOutput) registerBom(appId string, bom string) error {
+func (nexus *NexusIqAction) registerBom(appId string, bom string) error {
 	url := fmt.Sprintf("%s/api/v2/scan/applications/%s/sources/cyclone", nexus.Url, appId)
 
 	_, err := nexus.execute("POST", url, bom, map[string]string{"Content-Type": "application/xml"})
@@ -155,7 +155,7 @@ func (nexus *NexusIqOutput) registerBom(appId string, bom string) error {
 	return nil
 }
 
-func (nexus *NexusIqOutput) Send(content map[string]string) error {
+func (nexus *NexusIqAction) Send(content map[string]string) error {
 	appId, err := nexus.createOrGetApp(content["title"])
 
 	if err != nil {
@@ -172,12 +172,12 @@ func (nexus *NexusIqOutput) Send(content map[string]string) error {
 	return nil
 }
 
-func (nexus *NexusIqOutput) Terminate() error {
-	log.Printf("Nexus IQ output %q terminated.", nexus.Name)
+func (nexus *NexusIqAction) Terminate() error {
+	log.Printf("Nexus IQ action %q terminated.", nexus.Name)
 	return nil
 }
 
-func (nexus *NexusIqOutput) GetLayoutProvider() layout.LayoutProvider {
+func (nexus *NexusIqAction) GetLayoutProvider() layout.LayoutProvider {
 	/*TODO come up with smaller interface that doesn't include GetLayoutProvider()*/
 	return new(formatting.HtmlProvider)
 }
