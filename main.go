@@ -28,8 +28,8 @@ const (
 	CFG_FILE  = "/config/cfg.yaml"
 	CFG_USAGE = "The alert configuration file."
 
-	NATSConfigSubject = "config.postee"
-	NATSEventSubject  = "events."
+	NATSConfigSubject = "postee.config"
+	NATSEventSubject  = "postee.events"
 )
 
 var (
@@ -90,17 +90,13 @@ func main() {
 			f.Write(msg.Data)
 			cfgfile = f.Name()
 
-			url = "0.0.0.0:9082" // TODO: Change for runner to prevent conflict, Randomize?
+			// TODO: Remove these before shipping
+			url = "0.0.0.0:9082"
 			tls = "0.0.0.0:9445"
 
 			r.ControllerURL = controllerURL
 			r.RunnerName = runnerName
 			r.Mode = "runner"
-
-			r.NatsMsgCh = make(chan *nats.Msg)
-			eventSubj := NATSEventSubject + r.RunnerName
-			log.Println("Subscribing to events on: ", eventSubj)
-			r.NatsConn.ChanSubscribe(eventSubj, r.NatsMsgCh)
 		}
 
 		if controllerMode {
@@ -130,6 +126,13 @@ func main() {
 			r.ConfigCh = configCh
 			r.NatsServer = natsServer
 			r.Mode = "controller"
+
+			r.NatsMsgCh = make(chan *nats.Msg)
+			eventSubj := NATSEventSubject
+			log.Println("Subscribing to events from runners on: ", eventSubj)
+			if _, err := nc.ChanSubscribe(eventSubj, r.NatsMsgCh); err != nil {
+				panic(err)
+			}
 		}
 
 		if os.Getenv("AQUAALERT_URL") != "" {

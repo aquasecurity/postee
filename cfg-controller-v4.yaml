@@ -30,7 +30,6 @@ routes:
 - name: remote-route
   input: contains(input.SigMetadata.ID, "TRC-2")
   runs-on: "postee-runner-1"
-#  runs-on: "postee-runner"
   serialize-outputs: true
   outputs: [my-exec-from-runner, my-http-post-from-runner]
   template: raw-json

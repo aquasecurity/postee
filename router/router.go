@@ -12,16 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tidwall/gjson"
-
-	"github.com/ghodss/yaml"
-
-	//goyaml "github.com/goccy/go-yaml"
-
-	"github.com/nats-io/nats-server/v2/server"
-
-	"github.com/nats-io/nats.go"
-
 	"github.com/aquasecurity/postee/v2/actions"
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
@@ -30,6 +20,9 @@ import (
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/aquasecurity/postee/v2/utils"
+	"github.com/ghodss/yaml"
+	"github.com/nats-io/nats-server/v2/server"
+	"github.com/nats-io/nats.go"
 )
 
 const (
@@ -286,31 +279,12 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	}
 
 	if !getScanService().EvaluateRegoRule(r, in) {
-		return
-	}
-
-	//fmt.Println("name: ", r.Name, ">>> RunsOn: ", r.RunsOn, "mode: ", ctx.Mode, "event: ", string(in))
-	if r.RunsOn != "" && ctx.Mode == "controller" {
-		nc, err := nats.Connect(ctx.NatsServer.ClientURL())
-		if err != nil {
-			log.Println("Unable to connect to controller backplane to forward event: ", err)
-			return
-		}
-
-		// Check if event metadata matches configuration
-		// if matches, send as configured
-		// if not, skip forwarding
-		dstRunner := gjson.GetBytes(in, "PosteeMetadata.Runner")
-		if dstRunner.String() != r.RunsOn {
-			log.Println("route destination mismatch, expected: ", r.RunsOn, "got: ", dstRunner, "skipping event...")
-			return
-		}
-
-		eventSubj := "events." + r.RunsOn
-		log.Println("Forwarding event to Runner: ", eventSubj, "event: ", string(in))
-		if err := nc.Publish(eventSubj, in); err != nil {
-			log.Println("Unable to send event to Runner: ", eventSubj, "err: ", err)
-			return
+		if ctx.Mode == "runner" {
+			log.Println("Rego rule did not match, sending event upstream to controller at url: ", ctx.ControllerURL)
+			NATSEventSubject := "postee.events"
+			if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil {
+				panic(err)
+			}
 		}
 		return
 	}
@@ -443,7 +417,7 @@ func (ctx *Router) listen() {
 			}
 			msg.Respond([]byte(cfg))
 		case msg := <-ctx.NatsMsgCh:
-			log.Println("Received incoming event from controller: ", string(msg.Data))
+			log.Println("Received incoming event from runner: ", string(msg.Data))
 			go ctx.handle(bytes.ReplaceAll(msg.Data, []byte{'`'}, []byte{'\''}))
 		}
 	}
