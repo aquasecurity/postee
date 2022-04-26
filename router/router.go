@@ -278,18 +278,41 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
-	if !getScanService().EvaluateRegoRule(r, in) {
-		if ctx.Mode == "runner" {
-			log.Println("Rego rule did not match, sending event upstream to controller at url: ", ctx.ControllerURL)
-			NATSEventSubject := "postee.events"
-			if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil {
-				panic(err)
-			}
+	// send event up to controller unconditionally, in case controller knows
+	if ctx.Mode == "runner" {
+		log.Println("Sending event upstream to controller at url: ", ctx.ControllerURL)
+		NATSEventSubject := "postee.events"
+		if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil {
+			panic(err)
 		}
+	}
+
+	if !getScanService().EvaluateRegoRule(r, in) {
 		return
 	}
 
 	for _, outputName := range r.Actions {
+		handle := true
+		if ctx.Mode == "controller" {
+			tenant, err := Parsev2cfg(ctx.cfgfile)
+			if err != nil {
+				log.Fatal("unable to parse cfgfile for controller: ", err)
+			}
+			for _, o := range tenant.Actions {
+				if outputName == o.Name {
+					if o.RunsOn != "" {
+						log.Println("Skipping: ", o.Name, "as it is for runner: ", o.RunsOn)
+						handle = false
+						break // skip as it is for runner to run
+					}
+				}
+			}
+		}
+
+		if !handle {
+			continue
+		}
+
 		pl, ok := ctx.actions[outputName]
 		if !ok {
 			log.Printf("route %q contains an action %q, which isn't enabled now.", routeName, outputName)
@@ -431,24 +454,26 @@ func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 	}
 
 	var runnerRoutes []routes.InputRoute
-	var runnerOutputs []OutputSettings
+	var runnerActions []ActionSettings
 	var runnerTemplates []Template
 
-	for _, route := range tenant.InputRoutes {
-		if route.RunsOn == runnerName {
-			runnerRoutes = append(runnerRoutes, route)
+	for _, output := range tenant.Actions {
+		if output.RunsOn == runnerName {
+			runnerActions = append(runnerActions, output)
 		}
 	}
 
-	for _, rr := range runnerRoutes {
+	for _, ro := range runnerActions {
 		for _, inputRoute := range tenant.InputRoutes {
-			if inputRoute.Name == rr.Name {
-				for _, inputOutput := range tenant.Outputs {
-					for _, runnerOutput := range rr.Outputs {
-						if runnerOutput == inputOutput.Name {
-							runnerOutputs = append(runnerOutputs, inputOutput)
-						}
+			for _, inputAction := range inputRoute.Actions {
+				if ro.Name == inputAction {
+					runnerRoute := inputRoute
+					var oNames []string
+					for _, o := range runnerActions {
+						oNames = append(oNames, o.Name)
 					}
+					runnerRoute.Actions = oNames
+					runnerRoutes = append(runnerRoutes, runnerRoute)
 				}
 			}
 		}
