@@ -207,29 +207,6 @@ func send(otpt outputs.Output, cnt map[string]string) {
 
 }
 
-func sendWithRetry(o outputs.Output, message map[string]string) error {
-	var (
-		retryAttempts       = 3
-		intervalBetweenSend = 2
-	)
-	for {
-		if retryAttempts == 0 {
-			return xerrors.Errorf("failed sending message to output. Number of retries: %d", retryAttempts)
-		}
-
-		err := o.Send(message)
-		if err == nil {
-			return nil
-		}
-
-		log.Logger.Errorf("Error occurred while sending event to '%s': %v, will retry in (%v) seconds", o.GetName(), err, intervalBetweenSend)
-		retryAttempts--
-		time.Sleep(time.Duration(intervalBetweenSend) * time.Second)
-		intervalBetweenSend *= 2
-	}
-
-}
-
 func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
 	if UniqueMessageTimeoutSeconds == 0 {
 		return nil
