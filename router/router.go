@@ -50,6 +50,7 @@ type Router struct {
 	inputCallBacks         map[string][]InputCallbackFunc
 	databaseCfgCacheSource *data.TenantSettings
 	callbackMu             sync.RWMutex
+	lockEval               sync.Mutex
 }
 
 var (
@@ -701,7 +702,17 @@ func (ctx *Router) isRouteMatch(route *routes.InputRoute, inMsg map[string]inter
 	return getScanService().EvaluateRegoRule(route, inMsg)
 }
 
+func (ctx *Router) LockEval() {
+	ctx.lockEval.Lock()
+}
+
+func (ctx *Router) UnlockEval() {
+	ctx.lockEval.Unlock()
+}
+
 func (ctx *Router) evaluateMsg(inMsg map[string]interface{}) []string {
+	ctx.lockEval.Lock()
+	defer ctx.lockEval.Unlock()
 	routesNames := []string{}
 	ctx.inputRoutes.Range(func(_, value interface{}) bool {
 		r, ok := value.(*routes.InputRoute)

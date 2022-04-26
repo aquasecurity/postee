@@ -70,7 +70,7 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 	eventData := make(map[string]interface{})
 	err := json.Unmarshal([]byte(rawEventData), &eventData)
 	if err != nil {
-		log.Logger.Errorf("sending to Splunk %q error: %w", splunk.Name, err)
+		log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
 		return err
 	}
 
@@ -85,14 +85,14 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 		scanInfo := new(data.ScanImageInfo)
 		err := json.Unmarshal([]byte(rawEventData), scanInfo)
 		if err != nil {
-			log.Logger.Errorf("sending to %q error: %w", splunk.Name, err)
+			log.Logger.Errorf("sending to %q error: %v", splunk.Name, err)
 			return err
 		}
 
 		for {
 			rawMsg, err = json.Marshal(scanInfo)
 			if err != nil {
-				log.Logger.Errorf("sending to Splunk %q error: %w", splunk.Name, err)
+				log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
 				return err
 			}
 			if len(rawMsg) < splunk.EventLimit-constLimit {

@@ -41,7 +41,7 @@ func (webhook *WebhookOutput) Send(content map[string]string) error {
 	data := content["description"] //it's not supposed to work with legacy renderer
 	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
 	if err != nil {
-		log.Logger.Errorf("Sending webhook Error: %w", err)
+		log.Logger.Errorf("Sending webhook Error: %v", err)
 		return err
 	}
 	defer resp.Body.Close()

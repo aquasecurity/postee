@@ -150,7 +150,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 				log.Logger.Errorf("Error while building aggregated content: %v", err)
 				return err
 			}
-			return sendWithRetry(output, content)
+			return output.Send(content)
 		}
 	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
 		AggregateScanAndGetQueue(route.Name, content, 0, true)
@@ -162,7 +162,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 			log.Logger.Infof("%s is already scheduled", route.Name)
 		}
 	} else {
-		return sendWithRetry(output, content)
+		return output.Send(content)
 	}
 
 	return nil

@@ -63,7 +63,7 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 
 	escaped, err := escapeJSON(body)
 	if err != nil {
-		log.Logger.Errorf("Error while escaping payload: %w", err)
+		log.Logger.Errorf("Error while escaping payload: %v", err)
 		return err
 	}
 
