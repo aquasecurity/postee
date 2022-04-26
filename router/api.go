@@ -225,6 +225,14 @@ func Evaluate(b []byte) []string {
 	return Instance().Evaluate(parseBytes(b))
 }
 
+func LockEvaluate() {
+	Instance().LockEval()
+}
+
+func UnlockEvaluate() {
+	Instance().UnlockEval()
+}
+
 // Evaluate iterates over the configured routes and evaluates the configured rego rules for each route.
 // In case one of the routes is satisfied, Evaluate a list of routes names that we should forward the message to
 func EvaluateMsg(msg map[string]interface{}) []string {

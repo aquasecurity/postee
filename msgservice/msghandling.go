@@ -150,7 +150,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 				log.Logger.Errorf("Error while building aggregated content: %v", err)
 				return err
 			}
-			return sendWithRetry(output, content)
+			return output.Send(content)
 		}
 	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
 		AggregateScanAndGetQueue(route.Name, content, 0, true)
@@ -162,7 +162,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 			log.Logger.Infof("%s is already scheduled", route.Name)
 		}
 	} else {
-		return sendWithRetry(output, content)
+		return output.Send(content)
 	}
 
 	return nil
@@ -203,29 +203,6 @@ func send(otpt outputs.Output, cnt map[string]string) {
 			log.Logger.Errorf("Error while building aggregated content: %v", err)
 			return
 		}
-	}
-
-}
-
-func sendWithRetry(o outputs.Output, message map[string]string) error {
-	var (
-		retryAttempts       = 3
-		intervalBetweenSend = 2
-	)
-	for {
-		if retryAttempts == 0 {
-			return xerrors.Errorf("failed sending message to output. Number of retries: %d", retryAttempts)
-		}
-
-		err := o.Send(message)
-		if err == nil {
-			return nil
-		}
-
-		log.Logger.Errorf("Error occurred while sending event to '%s': %v, will retry in (%v) seconds", o.GetName(), err, intervalBetweenSend)
-		retryAttempts--
-		time.Sleep(time.Duration(intervalBetweenSend) * time.Second)
-		intervalBetweenSend *= 2
 	}
 
 }
