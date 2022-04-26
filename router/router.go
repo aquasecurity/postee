@@ -488,7 +488,7 @@ func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 	}
 
 	tenant.InputRoutes = runnerRoutes
-	tenant.Outputs = runnerOutputs
+	tenant.Actions = runnerActions
 	tenant.Templates = runnerTemplates
 
 	cfgB, err := yaml.Marshal(tenant)
