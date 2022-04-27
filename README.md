@@ -143,13 +143,14 @@ The below table describes the fields to define a route:
 <details>
 <summary>Details, click to expand ⬇️</summary>
 
-Key | Description | Possible Values | Example
---- | --- | --- | ---
-*name*|Unique name of route| string | teams-vul-route
-*input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
-*input-files*|One or more files with Rego rules| Set of Rego language files | ["Policy-Registry.rego", "Policy-Min-Vulnerability.rego"] 
+Key | Description | Possible Values                                       | Example
+--- | --- |-------------------------------------------------------| ---
+*name*|Unique name of route| string                                                | teams-vul-route
+*input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements                              | contains(input.message,"alpine")
+*input-files*|One or more files with Rego rules| Set of Rego language files                            | ["Policy-Registry.rego", "Policy-Min-Vulnerability.rego"] 
 *actions*|One or more actions that are defined in the "actions" section| Set of action names. At least one element is required | ["my-slack", "my-email"].
-*template*| A template that is defined in the "template" section| any template name | raw-html
+*serialize-actions*|Serialize the list of actions| true, false(default)                                  |true
+*template*| A template that is defined in the "template" section| any template name                                     | raw-html
 </details>
 
 The `rego-filters` folder contains examples of policy related functions. You can use the examples. To do this, you need to change the input data in the arrays of rego files and fill in the config file. If you want to use an other folder, set the 'REGO_FILTERS_PATH' environment variable to point to it. When using 2 or more files, they will be combined by "OR".
