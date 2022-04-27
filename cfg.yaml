@@ -22,7 +22,7 @@ routes:
 #   - Policy-Only-Fix-Available.rego
 #   - Policy-Min-Vulnerability.rego
 #   - Policy-Related-Features.rego
-#  actions: [my-slack]                          #  Output name (needs to be defined under "actions") which will receive the message
+#  actions: [my-slack]                          #  Action name (needs to be defined under "actions") which will receive the message
 #  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
 #  plugins:                                     #  Optional plugins
 #   aggregate-message-number:                   # Number of same messages to aggregate into one output message
@@ -53,7 +53,7 @@ templates:
 
 
 
-# Outputs are target services that should consume the messages
+# Actions are target services that should consume the messages
 actions:
 - name: stdout
   type: stdout

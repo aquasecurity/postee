@@ -32,13 +32,13 @@ data:
     - name: raw-json                        # route message "As Is" to external webhook
       rego-package: postee.rawmessage.json
 
-    # Outputs are target services that should consume the messages
+    # Actions are target services that should consume the messages
     actions:
     - name: stdout
       type: stdout
       enable: true
 
-    # Define a custom output of exec action, that can take params.
+    # Define a custom action of exec type, that can take params.
     - name: save-tracee-event-log
       type: exec
       enable: true
