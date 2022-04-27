@@ -118,7 +118,7 @@ General settings are specified at the root level of cfg.yaml. They include gener
 ![settings](docs/img/postee-settings.png)
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description                                                                                                                                                                          | Possible Values | Example Value
 --- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| --- | ---
@@ -141,7 +141,7 @@ After defining the route's input condition, what is left is to define the templa
 The below table describes the fields to define a route:
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
@@ -196,7 +196,7 @@ input: |
 'Plugins' section contains configuration for useful Postee features.
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
@@ -218,7 +218,7 @@ Each template has a 'name' field, which is used by the route to assign the templ
 In addition to name, a template will have **one** of the 4 below keys:
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Example
 --- | --- | ---
@@ -236,7 +236,7 @@ Actions are remote services that messages should be sent to. Each action has two
 ![settings](docs/img/postee-actions.png)
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
@@ -249,7 +249,7 @@ Depending on the 'type', additional parameters are required.
 ### ServiceNow
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values
 --- | --- | ---
@@ -262,7 +262,7 @@ Key | Description | Possible Values
 ### Nexus IQ integration parameters
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values
 --- | --- | ---
@@ -293,7 +293,7 @@ Select your profile picture at top right of the screen, then choose  Settings > 
         * Token: your Personal Access Tokens.
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 ### Jira integration parameters
 Key | Description | Possible Values
@@ -386,7 +386,7 @@ unknowns:
 ### Email
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values
 --- | --- | ---
@@ -406,7 +406,7 @@ Getting the Slack webhooks [Create a Slack Custom App](https://api.slack.com/mes
 Copy webhook url to the Postee config
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values
 --- | --- | ---
@@ -424,7 +424,7 @@ Click "Add" near the Incoming Webhook connector. Click "Add" again. Provide a na
 You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values
 --- | --- | ---
@@ -441,7 +441,7 @@ Once you create an HTTP Event Collector you will receive a token. You should pro
 URL, as part of the cfg.yaml settings.
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values
 --- | --- | ---
@@ -453,7 +453,7 @@ Key | Description | Possible Values
 ### Generic Webhook
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description | Possible Values
 --- | --- | ---
@@ -508,7 +508,7 @@ Message payload is referenced as `input` when template is rendered. The result v
 The following variables should be defined in the custom Rego template.
 
 <details>
-<summary>Details</summary>
+<summary>Details, click to expand</summary>
 
 Key | Description |Type
 --- | --- | ---
