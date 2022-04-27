@@ -107,7 +107,7 @@ When Postee receives a message it will process it based on routing rules and sen
 1. General settings
 2. Routes
 3. Templates
-4. Outputs
+4. Actions
 
 > NOTE See examples of common Postee configuration files here: [Examples](docs/examples)
 
@@ -128,7 +128,7 @@ Key | Description                                                               
 </details>
 
 ### Routes
-A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the output(s) that the message should be delivered to.
+A route is used to control message flows. Each route includes the input message condition, the template that should be used to format the message, and the action(s) that the message should be delivered to.
 
 The most important part of a route is the **input definition using the Rego language** to define what are the conditions for an incoming message to be handled by a certain route.
 
@@ -136,7 +136,7 @@ The most important part of a route is the **input definition using the Rego lang
 
 > NOTE `See the complete Rego Language in` [OPA-reference](https://www.openpolicyagent.org/docs/latest/policy-reference/#built-in-functions)
 
-After defining the route's input condition, what is left is to define the template that will be used to format the input message, and the output that formatted message will be sent to.
+After defining the route's input condition, what is left is to define the template that will be used to format the input message, and the action that formatted message will be sent to.
 
 The below table describes the fields to define a route:
 
@@ -148,7 +148,7 @@ Key | Description | Possible Values | Example
 *name*|Unique name of route| string | teams-vul-route
 *input*|A Rego rule to match against incoming messages. If there is a match then this route will be chosen for the incoming message| Rego language statements | contains(input.message,"alpine")
 *input-files*|One or more files with Rego rules| Set of Rego language files | ["Policy-Registry.rego", "Policy-Min-Vulnerability.rego"] 
-*actions*|One or more actions that are defined in the "actions" section| Set of output names. At least one element is required | ["my-slack", "my-email"].
+*actions*|One or more actions that are defined in the "actions" section| Set of action names. At least one element is required | ["my-slack", "my-email"].
 *template*| A template that is defined in the "template" section| any template name | raw-html
 </details>
 
@@ -207,7 +207,7 @@ Key | Description | Possible Values | Example
 </details>
 
 ### Templates
-Templates are used to format input messages before sending them to the output. For example - before sending a message to Microsoft Teams there is a need to format the input JSON into an HTML. This is done using a template.
+Templates are used to format input messages before sending them to the action. For example - before sending a message to Microsoft Teams there is a need to format the input JSON into an HTML. This is done using a template.
 
 Each template has a 'name' field, which is used by the route to assign the template to input and output.
 
@@ -230,18 +230,18 @@ Key | Description | Example
 
 > More details about Templates implementation [here](https://github.com/aquasecurity/postee/tree/main/rego-templates)
 
-### Outputs
-Outputs are remote services that messages should be sent to. Each output has two mandatory fields, which are 'name' and 'type'.
+### Actions
+Actions are remote services that messages should be sent to. Each action has two mandatory fields, which are 'name' and 'type'.
 
-![settings](docs/img/postee-outputs.png)
+![settings](docs/img/postee-actions.png)
 
 <details>
 <summary>Details</summary>
 
 Key | Description | Possible Values | Example
 --- | --- | --- | ---
-*name* | Unique name of the output. This name is used in the route definition. | Any string | teams-output
-*type* | The type of the output | You can choose from the following types: email, jira, slack, teams, webhook, splunk, serviceNow | email
+*name* | Unique name of the action. This name is used in the route definition. | Any string | teams-action
+*type* | The type of the action | You can choose from the following types: email, jira, slack, teams, webhook, splunk, serviceNow | email
 </details>
 
 Depending on the 'type', additional parameters are required.
@@ -282,7 +282,7 @@ Go to the user profile API tokens (JIRA Cloud users can find it here: https://id
 Click on the Create API Token. A new API token for the user is created.
     * Login to Jira Server/Data center
 Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created. 
-2. Fill jira output in cfg.yaml:
+2. Fill jira action in cfg.yaml:
     * Jira Cloud:
         * User: your email.
         * Password: your API token.
@@ -569,7 +569,7 @@ Go to the user profile API tokens (JIRA Cloud users can find it here: https://id
 Click on the Create API Token. A new API token for the user is created.
     * Login to Jira Server/Data center
 Select your profile picture at top right of the screen, then choose  Settings > Personal Access Tokens. Select Create token. Give your new token a name. Optionally, for security reasons, you can set your token to automatically expire after a set number of days. Click Create. A new PAT for the user is created.
-2. Fill jira output in cfg.yaml:
+2. Fill jira action in cfg.yaml:
     * Jira Cloud:
         * User: your email.
         * Password: your API token.
