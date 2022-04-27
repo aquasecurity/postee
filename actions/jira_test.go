@@ -1,17 +1,18 @@
-package outputs
+package actions
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aquasecurity/go-jira"
-	"github.com/aquasecurity/postee/v2/formatting"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/aquasecurity/go-jira"
+	"github.com/aquasecurity/postee/v2/formatting"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var metaIssuetype = &jira.MetaIssueType{Name: "Task", Fields: map[string]interface{}{

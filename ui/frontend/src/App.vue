@@ -13,7 +13,7 @@
                 active-class="active"
                 :to="{ name: 'outputs' }"
                 class="nav-link"
-                >Outputs</router-link
+                >Actions</router-link
               >
             </li>
             <li class="nav-item">

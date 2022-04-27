@@ -8,7 +8,7 @@ data:
   cfg.yaml: |
     ---
     # The configuration file contains a general settings section,
-    # routes, templates and outputs sections.
+    # routes, templates and actions sections.
 
     name: tenant            #  The tenant name
     aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
@@ -18,13 +18,13 @@ data:
     # Routes are used to define how to handle an incoming message
     routes:
     - name: stdout
-      outputs: [ stdout ]
+      actions: [ stdout ]
       template: raw-json
 
     - name: actions-route
       input: contains(input.SigMetadata.ID, "TRC-2")
-      serialize-outputs: true                       # Optional. Serialize outputs in route.
-      outputs: [save-tracee-event-log, send-event, tag-k8s-resources, kill-vulnerable-pod]
+      serialize-actions: true                       # Optional. Serialize actions in route.
+      actions: [save-tracee-event-log, send-event, tag-k8s-resources, kill-vulnerable-pod]
       template: raw-json
 
     # Templates are used to format a message
@@ -33,7 +33,7 @@ data:
       rego-package: postee.rawmessage.json
 
     # Outputs are target services that should consume the messages
-    outputs:
+    actions:
     - name: stdout
       type: stdout
       enable: true

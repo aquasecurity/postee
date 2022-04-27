@@ -50,7 +50,7 @@
                   <option value="nexusIq">Nexus IQ</option>
                 </select>
                 <small id="aHelp" class="form-text text-muted"
-                  >The output type</small
+                  >The action type</small
                 >
               </div>
             </div>
@@ -68,7 +68,7 @@
           <!-- enable is not required here-->
           <CheckboxPropertyField
             id="enable"
-            label="Enable output"
+            label="Enable action"
             :value="formValues.enable"
             :inputHandler="updateField"
           />
@@ -527,7 +527,7 @@ export default {
       this.$store
         .dispatch("outputs/test", this.formValues)
         .then(() => {
-          this.$bvToast.toast("Output is configured correctly", {
+          this.$bvToast.toast("Action is configured correctly", {
             title: "Success",
             variant: "success",
             autoHideDelay: 5000,

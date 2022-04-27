@@ -45,7 +45,7 @@ func TestAggregateIssuesPerTicket(t *testing.T) {
 
 }
 func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRenderCnt int, expectedAggrRenderCnt int, skipAggrSpprt bool) {
-	demoEmailOutput := &DemoEmailOutput{
+	demoEmailAction := &DemoEmailAction{
 		emailCounts: 0,
 	}
 
@@ -61,18 +61,18 @@ func doAggregate(t *testing.T, caseDesc string, expectedSntCnt int, expectedRend
 		skipAggrSpprt: skipAggrSpprt,
 	}
 
-	demoEmailOutput.wg = &sync.WaitGroup{}
-	demoEmailOutput.wg.Add(expectedSntCnt)
+	demoEmailAction.wg = &sync.WaitGroup{}
+	demoEmailAction.wg.Add(expectedSntCnt)
 
 	for _, scan := range scans {
 		srv := new(MsgService)
-		srv.MsgHandling([]byte(scan), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv.MsgHandling([]byte(scan), demoEmailAction, demoRoute, demoInptEval, &srvUrl)
 	}
 
-	demoEmailOutput.wg.Wait()
+	demoEmailAction.wg.Wait()
 
-	if demoEmailOutput.getEmailsCount() != expectedSntCnt {
-		t.Errorf("%s: The number of sent email doesn't match expected value. Sent: %d, expected: %d ", caseDesc, demoEmailOutput.getEmailsCount(), expectedSntCnt)
+	if demoEmailAction.getEmailsCount() != expectedSntCnt {
+		t.Errorf("%s: The number of sent email doesn't match expected value. Sent: %d, expected: %d ", caseDesc, demoEmailAction.getEmailsCount(), expectedSntCnt)
 	}
 
 	if demoInptEval.renderCnt != expectedRenderCnt {

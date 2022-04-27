@@ -69,7 +69,7 @@ func validateInputValue(t *testing.T, caseDesc string, input []byte, shouldPass 
 	}()
 	dbservice.ChangeDbPath("test_webhooks.db")
 
-	demoEmailOutput := &DemoEmailOutput{
+	demoEmailAction := &DemoEmailAction{
 		emailCounts: 0,
 	}
 
@@ -85,18 +85,18 @@ func validateInputValue(t *testing.T, caseDesc string, input []byte, shouldPass 
 
 	demoInptEval := &DemoInptEval{}
 
-	demoEmailOutput.wg = &sync.WaitGroup{}
-	demoEmailOutput.wg.Add(expected)
+	demoEmailAction.wg = &sync.WaitGroup{}
+	demoEmailAction.wg.Add(expected)
 
 	srv := new(MsgService)
 	if srv.EvaluateRegoRule(demoRoute, input) {
-		srv.MsgHandling(input, demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv.MsgHandling(input, demoEmailAction, demoRoute, demoInptEval, &srvUrl)
 	}
 
-	demoEmailOutput.wg.Wait()
+	demoEmailAction.wg.Wait()
 
-	if demoEmailOutput.getEmailsCount() != expected {
-		t.Errorf("[%s] Wrong number of Send method calls: expected %d, got %d", caseDesc, expected, demoEmailOutput.getEmailsCount())
+	if demoEmailAction.getEmailsCount() != expected {
+		t.Errorf("[%s] Wrong number of Send method calls: expected %d, got %d", caseDesc, expected, demoEmailAction.getEmailsCount())
 	}
 
 }
@@ -108,7 +108,7 @@ func TestEvalError(t *testing.T) {
 	}()
 	dbservice.ChangeDbPath("test_webhooks.db")
 
-	demoEmailOutput := &DemoEmailOutput{
+	demoEmailAction := &DemoEmailAction{
 		emailCounts: 0,
 	}
 
@@ -125,11 +125,11 @@ func TestEvalError(t *testing.T) {
 
 	srv := new(MsgService)
 	if srv.EvaluateRegoRule(demoRoute, []byte(mockScan1)) {
-		srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv.MsgHandling([]byte(mockScan1), demoEmailAction, demoRoute, demoInptEval, &srvUrl)
 	}
 
-	if demoEmailOutput.getEmailsCount() > 0 {
-		t.Errorf("Output shouldn't be called when evaluation is failed")
+	if demoEmailAction.getEmailsCount() > 0 {
+		t.Errorf("Action shouldn't be called when evaluation is failed")
 	}
 }
 
@@ -141,7 +141,7 @@ func TestAggrEvalError(t *testing.T) {
 	}()
 	dbservice.ChangeDbPath("test_webhooks.db")
 
-	demoEmailOutput := &DemoEmailOutput{
+	demoEmailAction := &DemoEmailAction{
 		emailCounts: 0,
 	}
 
@@ -161,12 +161,12 @@ func TestAggrEvalError(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		srv := new(MsgService)
 		if srv.EvaluateRegoRule(demoRoute, []byte(mockScan1)) {
-			srv.MsgHandling([]byte(mockScan1), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+			srv.MsgHandling([]byte(mockScan1), demoEmailAction, demoRoute, demoInptEval, &srvUrl)
 		}
 	}
 
-	if demoEmailOutput.getEmailsCount() > 0 {
-		t.Errorf("Output shouldn't be called when evaluation is failed")
+	if demoEmailAction.getEmailsCount() > 0 {
+		t.Errorf("Action shouldn't be called when evaluation is failed")
 	}
 }
 func TestEmptyInput(t *testing.T) {
@@ -200,13 +200,13 @@ func TestMalformedJSON(t *testing.T) {
 		srvUrl          = ""
 		demoRoute       = &routes.InputRoute{Name: "demo-route"}
 		demoInptEval    = &DemoInptEval{}
-		demoEmailOutput = &DemoEmailOutput{}
+		demoEmailAction = &DemoEmailAction{}
 	)
 
 	srv := new(MsgService)
-	srv.MsgHandling([]byte("{test:test}"), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+	srv.MsgHandling([]byte("{test:test}"), demoEmailAction, demoRoute, demoInptEval, &srvUrl)
 
-	if demoEmailOutput.getEmailsCount() > 0 {
-		t.Errorf("Output shouldn't be called when evaluation is failed")
+	if demoEmailAction.getEmailsCount() > 0 {
+		t.Errorf("Action shouldn't be called when evaluation is failed")
 	}
 }

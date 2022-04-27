@@ -23,10 +23,10 @@ Postee Actions dispatches calls via the HTTP Action to 3 different AWS Lambda UR
 routes:
 - name: actions-route
   input: contains(input.ServiceURL.Reachable, "false")
-  outputs: [send-slack-message, eu-check, apac-check, na-check]
+  actions: [send-slack-message, eu-check, apac-check, na-check]
 
 # Outputs are target services that should consume the messages
-outputs:
+actions:
 - name: send-slack-messsage
   type: slack
   enable: true

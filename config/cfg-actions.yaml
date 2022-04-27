@@ -1,21 +1,21 @@
 # The configuration file contains a general settings section,
-# routes, templates and outputs sections.
+# routes, templates and actions sections.
 
 name: tenant            #  The tenant name
-aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+aqua-server: localhost           #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
 max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
 db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
 
 # Routes are used to define how to handle an incoming message
 routes:
 - name: stdout
-  outputs: [ stdout ]
+  actions: [ stdout ]
   template: raw-json
 
 - name: actions-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  serialize-outputs: true                       # Optional. Serialize outputs in route.
-  outputs: [my-exec, my-exec-2, my-http-get, my-http-post-file, my-http-post-content]
+  serialize-actions: true                       # Optional. Serialize actions in route.
+  actions: [my-exec, my-exec-2, my-http-get, my-http-post-file, my-http-post-content]
   template: raw-json
 
 # Templates are used to format a message
@@ -24,7 +24,7 @@ templates:
   rego-package: postee.rawmessage.json
 
 # Outputs are target services that should consume the messages
-outputs:
+actions:
 - name: stdout
   type: stdout
   enable: true

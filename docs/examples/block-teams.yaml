@@ -9,10 +9,10 @@ db-verify-interval: 1   # hours. an Interval between tests of DB. Default: 1 hou
 routes:
 - name: team-drift
   input: input.level = "block"
-  outputs: [my-teams]
+  actions: [my-teams]
   template: raw-html
 
-outputs:
+actions:
 - name: my-teams
   type: teams
   enable: true

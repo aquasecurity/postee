@@ -10,13 +10,13 @@ db-verify-interval: 1   # hours. an Interval between tests of DB. Default: 1 hou
 routes:
 - name: team-critical-vul
   input: input.vulnerability_summary.critical > 0
-  outputs: [my-teams]
+  actions: [my-teams]
   template: raw-html
   plugins:
     unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary_low"]
     unique-message-timeout: 30d
 
-outputs:
+actions:
 - name: my-teams
   type: teams
   enable: true

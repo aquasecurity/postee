@@ -28,7 +28,7 @@ func TestApplicationScopeOwner(t *testing.T) {
 	}()
 	dbservice.ChangeDbPath("test_webhooks.db")
 
-	demoEmailOutput := &DemoEmailOutput{
+	demoEmailAction := &DemoEmailAction{
 		emailCounts: 0,
 	}
 
@@ -39,20 +39,20 @@ func TestApplicationScopeOwner(t *testing.T) {
 
 	demoInptEval := &DemoInptEval{}
 
-	demoEmailOutput.wg = &sync.WaitGroup{}
-	demoEmailOutput.wg.Add(1)
+	demoEmailAction.wg = &sync.WaitGroup{}
+	demoEmailAction.wg.Add(1)
 
 	srv := new(MsgService)
 	if srv.EvaluateRegoRule(demoRoute, []byte(scnWithOwners)) {
-		srv.MsgHandling([]byte(scnWithOwners), demoEmailOutput, demoRoute, demoInptEval, &srvUrl)
+		srv.MsgHandling([]byte(scnWithOwners), demoEmailAction, demoRoute, demoInptEval, &srvUrl)
 	}
 
-	demoEmailOutput.wg.Wait()
+	demoEmailAction.wg.Wait()
 
-	if len(demoEmailOutput.payloads) != 1 {
-		t.Errorf("Output Send method isn't called as expected! Number of invocation expected %d, got: %d", 1, len(demoEmailOutput.payloads))
+	if len(demoEmailAction.payloads) != 1 {
+		t.Errorf("Action Send method isn't called as expected! Number of invocation expected %d, got: %d", 1, len(demoEmailAction.payloads))
 	}
-	sent := demoEmailOutput.payloads[0]
+	sent := demoEmailAction.payloads[0]
 
 	ownersStr, ok := sent["owners"]
 	if !ok {

@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ import (
 
 const defaultSizeLimit = 10000
 
-type SplunkOutput struct {
+type SplunkAction struct {
 	Name         string
 	Url          string
 	Token        string
@@ -25,17 +25,17 @@ type SplunkOutput struct {
 	splunkLayout layout.LayoutProvider
 }
 
-func (splunk *SplunkOutput) GetName() string {
+func (splunk *SplunkAction) GetName() string {
 	return splunk.Name
 }
 
-func (splunk *SplunkOutput) Init() error {
+func (splunk *SplunkAction) Init() error {
 	splunk.splunkLayout = new(formatting.HtmlProvider)
-	log.Printf("Starting Splunk output %q....", splunk.Name)
+	log.Printf("Starting Splunk action %q....", splunk.Name)
 	return nil
 }
 
-func (splunk *SplunkOutput) Send(d map[string]string) error {
+func (splunk *SplunkAction) Send(d map[string]string) error {
 	log.Printf("Sending a message to %q", splunk.Name)
 
 	if splunk.EventLimit == 0 {
@@ -120,11 +120,11 @@ func (splunk *SplunkOutput) Send(d map[string]string) error {
 	return nil
 }
 
-func (splunk *SplunkOutput) Terminate() error {
-	log.Printf("Splunk output %q terminated", splunk.Name)
+func (splunk *SplunkAction) Terminate() error {
+	log.Printf("Splunk action %q terminated", splunk.Name)
 	return nil
 }
 
-func (splunk *SplunkOutput) GetLayoutProvider() layout.LayoutProvider {
+func (splunk *SplunkAction) GetLayoutProvider() layout.LayoutProvider {
 	return splunk.splunkLayout
 }

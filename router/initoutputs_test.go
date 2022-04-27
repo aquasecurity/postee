@@ -11,14 +11,14 @@ import (
 func TestBuildAndInitOtpt(t *testing.T) {
 	tests := []struct {
 		caseDesc            string
-		outputSettings      OutputSettings
+		actionSettings      ActionSettings
 		expctdProps         map[string]interface{}
 		shouldFail          bool
-		expectedOutputClass string
+		expectedActionClass string
 	}{
 		{
-			"Default Stdout Output",
-			OutputSettings{
+			"Default Stdout Action",
+			ActionSettings{
 				Name:   "stdout",
 				Type:   "stdout",
 				Enable: true,
@@ -27,11 +27,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Name": "stdout",
 			},
 			false,
-			"*outputs.StdoutOutput",
+			"*actions.StdoutAction",
 		},
 		{
 			"Simple Slack",
-			OutputSettings{
+			ActionSettings{
 				Name:   "my-slack",
 				Type:   "slack",
 				Enable: true,
@@ -42,11 +42,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Name": "my-slack",
 			},
 			false,
-			"*outputs.SlackOutput",
+			"*actions.SlackAction",
 		},
 		{
-			"Simple Email output",
-			OutputSettings{
+			"Simple Email action",
+			ActionSettings{
 				User:       "EmailUser",
 				Password:   "pAsSw0rD",
 				Host:       "smtp.gmail.com",
@@ -65,11 +65,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Recipients": []string{"r1@gmail.com"},
 			},
 			false,
-			"*outputs.EmailOutput",
+			"*actions.EmailAction",
 		},
 		{
-			"Simple Nexus IQ output",
-			OutputSettings{
+			"Simple Nexus IQ action",
+			ActionSettings{
 				Url:            "http://localhost:8070",
 				User:           "admin",
 				Password:       "admin123",
@@ -84,11 +84,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"OrganizationId": "222de33e8005408a844c12eab952c9b0",
 			},
 			false,
-			"*outputs.NexusIqOutput",
+			"*actions.NexusIqAction",
 		},
 		{
-			"Simple Jira output",
-			OutputSettings{
+			"Simple Jira action",
+			ActionSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Password:   "admin",
@@ -109,11 +109,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Assignee":   []string{"Assignee"},
 			},
 			false,
-			"*outputs.JiraAPI",
+			"*actions.JiraAPI",
 		},
 		{
-			"Jira output without credentials",
-			OutputSettings{
+			"Jira action without credentials",
+			ActionSettings{
 				Url:        "localhost:2990",
 				Name:       "my-jira",
 				Type:       "jira",
@@ -127,8 +127,8 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{
-			"Jira output without password",
-			OutputSettings{
+			"Jira action without password",
+			ActionSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Name:       "my-jira",
@@ -143,8 +143,8 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{
-			"Jira output with missed type",
-			OutputSettings{
+			"Jira action with missed type",
+			ActionSettings{
 				Url:        "localhost:2990",
 				User:       "admin",
 				Name:       "my-jira",
@@ -158,8 +158,8 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{
-			"Jira Output with some default values",
-			OutputSettings{
+			"Jira Action with some default values",
+			ActionSettings{
 				Url:        "localhost:2990",
 				Name:       "my-jira-with-defaults",
 				Type:       "jira",
@@ -175,11 +175,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Assignee":   []string{"admin"},
 			},
 			false,
-			"*outputs.JiraAPI",
+			"*actions.JiraAPI",
 		},
 		{
-			"Simple webhook output",
-			OutputSettings{
+			"Simple webhook action",
+			ActionSettings{
 				Url:  "http://localhost:8080",
 				Name: "my-webhook",
 				Type: "webhook",
@@ -188,11 +188,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Url": "http://localhost:8080",
 			},
 			false,
-			"*outputs.WebhookOutput",
+			"*actions.WebhookAction",
 		},
 		{
-			"Simple ServiceNow output",
-			OutputSettings{
+			"Simple ServiceNow action",
+			ActionSettings{
 				Name:         "my-servicenow",
 				Type:         "serviceNow",
 				User:         "admin",
@@ -207,11 +207,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Table":    "incindent",
 			},
 			false,
-			"*outputs.ServiceNowOutput",
+			"*actions.ServiceNowAction",
 		},
 		{
-			"ServiceNow output without BoardName",
-			OutputSettings{
+			"ServiceNow action without BoardName",
+			ActionSettings{
 				Name:         "my-servicenow",
 				Type:         "serviceNow",
 				User:         "admin",
@@ -225,11 +225,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Table":    ServiceNowTableDefault,
 			},
 			false,
-			"*outputs.ServiceNowOutput",
+			"*actions.ServiceNowAction",
 		},
 		{
-			"Simple Teams output",
-			OutputSettings{
+			"Simple Teams action",
+			ActionSettings{
 				Url:  "https://outlook.office.com/webhook/ABCD",
 				Name: "my-teams",
 				Type: "teams",
@@ -238,11 +238,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Webhook": "https://outlook.office.com/webhook/ABCD",
 			},
 			false,
-			"*outputs.TeamsOutput",
+			"*actions.TeamsAction",
 		},
 		{
-			"Simple Splunk output",
-			OutputSettings{
+			"Simple Splunk action",
+			ActionSettings{
 				Url:   "http://localhost:8088",
 				Name:  "my-splunk",
 				Type:  "splunk",
@@ -254,51 +254,51 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Token": "test_token_for_splunk",
 			},
 			false,
-			"*outputs.SplunkOutput",
+			"*actions.SplunkAction",
 		},
 		{
-			"HTTP Action output, with a timeout & body file specified",
-			OutputSettings{
+			"HTTP Action action, with a timeout & body file specified",
+			ActionSettings{
 				Method:   "POST",
 				Timeout:  "10s",
 				Url:      "https://foo.bar.com",
-				Name:     "my-http-output",
+				Name:     "my-http-action",
 				Type:     "http",
 				BodyFile: "goldens/test.txt",
 			},
 			map[string]interface{}{
-				"Name":     "my-http-output",
+				"Name":     "my-http-action",
 				"Method":   "POST",
 				"BodyFile": "goldens/test.txt",
 			},
 			false,
-			"*outputs.HTTPClient",
+			"*actions.HTTPClient",
 		},
 		{
-			"HTTP Action output, with a timeout & body content specified",
-			OutputSettings{
+			"HTTP Action action, with a timeout & body content specified",
+			ActionSettings{
 				Method:      "POST",
 				Timeout:     "10s",
 				Url:         "https://foo.bar.com",
-				Name:        "my-http-output",
+				Name:        "my-http-action",
 				Type:        "http",
 				BodyContent: "foo bar baz body",
 			},
 			map[string]interface{}{
-				"Name":        "my-http-output",
+				"Name":        "my-http-action",
 				"Method":      "POST",
 				"BodyContent": "foo bar baz body",
 			},
 			false,
-			"*outputs.HTTPClient",
+			"*actions.HTTPClient",
 		},
 		{
-			"HTTP Action output, with a timeout & both body content and file specified",
-			OutputSettings{
+			"HTTP Action action, with a timeout & both body content and file specified",
+			ActionSettings{
 				Method:      "POST",
 				Timeout:     "10s",
 				Url:         "https://foo.bar.com",
-				Name:        "my-http-output",
+				Name:        "my-http-action",
 				Type:        "http",
 				BodyFile:    "goldens/test.txt",
 				BodyContent: "foo bar baz body",
@@ -308,10 +308,10 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{
-			"HTTP Action output, with no method specified",
-			OutputSettings{
+			"HTTP Action action, with no method specified",
+			ActionSettings{
 				Url:  "https://foo.bar.com",
-				Name: "my-http-output",
+				Name: "my-http-action",
 				Type: "http",
 			},
 			map[string]interface{}{},
@@ -319,11 +319,11 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{
-			"HTTP Action output, with invalid url specified",
-			OutputSettings{
+			"HTTP Action action, with invalid url specified",
+			ActionSettings{
 				Method: "get",
 				Url:    "http://[fe80::1%en0]/",
-				Name:   "my-http-output",
+				Name:   "my-http-action",
 				Type:   "http",
 			},
 			map[string]interface{}{},
@@ -331,8 +331,8 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"<nil>",
 		},
 		{
-			"HTTP Action output, with a invalid timeout",
-			OutputSettings{
+			"HTTP Action action, with a invalid timeout",
+			ActionSettings{
 				Method:  "GET",
 				Timeout: "ten seconds",
 				Type:    "http",
@@ -340,39 +340,39 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			map[string]interface{}{}, true,
 			"<nil>",
 		},
-		{"Exec Action output, with input-file config",
-			OutputSettings{
-				Name:      "my-exec-output",
+		{"Exec Action action, with input-file config",
+			ActionSettings{
+				Name:      "my-exec-action",
 				Env:       []string{"foo=bar"},
 				InputFile: "goldens/test.txt",
 				Type:      "exec",
 			},
 			map[string]interface{}{
-				"Name":      "my-exec-output",
+				"Name":      "my-exec-action",
 				"InputFile": "goldens/test.txt",
 			},
 			false,
-			"*outputs.ExecClient",
+			"*actions.ExecClient",
 		},
-		{"Exec Action output, with exec-script config",
-			OutputSettings{
-				Name: "my-exec-output",
+		{"Exec Action action, with exec-script config",
+			ActionSettings{
+				Name: "my-exec-action",
 				Env:  []string{"foo=bar"},
 				ExecScript: `#!/bin/sh
 echo "foo bar"`,
 				Type: "exec",
 			},
 			map[string]interface{}{
-				"Name": "my-exec-output",
+				"Name": "my-exec-action",
 				"ExecScript": `#!/bin/sh
 echo "foo bar"`,
 			},
 			false,
-			"*outputs.ExecClient",
+			"*actions.ExecClient",
 		},
-		{"Exec Action output, with invalid config (both file and script)",
-			OutputSettings{
-				Name:      "my-exec-output",
+		{"Exec Action action, with invalid config (both file and script)",
+			ActionSettings{
+				Name:      "my-exec-action",
 				Env:       []string{"foo=bar"},
 				InputFile: "goldens/test.txt",
 				ExecScript: `#!/bin/sh
@@ -383,8 +383,8 @@ echo "foo bar"`,
 			true,
 			"<nil>",
 		},
-		{"Exec Action output, with invalid config (no file nor script)",
-			OutputSettings{
+		{"Exec Action action, with invalid config (no file nor script)",
+			ActionSettings{
 				Name: "my-exec-output",
 				Env:  []string{"foo=bar"},
 				Type: "exec",
@@ -395,7 +395,7 @@ echo "foo bar"`,
 		},
 		{
 			"Kubernetes Action, happy path",
-			OutputSettings{
+			ActionSettings{
 				Name:              "my-k8s-output",
 				Type:              "kubernetes",
 				KubeNamespace:     "default",
@@ -417,11 +417,11 @@ echo "foo bar"`,
 				},
 			},
 			false,
-			"*outputs.KubernetesClient",
+			"*actions.KubernetesClient",
 		},
 		{
 			"Kubernetes Action, sad path, no kube-config",
-			OutputSettings{
+			ActionSettings{
 				Name:              "my-k8s-output",
 				Type:              "kubernetes",
 				KubeNamespace:     "default",
@@ -433,7 +433,7 @@ echo "foo bar"`,
 		},
 		{
 			"Kubernetes Action, sad path, no kube namespace",
-			OutputSettings{
+			ActionSettings{
 				Name:              "my-k8s-output",
 				Type:              "kubernetes",
 				KubeConfigFile:    "goldens/kube-config.sample",
@@ -446,15 +446,15 @@ echo "foo bar"`,
 	}
 	for _, test := range tests {
 		t.Run(test.caseDesc, func(t *testing.T) {
-			o := BuildAndInitOtpt(&test.outputSettings, "")
+			o := BuildAndInitOtpt(&test.actionSettings, "")
 			if test.shouldFail && o != nil {
 				t.Fatalf("No output expected for %s test case but was %s", test.caseDesc, o)
 			} else if !test.shouldFail && o == nil {
 				t.Fatalf("Not expected output returned for %s test case", test.caseDesc)
 			}
-			actualOutputCls := fmt.Sprintf("%T", o)
-			if actualOutputCls != test.expectedOutputClass {
-				t.Errorf("[%s] Incorrect output type, expected %s, got %s", test.caseDesc, test.expectedOutputClass, actualOutputCls)
+			actualActionCls := fmt.Sprintf("%T", o)
+			if actualActionCls != test.expectedActionClass {
+				t.Errorf("[%s] Incorrect output type, expected %s, got %s", test.caseDesc, test.expectedActionClass, actualActionCls)
 			}
 
 			for key, prop := range test.expctdProps {

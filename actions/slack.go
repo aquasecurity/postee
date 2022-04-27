@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"bytes"
@@ -18,20 +18,20 @@ const (
 	slackBlockLimit = 49
 )
 
-type SlackOutput struct {
+type SlackAction struct {
 	Name        string
 	AquaServer  string
 	Url         string
 	slackLayout layout.LayoutProvider
 }
 
-func (slack *SlackOutput) GetName() string {
+func (slack *SlackAction) GetName() string {
 	return slack.Name
 }
 
-func (slack *SlackOutput) Init() error {
+func (slack *SlackAction) Init() error {
 	slack.slackLayout = new(formatting.SlackMrkdwnProvider)
-	log.Printf("Starting Slack output %q....", slack.Name)
+	log.Printf("Starting Slack action %q....", slack.Name)
 	return nil
 }
 
@@ -54,7 +54,7 @@ func buildSlackBlock(title string, data []byte) []byte {
 	return content.Bytes()
 }
 
-func (slack *SlackOutput) Send(input map[string]string) error {
+func (slack *SlackAction) Send(input map[string]string) error {
 	log.Printf("Sending via Slack %q", slack.Name)
 	title := clearSlackText(slack.slackLayout.TitleH2(input["title"]))
 	var body string
@@ -109,11 +109,11 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 	return nil
 }
 
-func (slack *SlackOutput) Terminate() error {
+func (slack *SlackAction) Terminate() error {
 	log.Printf("Slack output %q terminated", slack.Name)
 	return nil
 }
 
-func (slack *SlackOutput) GetLayoutProvider() layout.LayoutProvider {
+func (slack *SlackAction) GetLayoutProvider() layout.LayoutProvider {
 	return slack.slackLayout
 }

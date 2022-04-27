@@ -18,11 +18,11 @@ In this case a sample configuration for the components can be described as follo
 routes:
 - name: actions-route
   input: contains(input.Camera.Event, "Finding")
-  serialize-outputs: true
-  outputs: [send-slack-message, process-image]
+  serialize-actions: true
+  actions: [send-slack-message, process-image]
 
 # Outputs are target services that should consume the messages
-outputs:
+actions:
 - name: send-slack-messsage
   type: slack
   enable: true 

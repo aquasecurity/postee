@@ -1,5 +1,5 @@
 # The configuration file contains a general settings section,
-# routes, templates and outputs sections.
+# routes, templates and actions sections.
 
 name: tenant            #  The tenant name
 aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
@@ -9,7 +9,7 @@ db-verify-interval: 1   #  How often to check the DB size. By default, Postee ch
 # Routes are used to define how to handle an incoming message
 routes:
 - name: stdout
-  outputs: [ stdout ]
+  actions: [ stdout ]
   template: raw-json
 
 #- name: route1                                 #  Route name. Must be unique
@@ -22,7 +22,7 @@ routes:
 #   - Policy-Only-Fix-Available.rego
 #   - Policy-Min-Vulnerability.rego
 #   - Policy-Related-Features.rego
-#  outputs: [my-slack]                          #  Output name (needs to be defined under "outputs") which will receive the message
+#  actions: [my-slack]                          #  Output name (needs to be defined under "actions") which will receive the message
 #  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
 #  plugins:                                     #  Optional plugins
 #   aggregate-message-number:                   # Number of same messages to aggregate into one output message
@@ -54,7 +54,7 @@ templates:
 
 
 # Outputs are target services that should consume the messages
-outputs:
+actions:
 - name: stdout
   type: stdout
   enable: true

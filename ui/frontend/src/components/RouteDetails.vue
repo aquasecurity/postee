@@ -48,7 +48,7 @@
             </small>
           </div>
 
-          <b-form-group label="Selected outputs">
+          <b-form-group label="Selected actions">
             <b-form-checkbox-group
               id="outputs"
               v-model="formValues.outputs"
@@ -56,7 +56,7 @@
               name="outputs"
             ></b-form-checkbox-group>
             <small class="form-text text-muted">
-              Select outputs to route events to
+              Select actions to route events to
             </small>
           </b-form-group>
 

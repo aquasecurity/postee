@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ var (
 	lookupMXFunc          = net.LookupMX
 )
 
-type EmailOutput struct {
+type EmailAction struct {
 	Name       string
 	User       string
 	Password   string
@@ -30,12 +30,12 @@ type EmailOutput struct {
 	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 }
 
-func (email *EmailOutput) GetName() string {
+func (email *EmailAction) GetName() string {
 	return email.Name
 }
 
-func (email *EmailOutput) Init() error {
-	log.Printf("Starting Email output %q...", email.Name)
+func (email *EmailAction) Init() error {
+	log.Printf("Starting Email action %q...", email.Name)
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
@@ -44,16 +44,16 @@ func (email *EmailOutput) Init() error {
 	return nil
 }
 
-func (email *EmailOutput) Terminate() error {
-	log.Printf("Email output terminated\n")
+func (email *EmailAction) Terminate() error {
+	log.Printf("Email action terminated\n")
 	return nil
 }
 
-func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
+func (email *EmailAction) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
 
-func (email *EmailOutput) Send(content map[string]string) error {
+func (email *EmailAction) Send(content map[string]string) error {
 	subject := content["title"]
 	body := content["description"]
 	port := strconv.Itoa(email.Port)
@@ -89,7 +89,7 @@ func (email *EmailOutput) Send(content map[string]string) error {
 	return nil
 }
 
-func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []string) {
+func (email EmailAction) sendViaMxServers(port string, msg string, recipients []string) {
 	for _, rcpt := range recipients {
 		at := strings.LastIndex(rcpt, "@")
 		if at < 0 {

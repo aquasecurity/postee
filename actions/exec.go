@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ type ExecClient struct {
 	Env        []string
 	InputFile  string
 	ExecScript string
-	Output     []byte
+	Action     []byte
 }
 
 func (e *ExecClient) GetName() string {
@@ -47,15 +47,15 @@ func (e *ExecClient) Send(m map[string]string) error {
 	}
 
 	var err error
-	if e.Output, err = cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("error while executing script: %w, output: %s", err, string(e.Output))
+	if e.Action, err = cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("error while executing script: %w, output: %s", err, string(e.Action))
 	}
-	log.Println("execution output: ", "len: ", len(e.Output), "out: ", string(e.Output))
+	log.Println("execution output: ", "len: ", len(e.Action), "out: ", string(e.Action))
 	return nil
 }
 
 func (e *ExecClient) Terminate() error {
-	log.Printf("Exec output %s terminated\n", e.GetName())
+	log.Printf("Exec action %s terminated\n", e.GetName())
 	return nil
 }
 

@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	servicenow "github.com/aquasecurity/postee/v2/servicenow"
 )
 
-type ServiceNowOutput struct {
+type ServiceNowAction struct {
 	Name           string
 	User           string
 	Password       string
@@ -18,18 +18,18 @@ type ServiceNowOutput struct {
 	layoutProvider layout.LayoutProvider
 }
 
-func (sn *ServiceNowOutput) GetName() string {
+func (sn *ServiceNowAction) GetName() string {
 	return sn.Name
 }
 
-func (sn *ServiceNowOutput) Init() error {
-	log.Printf("Starting ServiceNow output %q....", sn.Name)
+func (sn *ServiceNowAction) Init() error {
+	log.Printf("Starting ServiceNow action %q....", sn.Name)
 	log.Printf("Your ServiceNow Table is %q on '%s.%s'", sn.Table, sn.Instance, servicenow.BaseServer)
 	sn.layoutProvider = new(formatting.HtmlProvider)
 	return nil
 }
 
-func (sn *ServiceNowOutput) Send(content map[string]string) error {
+func (sn *ServiceNowAction) Send(content map[string]string) error {
 	log.Printf("Sending via ServiceNow %q", sn.Name)
 	d := &servicenow.ServiceNowData{
 		ShortDescription: content["title"],
@@ -49,11 +49,11 @@ func (sn *ServiceNowOutput) Send(content map[string]string) error {
 	return nil
 }
 
-func (sn *ServiceNowOutput) Terminate() error {
-	log.Printf("ServiceNow output %q terminated", sn.Name)
+func (sn *ServiceNowAction) Terminate() error {
+	log.Printf("ServiceNow action %q terminated", sn.Name)
 	return nil
 }
 
-func (sn *ServiceNowOutput) GetLayoutProvider() layout.LayoutProvider {
+func (sn *ServiceNowAction) GetLayoutProvider() layout.LayoutProvider {
 	return sn.layoutProvider
 }

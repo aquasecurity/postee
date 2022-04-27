@@ -2,7 +2,7 @@ package router
 
 import "reflect"
 
-func anonymizeSettings(settings *OutputSettings) *OutputSettings {
+func anonymizeSettings(settings *ActionSettings) *ActionSettings {
 	fieldsToAnonymize := [...]string{
 		"User",
 		"Password",

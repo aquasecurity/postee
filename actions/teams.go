@@ -1,4 +1,4 @@
-package outputs
+package actions
 
 import (
 	"encoding/json"
@@ -15,24 +15,24 @@ const (
 	teamsSizeLimit = 18000 // 28 KB is an approximate limit for MS Teams
 )
 
-type TeamsOutput struct {
+type TeamsAction struct {
 	Name        string
 	AquaServer  string
 	teamsLayout layout.LayoutProvider
 	Webhook     string
 }
 
-func (teams *TeamsOutput) GetName() string {
+func (teams *TeamsAction) GetName() string {
 	return teams.Name
 }
 
-func (teams *TeamsOutput) Init() error {
-	log.Printf("Starting MS Teams output %q....", teams.Name)
+func (teams *TeamsAction) Init() error {
+	log.Printf("Starting MS Teams action %q....", teams.Name)
 	teams.teamsLayout = new(formatting.HtmlProvider)
 	return nil
 }
 
-func (teams *TeamsOutput) Send(input map[string]string) error {
+func (teams *TeamsAction) Send(input map[string]string) error {
 	log.Printf("Sending to MS Teams via %q...", teams.Name)
 	utils.Debug("Title for %q: %q\n", teams.Name, input["title"])
 	utils.Debug("Url(s) for %q: %q\n", teams.Name, input["url"])
@@ -42,10 +42,10 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 
 	var body string
 	if len(input["description"]) > teamsSizeLimit {
-		utils.Debug("MS Team output will send SHORT message\n")
+		utils.Debug("MS Team action will send SHORT message\n")
 		body = buildShortMessage(teams.AquaServer, input["url"], teams.teamsLayout)
 	} else {
-		utils.Debug("MS Team output will send LONG message\n")
+		utils.Debug("MS Team action will send LONG message\n")
 		body = input["description"]
 	}
 	utils.Debug("Message is: %q\n", body)
@@ -59,7 +59,7 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 	err = msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"])+escaped)
 
 	if err != nil {
-		log.Printf("TeamsOutput Send Error: %v", err)
+		log.Printf("TeamsAction Send Error: %v", err)
 		return err
 	}
 
@@ -67,12 +67,12 @@ func (teams *TeamsOutput) Send(input map[string]string) error {
 	return nil
 }
 
-func (teams *TeamsOutput) Terminate() error {
-	log.Printf("MS Teams output %q terminated", teams.Name)
+func (teams *TeamsAction) Terminate() error {
+	log.Printf("MS Teams action %q terminated", teams.Name)
 	return nil
 }
 
-func (teams *TeamsOutput) GetLayoutProvider() layout.LayoutProvider {
+func (teams *TeamsAction) GetLayoutProvider() layout.LayoutProvider {
 	return teams.teamsLayout
 }
 
