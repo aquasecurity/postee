@@ -71,6 +71,11 @@ func (ctx *JiraAPI) CloneSettings() *data.OutputSettings {
 }
 
 func (ctx *JiraAPI) fetchBoardId(boardName string) {
+	// Basic authentication with passwords is deprecated for this API
+	if ctx.Token == "" {
+		return
+	}
+
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("unable to create Jira client: %w, please check your credentials", err))

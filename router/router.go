@@ -620,7 +620,7 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 	}
 }
 
-func (ctx *Router) publishToOutputWithRetry(msg map[string]interface{}, r *routes.InputRoute) []string {
+func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []string {
 	var failedOutputNames []string
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs.Load(outputName)
@@ -738,11 +738,10 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	}
 	settings.Token = utils.GetEnvironmentVarOrPlain(settings.Token)
 	if settings.Type == "jira" {
-		if len(settings.User) == 0 {
-			return nil, xerrors.Errorf("user for %q is empty", settings.Name)
-		}
-		if len(settings.Token) == 0 && len(settings.Password) == 0 {
-			return nil, xerrors.Errorf("both password and token for %q are empty", settings.Name)
+		if len(settings.Token) == 0 {
+			if len(settings.User) == 0 || len(settings.Password) == 0 {
+				return nil, xerrors.Errorf("user or password for %q is empty", settings.Name)
+			}
 		}
 	}
 
@@ -838,7 +837,7 @@ func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string
 			return nil
 		}
 
-		failedOutputs := ctx.publishToOutputWithRetry(inMsg, route)
+		failedOutputs := ctx.publish(inMsg, route)
 		if len(failedOutputs) != 0 {
 			return xerrors.Errorf("failed sending message to route %s outputs", routeName)
 		}
