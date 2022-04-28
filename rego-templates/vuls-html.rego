@@ -7,6 +7,8 @@ import data.postee.with_default
 ################################################ Templates ################################################
 #main template to render message
 tpl:=`
+<p>Response policy name: %s</p>
+<p>Response policy ID: %s</p>
 <p>Image name: %s</p>
 <p>Registry: %s</p>
 <p>%s</p>
@@ -166,6 +168,8 @@ aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
 
     msg := sprintf(tpl, [
+    input.response_policy_name,
+    input.response_policy_id,
     input.image,
     input.registry,
 	by_flag(

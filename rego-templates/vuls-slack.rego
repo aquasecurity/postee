@@ -129,7 +129,9 @@ result = res {
     ])
 
 
-	headers := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
+	headers := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
+                {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy ID: %s", [input.response_policy_id])}},
+                {"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
     			{"type":"section","text":{"type":"mrkdwn","text":sprintf("Registry: %s", [input.registry])}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
                                                                         "Image is non-compliant",

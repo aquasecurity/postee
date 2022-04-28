@@ -3,6 +3,7 @@ package msgservice
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -27,23 +28,7 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 	input, _ := json.Marshal(in)
 
 	//TODO move logic below somewhere close to Jira output implementation
-	owners := ""
-	applicationScopeOwnersObj, ok := in["application_scope_owners"]
-	if ok {
-		ownersList, ok := applicationScopeOwnersObj.([]interface{})
-		if !ok {
-			log.Logger.Error("Error while asserting application_scope_owners attribute: type of []interface{} is expected")
-		} else {
-			if len(ownersList) > 0 {
-				for i, owner := range ownersList {
-					if i > 0 {
-						owners += ";"
-					}
-					owners += fmt.Sprint(owner)
-				}
-			}
-		}
-	}
+	owners := scan.scopeOwners(in)
 
 	if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 {
 		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
@@ -107,30 +92,8 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 		return xerrors.Errorf("The given output is nil")
 	}
 
-	//TODO move logic below somewhere close to Jira output implementation
-	owners := ""
-	applicationScopeOwnersObj, ok := in["application_scope_owners"]
-	if ok {
-		ownersList, ok := applicationScopeOwnersObj.([]interface{})
-		if !ok {
-			log.Logger.Error("Error while asserting application_scope_owners attribute: type of []interface{} is expected")
-		} else {
-			if len(ownersList) > 0 {
-				for i, owner := range ownersList {
-					if i > 0 {
-						owners += ";"
-					}
-					owners += fmt.Sprint(owner)
-				}
-			}
-		}
-	}
-
-	posteeOpts := map[string]string{
-		"AquaServer": *AquaServer,
-	}
-
-	in["postee"] = posteeOpts
+	owners := scan.scopeOwners(in)
+	scan.enrichMsg(in, route, *AquaServer)
 
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
@@ -189,6 +152,50 @@ func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input map[string]
 	return true
 }
 
+func (scan *MsgService) scopeOwners(in map[string]interface{}) string {
+	//TODO move logic below somewhere close to Jira output implementation
+	owners := ""
+	applicationScopeOwnersObj, ok := in["application_scope_owners"]
+	if ok {
+		ownersList, ok := applicationScopeOwnersObj.([]interface{})
+		if !ok {
+			log.Logger.Error("Error while asserting application_scope_owners attribute: type of []interface{} is expected")
+		} else {
+			if len(ownersList) > 0 {
+				for i, owner := range ownersList {
+					if i > 0 {
+						owners += ";"
+					}
+					owners += fmt.Sprint(owner)
+				}
+			}
+		}
+	}
+	return owners
+}
+
+func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, aquaServer string) {
+	in["postee"] = map[string]string{
+		"AquaServer": aquaServer,
+	}
+
+	policyName := route.Name
+	policyID := ""
+
+	dash := strings.LastIndex(route.Name, "-")
+	if dash != -1 {
+		policyName = route.Name[:dash]
+		policyID = route.Name[dash+1:]
+	}
+
+	if policyName != "" {
+		in["response_policy_name"] = policyName
+	}
+
+	if policyID != "" {
+		in["response_policy_id"] = policyID
+	}
+}
 func send(otpt outputs.Output, cnt map[string]string) {
 	go func() {
 		err := otpt.Send(cnt)
