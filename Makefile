@@ -1,5 +1,7 @@
 # Set the default goal
 .DEFAULT_GOAL := build
+VERSION := $(shell git describe --tags)
+LDFLAGS=-ldflags "-s -w -X=main.version=$(VERSION)"
 
 # Active module mode, as we use Go modules to manage dependencies
 export GO111MODULE=on
@@ -13,7 +15,7 @@ default : all
 .PHONY: build
 build :
 	@echo "Building Postee...."
-	CGO_ENABLED=0 go build -o ./postee main.go
+	CGO_ENABLED=0 go build $(LDFLAGS) -o ./postee main.go
 	@echo "Done!"
 
 fmt :
