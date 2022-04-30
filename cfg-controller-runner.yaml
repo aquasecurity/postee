@@ -1,5 +1,4 @@
-version: v6
-name: Postee-CA-Demo
+name: Postee Controller Runner Demo
 
 aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
 max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
@@ -17,14 +16,14 @@ routes:
   template: raw-json
 
 - name: runner-only-route
-  input: contains(input.SigMetadata.ID, "TRC-2")
+  input: contains(input.SigMetadata.ID, "TRC-1")
   serialize-actions: true
   actions: [my-exec-from-runner, my-http-post-from-runner]
   template: raw-json
 
 - name: controller-runner-route
   input: contains(input.SigMetadata.ID, "TRC-2")
-  serialize-actions: true
+  serialize-actions: true     # Cannot be strictly guaranteed as executions happen independently on runner/controller
   actions: [my-exec-from-runner, my-http-post-from-runner, my-http-post-from-controller]
   template: raw-json
 
@@ -42,7 +41,7 @@ actions:
 - name: my-http-post-from-controller
   type: http
   enable: true
-  url: "https://webhook.site/e3b85ae7-a631-4321-ad3d-879921fa500a"       # Required. URL of the HTTP Request
+  url: "https://webhook.site/<uuid>"       # Required. URL of the HTTP Request
   method: POST                          # Required. Method to use. CONNECT is not supported at this time
   headers:                              # Optional. Headers to pass in for the request.
     "Foo": [ "bar" ]
@@ -65,7 +64,7 @@ actions:
   runs-on: "postee-runner-1"
   type: http
   enable: true
-  url: "https://webhook.site/e3b85ae7-a631-4321-ad3d-879921fa500a"       # Required. URL of the HTTP Request
+  url: "https://webhook.site/<uuid>"       # Required. URL of the HTTP Request
   method: POST                          # Required. Method to use. CONNECT is not supported at this time
   body-content: |                       # Optional. Body inline content of the HTTP request
     This is an another example of a inline body

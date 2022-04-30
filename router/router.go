@@ -270,11 +270,11 @@ var getHttpClient = func() *http.Client {
 func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	r, ok := ctx.inputRoutes[routeName]
 	if !ok || r == nil {
-		log.Printf("There isn't route %q", routeName)
+		log.Printf("No route found: %q", routeName)
 		return
 	}
 	if len(r.Actions) == 0 {
-		log.Printf("route %q has no actions", routeName)
+		log.Printf("Route %q has no actions", routeName)
 		return
 	}
 
@@ -283,7 +283,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Println("Sending event upstream to controller at url: ", ctx.ControllerURL)
 		NATSEventSubject := "postee.events"
 		if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil {
-			panic(err)
+			log.Println("Unable to send event upstream to controller at url: ", ctx.ControllerURL, "err: ", err.Error())
 		}
 	}
 
@@ -291,31 +291,31 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
-	for _, outputName := range r.Actions {
+	for _, ra := range r.Actions {
 		handle := true
 		if ctx.Mode == "controller" {
-			tenant, err := Parsev2cfg(ctx.cfgfile)
+			controller, err := Parsev2cfg(ctx.cfgfile)
 			if err != nil {
-				log.Fatal("unable to parse cfgfile for controller: ", err)
+				log.Println("Unable to parse cfgfile for controller: ", err)
+				return
 			}
-			for _, o := range tenant.Actions {
-				if outputName == o.Name {
-					if o.RunsOn != "" {
-						log.Println("Skipping: ", o.Name, "as it is for runner: ", o.RunsOn)
+			for _, ca := range controller.Actions {
+				if ra == ca.Name {
+					if ca.RunsOn != "" {
+						log.Println("Skipping: ", ca.Name, "as it is for runner: ", ca.RunsOn)
 						handle = false
 						break // skip as it is for runner to run
 					}
 				}
 			}
 		}
-
 		if !handle {
 			continue
 		}
 
-		pl, ok := ctx.actions[outputName]
+		pl, ok := ctx.actions[ra]
 		if !ok {
-			log.Printf("route %q contains an action %q, which isn't enabled now.", routeName, outputName)
+			log.Printf("route %q contains an action %q, which isn't enabled now.", routeName, ra)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
@@ -440,13 +440,14 @@ func (ctx *Router) listen() {
 			}
 			msg.Respond([]byte(cfg))
 		case msg := <-ctx.NatsMsgCh:
+			// TODO: Add logging to capture all received events
 			log.Println("Received incoming event from runner: ", string(msg.Data))
 			go ctx.handle(bytes.ReplaceAll(msg.Data, []byte{'`'}, []byte{'\''}))
 		}
 	}
 }
 
-// FIXME: Improve parsing logic
+// TODO: Improve parsing logic
 func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 	tenant, err := Parsev2cfg(cfgFile)
 	if err != nil {
