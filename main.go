@@ -66,6 +66,9 @@ func main() {
 
 		if runnerName != "" {
 			log.Println("Running in runner mode")
+			if controllerMode {
+				log.Fatal("Postee cannot run as a controller when running in runner mode")
+			}
 
 			if controllerURL == "" {
 				log.Fatal("Runner mode requires a valid controller url")
@@ -83,16 +86,16 @@ func main() {
 			}
 
 			log.Println("Runner configuration obtained from: ", controllerURL)
-			f, err := ioutil.TempFile("", "temp-config-*") // TODO: Find a better way
+			f, err := ioutil.TempFile("", "temp-postee-config-*") // TODO: Find a better way
 			if err != nil {
 				log.Fatal("Unable to save runner config to disk: ", err)
 			}
+			defer func() {
+				os.Remove(f.Name())
+			}()
+
 			f.Write(msg.Data)
 			cfgfile = f.Name()
-
-			// TODO: Remove these before shipping
-			url = "0.0.0.0:9082"
-			tls = "0.0.0.0:9445"
 
 			r.ControllerURL = controllerURL
 			r.RunnerName = runnerName
@@ -100,10 +103,14 @@ func main() {
 		}
 
 		if controllerMode {
+			log.Println("Running in controller mode")
+			if runnerName != "" {
+				log.Fatal("Postee cannot run as a runner when running in controller mode")
+			}
+
 			var configCh chan *nats.Msg
 			var natsServer *server.Server
 
-			log.Println("Running in controller mode")
 			var err error
 			natsServer, err = server.NewServer(&server.Options{})
 			if err != nil {
@@ -121,7 +128,9 @@ func main() {
 			}
 
 			log.Println("Listening to config requests on: ", NATSConfigSubject)
-			nc.ChanSubscribe(NATSConfigSubject, configCh)
+			if _, err := nc.ChanSubscribe(NATSConfigSubject, configCh); err != nil {
+				log.Fatal("Unable to subscribe for config requests from runners on: ", NATSConfigSubject, "err: ", err)
+			}
 
 			r.ConfigCh = configCh
 			r.NatsServer = natsServer
@@ -131,7 +140,7 @@ func main() {
 			eventSubj := NATSEventSubject
 			log.Println("Subscribing to events from runners on: ", eventSubj)
 			if _, err := nc.ChanSubscribe(eventSubj, r.NatsMsgCh); err != nil {
-				panic(err)
+				log.Fatal("Unable to subscribe for events from runners on: ", eventSubj, "err: ", err)
 			}
 		}
 
