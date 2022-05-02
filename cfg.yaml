@@ -77,8 +77,8 @@ actions:
 - name: my-email
   type: email
   enable: false
-  user:      # Mandatory: SMTP user name (e.g. johndoe@gmail.com)
-  password:  # Mandatory: SMTP password
+  user:      # Optional (if auth supported): SMTP user name (e.g. johndoe@gmail.com)
+  password:  # Optional (if auth supported): SMTP password
   host:      # Mandatory: SMTP host name (e.g. smtp.gmail.com)
   port:      # Mandatory: SMTP server port (e.g. 587)
   sender:    # Mandatory: The email address to use as a sender
