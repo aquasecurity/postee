@@ -392,8 +392,8 @@ unknowns:
 Key | Description | Possible Values
 --- | --- | ---
 *use-mx* | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
-*user* | User name (usually email address) |
-*password* | Password |
+*user* | Optional, if auth supported. User name (usually email address) |
+*password* | Optional, if auth supported. Password |
 *host* | SMTP host name |
 *port* | SMTP port |
 *sender* |  Sender's email address |
