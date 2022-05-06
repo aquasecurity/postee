@@ -1,0 +1,80 @@
+site_name: Postee
+site_url: https://aquasecurity.github.io/postee
+site_description: Integrate vulnerability scanning with a variety of systems.
+docs_dir: docs/
+repo_name: Postee
+repo_url: https://github.com/aquasecurity/postee
+edit_uri: ""
+copyright: Copyright 2019-2022 Aqua Security Software Ltd.
+
+nav:
+- Introduction: index.md
+- Use cases:
+  - Simple Examples: examples.md
+  - Blueprints:
+    - External Healthcheck: blueprints/external-healthcheck.md
+    - Image Processing: blueprints/image-processing.md
+- Installation: install.md
+- Configuration:
+  - Config File: config.md
+  - General: settings.md
+  - Routes: routes.md
+  - Templates: templates.md
+  - Actions: actions.md
+- Demo: demo.md
+- Aqua Cloud: aquacloud.md
+- Postee UI: ui.md
+- Advanced: advanced.md
+
+theme:
+  name: material
+  custom_dir: overrides
+  language: 'en'
+  logo: img/postee.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+
+markdown_extensions:
+- pymdownx.highlight
+- pymdownx.details
+- pymdownx.superfences
+- admonition
+- attr_list
+- md_in_html
+- toc:
+    permalink: true
+
+# All data defined under extra is automatically exposed as a variable and can
+# be used from the template. For example, {{ var.version }}.
+#
+# Requires pip install mike and pip install git+https://${GH_TOKEN}@github.com/squidfunk/mkdocs-material-insiders.git
+extra:
+  generator: false
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/aquasecurity
+  - icon: fontawesome/brands/slack
+    link: https://slack.aquasec.com/
+  - icon: fontawesome/brands/youtube
+    link: https://www.youtube.com/channel/UCZd5NF4XJRaU-yfextsY-pw
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/AquaSecTeam
+  - icon: fontawesome/brands/linkedin
+    link: https://www.linkedin.com/company/aquasecteam/
+  version:
+    provider: mike
+
+# Requires pip install mkdocs-macros-plugin
+plugins:
+- search
+- macros

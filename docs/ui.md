@@ -1,9 +1,15 @@
+Postee provides a simple Web UI to simplify the configuration management.
+
+
+![Config app](img/postee-output-config.png)
+
 ## Configure and run Postee UI application
 
 ### Requirements
 Postee Admin application shares location of `cfg.yaml` with main webhook app, also Bolt database needs to be in folder which is available for both apps.
 
-**Important**: If application config is submitted by UI app then all yaml comments are removed. So if comments are important please make backup of config yaml.
+!!! danger
+        If application config is submitted by UI app then all yaml comments are removed. So if comments are important please make backup of config yaml.
 
 ### Kubernetes for Postee UI application
 
