@@ -436,9 +436,11 @@ func (ctx *Router) listen() {
 			log.Println("A runner requested config: ", string(msg.Data))
 			cfg, err := buildRunnerConfig(string(msg.Data), ctx.cfgfile)
 			if err != nil {
-				log.Println("Failed to send config to runner: ", string(msg.Data), "err: ", err)
+				log.Println("Failed to build config to send to runner: ", string(msg.Data), "err: ", err)
 			}
-			msg.Respond([]byte(cfg))
+			if err = msg.Respond([]byte(cfg)); err != nil {
+				log.Println("Failed to send config to runner: ", err)
+			}
 		case msg := <-ctx.NatsMsgCh:
 			// TODO: Add logging to capture all received events
 			log.Println("Received incoming event from runner: ", string(msg.Data))

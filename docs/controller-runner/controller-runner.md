@@ -21,7 +21,7 @@ The only Actions that a Postee Runner should run are Actions that are context/en
 Postee Runners and Controllers are no different from a normal instance of vanilla Postee. Therefore, no changes to the producers are required to use this functionality.
 
 All events received by Postee Runners are reported upstream to the Controller. This has two benefits:
-1. Executions and Events recieved by the Runners can be monitored at a central level (Controller).
+1. Executions and Events received by the Runners can be monitored at a central level (Controller).
 2. Mixing of Runner and Controller Actions within a single Route, for ease of usage.
 
 Mixing of Runner and Controller Actions can be explained with a following sample configuration:

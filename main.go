@@ -88,13 +88,15 @@ func main() {
 			log.Println("Runner configuration obtained from: ", controllerURL)
 			f, err := ioutil.TempFile("", "temp-postee-config-*") // TODO: Find a better way
 			if err != nil {
-				log.Fatal("Unable to save runner config to disk: ", err)
+				log.Fatal("Unable to create temp file for runner config on disk: ", err)
 			}
 			defer func() {
 				os.Remove(f.Name())
 			}()
 
-			f.Write(msg.Data)
+			if _, err := f.Write(msg.Data); err != nil {
+				log.Fatal("Unable to write runner config to disk: ", err)
+			}
 			cfgfile = f.Name()
 
 			r.ControllerURL = controllerURL
