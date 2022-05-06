@@ -1,5 +1,3 @@
-### Settings
-
 General settings are specified at the root level of cfg.yaml. They include general configuration that applies to the Postee application.
 
 ![settings](img/postee-settings.png)

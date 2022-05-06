@@ -15,11 +15,12 @@ nav:
     - External Healthcheck: blueprints/external-healthcheck.md
     - Image Processing: blueprints/image-processing.md
 - Installation: install.md
-- Configuration: config.md
-- General Settings: settings.md
-- Routes: routes.md
-- Templates: templates.md
-- Actions: actions.md
+- Configuration:
+  - Config File: config.md
+  - General: settings.md
+  - Routes: routes.md
+  - Templates: templates.md
+  - Actions: actions.md
 - Demo: demo.md
 - Aqua Cloud: aquacloud.md
 - Postee UI: ui.md
