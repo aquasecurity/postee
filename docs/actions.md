@@ -193,6 +193,29 @@ Key | Description | Possible Values
 *url* | Url of Nexus IQ server |
 *organization-id* | Organization UID like "222de33e8005408a844c12eab952c9b0" |
 
+## OpsGenie
+
+??? note "Set up OpsGenie and get a token"
+
+    1. Go to your Opsgenie and select Teams from menu.
+    2. Select your team to access your team dashboard.
+    3. Select Integrations from left navigation.
+    4. Select Add Integration.
+    5. Select API Integration.
+    6. Copy `API Key`.
+    7. When done with all configurations, select Save Integration to enable the integration.
+
+    See more details here: [Set up an integrated tool for Opsgenie](https://support.atlassian.com/opsgenie/docs/set-up-an-integrated-tool/).
+
+!!! note
+      `Postee` requires an API key from an API integration. An API key from the API Key Management tab will produce this 403 error 
+      (apiKey is valid but the apiKey cannot do this operation because of permissions).
+
+Key | Description | Possible Values
+--- | --- | ---
+*token* | an API key from an API integration |
+
+
 ## Exec
 
 | Option      | Usage                                                                                     |
