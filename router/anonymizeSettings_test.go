@@ -4,34 +4,34 @@ import "testing"
 
 func TestAnonymizeSettings(t *testing.T) {
 	tests := []struct {
-		original *OutputSettings
-		expected *OutputSettings
+		original *ActionSettings
+		expected *ActionSettings
 	}{{
-		&OutputSettings{
+		&ActionSettings{
 			User: "admin",
 		},
-		&OutputSettings{
+		&ActionSettings{
 			User: "<hidden>",
 		},
 	}, {
-		&OutputSettings{
+		&ActionSettings{
 			User: "",
 		},
-		&OutputSettings{
+		&ActionSettings{
 			User: "",
 		},
 	}, {
-		&OutputSettings{
+		&ActionSettings{
 			Password: "secret",
 		},
-		&OutputSettings{
+		&ActionSettings{
 			Password: "<hidden>",
 		},
 	}, {
-		&OutputSettings{
+		&ActionSettings{
 			Url: "http://localhost",
 		},
-		&OutputSettings{
+		&ActionSettings{
 			Url: "<hidden>",
 		},
 	},

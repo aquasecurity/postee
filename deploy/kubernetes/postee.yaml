@@ -9,7 +9,7 @@ data:
     ---
     # Reference: https://github.com/aquasecurity/postee/blob/main/cfg.yaml
 
-    outputs:
+    actions:
       - type: email
         name: my-email
         user: xxxxxx@gmail.com
@@ -39,7 +39,7 @@ data:
     routes:
       - name: slack-route
         input: contains(input.image, "alpine")
-        outputs:
+        actions:
           - my-slack
         template: legacy-slack
         plugins:
@@ -51,18 +51,18 @@ data:
         name: email-route
         input: |
           contains(input.image,"alpine")
-        outputs:
+        actions:
           - my-email
         template: legacy
       - output: []
         name: servicenow-route
         input: contains(input.image,"alpine")
-        outputs:
+        actions:
           - my-service-now
         template: legacy
       - output: []
         name: msTeams-route
-        outputs:
+        actions:
           - my-teams
         template: legacy
     templates:

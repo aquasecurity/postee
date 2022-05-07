@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aquasecurity/postee/v2/actions"
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
-	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
 )
@@ -16,7 +16,7 @@ import (
 type MsgService struct {
 }
 
-func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
+func (scan *MsgService) MsgHandling(input []byte, output actions.Action, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
 	if output == nil {
 		return
 	}
@@ -27,7 +27,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 		return
 	}
 
-	//TODO move logic below somewhere close to Jira output implementation
+	//TODO move logic below somewhere close to Jira action implementation
 	owners := ""
 	applicationScopeOwnersObj, ok := in["application_scope_owners"]
 	if ok {
@@ -82,7 +82,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 				log.Printf("Error while building aggregated content: %v", err)
 				return
 			}
-			if route.SerializeOutputs {
+			if route.SerializeActions {
 				send(output, content)
 			} else {
 				go send(output, content)
@@ -98,7 +98,7 @@ func (scan *MsgService) MsgHandling(input []byte, output outputs.Output, route *
 			log.Printf("%s is already scheduled\n", route.Name)
 		}
 	} else {
-		if route.SerializeOutputs {
+		if route.SerializeActions {
 			send(output, content)
 		} else {
 			go send(output, content)
@@ -133,7 +133,7 @@ func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input []byte) boo
 	return true
 }
 
-func send(otpt outputs.Output, cnt map[string]string) {
+func send(otpt actions.Action, cnt map[string]string) {
 	err := otpt.Send(cnt)
 	if err != nil {
 		log.Printf("Error while sending event: %v", err)

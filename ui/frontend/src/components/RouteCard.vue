@@ -12,7 +12,7 @@
         </div>
 
         <h6 class="card-subtitle text-muted">
-          {{ outputCnt }} outputs configured
+          {{ outputCnt }} actions configured
         </h6>
       </div>
       <div class="card-footer text-center">

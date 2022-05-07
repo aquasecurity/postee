@@ -12,11 +12,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aquasecurity/postee/v2/actions"
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/msgservice"
-	"github.com/aquasecurity/postee/v2/outputs"
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/aquasecurity/postee/v2/utils"
@@ -35,7 +35,7 @@ type Router struct {
 	stopTicker  chan struct{}
 	cfgfile     string
 	aquaServer  string
-	outputs     map[string]outputs.Output
+	actions     map[string]actions.Action
 	inputRoutes map[string]*routes.InputRoute
 	templates   map[string]data.Inpteval
 }
@@ -56,7 +56,7 @@ func Instance() *Router {
 			mutexScan:   sync.Mutex{},
 			quit:        make(chan struct{}),
 			queue:       make(chan []byte, 1000),
-			outputs:     make(map[string]outputs.Output),
+			actions:     make(map[string]actions.Action),
 			inputRoutes: make(map[string]*routes.InputRoute),
 			templates:   make(map[string]data.Inpteval),
 			stopTicker:  make(chan struct{}),
@@ -77,7 +77,7 @@ func (ctx *Router) Start(cfgfile string) error {
 	log.Printf("Starting Router....")
 
 	ctx.cfgfile = cfgfile
-	ctx.outputs = map[string]outputs.Output{}
+	ctx.actions = map[string]actions.Action{}
 	ctx.inputRoutes = map[string]*routes.InputRoute{}
 	ctx.templates = map[string]data.Inpteval{}
 	ctx.ticker = nil
@@ -93,13 +93,13 @@ func (ctx *Router) Start(cfgfile string) error {
 func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
 
-	for _, pl := range ctx.outputs {
+	for _, pl := range ctx.actions {
 		err := pl.Terminate()
 		if err != nil {
-			log.Printf("failed to terminate output: %v", err)
+			log.Printf("failed to terminate action: %v", err)
 		}
 	}
-	log.Printf("Outputs terminated")
+	log.Printf("Actions terminated")
 
 	for _, route := range ctx.inputRoutes {
 		route.StopScheduler()
@@ -225,14 +225,14 @@ func (ctx *Router) load() error {
 		}
 	}
 
-	for _, settings := range tenant.Outputs {
+	for _, settings := range tenant.Actions {
 		utils.Debug("%#v\n", anonymizeSettings(&settings))
 
 		if settings.Enable {
 			plg := BuildAndInitOtpt(&settings, ctx.aquaServer)
 			if plg != nil {
-				log.Printf("Output %s is configured", settings.Name)
-				ctx.outputs[settings.Name] = plg
+				log.Printf("Action %s is configured", settings.Name)
+				ctx.actions[settings.Name] = plg
 			}
 		}
 	}
@@ -240,7 +240,7 @@ func (ctx *Router) load() error {
 }
 
 type service interface {
-	MsgHandling(input []byte, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
+	MsgHandling(input []byte, output actions.Action, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
 	EvaluateRegoRule(input *routes.InputRoute, in []byte) bool
 }
 
@@ -258,8 +258,8 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		log.Printf("There isn't route %q", routeName)
 		return
 	}
-	if len(r.Outputs) == 0 {
-		log.Printf("route %q has no outputs", routeName)
+	if len(r.Actions) == 0 {
+		log.Printf("route %q has no actions", routeName)
 		return
 	}
 
@@ -267,10 +267,10 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		return
 	}
 
-	for _, outputName := range r.Outputs {
-		pl, ok := ctx.outputs[outputName]
+	for _, outputName := range r.Actions {
+		pl, ok := ctx.actions[outputName]
 		if !ok {
-			log.Printf("route %q contains an output %q, which isn't enabled now.", routeName, outputName)
+			log.Printf("route %q contains an action %q, which isn't enabled now.", routeName, outputName)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
@@ -281,7 +281,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 		}
 		log.Printf("route %q is associated with template %q", routeName, r.Template)
 
-		if r.SerializeOutputs {
+		if r.SerializeActions {
 			getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
 		} else {
 			go getScanService().MsgHandling(in, pl, r, tmpl, &ctx.aquaServer)
@@ -294,7 +294,7 @@ func (ctx *Router) handle(in []byte) {
 		ctx.HandleRoute(routeName, in)
 	}
 }
-func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Output {
+func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Action {
 	settings.User = utils.GetEnvironmentVarOrPlain(settings.User)
 	if len(settings.User) == 0 && requireAuthorization[settings.Type] {
 		log.Printf("User for %q is empty", settings.Name)
@@ -317,58 +317,58 @@ func BuildAndInitOtpt(settings *OutputSettings, aquaServerUrl string) outputs.Ou
 		}
 	}
 
-	utils.Debug("Starting Output %q: %q\n", settings.Type, settings.Name)
+	utils.Debug("Starting Action %q: %q\n", settings.Type, settings.Name)
 
-	var plg outputs.Output
+	var plg actions.Action
 	var err error
 
 	switch settings.Type {
 	case "jira":
-		plg = buildJiraOutput(settings)
+		plg = buildJiraAction(settings)
 	case "email":
-		plg = buildEmailOutput(settings)
+		plg = buildEmailAction(settings)
 	case "slack":
-		plg = buildSlackOutput(settings, aquaServerUrl)
+		plg = buildSlackAction(settings, aquaServerUrl)
 	case "teams":
-		plg = buildTeamsOutput(settings, aquaServerUrl)
+		plg = buildTeamsAction(settings, aquaServerUrl)
 	case "serviceNow":
 		plg = buildServiceNow(settings)
 	case "webhook":
-		plg = buildWebhookOutput(settings)
+		plg = buildWebhookAction(settings)
 	case "splunk":
-		plg = buildSplunkOutput(settings)
+		plg = buildSplunkAction(settings)
 	case "stdout":
-		plg = buildStdoutOutput(settings)
+		plg = buildStdoutAction(settings)
 	case "nexusIq":
-		plg = buildNexusIqOutput(settings)
+		plg = buildNexusIqAction(settings)
 	case "opsgenie":
-		plg = buildOpsGenieOutput(settings)
+		plg = buildOpsGenieAction(settings)
 	case "exec":
-		plg, err = buildExecOutput(settings)
+		plg, err = buildExecAction(settings)
 		if err != nil {
 			log.Println(err.Error())
 			return nil
 		}
 	case "http":
-		plg, err = buildHTTPOutput(settings)
+		plg, err = buildHTTPAction(settings)
 		if err != nil {
 			log.Println(err.Error())
 			return nil
 		}
 	case "kubernetes":
-		plg, err = buildKubernetesOutput(settings)
+		plg, err = buildKubernetesAction(settings)
 		if err != nil {
 			log.Println(err.Error())
 			return nil
 		}
 	case "docker":
-		plg, err = buildDockerOutput(settings)
+		plg, err = buildDockerAction(settings)
 		if err != nil {
 			log.Println(err.Error())
 			return nil
 		}
 	default:
-		log.Printf("Output type %q is undefined or empty. Output name is %q.",
+		log.Printf("Action type %q is undefined or empty. Action name is %q.",
 			settings.Type, settings.Name)
 		return nil
 	}

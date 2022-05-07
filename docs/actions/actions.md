@@ -4,7 +4,7 @@
 Proper alert management can help security practitioners make informed decisions about their codebase. However, security alerts can cause fatigue if acting on them isn’t possible. Postee, an open source security alert management tool, helps mitigate some of those concerns. It enables teams to define routes and rules by which alerts are handled and redirected to 
 
 ## User Stories
-In a typical Postee setup, users can configure the tool to receive events from a variety of sources over a webhook. This allows for ease of use in existing environments. Furthermore, users can configure Postee to process these incoming events and, based on logic defined via Rego rules, send them to different outputs.
+In a typical Postee setup, users can configure the tool to receive events from a variety of sources over a webhook. This allows for ease of use in existing environments. Furthermore, users can configure Postee to process these incoming events and, based on logic defined via Rego rules, send them to different actions.
 
 As a, **Postee User**
 - _I want_, to be able to remove a vulnerable image from my cluster upon a Trivy scan  
@@ -26,8 +26,11 @@ In this case, the incoming security event from Tracee is received by Postee and 
 
 ![img.png](img.png)
 
-As seen above, the route has a Rego rule that evaluates the input to contain a certain signature ID, TRC-2, which represents anti-debugging activity. In addition, if the input is matched, the output is triggered. In this case, we call the Exec Action first and then the HTTP Action. They are defined as the following:
+As seen above, the route has a Rego rule that evaluates the input to contain a certain signature ID, TRC-2, which represents anti-debugging activity. In addition, if the input is matched, the output is triggered.
 
+## Exec Action
+
+In this case, we call the Exec Action first and then the HTTP Action. They are defined as the following:
 
 The Exec Action can take in the following parameters:
 
@@ -44,6 +47,8 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 ![img_3.png](img_3.png)
 
 As you can see, we capture the incoming Postee event and write this event to the Tracee event log for forensic purposes.
+
+## HTTP Action
 
 Finally, we can configure the Postee HTTP Post Action to ship the captured event logs via our HTTP Action to our remote server.
 
@@ -67,7 +72,6 @@ docker run --rm --name=postee \
 -e POSTEE_HTTPS=0.0.0.0:8444  \
 -p 8084:8084 -p 8444:8444 aquasecurity/postee:latest
 ```
-
 
 ## Kubernetes Action
 In addition to the Exec and HTTP actions, we have also implemented a Kubernetes action that today can add labels and annotations to pods. It can be used as follows:
