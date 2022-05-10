@@ -21,6 +21,7 @@ nav:
   - Routes: routes.md
   - Templates: templates.md
   - Actions: actions.md
+  - Controller/Runner: controller-runner.md
 - Demo: demo.md
 - Aqua Cloud: aquacloud.md
 - Postee UI: ui.md
