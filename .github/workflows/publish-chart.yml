@@ -1,5 +1,5 @@
 # Triggered manually using as input the release e.g. v0.0.1
-name: Publish Chart Helm
+name: Publish Helm Chart
 on:
   pull_request:
     branches:
