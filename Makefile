@@ -8,9 +8,9 @@ export GO111MODULE=on
 
 GO_FMT=gofmt
 
-.PHONY: all build fmt vet test
+.PHONY: build fmt vet test
 
-default : all
+default : build
 
 .PHONY: build
 build :

@@ -27,7 +27,7 @@ jobs:
           make test
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.3.0
         with:
           scan-type: 'fs'
           ignore-unfixed: true
@@ -36,16 +36,17 @@ jobs:
           exit-code: 0
 
       - name: Run Trivy vulnerability scanner against Aqua Cloud
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.3.0
         with:
           scan-type: 'fs'
-          hide-progress: false
+          hide-progress: true
           format: 'table'
           security-checks: 'vuln,config'
         env:
           AQUA_KEY: ${{ secrets.AQUA_KEY }}
           AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
           TRIVY_RUN_AS_PLUGIN: 'aqua'
+
   release:
     name: Release
     needs:
@@ -56,21 +57,25 @@ jobs:
         uses: actions/setup-go@424fc82d43fa5a37540bae62709ddcc23d9520d4
         with:
           go-version: ${{ env.GO_VERSION }}
+
       - name: Checkout code
         uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
         with:
           fetch-depth: 0
+
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Login to ECR
         uses: docker/login-action@v2
         with:
           registry: public.ecr.aws
           username: ${{ secrets.ECR_ACCESS_KEY_ID }}
           password: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
+
       - name: Release
         uses: goreleaser/goreleaser-action@v2
         with:

@@ -1,35 +1,24 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: build
+name: Aqua Cloud
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    # The branches below must be a subset of the branches above
     branches: [ main ]
   schedule:
     - cron: '15 21 * * 2'
 
 jobs:
   build:
-    permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    name: Build
+    name: Vulnerability Scan
     runs-on: "ubuntu-20.04"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Run Trivy vulnerability scanner against Aqua Cloud
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.3.0
         with:
           scan-type: 'fs'
-          hide-progress: false
+          hide-progress: true
           format: 'table'
           security-checks: 'vuln,config'
         env:
