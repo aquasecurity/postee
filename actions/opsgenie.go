@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 
@@ -22,13 +23,22 @@ type OpsGenieOutput struct {
 	Tags           []string
 	PrioritySource string
 	priority       alert.Priority
+
+	client *alert.Client
 }
 
 func (ops *OpsGenieOutput) GetName() string {
 	return ops.Name
 }
 
-func (ops *OpsGenieOutput) Init() error {
+func (ops *OpsGenieOutput) Init() (err error) {
+	ops.client, err = alert.NewClient(&client.Config{
+		ApiKey: ops.APIKey,
+	})
+	if err != nil {
+		return
+	}
+
 	if ops.PrioritySource != "" {
 		ops.priority = alert.Priority(ops.PrioritySource)
 	} else {
@@ -92,14 +102,7 @@ func (ops *OpsGenieOutput) Send(input map[string]string) error {
 	r := ops.convertResultToOpsGenie(input["title"], data)
 	r.User = ops.User
 
-	alertClient, err := alert.NewClient(&client.Config{
-		ApiKey: ops.APIKey,
-	})
-	if err != nil {
-		return err
-	}
-
-	alertResult, err := alertClient.Create(nil, r)
+	alertResult, err := ops.client.Create(context.Background(), r)
 	if err != nil {
 		return err
 	}
