@@ -1,0 +1,71 @@
+name: Postee Controller Runner Demo
+
+aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
+db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
+
+# Routes are used to define how to handle an incoming message
+routes:
+- name: stdout
+  actions: [ stdout ]
+  template: raw-json
+
+- name: controller-only-route
+  input: contains(input.image, "alpine")
+  actions: [my-http-post-from-controller]
+  template: raw-json
+
+- name: runner-only-route
+  input: contains(input.SigMetadata.ID, "TRC-1")
+  serialize-actions: true
+  actions: [my-exec-from-runner, my-http-post-from-runner]
+  template: raw-json
+
+- name: controller-runner-route
+  input: contains(input.SigMetadata.ID, "TRC-2")
+  serialize-actions: true     # Cannot be strictly guaranteed as executions happen independently on runner/controller
+  actions: [my-exec-from-runner, my-http-post-from-runner, my-http-post-from-controller]
+  template: raw-json
+
+# Templates are used to format a message
+templates:
+- name: raw-json                        # route message "As Is" to external webhook
+  rego-package: postee.rawmessage.json
+
+# Outputs are target services that should consume the messages
+actions:
+- name: stdout
+  type: stdout
+  enable: true
+
+- name: my-http-post-from-controller
+  type: http
+  enable: true
+  url: "https://webhook.site/<uuid>"       # Required. URL of the HTTP Request
+  method: POST                          # Required. Method to use. CONNECT is not supported at this time
+  headers:                              # Optional. Headers to pass in for the request.
+    "Foo": [ "bar" ]
+  timeout: 10s                          # Optional. Timeout value in XX(s,m,h)
+  body-content: |                       # Optional. Body inline content of the HTTP request
+    This is an example of a inline body
+    Input Image: event.input.image
+
+- name: my-exec-from-runner
+  runs-on: "postee-runner-1"
+  type: exec
+  enable: true
+  env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
+  exec-script: |                                       # Specify the script to run
+    #!/bin/sh
+    echo $POSTEE_EVENT
+    echo "this is hello from postee"
+
+- name: my-http-post-from-runner
+  runs-on: "postee-runner-1"
+  type: http
+  enable: true
+  url: "https://webhook.site/<uuid>"       # Required. URL of the HTTP Request
+  method: POST                          # Required. Method to use. CONNECT is not supported at this time
+  body-content: |                       # Optional. Body inline content of the HTTP request
+    This is an another example of a inline body
+    Event ID: event.input.SigMetadata.ID

@@ -20,6 +20,9 @@ import (
 	"github.com/aquasecurity/postee/v2/regoservice"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/aquasecurity/postee/v2/utils"
+	"github.com/ghodss/yaml"
+	"github.com/nats-io/nats-server/v2/server"
+	"github.com/nats-io/nats.go"
 )
 
 const (
@@ -28,6 +31,14 @@ const (
 )
 
 type Router struct {
+	ConfigCh      chan *nats.Msg
+	Mode          string
+	NatsServer    *server.Server
+	NatsConn      *nats.Conn
+	NatsMsgCh     chan *nats.Msg
+	RunnerName    string
+	ControllerURL string
+
 	mutexScan   sync.Mutex
 	quit        chan struct{}
 	queue       chan []byte
@@ -92,6 +103,12 @@ func (ctx *Router) Start(cfgfile string) error {
 
 func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
+
+	if ctx.NatsConn != nil {
+		log.Println("Closing NATS connection")
+		ctx.NatsConn.Close()
+		log.Println("NATS termination complete")
+	}
 
 	for _, pl := range ctx.actions {
 		err := pl.Terminate()
@@ -255,22 +272,52 @@ var getHttpClient = func() *http.Client {
 func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	r, ok := ctx.inputRoutes[routeName]
 	if !ok || r == nil {
-		log.Printf("There isn't route %q", routeName)
+		log.Printf("No route found: %q", routeName)
 		return
 	}
 	if len(r.Actions) == 0 {
-		log.Printf("route %q has no actions", routeName)
+		log.Printf("Route %q has no actions", routeName)
 		return
+	}
+
+	// send event up to controller unconditionally, in case controller knows
+	if ctx.Mode == "runner" {
+		log.Println("Sending event upstream to controller at url: ", ctx.ControllerURL)
+		NATSEventSubject := "postee.events"
+		if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil {
+			log.Println("Unable to send event upstream to controller at url: ", ctx.ControllerURL, "err: ", err.Error())
+		}
 	}
 
 	if !getScanService().EvaluateRegoRule(r, in) {
 		return
 	}
 
-	for _, outputName := range r.Actions {
-		pl, ok := ctx.actions[outputName]
+	for _, ra := range r.Actions {
+		handle := true
+		if ctx.Mode == "controller" {
+			controller, err := Parsev2cfg(ctx.cfgfile)
+			if err != nil {
+				log.Println("Unable to parse cfgfile for controller: ", err)
+				return
+			}
+			for _, ca := range controller.Actions {
+				if ra == ca.Name {
+					if ca.RunsOn != "" {
+						log.Println("Skipping: ", ca.Name, "as it is for runner: ", ca.RunsOn)
+						handle = false
+						break // skip as it is for runner to run
+					}
+				}
+			}
+		}
+		if !handle {
+			continue
+		}
+
+		pl, ok := ctx.actions[ra]
 		if !ok {
-			log.Printf("route %q contains an action %q, which isn't enabled now.", routeName, outputName)
+			log.Printf("route %q contains an action %q, which isn't enabled now.", routeName, ra)
 			continue
 		}
 		tmpl, ok := ctx.templates[r.Template]
@@ -389,6 +436,87 @@ func (ctx *Router) listen() {
 			return
 		case data := <-ctx.queue:
 			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
+		case msg := <-ctx.ConfigCh:
+			log.Println("A runner requested config: ", string(msg.Data))
+			cfg, err := buildRunnerConfig(string(msg.Data), ctx.cfgfile)
+			if err != nil {
+				log.Println("Failed to build config to send to runner: ", string(msg.Data), "err: ", err)
+			}
+			if err = msg.Respond([]byte(cfg)); err != nil {
+				log.Println("Failed to send config to runner: ", err)
+			}
+		case msg := <-ctx.NatsMsgCh:
+			// TODO: Add logging to capture all received events
+			log.Println("Received incoming event from runner: ", string(msg.Data))
+			go ctx.handle(bytes.ReplaceAll(msg.Data, []byte{'`'}, []byte{'\''}))
 		}
 	}
+}
+
+// TODO: Improve parsing logic
+func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
+	tenant, err := Parsev2cfg(cfgFile)
+	if err != nil {
+		return "", err
+	}
+
+	var runnerRoutes []routes.InputRoute
+	var runnerActions []ActionSettings
+	var runnerTemplates []Template
+
+	for _, output := range tenant.Actions {
+		if output.RunsOn == runnerName {
+			runnerActions = append(runnerActions, output)
+		}
+	}
+
+	for _, ro := range runnerActions {
+		for _, inputRoute := range tenant.InputRoutes {
+			for _, inputAction := range inputRoute.Actions {
+				if ro.Name == inputAction {
+					runnerRoute := inputRoute
+					var oNames []string
+					for _, o := range runnerActions {
+						oNames = append(oNames, o.Name)
+					}
+					runnerRoute.Actions = oNames
+					runnerRoutes = append(runnerRoutes, runnerRoute)
+				}
+			}
+		}
+	}
+
+	for _, rr := range runnerRoutes {
+		for _, inputTemplate := range tenant.Templates {
+			if inputTemplate.Name == rr.Template {
+				runnerTemplates = append(runnerTemplates, inputTemplate)
+			}
+		}
+	}
+
+	tenant.InputRoutes = runnerRoutes
+	tenant.Actions = runnerActions
+	tenant.Templates = runnerTemplates
+
+	cfgB, err := yaml.Marshal(tenant)
+	if err != nil {
+		return "", err
+	}
+
+	return string(cfgB), nil
+}
+
+func SetupConnOptions(opts []nats.Option) []nats.Option {
+	totalWait := 10 * time.Minute
+	reconnectDelay := 2 * time.Second
+
+	opts = append(opts, nats.ReconnectWait(reconnectDelay))
+	opts = append(opts, nats.MaxReconnects(int(totalWait/reconnectDelay)))
+	opts = append(opts, nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
+		log.Printf("Disconnected due to: %s, will attempt reconnects for %.0fm", err, totalWait.Minutes())
+	}))
+	opts = append(opts, nats.ReconnectHandler(func(nc *nats.Conn) {
+		log.Printf("Reconnected [%s]", nc.ConnectedUrl())
+	}))
+	return opts
 }

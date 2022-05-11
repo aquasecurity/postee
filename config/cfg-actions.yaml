@@ -45,13 +45,13 @@ actions:
   input-file: /tmp/exec-test.sh                        # Specify the path to the script to run
 
 - name: my-http-get
-    type: http
-    enable: true
-    url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
-    method: GET                         # Required. Method to use. CONNECT is not supported at this time
-    headers:                            # Optional. Headers to pass in for the request
-      "Foo": ["bar", "baz"]
-    timeout: 1s                         # Optional. Timeout value in XX(s,m,h)
+  type: http
+  enable: true
+  url: "https://my-fancy-url.com"     # Required. URL of the HTTP Request
+  method: GET                         # Required. Method to use. CONNECT is not supported at this time
+  headers:                            # Optional. Headers to pass in for the request
+    "Foo": ["bar", "baz"]
+  timeout: 1s                         # Optional. Timeout value in XX(s,m,h)
 
 - name: my-http-post-file
   type: http
