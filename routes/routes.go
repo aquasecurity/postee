@@ -1,14 +1,14 @@
 package routes
 
 type InputRoute struct {
-	Name             string   `json:"name"`
-	Input            string   `json:"input"`
-	InputFiles       []string `json:"input-files"`
-	Actions          []string `json:"actions"`
-	Plugins          Plugins  `json:"plugins"`
-	Template         string   `json:"template"`
-	SerializeActions bool     `json:"serialize-actions"`
-	Scheduling       chan struct{}
+	Name             string        `json:"name"`
+	Input            string        `json:"input"`
+	InputFiles       []string      `json:"input-files"`
+	Actions          []string      `json:"actions"`
+	Plugins          Plugins       `json:"plugins"`
+	Template         string        `json:"template"`
+	SerializeActions bool          `json:"serialize-actions"`
+	Scheduling       chan struct{} `json:"-"`
 }
 
 type Plugins struct {
