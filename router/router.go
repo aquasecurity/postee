@@ -104,9 +104,11 @@ func (ctx *Router) Start(cfgfile string) error {
 func (ctx *Router) Terminate() {
 	log.Printf("Terminating Router....")
 
-	log.Println("Closing NATS connection")
-	ctx.NatsConn.Close()
-	log.Println("NATS termination complete")
+	if ctx.NatsConn != nil {
+		log.Println("Closing NATS connection")
+		ctx.NatsConn.Close()
+		log.Println("NATS termination complete")
+	}
 
 	for _, pl := range ctx.actions {
 		err := pl.Terminate()
