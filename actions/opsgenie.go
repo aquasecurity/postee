@@ -14,11 +14,14 @@ import (
 const defaultPriority = alert.P3
 
 type OpsGenieOutput struct {
-	Name       string
-	User       string
-	APIKey     string
-	Responders []string
-	VisibleTo  []string
+	Name           string
+	User           string
+	APIKey         string
+	Responders     []string
+	VisibleTo      []string
+	Tags           []string
+	PrioritySource string
+	priority       alert.Priority
 }
 
 func (ops *OpsGenieOutput) GetName() string {
@@ -26,6 +29,12 @@ func (ops *OpsGenieOutput) GetName() string {
 }
 
 func (ops *OpsGenieOutput) Init() error {
+	if ops.PrioritySource != "" {
+		ops.priority = alert.Priority(ops.PrioritySource)
+	} else {
+		ops.priority = defaultPriority
+	}
+
 	log.Printf("Starting OpsGenie output %q....", ops.Name)
 	return nil
 }
@@ -53,11 +62,12 @@ func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[str
 	description := getString(content["description"])
 	alias := getString(content["alias"])
 	entity := getString(content["entity"])
-	priority := defaultPriority
+
+	priority := ops.priority
 	if content["priority"] != nil {
 		priority = alert.Priority(getString(content["priority"]))
 	}
-	var tags []string
+	tags := ops.Tags
 	if content["tags"] != nil {
 		tags = content["tags"].([]string)
 	}

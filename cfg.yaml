@@ -137,4 +137,6 @@ actions:
   user:             # Optional. Display name of the request owner.
   assignee:         # Optional. Comma separated list of users that the alert will be routed to send notifications
   recipients: [""]  # Optional. Comma separated list of users that the alert will become visible to without sending any notification
+  tags:             # Optional. Comma separated list of the alert tags.
+  priority:         # Optional. Specify the alert priority. Default is "P3"
 

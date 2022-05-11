@@ -214,7 +214,11 @@ Key | Description | Possible Values
 Key | Description | Possible Values
 --- | --- | ---
 *token* | an API key from an API integration |
-
+user | Display name of the request owner. | 
+assignee | Comma separated list of users that the alert will be routed to send notifications
+recipients | Comma separated list of users that the alert will become visible to without sending any notification
+priority: |Specify the alert priority. Default is "P3" | "P1" "P2" "P3" "P4" "P5"
+tags  | Comma separated list of the alert tags. | 
 
 ## Exec
 
