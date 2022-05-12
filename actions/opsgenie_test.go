@@ -73,7 +73,11 @@ func TestConvertResultToOpsGenie(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ops := &OpsGenieOutput{}
+			ops := &OpsGenieOutput{
+				APIKey: "anyAPIkey",
+			}
+			err := ops.Init()
+			assert.NoError(t, err)
 			r := ops.convertResultToOpsGenie(test.title, test.data)
 			assert.Equal(t, test.result, r)
 		})
