@@ -3,6 +3,7 @@ package actions
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/opsgenie/opsgenie-go-sdk-v2/alert"
@@ -61,21 +62,14 @@ func getUserResponders(users []string) []alert.Responder {
 	return responders
 }
 
-func getString(i interface{}) string {
-	if i == nil {
-		return ""
-	}
-	return i.(string)
-}
-
 func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[string]interface{}) *alert.CreateAlertRequest {
-	description := getString(content["description"])
-	alias := getString(content["alias"])
-	entity := getString(content["entity"])
+	description := fmt.Sprint(content["description"])
+	alias := fmt.Sprint(content["alias"])
+	entity := fmt.Sprint(content["entity"])
 
 	priority := ops.priority
 	if content["priority"] != nil {
-		priority = alert.Priority(getString(content["priority"]))
+		priority = alert.Priority(fmt.Sprint(content["priority"]))
 	}
 	tags := ops.Tags
 	if content["tags"] != nil {
