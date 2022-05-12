@@ -47,4 +47,6 @@ type ActionSettings struct {
 	DockerVolumes     map[string]string            `json:"docker-volume-mounts,omitempty"`
 	DockerEnv         []string                     `json:"docker-env,omitempty"`
 	Tags              []string                     `json:"tags,omitempty"`
+	Alias             string                       `json:"alias,omitempty"`
+	Entity            string                       `json:"entity,omitempty"`
 }

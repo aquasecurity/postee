@@ -92,6 +92,8 @@ func buildOpsGenieAction(sourceSettings *ActionSettings) *actions.OpsGenieOutput
 		VisibleTo:      sourceSettings.Recipients,
 		PrioritySource: sourceSettings.Priority,
 		Tags:           sourceSettings.Tags,
+		Alias:          sourceSettings.Alias,
+		Entity:         sourceSettings.Entity,
 	}
 }
 

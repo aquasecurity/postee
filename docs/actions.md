@@ -217,8 +217,10 @@ Key | Description | Possible Values
 user | Display name of the request owner. | 
 assignee | Comma separated list of users that the alert will be routed to send notifications
 recipients | Comma separated list of users that the alert will become visible to without sending any notification
-priority: |Specify the alert priority. Default is "P3" | "P1" "P2" "P3" "P4" "P5"
-tags  | Comma separated list of the alert tags. | 
+priority |Specify the alert priority. Default is "P3" | "P1" "P2" "P3" "P4" "P5"
+tags  | Comma separated list of the alert tags. |
+alias | Client-defined identifier of the alert.
+entity | Entity field of the alert that is generally used to specify which domain alert is related to.
 
 ## Exec
 

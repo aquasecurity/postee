@@ -23,6 +23,8 @@ type OpsGenieOutput struct {
 	Responders     []string
 	VisibleTo      []string
 	Tags           []string
+	Alias          string
+	Entity         string
 	PrioritySource string
 	priority       alert.Priority
 
@@ -64,9 +66,20 @@ func getUserResponders(users []string) []alert.Responder {
 }
 
 func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[string]interface{}) *alert.CreateAlertRequest {
-	description := fmt.Sprint(content["description"])
-	alias := fmt.Sprint(content["alias"])
-	entity := fmt.Sprint(content["entity"])
+	description := ""
+	if content["description"] != nil {
+		description = fmt.Sprint(content["description"])
+	}
+
+	alias := ops.Alias
+	if content["alias"] != nil {
+		alias = fmt.Sprint(content["alias"])
+	}
+
+	entity := ops.Entity
+	if content["entity"] != nil {
+		entity = fmt.Sprint(content["entity"])
+	}
 
 	priority := ops.priority
 	if content["priority"] != nil {
