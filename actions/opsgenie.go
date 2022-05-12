@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/opsgenie/opsgenie-go-sdk-v2/alert"
 	"github.com/opsgenie/opsgenie-go-sdk-v2/client"
@@ -73,7 +74,12 @@ func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[str
 	}
 	tags := ops.Tags
 	if content["tags"] != nil {
-		tags = content["tags"].([]string)
+		switch content["tags"].(type) {
+		case []string:
+			tags = append(tags, content["tags"].([]string)...)
+		case string:
+			tags = append(tags, strings.Split(content["tags"].(string), ",")...)
+		}
 	}
 
 	return &alert.CreateAlertRequest{
