@@ -125,6 +125,7 @@ func (ops *OpsGenieAction) Send(input map[string]string) error {
 }
 
 func (*OpsGenieAction) Terminate() error {
+	log.Println("Terminating OpsGenie Action")
 	return nil
 }
 
