@@ -193,6 +193,38 @@ Key | Description | Possible Values
 *url* | Url of Nexus IQ server |
 *organization-id* | Organization UID like "222de33e8005408a844c12eab952c9b0" |
 
+## OpsGenie
+
+??? note "Set up OpsGenie and get a token"
+
+    1. Go to your Opsgenie and select Teams from menu.
+    2. Select your team to access your team dashboard.
+    3. Select Integrations from left navigation.
+    4. Select Add Integration.
+    5. Select API Integration.
+    6. Copy `API Key`.
+    7. When done with all configurations, select Save Integration to enable the integration.
+
+    See more details here: [Set up an integrated tool for Opsgenie](https://support.atlassian.com/opsgenie/docs/set-up-an-integrated-tool/).
+
+!!! caution
+    Postee requires an API key from an [API integration](https://support.atlassian.com/opsgenie/docs/what-is-a-default-api-integration/). This can be added under the Settings -> Integrations tab. Or it can under a team's Integrations tab.
+
+    If the integration assigns an alert to a team, it can only create alerts for that team.
+      
+    An API key from the `API Key Management` tab will produce an HTTP 403 error. This API Key is valid but cannot create alerts as it lacks necessary permissions. 
+
+Key | Required | Description | Possible Values
+--- |----------| --- | ---
+token | true     | an API key from an API integration |
+user | false    | Display name of the request owner.                                                                   | 
+assignee | false    | Comma separated list of users that the alert will be routed to send notifications
+recipients | false    | Comma separated list of users that the alert will become visible to without sending any notification 
+priority | false    | Specify the alert priority. Default is "P3"                                                          | "P1" "P2" "P3" "P4" "P5"
+tags  | false    | Comma separated list of the alert tags.                                                              |
+alias | false    | Client-defined identifier of the alert.
+entity | false    | Entity field of the alert that is generally used to specify which domain alert is related to.
+
 ## Exec
 
 | Option      | Usage                                                                                     |

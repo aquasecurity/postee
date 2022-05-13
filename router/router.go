@@ -388,6 +388,8 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 		plg = buildStdoutAction(settings)
 	case "nexusIq":
 		plg = buildNexusIqAction(settings)
+	case "opsgenie":
+		plg = buildOpsGenieAction(settings)
 	case "exec":
 		plg, err = buildExecAction(settings)
 		if err != nil {

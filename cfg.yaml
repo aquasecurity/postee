@@ -129,3 +129,15 @@ actions:
   password:         # Mandatory. User password
   url:              # Mandatory. Url of Nexus IQ server
   organization-id:  # Mandatory. Organization UID like "222de33e8005408a844c12eab952c9b0"
+
+- name: my-opsgenie
+  type: opsgenie
+  enable: false
+  token: <API Key>  # Mandatory. an API key from an API integration
+  user:             # Optional. Display name of the request owner.
+  assignee:         # Optional. Comma separated list of users that the alert will be routed to send notifications
+  recipients: [""]  # Optional. Comma separated list of users that the alert will become visible to without sending any notification
+  tags:             # Optional. Comma separated list of the alert tags.
+  priority:         # Optional. Specify the alert priority. Default is "P3"
+  alias:            # Optional. Client-defined identifier of the alert.
+  entity:           # Optional. Entity field of the alert that is generally used to specify which domain alert is related to.
