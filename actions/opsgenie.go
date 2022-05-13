@@ -49,7 +49,7 @@ func (ops *OpsGenieAction) Init() (err error) {
 		ops.priority = defaultPriority
 	}
 
-	log.Printf("Starting OpsGenie output %q....", ops.Name)
+	log.Printf("Starting OpsGenie action %q....", ops.Name)
 	return nil
 }
 
