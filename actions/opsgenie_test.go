@@ -69,6 +69,25 @@ func TestConvertResultToOpsGenie(t *testing.T) {
 				Priority: alert.P3,
 			},
 		},
+		{
+			name:  "good way with tags as string",
+			title: "all-in-one:3.5.19223",
+			data: map[string]interface{}{
+				"description": "all-in-one:3.5.19223 vulnerability scan report",
+				"alias":       "all-in-one:3.5.19223",
+				"entity":      "entity",
+				"priority":    "P4",
+				"tags":        "tag1,tag2",
+			},
+			result: &alert.CreateAlertRequest{
+				Message:     "all-in-one:3.5.19223",
+				Priority:    alert.P4,
+				Description: "all-in-one:3.5.19223 vulnerability scan report",
+				Alias:       "all-in-one:3.5.19223",
+				Entity:      "entity",
+				Tags:        []string{"tag1", "tag2"},
+			},
+		},
 	}
 
 	for _, test := range tests {
