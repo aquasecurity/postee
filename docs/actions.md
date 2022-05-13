@@ -207,9 +207,12 @@ Key | Description | Possible Values
 
     See more details here: [Set up an integrated tool for Opsgenie](https://support.atlassian.com/opsgenie/docs/set-up-an-integrated-tool/).
 
-!!! note
-      `Postee` requires an API key from an API integration. An API key from the API Key Management tab will produce this 403 error 
-      (apiKey is valid but the apiKey cannot do this operation because of permissions).
+!!! caution
+    Postee requires an API key from an [API integration](https://support.atlassian.com/opsgenie/docs/what-is-a-default-api-integration/). This can be added under the Settings -> Integrations tab. Or it can under a team's Integrations tab.
+
+    If the integration assigns an alert to a team, it can only create alerts for that team.
+      
+    An API key from the `API Key Management` tab will produce an HTTP 403 error. This API Key is valid but cannot create alerts as it lacks necessary permissions. 
 
 Key | Required | Description | Possible Values
 --- |----------| --- | ---
