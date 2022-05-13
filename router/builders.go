@@ -83,8 +83,8 @@ func buildNexusIqAction(sourceSettings *ActionSettings) *actions.NexusIqAction {
 	}
 }
 
-func buildOpsGenieAction(sourceSettings *ActionSettings) *actions.OpsGenieOutput {
-	return &actions.OpsGenieOutput{
+func buildOpsGenieAction(sourceSettings *ActionSettings) *actions.OpsGenieAction {
+	return &actions.OpsGenieAction{
 		Name:           sourceSettings.Name,
 		User:           sourceSettings.User,
 		APIKey:         sourceSettings.Token,

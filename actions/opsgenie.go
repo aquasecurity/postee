@@ -16,7 +16,7 @@ import (
 
 const defaultPriority = alert.P3
 
-type OpsGenieOutput struct {
+type OpsGenieAction struct {
 	Name           string
 	User           string
 	APIKey         string
@@ -31,11 +31,11 @@ type OpsGenieOutput struct {
 	client *alert.Client
 }
 
-func (ops *OpsGenieOutput) GetName() string {
+func (ops *OpsGenieAction) GetName() string {
 	return ops.Name
 }
 
-func (ops *OpsGenieOutput) Init() (err error) {
+func (ops *OpsGenieAction) Init() (err error) {
 	ops.client, err = alert.NewClient(&client.Config{
 		ApiKey: ops.APIKey,
 	})
@@ -65,7 +65,7 @@ func getUserResponders(users []string) []alert.Responder {
 	return responders
 }
 
-func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[string]interface{}) *alert.CreateAlertRequest {
+func (ops *OpsGenieAction) convertResultToOpsGenie(title string, content map[string]interface{}) *alert.CreateAlertRequest {
 	description := ""
 	if content["description"] != nil {
 		description = fmt.Sprint(content["description"])
@@ -107,7 +107,7 @@ func (ops *OpsGenieOutput) convertResultToOpsGenie(title string, content map[str
 	}
 }
 
-func (ops *OpsGenieOutput) Send(input map[string]string) error {
+func (ops *OpsGenieAction) Send(input map[string]string) error {
 	data := map[string]interface{}{}
 	if err := json.Unmarshal([]byte(input["description"]), &data); err != nil {
 		return err
@@ -124,11 +124,11 @@ func (ops *OpsGenieOutput) Send(input map[string]string) error {
 	return nil
 }
 
-func (*OpsGenieOutput) Terminate() error {
+func (*OpsGenieAction) Terminate() error {
 	return nil
 }
 
-func (ops *OpsGenieOutput) GetLayoutProvider() layout.LayoutProvider {
+func (ops *OpsGenieAction) GetLayoutProvider() layout.LayoutProvider {
 	/*TODO come up with smaller interface that doesn't include GetLayoutProvider()*/
 	return new(formatting.SlackMrkdwnProvider)
 }
