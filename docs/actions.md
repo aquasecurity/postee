@@ -211,16 +211,16 @@ Key | Description | Possible Values
       `Postee` requires an API key from an API integration. An API key from the API Key Management tab will produce this 403 error 
       (apiKey is valid but the apiKey cannot do this operation because of permissions).
 
-Key | Description | Possible Values
---- | --- | ---
-*token* | an API key from an API integration |
-user | Display name of the request owner. | 
-assignee | Comma separated list of users that the alert will be routed to send notifications
-recipients | Comma separated list of users that the alert will become visible to without sending any notification
-priority |Specify the alert priority. Default is "P3" | "P1" "P2" "P3" "P4" "P5"
-tags  | Comma separated list of the alert tags. |
-alias | Client-defined identifier of the alert.
-entity | Entity field of the alert that is generally used to specify which domain alert is related to.
+Key | Required | Description | Possible Values
+--- |----------| --- | ---
+token | true     | an API key from an API integration |
+user | false    | Display name of the request owner.                                                                   | 
+assignee | false    | Comma separated list of users that the alert will be routed to send notifications
+recipients | false    | Comma separated list of users that the alert will become visible to without sending any notification 
+priority | false    | Specify the alert priority. Default is "P3"                                                          | "P1" "P2" "P3" "P4" "P5"
+tags  | false    | Comma separated list of the alert tags.                                                              |
+alias | false    | Client-defined identifier of the alert.
+entity | false    | Entity field of the alert that is generally used to specify which domain alert is related to.
 
 ## Exec
 
