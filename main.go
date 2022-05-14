@@ -1,6 +1,7 @@
 package main
 
 import (
+	gotls "crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -10,12 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/nats-io/nats-server/v2/server"
-
 	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/router"
 	"github.com/aquasecurity/postee/v2/utils"
 	"github.com/aquasecurity/postee/v2/webserver"
+	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 )
@@ -37,8 +37,14 @@ var (
 	tls            = ""
 	cfgfile        = ""
 	controllerMode = false
-	runnerName     = ""
-	controllerURL  = ""
+
+	controllerURL         = ""
+	controllerTLSCertPath = ""
+	controllerTLSKeyPath  = ""
+
+	runnerName        = ""
+	runnerTLSCertPath = ""
+	runnerTLSKeyPath  = ""
 )
 
 var rootCmd = &cobra.Command{
@@ -52,9 +58,14 @@ func init() {
 	rootCmd.Flags().StringVar(&tls, "tls", TLS, TLS_USAGE)
 	rootCmd.Flags().StringVar(&cfgfile, "cfgfile", CFG_FILE, CFG_USAGE)
 
-	rootCmd.Flags().StringVar(&runnerName, "runner-name", "", "postee runner name")
-	rootCmd.Flags().StringVar(&controllerURL, "controller-url", "", "postee controller URL")
 	rootCmd.Flags().BoolVar(&controllerMode, "controller-mode", false, "run postee in controller mode")
+	rootCmd.Flags().StringVar(&controllerURL, "controller-url", "", "postee controller URL")
+	rootCmd.Flags().StringVar(&controllerTLSCertPath, "controller-tls-cert", "", "postee controller TLS cert file")
+	rootCmd.Flags().StringVar(&controllerTLSKeyPath, "controller-tls-key", "", "postee controller TLS key file")
+
+	rootCmd.Flags().StringVar(&runnerName, "runner-name", "", "postee runner name")
+	rootCmd.Flags().StringVar(&runnerTLSCertPath, "runner-tls-cert", "", "postee runner tls cert file")
+	rootCmd.Flags().StringVar(&runnerTLSKeyPath, "runner-tls-key", "", "postee runner tls key file")
 }
 
 func main() {
@@ -75,9 +86,13 @@ func main() {
 			}
 
 			var err error
-			r.NatsConn, err = nats.Connect(controllerURL, router.SetupConnOptions(nil)...)
+			if runnerTLSKeyPath != "" && runnerTLSCertPath != "" {
+				r.NatsConn, err = nats.Connect(controllerURL, nats.ClientCert(runnerTLSCertPath, runnerTLSKeyPath))
+			} else {
+				r.NatsConn, err = nats.Connect(controllerURL, router.SetupConnOptions(nil)...)
+			}
 			if err != nil {
-				log.Fatal("Unable to connect to controller at url: ", controllerURL, "err: ", err)
+				log.Fatal("Unable to connect to controller at url: ", controllerURL, " err: ", err)
 			}
 
 			msg, err := r.NatsConn.Request(NATSConfigSubject, []byte(runnerName), time.Second*5)
@@ -114,7 +129,19 @@ func main() {
 			var natsServer *server.Server
 
 			var err error
-			natsServer, err = server.NewServer(&server.Options{})
+			if controllerTLSKeyPath != "" && controllerTLSCertPath != "" {
+				var tlsConfig *gotls.Config
+				tlsConfig, err = server.GenTLSConfig(&server.TLSConfigOpts{
+					CertFile: controllerTLSCertPath,
+					KeyFile:  controllerTLSKeyPath,
+				})
+				if err != nil {
+					log.Fatal("Invalid TLS config: ", err)
+				}
+				natsServer, err = server.NewServer(&server.Options{TLSConfig: tlsConfig})
+			} else {
+				natsServer, err = server.NewServer(&server.Options{})
+			}
 			if err != nil {
 				log.Fatal("Unable to start controller backplane: ", err)
 			}
@@ -123,8 +150,10 @@ func main() {
 				log.Fatal("Controller backplane is not ready to receive connections, try restarting controller")
 			}
 
+			log.Println("Controller listening for requests on: ", natsServer.ClientURL())
 			configCh = make(chan *nats.Msg)
-			nc, err := nats.Connect(natsServer.ClientURL(), router.SetupConnOptions(nil)...)
+			var nc *nats.Conn
+			nc, err = nats.Connect(natsServer.ClientURL(), router.SetupConnOptions(nil)...)
 			if err != nil {
 				log.Fatal("Unable to setup controller: ", err)
 			}
