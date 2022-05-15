@@ -31,6 +31,12 @@ kubectl create -f https://raw.githubusercontent.com/aquasecurity/postee/main/dep
 kubectl create -f https://raw.githubusercontent.com/aquasecurity/postee/main/deploy/kubernetes/hostPath/postee-pv.yaml
 ```
 
+>> Persistent volume
+>> - postee-db: persistent storage directory `/server/database`
+>> - postee-config: mount the cfg.yaml to a writable directory `/config/cfg.yaml`
+>> - postee-rego-templates: mount custom rego templates
+>> - postee-rego-filters: mount custom rego filters
+
 To edit the default Postee-UI user
 
 ```
