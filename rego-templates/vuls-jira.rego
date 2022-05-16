@@ -18,14 +18,7 @@ tpl:=`
 %v
 `
 
-stats_table:=`|Critical        |0|
-|High            |0|
-|Meduim          |0|
-|Low             |0|
-|negligible      |0|`
-
 result = msg {
-
     msg := sprintf(tpl, [
     input.response_policy_name,
     input.response_policy_id,

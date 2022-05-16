@@ -1,7 +1,5 @@
 package postee.incident.slack
 
-#Example of handling tracee event
-
 title:="Incident Detection"
 
 result:= res {
