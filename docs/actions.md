@@ -237,11 +237,11 @@ The Exec Action also internally exposes the `$POSTEE_EVENT` environment variable
 
 Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script script:
 
-![img_3.png](img_3.png)
+![img_3.png](img/img_3.png)
 
 ## HTTP
 
-![img_1.png](img_1.png)
+![img_1.png](img/img_1.png)
 
 | Option   | Usage                                   |
 |----------|-----------------------------------------|
@@ -253,7 +253,7 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
 
 ## Kubernetes
-![img_4.png](img_4.png)
+![img_4.png](img/img_4.png)
 
 | Option              | Usage                                                                                                                           |
 |---------------------|---------------------------------------------------------------------------------------------------------------------------------|
@@ -264,7 +264,7 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
 
 ## Docker
-![img_5.png](img_5.png)
+![img_5.png](img/img_5.png)
 
 | Option               | Usage                                                                                                                                                                    |
 |----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
