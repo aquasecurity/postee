@@ -17,6 +17,7 @@ import (
 	"github.com/aquasecurity/postee/v2/webserver"
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nkeys"
 	"github.com/spf13/cobra"
 )
 
@@ -38,9 +39,11 @@ var (
 	cfgfile        = ""
 	controllerMode = false
 
-	controllerURL         = ""
-	controllerTLSCertPath = ""
-	controllerTLSKeyPath  = ""
+	controllerURL          = ""
+	controllerTLSCertPath  = ""
+	controllerTLSKeyPath   = ""
+	controllerSeedFilePath = ""
+	runnerSeedFilePath     = ""
 
 	runnerName        = ""
 	runnerTLSCertPath = ""
@@ -62,10 +65,12 @@ func init() {
 	rootCmd.Flags().StringVar(&controllerURL, "controller-url", "", "postee controller URL")
 	rootCmd.Flags().StringVar(&controllerTLSCertPath, "controller-tls-cert", "", "postee controller TLS cert file")
 	rootCmd.Flags().StringVar(&controllerTLSKeyPath, "controller-tls-key", "", "postee controller TLS key file")
+	rootCmd.Flags().StringVar(&controllerSeedFilePath, "controller-seed-file", "", "postee controller AuthN seed file")
 
 	rootCmd.Flags().StringVar(&runnerName, "runner-name", "", "postee runner name")
 	rootCmd.Flags().StringVar(&runnerTLSCertPath, "runner-tls-cert", "", "postee runner tls cert file")
 	rootCmd.Flags().StringVar(&runnerTLSKeyPath, "runner-tls-key", "", "postee runner tls key file")
+	rootCmd.Flags().StringVar(&runnerSeedFilePath, "runner-seed-file", "", "postee runner AuthN seed file")
 }
 
 func main() {
@@ -85,9 +90,19 @@ func main() {
 				log.Fatal("Runner mode requires a valid controller url")
 			}
 
+			var nKeyOpt nats.Option
+			if runnerSeedFilePath != "" {
+				log.Println("Seedfile specified for Runner, enabling AuthN")
+				var err error
+				nKeyOpt, err = nats.NkeyOptionFromSeed(runnerSeedFilePath)
+				if err != nil {
+					log.Fatal("Unable to parse seed file: ", err)
+				}
+			}
+
 			var err error
 			if runnerTLSKeyPath != "" && runnerTLSCertPath != "" {
-				r.NatsConn, err = nats.Connect(controllerURL, nats.ClientCert(runnerTLSCertPath, runnerTLSKeyPath))
+				r.NatsConn, err = nats.Connect(controllerURL, nats.ClientCert(runnerTLSCertPath, runnerTLSKeyPath), nKeyOpt)
 			} else {
 				r.NatsConn, err = nats.Connect(controllerURL, router.SetupConnOptions(nil)...)
 			}
@@ -138,7 +153,33 @@ func main() {
 				if err != nil {
 					log.Fatal("Invalid TLS config: ", err)
 				}
-				natsServer, err = server.NewServer(&server.Options{TLSConfig: tlsConfig})
+
+				var pubKey string
+				var nKeys []*server.NkeyUser
+				if controllerSeedFilePath != "" {
+					log.Println("Seedfile specified for Controller, enabling AuthN")
+					sf, err := ioutil.ReadFile(controllerSeedFilePath)
+					if err != nil {
+						log.Fatal("Unable to read seed file: ", err)
+					}
+
+					nKey, err := nkeys.ParseDecoratedNKey(sf)
+					if err != nil {
+						log.Fatal("Unable to parse seed file: ", err)
+					}
+
+					pubKey, err = nKey.PublicKey()
+					if err != nil {
+						log.Fatal("Unable to get public key: ", err)
+					}
+
+					nKeys = append(nKeys, &server.NkeyUser{Nkey: pubKey})
+				}
+
+				natsServer, err = server.NewServer(&server.Options{
+					TLSConfig: tlsConfig,
+					Nkeys:     nKeys,
+				})
 			} else {
 				natsServer, err = server.NewServer(&server.Options{})
 			}
@@ -152,8 +193,17 @@ func main() {
 
 			log.Println("Controller listening for requests on: ", natsServer.ClientURL())
 			configCh = make(chan *nats.Msg)
+
+			var nKeyOpt nats.Option
+			if controllerSeedFilePath != "" {
+				nKeyOpt, err = nats.NkeyOptionFromSeed(controllerSeedFilePath)
+				if err != nil {
+					log.Fatal("Unable to load seed file: ", err)
+				}
+			}
+
 			var nc *nats.Conn
-			nc, err = nats.Connect(natsServer.ClientURL(), router.SetupConnOptions(nil)...)
+			nc, err = nats.Connect(natsServer.ClientURL(), router.SetupConnOptions([]nats.Option{nKeyOpt})...)
 			if err != nil {
 				log.Fatal("Unable to setup controller: ", err)
 			}

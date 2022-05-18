@@ -13,7 +13,7 @@ In the case of Service B, a Tracee container is constantly monitoring for malici
 ## Configuration
 ### Run Postee in Controller mode:
 ```shell
-postee --cfgfile=./cfg-controller-runner.yaml --controller-mode --controller-tls-cert="./server-cert.pem" --controller-tls-key="./server-key.pem"
+postee --cfgfile=./cfg-controller-runner.yaml --controller-mode --controller-tls-cert="./server-cert.pem" --controller-tls-key="./server-key.pem" --controller-seed-file="./seed.txt"
 ```
 
 | Option              | Required                     | Description                          |
@@ -21,6 +21,7 @@ postee --cfgfile=./cfg-controller-runner.yaml --controller-mode --controller-tls
 | controller-mode     | true                         | Enable Postee to run as a Controller |
 | controller-tls-cert | false                        | TLS Certificate for Controller       |
 | controller-tls-key  | false | TLS Key for Controller               |
+| controller-seed-file | false | Seed file for Controller |
 
 ??? note "Example Controller/Runner Configuration"
     ```yaml
@@ -101,7 +102,7 @@ In this case this particular Action will run on Postee Runner that identifies it
 
 ### Run Postee in Runner mode:
 ```shell
-postee --controller-url="nats://0.0.0.0:4222" --runner-tls-cert="./runner-cert.pem" --runner-tls-key="./runner-key.pem" --runner-name="postee-runner-1"  --url=0.0.0.0:9082 --tls=0.0.0.0:9445
+postee --controller-url="nats://0.0.0.0:4222" --runner-tls-cert="./runner-cert.pem" --runner-tls-key="./runner-key.pem" --runner-seed-file="./seed.txt", --runner-name="postee-runner-1"  --url=0.0.0.0:9082 --tls=0.0.0.0:9445
 ```
 
 | Option          | Required                 | Description                                              |
@@ -110,10 +111,17 @@ postee --controller-url="nats://0.0.0.0:4222" --runner-tls-cert="./runner-cert.p
 | runner-name     | true                     | The Name of the Runner, as defined in configuration YAML |
 | runner-tls-cert | false                    | TLS Certificate for Runner                               |
 | runner-tls-key  | false | TLS Key for Runner                                       |
+| runner-seed-file | false | Seed file for Runner |
 
 
 ### Secured Controller/Runner Channel
-The communication channel between Controller and Runner can be optionally secured with TLS. It can be enabled by passing the TLS cert and key with the optional `--controller-tls-cert` and `--controller-tls-key` flags for Controller and `--runner-tls-cert` and `--runner-tls-key` flags for Runner.
+The communication channel between Controller and Runner can be optionally secured with TLS and be Authentication (AuthN). 
+
+TLS can be enabled by passing the TLS cert and key through the optional `--controller-tls-cert` and `--controller-tls-key` flags for Controller and `--runner-tls-cert` and `--runner-tls-key` flags for Runner.
+
+AuthN can be enabled by passing the [NATS Seed File](https://docs.nats.io/running-a-nats-service/configuration/securing_nats/auth_intro/nkey_auth). Postee uses NKeys, a public-key signature system based on Ed25519. 
+
+A seed file should be treated as a secret. It can be passed to the Controller via the `--controller-seed-file` and the Runner via `--runner-seed-file`.
 
 This can be helpful in situations where Postee Config contains secrets that are configured in an Action that runs on a Runner. 
 
