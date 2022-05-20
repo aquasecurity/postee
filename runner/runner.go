@@ -37,7 +37,7 @@ func (r Runner) Setup(rtr *router.Router, cfg *os.File) error {
 		var err error
 		nKeyOpt, err = nats.NkeyOptionFromSeed(r.RunnerSeedFilePath)
 		if err != nil {
-			return fmt.Errorf("unable to parse seed file: %s", err)
+			return fmt.Errorf("unable to parse seed file: %w", err)
 		}
 		opts = append(opts, nKeyOpt)
 	}
@@ -52,16 +52,16 @@ func (r Runner) Setup(rtr *router.Router, cfg *os.File) error {
 	var err error
 	rtr.NatsConn, err = nats.Connect(r.ControllerURL, router.SetupConnOptions(opts)...)
 	if err != nil {
-		return fmt.Errorf("unable to connect to controller at url: %s, err: %s", r.ControllerURL, err)
+		return fmt.Errorf("unable to connect to controller at url: %s, err: %w", r.ControllerURL, err)
 	}
 
 	msg, err := rtr.NatsConn.Request(NATSConfigSubject, []byte(r.RunnerName), time.Second*5)
 	if err != nil {
-		return fmt.Errorf("unable to obtain runner config from url: %s, err: %s", r.ControllerURL, err)
+		return fmt.Errorf("unable to obtain runner config from url: %s, err: %w", r.ControllerURL, err)
 	}
 
 	if _, err = cfg.Write(msg.Data); err != nil {
-		return fmt.Errorf("unable to write runner config to disk: %s", err)
+		return fmt.Errorf("unable to write runner config to disk: %w", err)
 	}
 	log.Println("Runner configuration obtained from: ", r.ControllerURL)
 

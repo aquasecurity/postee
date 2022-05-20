@@ -57,7 +57,7 @@ func (c Controller) Setup(r *router.Router) error {
 			CaFile:   c.ControllerCAFile,
 		})
 		if err != nil {
-			return fmt.Errorf("invalid TLS config: %s", err)
+			return fmt.Errorf("invalid TLS config: %w", err)
 		}
 
 		var pubKey string
@@ -66,17 +66,17 @@ func (c Controller) Setup(r *router.Router) error {
 			log.Println("Seedfile specified for Controller, enabling AuthN")
 			sf, err := ioutil.ReadFile(c.ControllerSeedFilePath)
 			if err != nil {
-				return fmt.Errorf("unable to read seed file: %s", err)
+				return fmt.Errorf("unable to read seed file: %w", err)
 			}
 
 			nKey, err := nkeys.ParseDecoratedNKey(sf)
 			if err != nil {
-				return fmt.Errorf("unable to parse seed file: %s", err)
+				return fmt.Errorf("unable to parse seed file: %w", err)
 			}
 
 			pubKey, err = nKey.PublicKey()
 			if err != nil {
-				return fmt.Errorf("unable to get public key: %s", err)
+				return fmt.Errorf("unable to get public key: %w", err)
 			}
 
 			nKeys = append(nKeys, &server.NkeyUser{Nkey: pubKey})
@@ -92,7 +92,7 @@ func (c Controller) Setup(r *router.Router) error {
 		natsServer, err = server.NewServer(&server.Options{Host: host, Port: port})
 	}
 	if err != nil {
-		return fmt.Errorf("unable to start controller backplane: %s", err)
+		return fmt.Errorf("unable to start controller backplane: %w", err)
 	}
 	go natsServer.Start()
 	if !natsServer.ReadyForConnections(time.Second * 10) {
@@ -107,7 +107,7 @@ func (c Controller) Setup(r *router.Router) error {
 	if c.ControllerSeedFilePath != "" {
 		nKeyOpt, err = nats.NkeyOptionFromSeed(c.ControllerSeedFilePath)
 		if err != nil {
-			return fmt.Errorf("unable to load seed file: %s", err)
+			return fmt.Errorf("unable to load seed file: %w", err)
 		}
 	}
 	opts = append(opts, nKeyOpt)
@@ -118,12 +118,12 @@ func (c Controller) Setup(r *router.Router) error {
 	}
 	nc, err = nats.Connect(natsServer.ClientURL(), router.SetupConnOptions(opts)...)
 	if err != nil {
-		return fmt.Errorf("unable to setup controller: %s", err)
+		return fmt.Errorf("unable to setup controller: %w", err)
 	}
 
 	log.Println("Listening to config requests on: ", NATSConfigSubject)
 	if _, err := nc.ChanSubscribe(NATSConfigSubject, configCh); err != nil {
-		return fmt.Errorf("unable to subscribe for config requests from runners on: %s, err: %s", NATSConfigSubject, err)
+		return fmt.Errorf("unable to subscribe for config requests from runners on: %s, err: %w", NATSConfigSubject, err)
 	}
 
 	r.ConfigCh = configCh
@@ -134,7 +134,7 @@ func (c Controller) Setup(r *router.Router) error {
 	eventSubj := NATSEventSubject
 	log.Println("Subscribing to events from runners on: ", eventSubj)
 	if _, err := nc.ChanSubscribe(eventSubj, r.NatsMsgCh); err != nil {
-		return fmt.Errorf("unable to subscribe for events from runners on: %s, err: %s", eventSubj, err)
+		return fmt.Errorf("unable to subscribe for events from runners on: %s, err: %w", eventSubj, err)
 	}
 
 	return nil
