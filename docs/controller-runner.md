@@ -13,15 +13,16 @@ In the case of Service B, a Tracee container is constantly monitoring for malici
 ## Configuration
 ### Run Postee in Controller mode:
 ```shell
-postee --cfgfile=./cfg-controller-runner.yaml --controller-mode --controller-tls-cert="./server-cert.pem" --controller-tls-key="./server-key.pem" --controller-seed-file="./seed.txt"
+postee --cfgfile=./cfg-controller-runner.yaml --controller-mode --controller-ca-root="./rootCA.pem" --controller-tls-cert="./server-cert.pem" --controller-tls-key="./server-key.pem" --controller-seed-file="./seed.txt"
 ```
 
-| Option              | Required                     | Description                          |
-|---------------------|------------------------------|--------------------------------------|
-| controller-mode     | true                         | Enable Postee to run as a Controller |
-| controller-tls-cert | false                        | TLS Certificate for Controller       |
-| controller-tls-key  | false | TLS Key for Controller               |
-| controller-seed-file | false | Seed file for Controller |
+| Option               | Required                     | Description                            |
+|----------------------|------------------------------|----------------------------------------|
+| controller-mode      | true                         | Enable Postee to run as a Controller   |
+| controller-ca-root   | false                        | TLS CA Root Certificate for Controller |
+| controller-tls-cert  | false                        | TLS Certificate for Controller         |
+| controller-tls-key   | false | TLS Key for Controller                 |
+| controller-seed-file | false | Seed file for Controller               |
 
 ??? note "Example Controller/Runner Configuration"
     ```yaml
@@ -102,16 +103,17 @@ In this case this particular Action will run on Postee Runner that identifies it
 
 ### Run Postee in Runner mode:
 ```shell
-postee --controller-url="nats://0.0.0.0:4222" --runner-tls-cert="./runner-cert.pem" --runner-tls-key="./runner-key.pem" --runner-seed-file="./seed.txt", --runner-name="postee-runner-1"  --url=0.0.0.0:9082 --tls=0.0.0.0:9445
+postee --controller-url="nats://0.0.0.0:4222" --runner-ca-cert="./rootCA.pem" --runner-tls-cert="./runner-cert.pem" --runner-tls-key="./runner-key.pem" --runner-seed-file="./seed.txt", --runner-name="postee-runner-1"  --url=0.0.0.0:9082 --tls=0.0.0.0:9445
 ```
 
-| Option          | Required                 | Description                                              |
-|-----------------|--------------------------|----------------------------------------------------------|
-| controller-url  | true                     | The URL to the Postee Controller                         |
-| runner-name     | true                     | The Name of the Runner, as defined in configuration YAML |
-| runner-tls-cert | false                    | TLS Certificate for Runner                               |
-| runner-tls-key  | false | TLS Key for Runner                                       |
-| runner-seed-file | false | Seed file for Runner |
+| Option           | Required                 | Description                                              |
+|------------------|--------------------------|----------------------------------------------------------|
+| controller-url   | true                     | The URL to the Postee Controller                         |
+| runner-name      | true                     | The Name of the Runner, as defined in configuration YAML |
+| runner-ca-root   | false                    | TLS Root CA Certificate for Runner                       |
+| runner-tls-cert  | false                    | TLS Certificate for Runner                               |
+| runner-tls-key   | false | TLS Key for Runner                                       |
+| runner-seed-file | false | Seed file for Runner                                     |
 
 
 ### Secured Controller/Runner Channel

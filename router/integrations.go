@@ -10,7 +10,7 @@ type ActionSettings struct {
 	Password          string                       `json:"password,omitempty"`
 	TlsVerify         bool                         `json:"tls-verify,omitempty"`
 	ProjectKey        string                       `json:"project-key,omitempty" structs:"project-key,omitempty"`
-	IssueType         string                       `json:"issuetype" structs:"issuetype"`
+	IssueType         string                       `json:"issuetype,omitempty" structs:"issuetype"`
 	BoardName         string                       `json:"board,omitempty" structs:"board,omitempty"`
 	Priority          string                       `json:"priority,omitempty"`
 	Assignee          []string                     `json:"assignee,omitempty"`
@@ -19,7 +19,7 @@ type ActionSettings struct {
 	AffectsVersions   []string                     `json:"affects-versions,omitempty"`
 	Labels            []string                     `json:"labels,omitempty"`
 	Sprint            string                       `json:"sprint,omitempty"`
-	Unknowns          map[string]string            `json:"unknowns" structs:"unknowns,omitempty"`
+	Unknowns          map[string]string            `json:"unknowns,omitempty" structs:"unknowns,omitempty"`
 	Host              string                       `json:"host,omitempty"`
 	Port              int                          `json:"port,omitempty"`
 	Recipients        []string                     `json:"recipients,omitempty"`

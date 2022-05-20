@@ -1,0 +1,26 @@
+name: Test
+
+routes:
+- name: terminate-and-notify
+  input: contains(input.SigMetadata.ID, "TRC-2")
+  actions: [terminate-pod, send-slack-message]
+
+actions:
+- name: stdout
+  type: stdout
+  enable: true
+
+- name: terminate-pod
+  runs-on: "test-runner-1"
+  type: exec
+  enable: true
+  exec-script: |
+    #!/bin/sh
+    PID=$(echo $POSTEE_EVENT | jq -r .Context.hostName)
+    kubectl delete pod $PID     # If terminating a K8s pod
+    # pkill -SIGTERM $PID       # If terminating a UNIX process
+
+- name: send-slack-message
+  type: slack
+  enable: true
+  url: https://hooks.slack.com/services/TAAAA/BBB/<key>
