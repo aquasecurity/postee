@@ -21,9 +21,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Build
+        run: make build
+
       - name: Run Unit tests
         run: |
-          make all
           make test
 
       - name: Run Integration Tests
