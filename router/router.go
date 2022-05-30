@@ -284,7 +284,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	if ctx.Mode == "runner" {
 		log.Println("Sending event upstream to controller at url: ", ctx.ControllerURL)
 		NATSEventSubject := "postee.events"
-		if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil {
+		if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil { // TODO: What happens if controller is unavailable?
 			log.Println("Unable to send event upstream to controller at url: ", ctx.ControllerURL, "err: ", err.Error())
 		}
 	}
@@ -488,7 +488,7 @@ func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 
 	for _, rr := range runnerRoutes {
 		for _, inputTemplate := range tenant.Templates {
-			if inputTemplate.Name == rr.Template {
+			if inputTemplate.Name == rr.Template && !contains(runnerTemplates, inputTemplate.Name) {
 				runnerTemplates = append(runnerTemplates, inputTemplate)
 			}
 		}
@@ -504,6 +504,15 @@ func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 	}
 
 	return string(cfgB), nil
+}
+
+func contains(haystack []Template, needle string) bool {
+	for _, noodle := range haystack {
+		if noodle.Name == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func SetupConnOptions(opts []nats.Option) []nats.Option {

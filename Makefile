@@ -25,6 +25,9 @@ fmt :
 test :
 	go test -race -v -timeout=30s ./...
 
+test-integration:
+	go test -race -v -tags=integration -timeout=30s ./...
+
 cover :
 	go test ./msgservice ./dbservice ./router ./formatting ./data ./regoservice ./routes ./actions -v -coverprofile=cover.out
 	go tool cover -html=cover.out

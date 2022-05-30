@@ -33,8 +33,11 @@ jobs:
       - name: Build
         run: make build
 
-      - name: Test
+      - name: Run Unit Tests
         run: make test
+
+      - name: Run Integration Tests
+        run: make test-integration
 
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@0.3.0

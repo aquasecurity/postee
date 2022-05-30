@@ -24,7 +24,7 @@ In this README, we’ll walk through a scenario in which a user wants to act on 
 
 In this case, the incoming security event from Tracee is received by Postee and evaluated by the following route YAML definition: 
 
-![img.png](img.png)
+![img.png](../img/img.png)
 
 As seen above, the route has a Rego rule that evaluates the input to contain a certain signature ID, TRC-2, which represents anti-debugging activity. In addition, if the input is matched, the output is triggered.
 
@@ -44,7 +44,7 @@ The Exec Action also internally exposes the `$POSTEE_EVENT` environment variable
 
 Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script script:
 
-![img_3.png](img_3.png)
+![img_3.png](../img/img_3.png)
 
 As you can see, we capture the incoming Postee event and write this event to the Tracee event log for forensic purposes.
 
@@ -52,7 +52,7 @@ As you can see, we capture the incoming Postee event and write this event to the
 
 Finally, we can configure the Postee HTTP Post Action to ship the captured event logs via our HTTP Action to our remote server.
 
- ![img_1.png](img_1.png)
+ ![img_1.png](../img/img_1.png)
 
 | Option   | Usage                                   |
 |----------|-----------------------------------------|
@@ -76,7 +76,7 @@ docker run --rm --name=postee \
 ## Kubernetes Action
 In addition to the Exec and HTTP actions, we have also implemented a Kubernetes action that today can add labels and annotations to pods. It can be used as follows:
 
-![img_4.png](img_4.png)
+![img_4.png](../img/img_4.png)
 
 | Option              | Usage                                                                                                                           |
 |---------------------|---------------------------------------------------------------------------------------------------------------------------------|
@@ -89,7 +89,7 @@ In addition to the Exec and HTTP actions, we have also implemented a Kubernetes 
 ## Docker Action
 We have also added a Docker Action, that can help you run docker images as an action within a container.
 
-![img_5.png](img_5.png)
+![img_5.png](../img/img_5.png)
 
 | Option               | Usage                                                                                                                                                                    |
 |----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
