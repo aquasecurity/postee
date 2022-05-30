@@ -13,7 +13,7 @@ WORKDIR /server/ui/backend
 RUN apk add git
 RUN go build -o posteeui
 
-FROM alpine:3.15
+FROM alpine:3.16.0
 EXPOSE 8000
 
 RUN mkdir /uiserver
