@@ -36,7 +36,7 @@ Postee is an [Aqua Security](https://aquasec.com) open source project.
 Learn about our [Open Source Work and Portfolio].  
 Join the community, and talk to us about any matter in [GitHub Discussions] or [Slack].
 
-[Documentation]: https://aquasecurity.github.io/postee/
+[Documentation]: https://aquasecurity.github.io/postee/latest
 [Open Source Work and Portfolio]: https://www.aquasec.com/products/open-source-projects/
 [Slack]: https://slack.aquasec.com/
 [GitHub Discussions]: https://github.com/aquasecurity/postee/discussions
