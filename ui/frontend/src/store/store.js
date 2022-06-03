@@ -6,6 +6,7 @@ import error from './modules/error.js'
 import account from './modules/account.js'
 import outputs from './modules/outputs.js'
 import stats from './modules/stats.js'
+import events from './modules/events.js'
 import routes from './modules/routes.js'
 import settings from './modules/settings.js'
 import flags from './modules/flags.js'
@@ -19,6 +20,7 @@ export default new Vuex.Store({
         outputs,
         account,
         stats,
+        events,
         routes,
         settings,
         flags,
@@ -43,6 +45,7 @@ export default new Vuex.Store({
                 data.outputs && context.commit("outputs/set", data.outputs)
                 data.routes && context.commit("routes/set", data.routes)
                 data.templates && context.commit("templates/set", data.templates)
+                data.events && context.commit("events/set", data.events)
                 context.commit("settings/set", settings)
                 context.commit("flags/set", { loaded: true })
             }).catch((error) => {

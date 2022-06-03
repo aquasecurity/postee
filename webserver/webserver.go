@@ -163,5 +163,5 @@ func (ctx *WebServer) eventsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	events = append(events, []byte("]")...)
 	w.WriteHeader(http.StatusOK)
-	w.Write(events)
+	_, _ = w.Write(events)
 }

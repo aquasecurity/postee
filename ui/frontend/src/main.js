@@ -9,6 +9,7 @@ import Routes from './components/Routes.vue'
 import TemplateDetails from './components/TemplateDetails.vue'
 import Templates from './components/Templates.vue'
 import Settings from './components/Settings.vue'
+import Events from './components/EventDetails.vue'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import store from './store/store'
 import 'bootstrap/dist/css/bootstrap.css'
@@ -28,6 +29,7 @@ const routes = [
   { name: 'login', path: '/login', component: LoginForm },
   { name: 'add-output', path: '/output', component: OutputDetails },
   { name: 'output', path: '/output/:name', component: OutputDetails },
+  { name: 'events', path: '/events', component: Events },
 
   { name: 'templates', path: '/templates', component: Templates },
   { name: 'add-template', path: '/template', component: TemplateDetails },
