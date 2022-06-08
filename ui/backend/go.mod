@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
+	github.com/stretchr/testify v1.7.1
 	go.etcd.io/bbolt v1.3.6
 )
 
@@ -50,6 +51,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.10 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

@@ -21,7 +21,9 @@ func TestWebServer_eventsHandler(t *testing.T) {
 	ws.eventsHandler(w, r)
 
 	resp := w.Result()
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	got, _ := ioutil.ReadAll(resp.Body)
 
 	assert.JSONEq(t, `[
