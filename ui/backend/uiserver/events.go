@@ -12,7 +12,7 @@ func (srv *uiServer) getEvents(w http.ResponseWriter, r *http.Request) {
 
 	posteeUrl := os.Getenv("POSTEE_UI_UPDATE_URL")
 	if len(posteeUrl) <= 0 {
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write([]byte("No Postee URL configured, set POSTEE_UI_UPDATE_URL to the Postee URL"))
 		return
 	}

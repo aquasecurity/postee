@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"os"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -13,11 +14,21 @@ const (
 	apiKeyName = "POSTEE_API_KEY"
 )
 
+func getDbPath() string {
+	var dbPath string
+	if len(os.Getenv("PATH_TO_DB")) > 0 {
+		dbPath = os.Getenv("PATH_TO_DB")
+	} else {
+		dbPath = DbPath
+	}
+	return dbPath
+}
+
 func EnsureApiKey() error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	db, err := bolt.Open(DbPath, 0666, nil)
+	db, err := bolt.Open(getDbPath(), 0666, nil)
 	if err != nil {
 		return err
 	}
@@ -39,7 +50,7 @@ func EnsureApiKey() error {
 }
 func GetApiKey() (string, error) {
 	var apiKey string = ""
-	db, err := bolt.Open(DbPath, 0444, nil) //should be enough
+	db, err := bolt.Open(getDbPath(), 0444, nil) //should be enough
 	if err != nil {
 		return "", err
 	}
