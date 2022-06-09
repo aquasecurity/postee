@@ -41,6 +41,14 @@
               >
             </li>
             <li class="nav-item">
+              <router-link
+                  active-class="active"
+                  :to="{ name: 'events' }"
+                  class="nav-link"
+                >Events</router-link
+              >
+            </li>
+            <li class="nav-item">
               <a class="nav-link" @click="doLogout" href="#">Logout</a>
             </li>
           </ul>
@@ -96,6 +104,7 @@ export default {
     startLoading() {
       this.$store.dispatch("load");
       this.$store.dispatch("stats/load");
+      this.$store.dispatch("events/load");
     },
   },
   mounted() {
