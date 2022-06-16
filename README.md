@@ -18,7 +18,9 @@
 
 Postee is a simple message routing application that receives input messages through a webhook interface, and can take enforce actions using predefined outputs via integrations.
 
-Watch a quick of how you can use Postee:
+Watch a quick demo of how you can use Postee:
+
+
 [![Postee Demo Video](./docs/img/postee-video-thumbnail.jpg)](https://www.youtube.com/watch?v=HZ5Z8jAVH8w)
 
 Primary use of Postee is to act as a message relay and notification service that integrates with a variety of third-party services. Postee can also be used for sending vulnerability scan results or audit alerts from Aqua Platform to collaboration systems.
