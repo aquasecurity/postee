@@ -30,7 +30,7 @@ func (e *ExecClient) Init() error {
 	return nil
 }
 
-func (e *ExecClient) Send(m map[string]string) error {
+func (e *ExecClient) Send(m map[string]string) (string, error) {
 	envVars := os.Environ()
 	envVars = append(envVars, e.Env...)
 	envVars = append(envVars, fmt.Sprintf("POSTEE_EVENT=%s", m["description"]))
@@ -41,10 +41,10 @@ func (e *ExecClient) Send(m map[string]string) error {
 
 	var err error
 	if e.Output, err = cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("error while executing script: %w", err)
+		return EmptyID, fmt.Errorf("error while executing script: %w", err)
 	}
 	log.Println("execution output: ", "len: ", len(e.Output), "out: ", string(e.Output))
-	return nil
+	return EmptyID, nil
 }
 
 func (e *ExecClient) Terminate() error {

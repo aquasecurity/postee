@@ -46,7 +46,7 @@ func (splunk *SplunkOutput) Init() error {
 	return nil
 }
 
-func (splunk *SplunkOutput) Send(input map[string]string) error {
+func (splunk *SplunkOutput) Send(input map[string]string) (string, error) {
 	log.Logger.Infof("Sending to Splunk via %q", splunk.Name)
 
 	if splunk.EventLimit == 0 {
@@ -64,14 +64,14 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 	rawEventData, ok := input["description"]
 	if !ok {
 		log.Logger.Error("Splunk sending error: empty content")
-		return nil
+		return EmptyID, nil
 	}
 
 	eventData := make(map[string]interface{})
 	err := json.Unmarshal([]byte(rawEventData), &eventData)
 	if err != nil {
 		log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
-		return err
+		return EmptyID, err
 	}
 
 	eventFormat := "{\"sourcetype\": \"_json\", \"event\": "
@@ -86,14 +86,14 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 		err := json.Unmarshal([]byte(rawEventData), scanInfo)
 		if err != nil {
 			log.Logger.Errorf("sending to %q error: %v", splunk.Name, err)
-			return err
+			return EmptyID, err
 		}
 
 		for {
 			rawMsg, err = json.Marshal(scanInfo)
 			if err != nil {
 				log.Logger.Errorf("sending to Splunk %q error: %v", splunk.Name, err)
-				return err
+				return EmptyID, err
 			}
 			if len(rawMsg) < splunk.EventLimit-constLimit {
 				break
@@ -112,7 +112,7 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 				msg := fmt.Sprintf("Scan result for %q is large for %q , its size if %d (limit %d)",
 					scanInfo.Image, splunk.Name, len(rawMsg), splunk.EventLimit)
 				log.Logger.Infof(msg)
-				return errors.New(msg)
+				return EmptyID, errors.New(msg)
 			}
 		}
 	}
@@ -124,23 +124,23 @@ func (splunk *SplunkOutput) Send(input map[string]string) error {
 
 	req, err := http.NewRequest("POST", splunk.Url+"services/collector", &buff)
 	if err != nil {
-		return err
+		return EmptyID, err
 	}
 
 	req.Header.Add("Authorization", "Splunk "+splunk.Token)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return EmptyID, err
 	}
 	if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 		b, _ := ioutil.ReadAll(resp.Body)
 		log.Logger.Error(fmt.Errorf("splunk sending error: failed response status %q. Body: %q", resp.Status, string(b)))
-		return errors.New("failed response status for Splunk sending")
+		return EmptyID, errors.New("failed response status for Splunk sending")
 	}
 	log.Logger.Debugf("Sending a message to Splunk via %q was successful!", splunk.Name)
-	return nil
+	return EmptyID, nil
 }
 
 func (splunk *SplunkOutput) Terminate() error {

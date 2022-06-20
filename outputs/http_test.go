@@ -88,9 +88,11 @@ func TestHTTPClient_Send(t *testing.T) {
 			}
 			switch {
 			case tc.expectedError != "":
-				require.EqualError(t, ec.Send(map[string]string{"description": "foo bar baz header"}), tc.expectedError, tc.name)
+				_, err := ec.Send(map[string]string{"description": "foo bar baz header"})
+				require.EqualError(t, err, tc.expectedError, tc.name)
 			default:
-				require.NoError(t, ec.Send(map[string]string{"description": "foo bar baz header"}), tc.name)
+				_, err := ec.Send(map[string]string{"description": "foo bar baz header"})
+				require.NoError(t, err, tc.name)
 			}
 		})
 	}

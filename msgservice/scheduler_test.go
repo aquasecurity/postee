@@ -18,7 +18,7 @@ func TestScheduler(t *testing.T) {
 	demoRoute.Plugins.AggregateTimeoutSeconds = 3
 
 	demoSend := func(plg outputs.Output, cnt map[string]string) {
-		err := plg.Send(cnt)
+		_, err := plg.Send(cnt)
 		if err != nil {
 			t.Fatal("error Send")
 		}

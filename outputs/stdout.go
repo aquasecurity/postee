@@ -26,9 +26,9 @@ func (stdout StdoutOutput) GetName() string { return stdout.Name }
 func (stdout StdoutOutput) Init() error {
 	return nil
 }
-func (stdout StdoutOutput) Send(data map[string]string) error {
+func (stdout StdoutOutput) Send(data map[string]string) (string, error) {
 	_, err := fmt.Fprintf(os.Stdout, "%s", data["description"])
-	return err
+	return EmptyID, err
 }
 
 func (stdout StdoutOutput) Terminate() error {

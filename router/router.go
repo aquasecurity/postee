@@ -523,7 +523,7 @@ func (ctx *Router) loadCfgCacheSourceFromPostgres() (*data.TenantSettings, error
 
 type service interface {
 	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
-	HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) error
+	HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (string, error)
 	EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool
 	GetMessageUniqueId(in map[string]interface{}, props []string) string
 }
@@ -620,13 +620,12 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 	}
 }
 
-func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []string {
-	var failedOutputNames []string
+func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) map[string]string {
+	ticketIds := make(map[string]string)
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs.Load(outputName)
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
-			failedOutputNames = append(failedOutputNames, outputName)
 			continue
 		}
 
@@ -645,21 +644,23 @@ func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []s
 
 		tmpl, ok := ctx.templates.Load(templateName)
 		if !ok {
-			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
-				r.Name, templateName)
-			failedOutputNames = append(failedOutputNames, outputName)
+			log.Logger.Errorf("Route %q (output: %s) contains reference to undefined or misconfigured template %q.",
+				r.Name, outputName, templateName)
 			continue
 		}
 		log.Logger.Debugf("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
 
-		err := getScanService().HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
+		id, err := getScanService().HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 		if err != nil {
-			log.Logger.Errorf("Failed sending message to output: %s", outputName)
-			failedOutputNames = append(failedOutputNames, outputName)
+			log.Logger.Errorf("route %q failed sending message to output: %s", r.Name, outputName)
+			continue
+		}
+
+		if id != "" {
+			ticketIds[pl.(outputs.Output).GetName()] = id
 		}
 	}
-
-	return failedOutputNames
+	return ticketIds
 }
 
 func (ctx *Router) handle(in []byte) {
@@ -815,35 +816,33 @@ func (ctx *Router) getMessageUniqueId(msg map[string]interface{}, routeName stri
 	return getScanService().GetMessageUniqueId(msg, route.(*routes.InputRoute).Plugins.UniqueMessageProps), nil
 }
 
-func (ctx *Router) sendByRoute(in []byte, routeName string) error {
+func (ctx *Router) sendByRoute(in []byte, routeName string) (ticketIds map[string]string, err error) {
 	inMsg, err := parseInputMessage(in)
 	if err != nil {
-		return xerrors.Errorf("failed parsing input message: %s", err.Error())
+		return ticketIds, xerrors.Errorf("failed parsing input message: %s", err.Error())
 	}
 
 	return ctx.sendMsgByRoute(inMsg, routeName)
 }
 
-func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) error {
+func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) (ticketIds map[string]string, err error) {
 	val, exists := ctx.inputRoutes.Load(routeName)
 	if !exists {
-		return xerrors.Errorf("route %s does not exists", routeName)
+		return ticketIds, xerrors.Errorf("route %s does not exists", routeName)
 	}
 
 	route, ok := val.(*routes.InputRoute)
 	if ok {
 		if len(route.Outputs) == 0 {
 			log.Logger.Warnf("route %q has no outputs", routeName)
-			return nil
+			return ticketIds, nil
 		}
 
-		failedOutputs := ctx.publish(inMsg, route)
-		if len(failedOutputs) != 0 {
-			return xerrors.Errorf("failed sending message to route %s outputs", routeName)
-		}
+		ticketIds = ctx.publish(inMsg, route)
+
 	}
 
-	return nil
+	return ticketIds, nil
 }
 
 func (ctx *Router) embedTemplates() error {

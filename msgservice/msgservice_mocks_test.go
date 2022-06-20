@@ -83,7 +83,7 @@ func (plg *DemoEmailOutput) getEmailsCount() int {
 }
 
 func (plg *DemoEmailOutput) Init() error { return nil }
-func (plg *DemoEmailOutput) Send(data map[string]string) error {
+func (plg *DemoEmailOutput) Send(data map[string]string) (string, error) {
 	log.Printf("Sending through demo plugin..\n")
 	log.Printf("%s\n", data["title"])
 
@@ -94,7 +94,7 @@ func (plg *DemoEmailOutput) Send(data map[string]string) error {
 	if plg.wg != nil {
 		plg.wg.Done()
 	}
-	return nil
+	return "", nil
 }
 
 func (plg *DemoEmailOutput) Terminate() error { return nil }

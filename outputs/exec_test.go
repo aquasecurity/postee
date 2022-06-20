@@ -53,9 +53,11 @@ echo $INPUT_ENV`)
 			InputFile: f.Name(),
 			Env:       []string{"INPUT_ENV=input foo env var"},
 		}
-		require.NoError(t, ec.Send(map[string]string{
+
+		_, err = ec.Send(map[string]string{
 			"description": "foo bar baz env variable",
-		}))
+		})
+		require.NoError(t, err)
 
 		assert.Equal(t, `foo
 foo bar baz env variable
@@ -68,9 +70,10 @@ input foo env var
 		ec := ExecClient{
 			ExecCmd: fakeExecCmdFailure,
 		}
-		require.EqualError(t, ec.Send(map[string]string{
+		_, err := ec.Send(map[string]string{
 			"description": "foo bar baz",
-		}), "error while executing script: exit status 1")
+		})
+		require.EqualError(t, err, "error while executing script: exit status 1")
 	})
 
 }

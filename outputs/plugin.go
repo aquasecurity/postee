@@ -15,12 +15,14 @@ const (
 	EventCategoryAttribute = "event_category"
 	CategoryIncident       = "incident"
 	CategoryScanResult     = "scan_result"
+
+	EmptyID = ""
 )
 
 type Output interface {
 	GetName() string
 	Init() error
-	Send(map[string]string) error
+	Send(map[string]string) (string, error)
 	Terminate() error
 	GetLayoutProvider() layout.LayoutProvider
 	CloneSettings() *data.OutputSettings //TODO shouldn't return reference

@@ -117,9 +117,9 @@ func (ctx *ctxWrapper) MsgHandling(_ map[string]interface{}, output outputs.Outp
 	ctx.buff <- i
 }
 
-func (ctx *ctxWrapper) HandleSendToOutput(_ map[string]interface{}, _ outputs.Output, _ *routes.InputRoute, _ data.Inpteval, _ *string) error {
+func (ctx *ctxWrapper) HandleSendToOutput(_ map[string]interface{}, _ outputs.Output, _ *routes.InputRoute, _ data.Inpteval, _ *string) (string, error) {
 	// TODO: implement
-	return nil
+	return "", nil
 }
 
 func (ctx *ctxWrapper) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
