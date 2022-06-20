@@ -70,14 +70,14 @@ func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
 
-func (email *EmailOutput) Send(content map[string]string) error {
+func (email *EmailOutput) Send(content map[string]string) (string, error) {
 	log.Logger.Infof("Sending to email via %q", email.Name)
 	subject := content["title"]
 	body := content["description"]
 	port := strconv.Itoa(email.Port)
 	recipients := getHandledRecipients(email.Recipients, &content, email.Name)
 	if len(recipients) == 0 {
-		return errThereIsNoRecipient
+		return EmptyID, errThereIsNoRecipient
 	}
 
 	msg := fmt.Sprintf(
@@ -89,7 +89,7 @@ func (email *EmailOutput) Send(content map[string]string) error {
 
 	if email.UseMX {
 		email.sendViaMxServers(port, msg, recipients)
-		return nil
+		return EmptyID, nil
 	}
 
 	var auth smtp.Auth
@@ -99,12 +99,12 @@ func (email *EmailOutput) Send(content map[string]string) error {
 
 	err := email.sendFunc(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
-		log.Logger.Error(fmt.Errorf("placeholder is missed: %w", err))
-		log.Logger.Debug(fmt.Sprintf("from: %q, to %v via %q", email.Sender, email.Recipients, email.Host))
-		return err
+		log.Logger.Errorf("failed to send email: %v", err)
+		log.Logger.Debugf("failed to send email from: %q, to %v via %q:%d", email.Sender, email.Recipients, email.Host, email.Port)
+		return EmptyID, err
 	}
 	log.Logger.Debug("Email was sent successfully!")
-	return nil
+	return EmptyID, nil
 }
 
 func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []string) {

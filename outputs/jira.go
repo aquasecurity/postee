@@ -191,12 +191,12 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	return client, nil
 }
 
-func (ctx *JiraAPI) Send(content map[string]string) error {
+func (ctx *JiraAPI) Send(content map[string]string) (string, error) {
 	log.Logger.Infof("Sending to JIRA via %q", ctx.Name)
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Logger.Errorf("unable to create Jira client: %s", err)
-		return err
+		return EmptyID, err
 	}
 
 	if ctx.boardType == "scrum" {
@@ -205,12 +205,12 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
-		return fmt.Errorf("failed to create meta project: %w", err)
+		return EmptyID, fmt.Errorf("failed to create meta project: %w", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
-		return fmt.Errorf("failed to create meta issue type: %w", err)
+		return EmptyID, fmt.Errorf("failed to create meta issue type: %w", err)
 	}
 
 	summary, ok := content["title"]
@@ -258,7 +258,7 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("failed to init issue: %w", err))
-		return err
+		return EmptyID, err
 	}
 
 	if len(ctx.Labels) > 0 {
@@ -287,10 +287,10 @@ func (ctx *JiraAPI) Send(content map[string]string) error {
 	i, err := ctx.openIssue(client, issue)
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("failed to open jira issue, %w", err))
-		return err
+		return EmptyID, err
 	}
 	log.Logger.Infof("Successfully created a new jira issue %s", i.ID)
-	return nil
+	return i.ID, nil
 }
 
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {

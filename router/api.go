@@ -210,12 +210,12 @@ func SendMsg(msg map[string]interface{}) {
 }
 
 // SendByRoute sends the input message to a route with retry on the output send
-func SendByRoute(b []byte, routeName string) error {
+func SendByRoute(b []byte, routeName string) (ticketIds map[string]string, err error) {
 	return Instance().sendByRoute(parseBytes(b), routeName)
 }
 
 // SendByRoute sends the input message to a route with retry on the output send
-func SendMsgByRoute(msg map[string]interface{}, routeName string) error {
+func SendMsgByRoute(msg map[string]interface{}, routeName string) (ticketIds map[string]string, err error) {
 	return Instance().sendMsgByRoute(msg, routeName)
 }
 
@@ -276,7 +276,8 @@ func TestOutput(input map[string]interface{}, settings *data.OutputSettings) err
 		return err
 	}
 
-	return output.Send(content)
+	_, err = output.Send(content)
+	return err
 }
 
 func buildPostgresUrl(dbName, dbHostName, dbPort, dbUser, dbPassword, dbSslMode string) string {

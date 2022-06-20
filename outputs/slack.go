@@ -63,7 +63,7 @@ func buildSlackBlock(title string, data []byte) []byte {
 	return content.Bytes()
 }
 
-func (slack *SlackOutput) Send(input map[string]string) error {
+func (slack *SlackOutput) Send(input map[string]string) (string, error) {
 	log.Logger.Infof("Sending to Slack via %q", slack.Name)
 	title := clearSlackText(slack.slackLayout.TitleH2(input["title"]))
 	var body string
@@ -80,7 +80,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("unable to parse json: %w", err))
-		return err
+		return EmptyID, err
 	}
 
 	length := len(rawBlock)
@@ -88,7 +88,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 	if length >= slackBlockLimit {
 		message := buildShortMessage(slack.AquaServer, input["url"], slack.slackLayout)
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
-			return err
+			return EmptyID, err
 		}
 		log.Logger.Debugf("Sending to Slack %q was successful!", slack.Name)
 	} else {
@@ -101,7 +101,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 			cutData = cutData[1 : len(cutData)-1]
 			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
 				log.Logger.Error(fmt.Errorf("sending to Slack via %q was finished with error: %w", slack.Name, err))
-				return err
+				return EmptyID, err
 			} else {
 				log.Logger.Debugf("Sending to Slack [%d/%d part] via %q was successful!",
 					int(n/49)+1, int(length/49)+1,
@@ -110,7 +110,7 @@ func (slack *SlackOutput) Send(input map[string]string) error {
 			n += d
 		}
 	}
-	return nil
+	return EmptyID, nil
 }
 
 func (slack *SlackOutput) Terminate() error {

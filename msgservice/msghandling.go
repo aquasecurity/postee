@@ -87,9 +87,9 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 	}
 }
 
-func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) error {
+func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (string, error) {
 	if output == nil {
-		return xerrors.Errorf("The given output is nil")
+		return "", xerrors.Errorf("The given output is nil")
 	}
 
 	owners := scan.scopeOwners(in)
@@ -98,7 +98,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
 		log.Logger.Errorf("Error while evaluating input: %v", err)
-		return err
+		return "", err
 	}
 
 	if owners != "" {
@@ -111,7 +111,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
 				log.Logger.Errorf("Error while building aggregated content: %v", err)
-				return err
+				return "", err
 			}
 			return output.Send(content)
 		}
@@ -128,7 +128,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 		return output.Send(content)
 	}
 
-	return nil
+	return "", nil
 }
 
 // EvaluateRegoRule returns true in case the given input ([]byte) matches the input of the given route
@@ -198,7 +198,7 @@ func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.Input
 }
 func send(otpt outputs.Output, cnt map[string]string) {
 	go func() {
-		err := otpt.Send(cnt)
+		_, err := otpt.Send(cnt)
 		if err != nil {
 			log.Logger.Errorf("Error while sending event: %v", err)
 		}

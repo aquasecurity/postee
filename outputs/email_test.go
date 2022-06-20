@@ -151,7 +151,7 @@ func TestEmailOutput_Send(t *testing.T) {
 				eo.UseMX = true
 			}
 
-			err := eo.Send(map[string]string{"description": "foo bar baz body", "title": "email subject"})
+			_, err := eo.Send(map[string]string{"description": "foo bar baz body", "title": "email subject"})
 			switch {
 			case tc.expectedError != nil:
 				assert.Equal(t, tc.expectedError, err, tc.name)
