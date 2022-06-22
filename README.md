@@ -1,9 +1,12 @@
-![Postee](./docs/img/postee.png)
+<p align="center">
+  <img src="./docs/img/postee.png">
+</p>
 
 ![Docker Pulls][docker-pull]
 [![Go Report Card][report-card-img]][report-card]
 ![](https://github.com/aquasecurity/postee/workflows/Go/badge.svg)
 [![License][license-img]][license]
+
 
 [download]: https://img.shields.io/github/downloads/aquasecurity/postee/total?logo=github
 [release-img]: https://img.shields.io/github/release/aquasecurity/postee.png?logo=github
