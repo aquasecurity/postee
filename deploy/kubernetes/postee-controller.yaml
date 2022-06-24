@@ -1,0 +1,361 @@
+## postee-configmap
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: postee-controller-config
+data:
+  cfg.yaml: |
+    ---
+    actions:
+    - type: stdout
+      name: stdout
+      enable: true
+    
+    - name: my-http-post-from-controller
+      type: http
+      enable: true
+      url: "https://webhook.site/<uuid>"       # Required. URL of the HTTP Request
+      method: POST                          # Required. Method to use. CONNECT is not supported at this time
+      headers:                              # Optional. Headers to pass in for the request.
+        "Foo": [ "bar" ]
+      timeout: 10s                          # Optional. Timeout value in XX(s,m,h)
+      body-content: |                       # Optional. Body inline content of the HTTP request
+        This is an example of a inline body
+        Input Image: event.input.image
+
+    - name: my-exec-from-runner
+      runs-on: "postee-runner"
+      type: exec
+      enable: true
+      env: ["MY_ENV_VAR=foo_bar_baz", "MY_KEY=secret"]     # Optional. Any environment variables to pass in
+      exec-script: |                                       # Specify the script to run
+        #!/bin/sh
+        echo $POSTEE_EVENT
+        echo "this is hello from postee"
+      
+    routes:
+    - name: stdout
+      actions: [ stdout ]
+      template: raw-json
+
+    - name: controller-only-route
+      input: contains(input.image, "alpine")
+      actions: [my-http-post-from-controller]
+      template: raw-json
+
+    - name: runner-only-route
+      input: contains(input.SigMetadata.ID, "TRC-1")
+      serialize-actions: true
+      actions: [my-exec-from-runner, my-http-post-from-runner]
+      template: raw-json
+
+    - name: controller-runner-route
+      input: contains(input.SigMetadata.ID, "TRC-2")
+      serialize-actions: true     # Cannot be strictly guaranteed as executions happen independently on runner/controller
+      actions: [my-exec-from-runner, my-http-post-from-runner, my-http-post-from-controller]
+      template: raw-json
+    
+    templates:
+    - name: raw-json                        # route message "As Is" to external webhook
+      rego-package: postee.rawmessage.json
+
+  server-cert.pem: |
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
+  server-key.pem: |
+    -----BEGIN PRIVATE KEY-----
+    ----END PRIVATE KEY-----
+  seed-file.txt: |
+    SUAGAA3TNI36JHTD6GLFJRR6KZIY7YXS2ZISHQA4LPZZZG2D6KG5JPV7DM
+    UBUQ63VFZEW3IS7RGQQZF5DIT2FTCMTZAAHFENK3G5M6ADRZ5WAJLAQN
+  root-ca.pem: |
+    -----BEGIN CERTIFICATE-----
+    -----END CERTIFICATE-----
+
+
+
+## postee
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postee-controller
+  name: postee-controller-svc
+spec:
+  ports:
+  - name: https
+    port: 8445
+    protocol: TCP
+    targetPort: 8445
+  - name: http
+    port: 8082
+    protocol: TCP
+    targetPort: 8082
+  - name: nats
+    port: 4222
+    protocol: TCP
+    targetPort: 4222
+  selector:
+    app: postee-controller
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: postee-controller
+  name: postee-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postee-controller
+  serviceName: postee-controller-svc
+  volumeClaimTemplates:
+  - metadata:
+      name: postee-controller-db
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: postee-controller-config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+  - metadata:
+      name: rego-templates
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+  - metadata:
+      name: rego-filters
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 100Mi
+  template:
+    metadata:
+      labels:
+        app: postee-controller
+      name: postee-controller
+    spec:
+      initContainers:
+      - name: setting-db
+        image: busybox:1.34
+        command:
+        - /bin/chown
+        - -R
+        - "1099:1099"
+        - /server
+        volumeMounts:
+        - name: postee-controller-db
+          mountPath: /server/database
+        - name: rego-templates
+          mountPath: /server/rego-templates/custom
+        - name: rego-filters
+          mountPath: /server/rego-filters/custom
+      - name: setting-cfg
+        image: busybox:1.34
+        command:
+        - cp
+        - /configmap/cfg.yaml
+        - /config/cfg.yaml
+        volumeMounts:
+        - name: configmap-vol
+          mountPath: /configmap
+          readOnly: false
+        - name: postee-controller-config
+          mountPath: /config
+      - name: controller-cfg
+        image: busybox:1.34
+        command: ['sh', '-c', 'cp /configmap/server-cert.pem /config/server-cert.pem && cp /configmap/server-key.pem /config/server-key.pem && cp /configmap/seed-file.txt /config/seed-file.txt && cp /configmap/root-ca.pem /config/root-ca.pem']
+        volumeMounts:
+        - name: configmap-vol
+          mountPath: /configmap
+          readOnly: false
+        - name: postee-controller-config
+          mountPath: /config
+      containers:
+      - image: aquasec/postee:latest
+        imagePullPolicy: Always
+        name: postee-controller
+        args:
+        - "--controller-mode"
+        - "--controller-tls-cert"
+        - "/config/server-cert.pem"
+        - "--controller-tls-key"
+        - "/config/server-key.pem"
+        - "--controller-ca-root"
+        - "/config/root-ca.pem"
+        - "--controller-seed-file"
+        - "/config/seed-file.txt"
+        env:
+        - name: POSTEE_CFG
+          value: /config/cfg.yaml
+        ports:
+        - name: http
+          containerPort: 8082
+          protocol: TCP
+        - name: tls
+          containerPort: 8445
+          protocol: TCP
+        - name: nats
+          containerPort: 4222
+          protocol: TCP
+        volumeMounts:
+        - name: configmap-vol
+          mountPath: /configmap
+          readOnly: false
+        - name: postee-controller-db
+          mountPath: /server/database
+        - name: postee-controller-config
+          mountPath: /config
+        - name: rego-templates
+          mountPath: /server/rego-templates/custom
+        - name: rego-filters
+          mountPath: /server/rego-filters/custom
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1099
+          runAsGroup: 1099
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8082
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8082
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: configmap-vol
+        configMap:
+          name: postee-controller-config
+          items:
+          - key: cfg.yaml
+            path: cfg.yaml
+          - key: server-cert.pem
+            path: server-cert.pem
+          - key: server-key.pem
+            path: server-key.pem
+          - key: seed-file.txt
+            path: seed-file.txt
+          - key: root-ca.pem
+            path: root-ca.pem
+## postee-ui
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postee-ui-svc
+spec:
+  ports:
+  - name: postee-ui
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    app: postee-ui
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: postee-ui
+  name: postee-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postee-ui
+  template:
+    metadata:
+      labels:
+        app: postee-ui
+    spec:
+      initContainers:
+      - name: chmod-er
+        image: busybox:1.34
+        command:
+        - /bin/chown
+        - -R
+        - "1099:1099"
+        - /config
+        volumeMounts:
+        - name: postee-controller-config
+          mountPath: /config
+      containers:
+      - image: aquasec/postee-ui:latest
+        imagePullPolicy: Always
+        name: postee-ui
+        env:
+        - name: POSTEE_UI_CFG
+          value: /config/cfg.yaml
+        - name: POSTEE_UI_PORT
+          value: "8000"
+        - name: POSTEE_UI_UPDATE_URL
+          value: "http://postee-controller-svc:8082"
+        - name: POSTEE_ADMIN_USER
+          value: admin
+        - name: POSTEE_ADMIN_PASSWORD
+          value: admin
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        volumeMounts:
+        - name: postee-controller-db
+          mountPath: /server/database
+        - name: postee-controller-config
+          mountPath: /config
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1099
+          runAsGroup: 1099
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: postee-controller-db
+        persistentVolumeClaim:
+          claimName: postee-controller-db-postee-0
+      - name: postee-controller-config
+        persistentVolumeClaim:
+          claimName: postee-controller-config-postee-0

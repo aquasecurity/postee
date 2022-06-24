@@ -50,6 +50,11 @@ The Postee-UI endpoint
 http://postee-ui-svc.default.svc.cluster.local:8000
 ````
 
+#### Controller/Runner
+To use Controller/Runner functionality within Kubernetes, you can follow a reference manifest implementation:
+- [Controller](https://github.com/aquasecurity/postee/blob/main/deploy/kubernetes/postee-controller.yaml)
+- [Runner](https://github.com/aquasecurity/postee/blob/main/deploy/kubernetes/postee-runner.yaml)
+
 ### Helm
 When running Postee on Kubernetes, the configuration file is passed as a ConfigMap that is mounted to the Postee pod.
 
