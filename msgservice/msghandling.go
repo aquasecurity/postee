@@ -46,11 +46,7 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 
 	}
 
-	posteeOpts := map[string]string{
-		"AquaServer": *AquaServer,
-	}
-
-	in["postee"] = posteeOpts
+	scan.enrichMsg(in, route, *AquaServer)
 
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
@@ -188,14 +184,46 @@ func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.Input
 		policyID = route.Name[dash+1:]
 	}
 
-	if policyName != "" {
-		in["response_policy_name"] = policyName
-	}
+	//enrich those fields even if they are empty, so the rego evaluation will not fail
+	in["response_policy_name"] = policyName
+	in["response_policy_id"] = policyID
 
-	if policyID != "" {
-		in["response_policy_id"] = policyID
+	scan.enrichInsightVulnsPackageName(in)
+}
+
+func (scan *MsgService) enrichInsightVulnsPackageName(in map[string]interface{}) {
+	ev, ok := in["evidence"]
+	if ok {
+		evMap, ok := ev.(map[string]interface{})
+		if ok {
+			vulns, ok := evMap["vulnerabilities"]
+			if ok {
+				vulnsList, ok := vulns.([]interface{})
+				if ok {
+					var newList []interface{}
+					for _, v := range vulnsList {
+						vulnsMap, ok := v.(map[string]interface{})
+						if ok {
+							pkg, ok := vulnsMap["package"]
+							if ok {
+								packgeName, ok := pkg.(string)
+								if ok {
+									vulnsMap["package_name"] = packgeName
+
+								}
+							}
+							newList = append(newList, vulnsMap)
+						}
+					}
+
+					evMap["vulnerabilities"] = newList
+					in["evidence"] = evMap
+				}
+			}
+		}
 	}
 }
+
 func send(otpt outputs.Output, cnt map[string]string) {
 	go func() {
 		_, err := otpt.Send(cnt)
