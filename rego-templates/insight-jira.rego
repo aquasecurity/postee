@@ -16,19 +16,27 @@ _Resource Details_:
 *Resource ID:* %s
 *Resource Name:* %s
 *ARN:* %s
-*Resource Kind:* %s
-*Cloud Account:* %s
-*Cloud Provider:* %s
-*Cloud Service:* %s
-*Cloud Region:* %s
+%s
 
 _Evidence_: 
 %s
 
-_Insight Remediation_: TODO
+_Recommendation_:
+%s
 
-*Response policy name*: TODO policy name
-*Response policy ID:* TODO policy id
+*Response policy name*: %s
+*Response policy ID:* %s
+`
+
+vulnsDetails:=`*Resource Kind:* %s
+*Cloud Account:* %s
+*Cloud Provider:* %s
+*Cloud Service:* %s
+*Cloud Region:* %s
+`
+
+sensitiveDetails:=`*Image Name*: %s
+*Registry*: %s
 `
 
 translateSeverity(score) = b {
@@ -59,7 +67,7 @@ vln_list = vlnrb {
 
                     vlnname := item.name
                     severity := item.severity
-                    packageName := "TODO package name"
+                    packageName := item.package_name
                     
                     r := sprintf("|%s|%s|%s|\n",[vlnname,severity,packageName])
               ]
@@ -126,6 +134,65 @@ evidenceTable(category) = table {
     category == "Sensitive data"
 }
 
+insightDetails(category) = details {
+    details := sprintf(vulnsDetails,
+    [input.resource.steps.ResourceKind,
+    input.resource.steps.CloudAccount,
+    input.resource.steps.CloudProvider,
+    input.resource.steps.CloudService,
+    input.resource.steps.Region])
+    category == "Compound risk"
+}
+
+insightDetails(category) = details {
+    details := sprintf(vulnsDetails,
+    [input.resource.steps.ResourceKind,
+    input.resource.steps.CloudAccount,
+    input.resource.steps.CloudProvider,
+    input.resource.steps.CloudService,
+    input.resource.steps.Region])
+    category == "Malware"
+}
+
+insightDetails(category) = details {
+    details := sprintf(vulnsDetails,
+    [input.resource.steps.ResourceKind,
+    input.resource.steps.CloudAccount,
+    input.resource.steps.CloudProvider,
+    input.resource.steps.CloudService,
+    input.resource.steps.Region])
+    category == "Vulnerabilities"
+}
+
+insightDetails(category) = details {
+    details := sprintf(sensitiveDetails,
+    [input.resource.steps.Image,
+    input.resource.steps.Registry])
+    category == "Sensitive data"
+}
+
+recommendation(category) = details {
+    details := input.evidence.malware_remediation
+    category == "Malware"
+}
+
+recommendation(category) = details {
+    details := input.evidence.sensitive_data_remediation
+    category == "Sensitive data"
+}
+
+recommendation(category) = details {
+    details := input.evidence.vulnerabilities_remediation
+    category == "Vulnerabilities"
+}
+
+recommendation(category) = details {
+    details := input.evidence.vulnerabilities_remediation
+    category == "Compound risk"
+}
+
+has_key(x, k) { _ = x[k] }
+
 result = msg {
     msg := sprintf(tpl, [
     input.insight.id,
@@ -136,11 +203,10 @@ result = msg {
     input.resource.id,
     input.resource.name,
     input.resource.arn,
-    input.resource.steps.ResourceKind,
-    input.resource.steps.CloudAccount,
-    input.resource.steps.CloudProvider,
-    input.resource.steps.CloudService,
-    input.resource.steps.Region,
-    evidenceTable(input.insight.category)
+    insightDetails(input.insight.category),
+    evidenceTable(input.insight.category),
+    recommendation(input.insight.category),
+    input.response_policy_name,
+    input.response_policy_id
     ])
 }
