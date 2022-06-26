@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"container/ring"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -39,16 +40,17 @@ type Router struct {
 	RunnerName    string
 	ControllerURL string
 
-	mutexScan   sync.Mutex
-	quit        chan struct{}
-	queue       chan []byte
-	ticker      *time.Ticker
-	stopTicker  chan struct{}
-	cfgfile     string
-	aquaServer  string
-	actions     map[string]actions.Action
-	inputRoutes map[string]*routes.InputRoute
-	templates   map[string]data.Inpteval
+	mutexScan       sync.Mutex
+	quit            chan struct{}
+	readOnlyEvents  *ring.Ring
+	inputEventQueue chan []byte
+	ticker          *time.Ticker
+	stopTicker      chan struct{}
+	cfgfile         string
+	aquaServer      string
+	actions         map[string]actions.Action
+	inputRoutes     map[string]*routes.InputRoute
+	templates       map[string]data.Inpteval
 }
 
 var (
@@ -64,13 +66,14 @@ var (
 func Instance() *Router {
 	initCtx.Do(func() {
 		routerCtx = &Router{
-			mutexScan:   sync.Mutex{},
-			quit:        make(chan struct{}),
-			queue:       make(chan []byte, 1000),
-			actions:     make(map[string]actions.Action),
-			inputRoutes: make(map[string]*routes.InputRoute),
-			templates:   make(map[string]data.Inpteval),
-			stopTicker:  make(chan struct{}),
+			mutexScan:       sync.Mutex{},
+			quit:            make(chan struct{}),
+			readOnlyEvents:  ring.New(1000),
+			inputEventQueue: make(chan []byte, 1000),
+			actions:         make(map[string]actions.Action),
+			inputRoutes:     make(map[string]*routes.InputRoute),
+			templates:       make(map[string]data.Inpteval),
+			stopTicker:      make(chan struct{}),
 		}
 	})
 	return routerCtx
@@ -133,7 +136,17 @@ func (ctx *Router) Terminate() {
 }
 
 func (ctx *Router) Send(data []byte) {
-	ctx.queue <- data
+	ctx.inputEventQueue <- data
+	ctx.readOnlyEvents.Value = data
+	ctx.readOnlyEvents = ctx.readOnlyEvents.Next()
+}
+
+func (ctx *Router) GetCurrentEvents() []any {
+	var events []any
+	ctx.readOnlyEvents.Do(func(a any) {
+		events = append(events, a)
+	})
+	return events
 }
 
 func (ctx *Router) initTemplate(template *Template) error {
@@ -284,7 +297,7 @@ func (ctx *Router) HandleRoute(routeName string, in []byte) {
 	if ctx.Mode == "runner" {
 		log.Println("Sending event upstream to controller at url: ", ctx.ControllerURL)
 		NATSEventSubject := "postee.events"
-		if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil {
+		if err := ctx.NatsConn.Publish(NATSEventSubject, in); err != nil { // TODO: What happens if controller is unavailable?
 			log.Println("Unable to send event upstream to controller at url: ", ctx.ControllerURL, "err: ", err.Error())
 		}
 	}
@@ -434,7 +447,7 @@ func (ctx *Router) listen() {
 		select {
 		case <-ctx.quit:
 			return
-		case data := <-ctx.queue:
+		case data := <-ctx.inputEventQueue:
 			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
 		case msg := <-ctx.ConfigCh:
 			log.Println("A runner requested config: ", string(msg.Data))
@@ -488,7 +501,7 @@ func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 
 	for _, rr := range runnerRoutes {
 		for _, inputTemplate := range tenant.Templates {
-			if inputTemplate.Name == rr.Template {
+			if inputTemplate.Name == rr.Template && !contains(runnerTemplates, inputTemplate.Name) {
 				runnerTemplates = append(runnerTemplates, inputTemplate)
 			}
 		}
@@ -504,6 +517,15 @@ func buildRunnerConfig(runnerName, cfgFile string) (string, error) {
 	}
 
 	return string(cfgB), nil
+}
+
+func contains(haystack []Template, needle string) bool {
+	for _, noodle := range haystack {
+		if noodle.Name == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func SetupConnOptions(opts []nats.Option) []nats.Option {

@@ -1,9 +1,9 @@
 package router
 
 type Template struct {
-	Name               string `json:"name"`
-	Body               string `json:"body"`
-	RegoPackage        string `json:"rego-package"`
-	LegacyScanRenderer string `json:"legacy-scan-renderer"`
-	Url                string `json:"url"`
+	Name               string `json:"name,omitempty"`
+	Body               string `json:"body,omitempty"`
+	RegoPackage        string `json:"rego-package,omitempty"`
+	LegacyScanRenderer string `json:"legacy-scan-renderer,omitempty"`
+	Url                string `json:"url,omitempty"`
 }

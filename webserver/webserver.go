@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/aquasecurity/postee/v2/dbservice"
@@ -81,6 +82,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	ctx.router.HandleFunc("/tenant/{route}", ctx.sessionHandler(ctx.tenantHandler)).Methods("POST")
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("GET")
+	ctx.router.HandleFunc("/events", ctx.sessionHandler(ctx.eventsHandler)).Methods("GET")
 
 	ctx.router.HandleFunc("/reload", ctx.withApiKey(ctx.reload)).Methods("GET")
 
@@ -142,4 +144,24 @@ func (ctx *WebServer) writeResponseError(w http.ResponseWriter, httpError int, e
 	if errEncode != nil {
 		log.Printf("Encode error: %s \n", errEncode)
 	}
+}
+
+func (ctx *WebServer) eventsHandler(w http.ResponseWriter, r *http.Request) {
+	var events []byte
+	events = append(events, []byte("[")...)
+	currentEvents := router.Instance().GetCurrentEvents()
+	if len(currentEvents) > 0 && currentEvents != nil {
+		for i, ce := range currentEvents {
+			if ce != nil {
+				if i < len(currentEvents)-1 {
+					events = append(events, []byte(strings.Join([]string{string(ce.([]byte)), ","}, ""))...)
+				} else {
+					events = append(events, ce.([]byte)...)
+				}
+			}
+		}
+	}
+	events = append(events, []byte("]")...)
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(events)
 }

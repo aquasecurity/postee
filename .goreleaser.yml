@@ -7,7 +7,7 @@ env:
   - CGO_ENABLED=0
 before:
   hooks:
-    - make all
+    - make build
 builds:
   - id: postee
     dir: .

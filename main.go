@@ -8,15 +8,14 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
-	"time"
 
-	"github.com/nats-io/nats-server/v2/server"
+	"github.com/aquasecurity/postee/v2/controller"
 
 	"github.com/aquasecurity/postee/v2/dbservice"
 	"github.com/aquasecurity/postee/v2/router"
+	"github.com/aquasecurity/postee/v2/runner"
 	"github.com/aquasecurity/postee/v2/utils"
 	"github.com/aquasecurity/postee/v2/webserver"
-	"github.com/nats-io/nats.go"
 	"github.com/spf13/cobra"
 )
 
@@ -27,9 +26,6 @@ const (
 	TLS_USAGE = "The TLS socket to bind to, specified using host:port."
 	CFG_FILE  = "/config/cfg.yaml"
 	CFG_USAGE = "The alert configuration file."
-
-	NATSConfigSubject = "postee.config"
-	NATSEventSubject  = "postee.events"
 )
 
 var (
@@ -37,8 +33,18 @@ var (
 	tls            = ""
 	cfgfile        = ""
 	controllerMode = false
-	runnerName     = ""
-	controllerURL  = ""
+
+	controllerURL          = ""
+	controllerCARootPath   = ""
+	controllerTLSCertPath  = ""
+	controllerTLSKeyPath   = ""
+	controllerSeedFilePath = ""
+	runnerSeedFilePath     = ""
+
+	runnerName        = ""
+	runnerCARootPath  = ""
+	runnerTLSCertPath = ""
+	runnerTLSKeyPath  = ""
 )
 
 var rootCmd = &cobra.Command{
@@ -52,9 +58,18 @@ func init() {
 	rootCmd.Flags().StringVar(&tls, "tls", TLS, TLS_USAGE)
 	rootCmd.Flags().StringVar(&cfgfile, "cfgfile", CFG_FILE, CFG_USAGE)
 
-	rootCmd.Flags().StringVar(&runnerName, "runner-name", "", "postee runner name")
-	rootCmd.Flags().StringVar(&controllerURL, "controller-url", "", "postee controller URL")
 	rootCmd.Flags().BoolVar(&controllerMode, "controller-mode", false, "run postee in controller mode")
+	rootCmd.Flags().StringVar(&controllerURL, "controller-url", "", "postee controller URL")
+	rootCmd.Flags().StringVar(&controllerCARootPath, "controller-ca-root", "", "postee controller ca root file")
+	rootCmd.Flags().StringVar(&controllerTLSCertPath, "controller-tls-cert", "", "postee controller TLS cert file")
+	rootCmd.Flags().StringVar(&controllerTLSKeyPath, "controller-tls-key", "", "postee controller TLS key file")
+	rootCmd.Flags().StringVar(&controllerSeedFilePath, "controller-seed-file", "", "postee controller AuthN seed file")
+
+	rootCmd.Flags().StringVar(&runnerName, "runner-name", "", "postee runner name")
+	rootCmd.Flags().StringVar(&runnerCARootPath, "runner-ca-root", "", "postee runner ca root file")
+	rootCmd.Flags().StringVar(&runnerTLSCertPath, "runner-tls-cert", "", "postee runner tls cert file")
+	rootCmd.Flags().StringVar(&runnerTLSKeyPath, "runner-tls-key", "", "postee runner tls key file")
+	rootCmd.Flags().StringVar(&runnerSeedFilePath, "runner-seed-file", "", "postee runner AuthN seed file")
 }
 
 func main() {
@@ -62,87 +77,49 @@ func main() {
 	utils.InitDebug()
 
 	rootCmd.Run = func(cmd *cobra.Command, args []string) {
-		r := router.Instance()
+		rtr := router.Instance()
 
 		if runnerName != "" {
-			log.Println("Running in runner mode")
 			if controllerMode {
-				log.Fatal("Postee cannot run as a controller when running in runner mode")
+				log.Fatal("postee cannot run as a controller when running in runner mode")
 			}
 
-			if controllerURL == "" {
-				log.Fatal("Runner mode requires a valid controller url")
-			}
-
-			var err error
-			r.NatsConn, err = nats.Connect(controllerURL, router.SetupConnOptions(nil)...)
-			if err != nil {
-				log.Fatal("Unable to connect to controller at url: ", controllerURL, "err: ", err)
-			}
-
-			msg, err := r.NatsConn.Request(NATSConfigSubject, []byte(runnerName), time.Second*5)
-			if err != nil {
-				log.Fatal("Unable to obtain runner config from url: ", controllerURL, "err: ", err)
-			}
-
-			log.Println("Runner configuration obtained from: ", controllerURL)
 			f, err := ioutil.TempFile("", "temp-postee-config-*") // TODO: Find a better way
 			if err != nil {
 				log.Fatal("Unable to create temp file for runner config on disk: ", err)
 			}
-			defer func() {
-				os.Remove(f.Name())
-			}()
 
-			if _, err := f.Write(msg.Data); err != nil {
-				log.Fatal("Unable to write runner config to disk: ", err)
+			rnr := runner.Runner{
+				ControllerURL:      controllerURL,
+				RunnerSeedFilePath: runnerSeedFilePath,
+				RunnerCARootPath:   runnerCARootPath,
+				RunnerTLSKeyPath:   runnerTLSKeyPath,
+				RunnerTLSCertPath:  runnerTLSCertPath,
+				RunnerName:         runnerName,
 			}
-			cfgfile = f.Name()
+			if err := rnr.Setup(rtr, f); err != nil {
+				log.Fatal("Failed to launch runner: ", err)
+			}
+			defer func() { os.Remove(f.Name()) }()
 
-			r.ControllerURL = controllerURL
-			r.RunnerName = runnerName
-			r.Mode = "runner"
+			cfgfile = f.Name()
 		}
 
 		if controllerMode {
-			log.Println("Running in controller mode")
 			if runnerName != "" {
-				log.Fatal("Postee cannot run as a runner when running in controller mode")
+				log.Fatal("postee cannot run as a runner when running in controller mode")
 			}
 
-			var configCh chan *nats.Msg
-			var natsServer *server.Server
-
-			var err error
-			natsServer, err = server.NewServer(&server.Options{})
-			if err != nil {
-				log.Fatal("Unable to start controller backplane: ", err)
+			ctr := controller.Controller{
+				ControllerURL:          controllerURL,
+				ControllerSeedFilePath: controllerSeedFilePath,
+				ControllerCAFile:       controllerCARootPath,
+				ControllerTLSKeyPath:   controllerTLSKeyPath,
+				ControllerTLSCertPath:  controllerTLSCertPath,
+				RunnerName:             runnerName,
 			}
-			go natsServer.Start()
-			if !natsServer.ReadyForConnections(time.Second * 10) {
-				log.Fatal("Controller backplane is not ready to receive connections, try restarting controller")
-			}
-
-			configCh = make(chan *nats.Msg)
-			nc, err := nats.Connect(natsServer.ClientURL(), router.SetupConnOptions(nil)...)
-			if err != nil {
-				log.Fatal("Unable to setup controller: ", err)
-			}
-
-			log.Println("Listening to config requests on: ", NATSConfigSubject)
-			if _, err := nc.ChanSubscribe(NATSConfigSubject, configCh); err != nil {
-				log.Fatal("Unable to subscribe for config requests from runners on: ", NATSConfigSubject, "err: ", err)
-			}
-
-			r.ConfigCh = configCh
-			r.NatsServer = natsServer
-			r.Mode = "controller"
-
-			r.NatsMsgCh = make(chan *nats.Msg)
-			eventSubj := NATSEventSubject
-			log.Println("Subscribing to events from runners on: ", eventSubj)
-			if _, err := nc.ChanSubscribe(eventSubj, r.NatsMsgCh); err != nil {
-				log.Fatal("Unable to subscribe for events from runners on: ", eventSubj, "err: ", err)
+			if err := ctr.Setup(rtr); err != nil {
+				log.Fatal("Failed to launch controller: ", err)
 			}
 		}
 
@@ -174,13 +151,13 @@ func main() {
 			dbservice.SetNewDbPathFromEnv()
 		}
 
-		err := r.Start(cfgfile)
+		err := rtr.Start(cfgfile)
 		if err != nil {
 			log.Printf("Can't start alert manager %v", err)
 			return
 		}
 
-		defer r.Terminate()
+		defer rtr.Terminate()
 
 		go webserver.Instance().Start(url, tls)
 		defer webserver.Instance().Terminate()

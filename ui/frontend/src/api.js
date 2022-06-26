@@ -17,6 +17,9 @@ export default {
     getStats: function () {
         return axios.get("/api/outputs/stats")
     },
+    getEvents: function() {
+        return axios.get("/api/events")
+    },
     saveConfig: function (settings) {
         const yamlObj = yaml.dump(settings)
         return axios.post("/api/config", yamlObj)
@@ -44,6 +47,7 @@ export default {
             outputs: rootState.outputs.all,
             routes: rootState.routes.all,
             templates: rootState.templates.all,
+            events: rootState.events.all,
             ...rootState.settings.all,
             ...modification
         }

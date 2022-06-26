@@ -12,7 +12,7 @@ import (
 )
 
 func (srv *uiServer) testSettings(w http.ResponseWriter, r *http.Request) {
-	plgSettings := &router.OutputSettings{}
+	plgSettings := &router.ActionSettings{}
 
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)

@@ -1,23 +1,23 @@
 package routes
 
 type InputRoute struct {
-	Name             string        `json:"name"`
-	Input            string        `json:"input"`
-	InputFiles       []string      `json:"input-files"`
-	Actions          []string      `json:"actions"`
-	Plugins          Plugins       `json:"plugins"`
-	Template         string        `json:"template"`
-	SerializeActions bool          `json:"serialize-actions"`
+	Name             string        `json:"name,omitempty"`
+	Input            string        `json:"input,omitempty"`
+	InputFiles       []string      `json:"input-files,omitempty"`
+	Actions          []string      `json:"actions,omitempty"`
+	Plugins          Plugins       `json:"plugins,omitempty"`
+	Template         string        `json:"template,omitempty"`
+	SerializeActions bool          `json:"serialize-actions,omitempty"`
 	Scheduling       chan struct{} `json:"-"`
 }
 
 type Plugins struct {
-	AggregateMessageNumber      int    `json:"aggregate-message-number"`
-	AggregateMessageTimeout     string `json:"aggregate-message-timeout"`
-	AggregateTimeoutSeconds     int
-	UniqueMessageProps          []string `json:"unique-message-props"`
-	UniqueMessageTimeout        string   `json:"unique-message-timeout"`
-	UniqueMessageTimeoutSeconds int
+	AggregateMessageNumber      int      `json:"aggregate-message-number,omitempty"`
+	AggregateMessageTimeout     string   `json:"aggregate-message-timeout,omitempty"`
+	AggregateTimeoutSeconds     int      `json:"aggregate-timeout-seconds,omitempty"`
+	UniqueMessageProps          []string `json:"unique-message-props,omitempty"`
+	UniqueMessageTimeout        string   `json:"unique-message-timeout,omitempty"`
+	UniqueMessageTimeoutSeconds int      `json:"unique-message-timeout-seconds,omitempty"`
 }
 
 func (route *InputRoute) IsSchedulerRun() bool {
