@@ -14,9 +14,10 @@ import (
 
 func TestUiServer_getEvents(t *testing.T) {
 	testCases := []struct {
-		name          string
-		tsHandlerFunc http.HandlerFunc
-		expectedResp  string
+		name               string
+		tsHandlerFunc      http.HandlerFunc
+		expectedResp       string
+		expectedStatusCode int
 	}{
 		{
 			name: "happy path",
@@ -50,10 +51,11 @@ func TestUiServer_getEvents(t *testing.T) {
       }
    }
 ]`,
+			expectedStatusCode: http.StatusOK,
 		},
 		{
-			name:         "sad path, no postee url set",
-			expectedResp: "No Postee URL configured, set POSTEE_UI_UPDATE_URL to the Postee URL",
+			name:               "sad path, no postee url set",
+			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
 
@@ -79,6 +81,7 @@ func TestUiServer_getEvents(t *testing.T) {
 				_ = resp.Body.Close()
 			}()
 			got, _ := ioutil.ReadAll(resp.Body)
+			assert.Equal(t, tc.expectedStatusCode, resp.StatusCode, tc.name)
 			if tc.tsHandlerFunc != nil {
 				assert.JSONEq(t, tc.expectedResp, string(got), tc.name)
 			} else {
