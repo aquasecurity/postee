@@ -39,7 +39,7 @@ jobs:
             kubectl wait --for=condition=Ready pod -l app=postee --timeout=150s
             kubectl wait --for=condition=Ready pod -l app=postee-ui --timeout=150s
       - name: Install Helm
-        uses: azure/setup-helm@v2.1
+        uses: azure/setup-helm@v3.0
         with:
           version: v3.6.0
       - name: Testing Helm Postee manifest
@@ -57,7 +57,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Helm
-        uses: azure/setup-helm@v2.1
+        uses: azure/setup-helm@v3.0
         with:
           version: v3.6.0
       - name: Install chart-releaser
