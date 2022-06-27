@@ -48,7 +48,7 @@ require (
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/open-policy-agent/opa v0.40.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.0.2 // indirect
+	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.10 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -89,5 +89,6 @@ require (
 
 replace (
 	github.com/aquasecurity/postee/v2 v2.0.7 => ../..
+	github.com/containerd/containerd v1.6.2 => github.com/containerd/containerd v1.6.6
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
 )
