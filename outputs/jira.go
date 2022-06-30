@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/aquasecurity/postee/v2/data"
@@ -289,18 +288,16 @@ func (ctx *JiraAPI) Send(content map[string]string) (string, error) {
 		log.Logger.Error(fmt.Errorf("failed to open jira issue, %w", err))
 		return EmptyID, err
 	}
-	log.Logger.Infof("Successfully created a new jira issue %s", i.ID)
-	return i.ID, nil
+	log.Logger.Infof("Successfully created a new jira issue %s", i.Key)
+	return i.Key, nil
 }
 
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {
-	i, res, err := client.Issue.Create(issue)
-
-	defer res.Body.Close()
-	resp, _ := ioutil.ReadAll(res.Body)
+	i, _, err := client.Issue.Create(issue)
 	if err != nil {
-		return nil, errors.New(string(resp))
+		return nil, err
 	}
+
 	return i, nil
 }
 
@@ -452,6 +449,7 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 	issue.Fields = issueFields
 	return issue, nil
 }
+
 func findUserOnJiraServer(c *jira.Client, email string) ([]jira.User, *jira.Response, error) {
 	req, _ := c.NewRequest("GET", fmt.Sprintf("/rest/api/2/user/search?username=%s", email), nil)
 
@@ -464,6 +462,7 @@ func findUserOnJiraServer(c *jira.Client, email string) ([]jira.User, *jira.Resp
 	}
 	return users, resp, nil
 }
+
 func isServerJira(rawUrl string) bool {
 	jiraUrl, err := url.Parse(rawUrl)
 

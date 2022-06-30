@@ -7,8 +7,6 @@ title = sprintf("%s vulnerability scan report", [input.image])
 
 
 tpl:=`
-*Response policy name*: %s
-*Response policy ID:* %s
 *Image name:* %s
 *Registry:* %s
 %s
@@ -16,12 +14,13 @@ tpl:=`
 %s
 
 %v
+
+*Response policy name*: %s
+*Response policy ID:* %s
 `
 
 result = msg {
     msg := sprintf(tpl, [
-    input.response_policy_name,
-    input.response_policy_id,
     input.image,
     input.registry,
 	by_flag(
@@ -43,6 +42,8 @@ result = msg {
     format_int(with_default(input.vulnerability_summary,"high",0), 10),
     format_int(with_default(input.vulnerability_summary,"medium",0), 10),
     format_int(with_default(input.vulnerability_summary,"low",0), 10),
-    format_int(with_default(input.vulnerability_summary,"negligible",0), 10)])
+    format_int(with_default(input.vulnerability_summary,"negligible",0), 10)]),
+    input.response_policy_name,
+    input.response_policy_id
     ])
 }

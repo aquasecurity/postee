@@ -129,9 +129,7 @@ result = res {
     ])
 
 
-	headers := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
-                {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy ID: %s", [input.response_policy_id])}},
-                {"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
+	headers := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
     			{"type":"section","text":{"type":"mrkdwn","text":sprintf("Registry: %s", [input.registry])}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
                                                                         "Image is non-compliant",
@@ -148,6 +146,8 @@ result = res {
                                                                         "Sensitive data found: No",
                                                                         with_default(input.vulnerability_summary, "sensitive", 0) > 0 #reflects current logic
                                                                     )}},
+                {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
+                {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy ID: %s", [input.response_policy_id])}},
                 {
                 "type": "section",
                 "fields": severity_stats
