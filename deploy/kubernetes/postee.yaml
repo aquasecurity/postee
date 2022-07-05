@@ -192,9 +192,6 @@ spec:
               containerPort: 8445
               protocol: TCP
           volumeMounts:
-            - name: configmap-vol
-              mountPath: /configmap
-              readOnly: false
             - name: postee-db
               mountPath: /server/database
             - name: postee-config
