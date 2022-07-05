@@ -36,8 +36,8 @@ jobs:
             kubectl create -f deploy/kubernetes/postee.yaml
       - name: Testing Kubernetes Postee manifest
         run: |
-            kubectl wait --for=condition=Ready pod -l app=postee --timeout=150s
-            kubectl wait --for=condition=Ready pod -l app=postee-ui --timeout=150s
+            kubectl wait --for=condition=Ready pod -l app=postee --timeout=300s
+            kubectl wait --for=condition=Ready pod -l app=postee-ui --timeout=300s
       - name: Install Helm
         uses: azure/setup-helm@v3.0
         with:
