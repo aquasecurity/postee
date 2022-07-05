@@ -10,13 +10,13 @@ posteUi:
   user: ""
   pass: ""
   image: aquasec/postee-ui
-  tag: "latest"
+  tag: ""
 
 image:
   repository: aquasec/postee
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: ""
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent
