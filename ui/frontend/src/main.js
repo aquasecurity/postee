@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import App from './App.vue'
-import Outputs from './components/Outputs.vue'
+import Actions from './components/Actions.vue'
 import LoginForm from './components/LoginForm.vue'
-import OutputDetails from './components/OutputDetails.vue'
+import ActionDetails from './components/ActionDetails.vue'
 import RouteDetails from './components/RouteDetails.vue'
 import Routes from './components/Routes.vue'
 import TemplateDetails from './components/TemplateDetails.vue'
@@ -20,15 +20,15 @@ Vue.use(BootstrapVueIcons);
 Vue.use(VueRouter);
 
 const routes = [
-  { name: 'home', path: '/', redirect: '/outputs' },
-  { name: 'outputs', path: '/outputs', component: Outputs },
+  { name: 'home', path: '/', redirect: '/actions' },
+  { name: 'actions', path: '/actions', component: Actions },
   { name: 'routes', path: '/routes', component: Routes },
   { name: 'add-route', path: '/route', component: RouteDetails },
   { name: 'route', path: '/route/:name', component: RouteDetails },
   { name: 'settings', path: '/settings', component: Settings },
   { name: 'login', path: '/login', component: LoginForm },
-  { name: 'add-output', path: '/output', component: OutputDetails },
-  { name: 'output', path: '/output/:name', component: OutputDetails },
+  { name: 'add-action', path: '/action', component: ActionDetails },
+  { name: 'action', path: '/action/:name', component: ActionDetails },
   { name: 'events', path: '/events', component: Events },
 
   { name: 'templates', path: '/templates', component: Templates },

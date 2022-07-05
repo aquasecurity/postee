@@ -4,7 +4,7 @@ import api from './../api'
 
 import error from './modules/error.js'
 import account from './modules/account.js'
-import outputs from './modules/outputs.js'
+import actions from './modules/actions.js'
 import stats from './modules/stats.js'
 import events from './modules/events.js'
 import routes from './modules/routes.js'
@@ -17,7 +17,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     modules: {
         error,
-        outputs,
+        actions,
         account,
         stats,
         events,
@@ -42,7 +42,7 @@ export default new Vuex.Store({
                     DbVerifyInterval: data.DbVerifyInterval,
                     Max_DB_Size: data.Max_DB_Size
                 }
-                data.outputs && context.commit("outputs/set", data.outputs)
+                data.actions && context.commit("actions/set", data.actions)
                 data.routes && context.commit("routes/set", data.routes)
                 data.templates && context.commit("templates/set", data.templates)
                 data.events && context.commit("events/set", data.events)

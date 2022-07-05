@@ -50,7 +50,7 @@ func Instance(webLocalPath, port, cfg, webhookUrl, admusr string, admpwd string)
 	server.router.HandleFunc("/api/config", server.updateConfig).Methods("POST")
 	server.router.HandleFunc("/api/config", server.getConfig).Methods("GET")
 	server.router.HandleFunc("/api/test", server.testSettings).Methods("POST")
-	server.router.HandleFunc("/api/outputs/stats", server.plgnStats).Methods("GET")
+	server.router.HandleFunc("/api/actions/stats", server.plgnStats).Methods("GET")
 	server.router.HandleFunc("/api/events", server.getEvents).Methods("GET")
 
 	server.router.HandleFunc("/ping", server.pingHandler).Methods("GET")

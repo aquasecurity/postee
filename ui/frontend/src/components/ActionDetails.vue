@@ -32,13 +32,13 @@
           <div class="row">
             <div class="col">
               <div class="form-group form-input">
-                <label for="outputType">Type</label>
+                <label for="actionType">Type</label>
                 <select
                   class="form-select form-control"
                   :value="formValues.type"
-                  id="outputType"
+                  id="actionType"
                   name="type"
-                  @input="updateOutputType"
+                  @input="updateActionType"
                 >
                   <option value="email">Email</option>
                   <option value="jira">Jira</option>
@@ -461,7 +461,7 @@ export default {
       isTestingInProgress: false,
       fields: {}, //required for mixins
       errors: {}, //required for mixins
-      outputType: "", //stored separately to track dependencies
+      actionType: "", //stored separately to track dependencies
       jiraAssigneeDescription:
         'Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value',
     };
@@ -474,41 +474,41 @@ export default {
   computed: {
     ...mapState({
       formValues(state) { //required for mixins
-        const found = state.outputs.all.filter(
+        const found = state.actions.all.filter(
           (item) => item.name === this.name
         );
 
         const result = found.length ? { ...found[0] } : { type: "email" };
 
-        this.outputType = result.type;
+        this.actionType = result.type;
         this.unknowns = {...result.unknowns}
 
         return result;
       },
     }),
     showUrl() {
-      return urlDescriptionByType[this.outputType] !== undefined;
+      return urlDescriptionByType[this.actionType] !== undefined;
     },
     getUrlDescription() {
-      return urlDescriptionByType[this.outputType];
+      return urlDescriptionByType[this.actionType];
     },
     isServiceNow() {
-      return this.outputType === "serviceNow";
+      return this.actionType === "serviceNow";
     },
     isSplunk() {
-      return this.outputType === "splunk";
+      return this.actionType === "splunk";
     },
     isEmail() {
-      return this.outputType === "email";
+      return this.actionType === "email";
     },
     isJira() {
-      return this.outputType === "jira";
+      return this.actionType === "jira";
     },
     isNexusIQ() {
-      return this.outputType === "nexusIq";
+      return this.actionType === "nexusIq";
     },
     showCredentials() {
-      return typesWithCredentials.indexOf(this.outputType) >= 0;
+      return typesWithCredentials.indexOf(this.actionType) >= 0;
     },
   },
   filters: {
@@ -525,7 +525,7 @@ export default {
       this.isTestingInProgress = true;
 
       this.$store
-        .dispatch("outputs/test", this.formValues)
+        .dispatch("actions/test", this.formValues)
         .then(() => {
           this.$bvToast.toast("Action is configured correctly", {
             title: "Success",
@@ -552,28 +552,28 @@ export default {
         this.formValues.unknowns={...this.unknowns}
       }
       if (this.name) {
-        this.$store.dispatch("outputs/update", {
+        this.$store.dispatch("actions/update", {
           value: this.formValues,
           name: this.name,
         });
       } else {
-        this.$store.dispatch("outputs/add", this.formValues);
+        this.$store.dispatch("actions/add", this.formValues);
       }
       this.$router.push({ name: "home" });
     },
-    updateOutputType(e) {
-      this.outputType = e.target.value;
+    updateActionType(e) {
+      this.actionType = e.target.value;
       this.updateField(e);
     },
     doRemove() {
-      this.$store.dispatch("outputs/remove", this.name);
+      this.$store.dispatch("actions/remove", this.name);
       this.$router.push({ name: "home" });
     },
     uniqueName(label, value) {
       if  (!value) {
         return `${label} is required`
       }
-      const found = this.$store.state.outputs.all.filter(
+      const found = this.$store.state.actions.all.filter(
         (item) => item.name === value
       );
 

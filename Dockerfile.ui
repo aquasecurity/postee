@@ -14,7 +14,7 @@ RUN apk add git
 RUN go build -o posteeui
 
 FROM alpine:3.16.0
-EXPOSE 8000
+EXPOSE 8001
 
 RUN mkdir /uiserver
 RUN mkdir /uiserver/www
