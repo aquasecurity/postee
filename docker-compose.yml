@@ -17,13 +17,13 @@ services:
             context: .
             dockerfile: Dockerfile.ui
         ports:
-            - 8000:8000
+            - 8001:8001
         volumes:
             - bolt:/server/database
             - config:/server
         environment:
             - "POSTEE_UI_CFG=/server/cfg.yaml"
-            - "POSTEE_UI_PORT=8000"
+            - "POSTEE_UI_PORT=8001"
             - "POSTEE_UI_UPDATE_URL=http://posteewebhook:8082"
 volumes:
   bolt:
