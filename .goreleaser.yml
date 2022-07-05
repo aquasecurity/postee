@@ -26,6 +26,9 @@ builds:
       - arm64
     goarm:
       - 7
+    ignore:
+      - goos: darwin
+        goarch: 386      
 archives:
   - name_template: "{{ .ProjectName }}_{{.Version}}_{{ .Os }}_{{ .Arch }}"
     builds:
@@ -98,3 +101,23 @@ dockers:
       - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
       - "--label=org.opencontainers.image.documentation=https://aquasecurity.github.io/postee/v{{ .Version }}/"
       - "--platform=linux/amd64"
+docker_manifests:
+  - name_template: 'aquasec/postee:{{ .Version }}'
+    image_templates:
+    - 'aquasec/postee:{{ .Version }}-amd64'
+  - name_template: 'public.ecr.aws/aquasecurity/postee:{{ .Version }}'
+    image_templates:
+    - 'public.ecr.aws/aquasecurity/postee:{{ .Version }}-amd64'
+  - name_template: 'aquasec/postee:latest'
+    image_templates:
+    - 'aquasec/postee:{{ .Version }}-amd64'
+# Postee-UI
+  - name_template: 'aquasec/postee-ui:{{ .Version }}'
+    image_templates:
+    - 'aquasec/postee-ui:{{ .Version }}-amd64'
+  - name_template: 'public.ecr.aws/aquasecurity/postee-ui:{{ .Version }}'
+    image_templates:
+    - 'public.ecr.aws/aquasecurity/postee-ui:{{ .Version }}-amd64'
+  - name_template: 'aquasec/postee-ui:latest'
+    image_templates:
+    - 'aquasec/postee-ui:{{ .Version }}-amd64'
