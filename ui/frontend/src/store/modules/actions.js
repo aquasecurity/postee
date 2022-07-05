@@ -1,7 +1,7 @@
 import api from "../../api"
-function updateOutputs(context, outputs) {
-    api.saveConfig(api.toApiPayload(context, {outputs})).then( //entire config is saved
-        context.commit("set", outputs)
+function updateActions(context, actions) {
+    api.saveConfig(api.toApiPayload(context, {actions})).then( //entire config is saved
+        context.commit("set", actions)
     ).catch((error) => {
         context.commit("error/set", error.response.data, {root:true})
     })
@@ -28,33 +28,33 @@ export default {
         },
 
         update(context, payload) {
-            const outputs = context.state.all;
+            const actions = context.state.all;
             const { value, name } = payload
 
-            for (let i = 0; i < outputs.length; i++) {
-                if (outputs[i].name == name) {
-                    outputs.splice(i, 1, value)
+            for (let i = 0; i < actions.length; i++) {
+                if (actions[i].name == name) {
+                    actions.splice(i, 1, value)
                 }
             }
-            updateOutputs(context, outputs)
+            updateActions(context, actions)
         },
         remove(context, name) {
-            const outputs = context.state.all.filter(item => item.name != name)
+            const actions = context.state.all.filter(item => item.name != name)
 
-            updateOutputs(context, outputs)
+            updateActions(context, actions)
         },
         add(context, settings) {
-            const outputs = context.state.all
-            outputs.push(settings)
+            const actions = context.state.all
+            actions.push(settings)
 
-            updateOutputs(context, outputs)
+            updateActions(context, actions)
         },
 
 
     },
     mutations: {
-        set(state, outputs) {
-            state.all = [...outputs]
+        set(state, actions) {
+            state.all = [...actions]
         },
 
     }

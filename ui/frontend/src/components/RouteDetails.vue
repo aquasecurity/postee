@@ -50,10 +50,10 @@
 
           <b-form-group label="Selected actions">
             <b-form-checkbox-group
-              id="outputs"
-              v-model="formValues.outputs"
-              :options="availableOutputs"
-              name="outputs"
+              id="actions"
+              v-model="formValues.actions"
+              :options="availableActions"
+              name="actions"
             ></b-form-checkbox-group>
             <small class="form-text text-muted">
               Select actions to route events to
@@ -183,14 +183,14 @@ export default {
 
         const result = found.length ? { ...found[0] } : {};
 
-        if (!result.output) {
-          result.output = [];
+        if (!result.action) {
+          result.action = [];
         }
 
         return result;
       },
-      availableOutputs(state) {
-        return state.outputs.all.map((item) => item.name);
+      availableActions(state) {
+        return state.actions.all.map((item) => item.name);
       },
       availableTemplates(state) {
         return state.templates.all.map((item) => item.name);

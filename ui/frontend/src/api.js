@@ -15,7 +15,7 @@ export default {
         return axios.get("/api/config", { transformResponse: transformYaml })
     },
     getStats: function () {
-        return axios.get("/api/outputs/stats")
+        return axios.get("/api/actions/stats")
     },
     getEvents: function() {
         return axios.get("/api/events")
@@ -44,7 +44,7 @@ export default {
     toApiPayload: function (context, modification) {
         const rootState = context.rootGetters.getAppState
         return {
-            outputs: rootState.outputs.all,
+            actions: rootState.actions.all,
             routes: rootState.routes.all,
             templates: rootState.templates.all,
             events: rootState.events.all,

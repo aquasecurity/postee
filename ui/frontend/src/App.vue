@@ -11,7 +11,7 @@
             <li class="nav-item">
               <router-link
                 active-class="active"
-                :to="{ name: 'outputs' }"
+                :to="{ name: 'actions' }"
                 class="nav-link"
                 >Actions</router-link
               >
@@ -78,7 +78,7 @@ export default {
   watch: {
     $route(to) {
       this.$store.commit("error/clear");
-      if (["home", "outputs"].indexOf(to.name) >= 0 && !this.$store.state.flags.all.loaded) {
+      if (["home", "actions"].indexOf(to.name) >= 0 && !this.$store.state.flags.all.loaded) {
         this.startLoading();
       }
     },
