@@ -10,13 +10,12 @@ posteUi:
   user: ""
   pass: ""
   image: aquasec/postee-ui
-  tag: ""
+  tag: "2.7.1-amd64"
 
 image:
   repository: aquasec/postee
   pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "2.7.1-amd64"
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent
