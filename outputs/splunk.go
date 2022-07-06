@@ -15,7 +15,10 @@ import (
 	"github.com/aquasecurity/postee/v2/log"
 )
 
-const defaultSizeLimit = 10000
+const (
+	defaultSizeLimit = 10000
+	SplunkType       = "splunk"
+)
 
 type SplunkOutput struct {
 	Name         string
@@ -23,6 +26,10 @@ type SplunkOutput struct {
 	Token        string
 	EventLimit   int
 	splunkLayout layout.LayoutProvider
+}
+
+func (splunk *SplunkOutput) GetType() string {
+	return SplunkType
 }
 
 func (splunk *SplunkOutput) GetName() string {
@@ -36,7 +43,7 @@ func (splunk *SplunkOutput) CloneSettings() *data.OutputSettings {
 		Token:     splunk.Token,
 		SizeLimit: splunk.EventLimit,
 		Enable:    true,
-		Type:      "splunk",
+		Type:      SplunkType,
 	}
 }
 

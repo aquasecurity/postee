@@ -14,6 +14,7 @@ import (
 
 const (
 	teamsSizeLimit = 18000 // 28 KB is an approximate limit for MS Teams
+	TeamsType      = "teams"
 )
 
 type TeamsOutput struct {
@@ -21,6 +22,10 @@ type TeamsOutput struct {
 	AquaServer  string
 	teamsLayout layout.LayoutProvider
 	Webhook     string
+}
+
+func (teams *TeamsOutput) GetType() string {
+	return TeamsType
 }
 
 func (teams *TeamsOutput) GetName() string {
@@ -32,7 +37,7 @@ func (teams *TeamsOutput) CloneSettings() *data.OutputSettings {
 		Name:   teams.Name,
 		Url:    teams.Webhook,
 		Enable: true,
-		Type:   "teams",
+		Type:   TeamsType,
 	}
 }
 

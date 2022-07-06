@@ -657,7 +657,7 @@ func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) map
 		}
 
 		if id != "" {
-			ticketIds[pl.(outputs.Output).GetName()] = id
+			ticketIds[pl.(outputs.Output).GetType()] = id
 		}
 	}
 	return ticketIds

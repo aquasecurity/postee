@@ -12,9 +12,17 @@ import (
 	"github.com/aquasecurity/postee/v2/log"
 )
 
+const (
+	WebhookType = "webhook"
+)
+
 type WebhookOutput struct {
 	Name string
 	Url  string
+}
+
+func (webhook *WebhookOutput) GetType() string {
+	return WebhookType
 }
 
 func (webhook *WebhookOutput) GetName() string {
@@ -26,7 +34,7 @@ func (webhook *WebhookOutput) CloneSettings() *data.OutputSettings {
 		Name:   webhook.Name,
 		Url:    webhook.Url,
 		Enable: true,
-		Type:   "webhook",
+		Type:   WebhookType,
 	}
 }
 

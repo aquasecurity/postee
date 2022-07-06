@@ -16,6 +16,7 @@ import (
 
 const (
 	slackBlockLimit = 49
+	SlackType       = "slack"
 )
 
 type SlackOutput struct {
@@ -23,6 +24,10 @@ type SlackOutput struct {
 	AquaServer  string
 	Url         string
 	slackLayout layout.LayoutProvider
+}
+
+func (slack *SlackOutput) GetType() string {
+	return SlackType
 }
 
 func (slack *SlackOutput) GetName() string {
@@ -34,7 +39,7 @@ func (slack *SlackOutput) CloneSettings() *data.OutputSettings {
 		Name:   slack.Name,
 		Url:    slack.Url,
 		Enable: true,
-		Type:   "slack",
+		Type:   SlackType,
 	}
 }
 

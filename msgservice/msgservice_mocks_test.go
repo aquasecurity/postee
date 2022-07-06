@@ -68,6 +68,10 @@ type DemoEmailOutput struct {
 	emailCounts int
 }
 
+func (plg *DemoEmailOutput) GetType() string {
+	return ""
+}
+
 func (plg *DemoEmailOutput) GetName() string {
 	return "demo"
 }
