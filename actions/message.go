@@ -9,7 +9,7 @@ import (
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
-const posteeDocsUrl = "https://github.com/aquasecurity/postee#settings"
+const posteeDocsUrl = "https://aquasecurity.github.io/postee/settings/"
 
 func buildShortMessage(server, urls string, provider layout.LayoutProvider) string {
 	var builder bytes.Buffer
