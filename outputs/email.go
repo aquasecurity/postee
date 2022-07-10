@@ -14,6 +14,10 @@ import (
 	"github.com/aquasecurity/postee/v2/log"
 )
 
+const (
+	EmailType = "email"
+)
+
 var (
 	errThereIsNoRecipient = errors.New("there is no recipient")
 	lookupMXFunc          = net.LookupMX
@@ -31,6 +35,10 @@ type EmailOutput struct {
 	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 }
 
+func (email *EmailOutput) GetType() string {
+	return EmailType
+}
+
 func (email *EmailOutput) GetName() string {
 	return email.Name
 }
@@ -46,7 +54,7 @@ func (email *EmailOutput) CloneSettings() *data.OutputSettings {
 		UseMX:      email.UseMX,
 		Recipients: data.CopyStringArray(email.Recipients),
 		Enable:     true,
-		Type:       "email",
+		Type:       EmailType,
 	}
 }
 

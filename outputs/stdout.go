@@ -9,6 +9,10 @@ import (
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
+const (
+	StdoutType = "stdout"
+)
+
 type StdoutOutput struct {
 	Name string
 }
@@ -17,8 +21,12 @@ func (stdout StdoutOutput) CloneSettings() *data.OutputSettings {
 	return &data.OutputSettings{
 		Name:   stdout.Name,
 		Enable: true,
-		Type:   "stdout",
+		Type:   StdoutType,
 	}
+}
+
+func (stdout StdoutOutput) GetType() string {
+	return StdoutType
 }
 
 func (stdout StdoutOutput) GetName() string { return stdout.Name }

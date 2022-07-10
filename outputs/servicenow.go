@@ -13,6 +13,10 @@ import (
 	servicenow "github.com/aquasecurity/postee/v2/servicenow"
 )
 
+const (
+	serviceNowType = "serviceNow"
+)
+
 type ServiceNowOutput struct {
 	Name           string
 	User           string
@@ -20,6 +24,10 @@ type ServiceNowOutput struct {
 	Instance       string
 	Table          string
 	layoutProvider layout.LayoutProvider
+}
+
+func (sn *ServiceNowOutput) GetType() string {
+	return serviceNowType
 }
 
 func (sn *ServiceNowOutput) GetName() string {
@@ -34,7 +42,7 @@ func (sn *ServiceNowOutput) CloneSettings() *data.OutputSettings {
 		InstanceName: sn.Instance,
 		BoardName:    sn.Table,
 		Enable:       true,
-		Type:         "serviceNow",
+		Type:         serviceNowType,
 	}
 }
 

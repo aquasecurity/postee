@@ -13,6 +13,10 @@ import (
 	"github.com/aquasecurity/postee/v2/log"
 )
 
+const (
+	HTTPType = "http"
+)
+
 type HTTPClient struct {
 	Name    string
 	Client  http.Client
@@ -20,6 +24,10 @@ type HTTPClient struct {
 	Method  string
 	Body    string
 	Headers map[string][]string
+}
+
+func (hc *HTTPClient) GetType() string {
+	return HTTPType
 }
 
 func (hc *HTTPClient) GetName() string {
@@ -82,6 +90,6 @@ func (hc HTTPClient) CloneSettings() *data.OutputSettings {
 		Method:  hc.Method,
 		Headers: hc.Headers,
 		Enable:  true,
-		Type:    "http",
+		Type:    HTTPType,
 	}
 }

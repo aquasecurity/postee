@@ -10,6 +10,10 @@ import (
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
+const (
+	ExecType = "exec"
+)
+
 type execCmd = func(string, ...string) *exec.Cmd
 
 type ExecClient struct {
@@ -18,6 +22,10 @@ type ExecClient struct {
 	Env       []string
 	InputFile string
 	Output    []byte
+}
+
+func (e *ExecClient) GetType() string {
+	return ExecType
 }
 
 func (e *ExecClient) GetName() string {
@@ -62,6 +70,6 @@ func (e *ExecClient) CloneSettings() *data.OutputSettings {
 		Env:       e.Env,
 		InputFile: e.InputFile,
 		Enable:    true,
-		Type:      "exec",
+		Type:      ExecType,
 	}
 }

@@ -19,6 +19,10 @@ import (
 	jira "github.com/aquasecurity/go-jira"
 )
 
+const (
+	JiraType = "jira"
+)
+
 type JiraAPI struct {
 	Name            string
 	Url             string
@@ -41,6 +45,10 @@ type JiraAPI struct {
 	BoardName       string
 	boardId         int
 	boardType       string
+}
+
+func (ctx *JiraAPI) GetType() string {
+	return JiraType
 }
 
 func (ctx *JiraAPI) GetName() string {
