@@ -10,18 +10,18 @@
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
               <router-link
-                active-class="active"
-                :to="{ name: 'actions' }"
-                class="nav-link"
-                >Actions</router-link
+                  active-class="active"
+                  :to="{ name: 'routes' }"
+                  class="nav-link"
+              >Routes</router-link
               >
             </li>
             <li class="nav-item">
               <router-link
                 active-class="active"
-                :to="{ name: 'routes' }"
+                :to="{ name: 'actions' }"
                 class="nav-link"
-                >Routes</router-link
+                >Actions</router-link
               >
             </li>
             <li class="nav-item">

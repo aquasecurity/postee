@@ -24,13 +24,26 @@
             :inputHandler="updateField"
             :validator="v(uniqueName)"
           />
-          <PropertyField
-              class="mb-4"
-              :id="'input-files'"
-              :label="'Input Files'"
-              :value="formValues['input-files'] | toString"
-              :inputHandler="updateCollectionField"
-            />
+<!--          <PropertyField-->
+<!--              class="mb-4"-->
+<!--              :id="'input-files'"-->
+<!--              :label="'Input Files'"-->
+<!--              :value="formValues['input-files'] | toString"-->
+<!--              :inputHandler="updateCollectionField"-->
+<!--            />-->
+
+          <b-form-group label="Selected rules">
+            <b-form-checkbox-group
+                id="rules"
+                v-model="formValues['input-files']"
+                :options="availableRegoRules"
+                name="rules"
+            ></b-form-checkbox-group>
+            <small class="form-text text-muted">
+              Select rules for route to filter events
+            </small>
+          </b-form-group>
+
           <div class="form-group form-input">
             <label class="form-label" for="input">REGO rule:</label>
 
@@ -194,6 +207,9 @@ export default {
       },
       availableTemplates(state) {
         return state.templates.all.map((item) => item.name);
+      },
+      availableRegoRules(state){
+        return state.rules.all.map((item) => item.name);
       },
     }),
   },

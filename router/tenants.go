@@ -12,4 +12,5 @@ type TenantSettings struct {
 	Actions         []ActionSettings    `json:"actions,omitempty"`
 	InputRoutes     []routes.InputRoute `json:"routes,omitempty"`
 	Templates       []Template          `json:"templates,omitempty"`
+	Rules           []Rule              `json:"rules,omitempty"`
 }

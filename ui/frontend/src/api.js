@@ -47,7 +47,7 @@ export default {
             actions: rootState.actions.all,
             routes: rootState.routes.all,
             templates: rootState.templates.all,
-            events: rootState.events.all,
+            rules: rootState.rules.all,
             ...rootState.settings.all,
             ...modification
         }
