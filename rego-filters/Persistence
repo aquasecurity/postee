@@ -1,0 +1,15 @@
+package postee
+
+
+ArrayBlockedSignaturesPersistence := {
+    "TRC-7", "TRC-15"
+}
+
+default BlockedSignaturesPersistence = false
+BlockedSignaturesPersistence = true{
+     contains(input.SigMetadata.ID, ArrayBlockedSignaturesPersistence[_])
+}
+
+allow{
+   BlockedSignaturesPersistence
+}

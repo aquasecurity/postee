@@ -1,8 +1,9 @@
 <template>
+
   <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-light bg-secondary mb-3">
-      <a class="navbar-brand" href="#">Postee UI</a>
-    </nav>
+    <b-navbar toggleable="lg" type="dark" variant="primary" class="navbar-expand-lg mb-3">
+      <b-navbar-brand href="#">Postee</b-navbar-brand>
+    </b-navbar>
 
     <div class="container-fluid">
       <div class="row content">
@@ -78,7 +79,7 @@ export default {
   watch: {
     $route(to) {
       this.$store.commit("error/clear");
-      if (["home", "actions"].indexOf(to.name) >= 0 && !this.$store.state.flags.all.loaded) {
+      if (["home", "routes"].indexOf(to.name) >= 0 && !this.$store.state.flags.all.loaded) {
         this.startLoading();
       }
     },
