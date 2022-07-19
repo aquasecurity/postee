@@ -1,13 +1,15 @@
 package postee.insight.slack
 
-title = sprintf("%s Insight Report", [input.insight.category])
+title = sprintf("Insight on %s", [input.resource.short_path])
 
 tpl:=`
 _Insight Details_:
 *Insight ID:* %s
-*Category:* %s
 *Description:* %s
+*Impact:* %s
 *Severity:* %s
+*Found Date:* %s
+*Last Scan:* %s
 *URL*: %s
 
 
@@ -15,7 +17,8 @@ _Resource Details_:
 *Resource ID:* %s
 *Resource Name:* %s
 *ARN:* %s
-%s
+*Extra Info:* %s
+
 
 _Evidence_: 
 %s
@@ -105,86 +108,59 @@ concat_list(prefix,list) = output{
 }
 
 
-evidenceTable(category) = table {
+evidenceTable = table {
     prefix := ["|Vulnerability            |Severity                    |Vulnerable Package       |\n|-----------------------|-----------------------|----------------------------|\n"]
     list := vln_list
     table := concat_list(prefix,list)
-    category == "Compound risk"
+    input.evidence.vulnerabilities; not input.evidence.malware; not input.evidence.sensitive_data
 }
 
-evidenceTable(category) = table {
+evidenceTable = table {
     prefix := ["|Vulnerability            |Severity                    |Vulnerable Package       |\n|-----------------------|-----------------------|----------------------------|\n"]
     list := vln_list
     table := concat_list(prefix,list)
-    category == "Vulnerabilities"
+    input.evidence.vulnerabilities; not input.evidence.malware; input.evidence.sensitive_data
 }
 
-evidenceTable(category) = table {
+evidenceTable = table {
 	table := sprintf("`%s`",[input.evidence.malware])
-    category == "Malware"
+    input.evidence.malware; not input.evidence.vulnerabilities; not input.evidence.sensitive_data
 }
 
-evidenceTable(category) = table {
+evidenceTable = table {
 	table := sprintf("`%s`",[input.evidence.sensitive_data])
-    category == "Sensitive data"
+    input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
 }
 
-insightDetails(category) = details {
-    details := sprintf(vulnsDetails,
-    [input.resource.steps.ResourceKind,
-    input.resource.steps.CloudAccount,
-    input.resource.steps.CloudProvider,
-    input.resource.steps.CloudService,
-    input.resource.steps.Region])
-    category == "Compound risk"
+evidenceTable = table {
+	table := sprintf("`%s`",[input.evidence.privileged_iam_roles])
+    not input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
 }
 
-insightDetails(category) = details {
-    details := sprintf(vulnsDetails,
-    [input.resource.steps.ResourceKind,
-    input.resource.steps.CloudAccount,
-    input.resource.steps.CloudProvider,
-    input.resource.steps.CloudService,
-    input.resource.steps.Region])
-    category == "Malware"
+remediation_with_default(default_value) = default_value{
+  input.evidence.vulnerabilities_remediation==null; input.evidence.sensitive_data_remediation==""; input.evidence.malware_remediation==""
 }
 
-insightDetails(category) = details {
-    details := sprintf(vulnsDetails,
-    [input.resource.steps.ResourceKind,
-    input.resource.steps.CloudAccount,
-    input.resource.steps.CloudProvider,
-    input.resource.steps.CloudService,
-    input.resource.steps.Region])
-    category == "Vulnerabilities"
+remediation_with_default(default_value) = val{
+  val := sprintf("`%s`",input.evidence.vulnerabilities_remediation)
+  input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation==""; input.evidence.malware_remediation==""
 }
 
-insightDetails(category) = details {
-    details := sprintf(sensitiveDetails,
-    [input.resource.steps.Image,
-    input.resource.steps.Registry])
-    category == "Sensitive data"
+remediation_with_default(default_value) = val{
+  val := sprintf("`%s`",input.evidence.vulnerabilities_remediation)
+  input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation!=""; input.evidence.malware_remediation==""
 }
 
-recommendation(category) = details {
-    details := input.evidence.malware_remediation
-    category == "Malware"
+remediation_with_default(default_value) = val{
+  val := input.evidence.sensitive_data_remediation
+  val !="";input.evidence.vulnerabilities_remediation==null; input.evidence.malware_remediation==""
 }
 
-recommendation(category) = details {
-    details := input.evidence.sensitive_data_remediation
-    category == "Sensitive data"
+remediation_with_default(default_value) = val{
+  val := input.evidence.malware_remediation
+  val != ""; input.evidence.vulnerabilities_remediation==null; input.evidence.sensitive_data_remediation==""
 }
 
-recommendation(category) = details {
-    details := sprintf("`%s`",input.evidence.vulnerabilities_remediation)
-    category == "Vulnerabilities"
-}
-
-recommendation(category) = details {
-    details := sprintf("`%s`",input.evidence.vulnerabilities_remediation)
-    category == "Compound risk"
-}
 
 
 result:= res {
@@ -192,18 +168,21 @@ result:= res {
 	{ "type":"section",
 	  "text": {"type":"mrkdwn","text": sprintf(tpl, [
 			input.insight.id,
-			input.insight.category,
 			input.insight.description,
+            input.insight.impact,
 			translateSeverity(input.insight.priority),
+            substring(input.resource.found_date,0,19),
+            substring(input.resource.last_scanned,0,19),
 			sprintf("https://cloud-dev.aquasec.com/ah/#/insights/%s/resource/%s",[input.insight.id,input.resource.id]),
 			input.resource.id,
 			input.resource.name,
 			input.resource.arn,
-			insightDetails(input.insight.category),
-			evidenceTable(input.insight.category),
-			recommendation(input.insight.category),
+			sprintf("`%s`",[input.resource.steps]),
+			evidenceTable,
+			remediation_with_default("No Recommendation"),
 			input.response_policy_name,
-			input.response_policy_id]
+			input.response_policy_id
+            ]
 			)
 		}
 	}    
