@@ -30,16 +30,6 @@ _Recommendation_:
 *Response policy ID:* %s
 `
 
-vulnsDetails:=`*Resource Kind:* %s
-*Cloud Account:* %s
-*Cloud Provider:* %s
-*Cloud Service:* %s
-*Cloud Region:* %s
-`
-
-sensitiveDetails:=`*Image Name*: %s
-*Registry*: %s
-`
 
 translateSeverity(score) = b {
 	b := "Critical"
