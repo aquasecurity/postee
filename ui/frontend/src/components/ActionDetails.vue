@@ -48,6 +48,7 @@
                   <option value="splunk">Splunk</option>
                   <option value="serviceNow">ServiceNow</option>
                   <option value="nexusIq">Nexus IQ</option>
+                  <option value="exec">Exec</option>
                 </select>
                 <small id="aHelp" class="form-text text-muted"
                   >The action type</small
@@ -123,6 +124,41 @@
             :validator="v(required)"
           />
           <!-- -->
+          <!-- exec custom properties start -->
+          <PropertyField
+              id="envVars"
+              label="Environment variables"
+              :value="formValues.envVars | toString "
+              :errorMsg="errors['envVars']"
+              name="env"
+              description="Optional: comma separated list of environment variables to be set"
+              :show="isExec"
+              :inputHandler="updateCollectionField"
+          />
+
+          <!-- TODO: Add support for radio button with optional input-file or exec-script -->
+<!--          <PropertyField-->
+<!--              id="input-file"-->
+<!--              label="Input File"-->
+<!--              :value="formValues['input-file']"-->
+<!--              :errorMsg="errors['input-file']"-->
+<!--              name="input-file"-->
+<!--              description="Optional: File path of custom shell script to execute"-->
+<!--              :show="isExec"-->
+<!--              :inputHandler="updateField"-->
+<!--          />-->
+          <PropertyField
+              id="exec-script"
+              label="Exec Script"
+              :value="formValues['exec-script']"
+              :errorMsg="errors['exec-script']"
+              name="exec-script"
+              description="Content of shell script to execute"
+              :show="isExec"
+              :inputHandler="updateField"
+              :validator="v(required)"
+          />
+          <!-- exec custom properties end -->
 
           <!-- email custom properties start -->
           <div class="row">
@@ -506,6 +542,9 @@ export default {
     },
     isNexusIQ() {
       return this.actionType === "nexusIq";
+    },
+    isExec(){
+      return this.actionType === "exec";
     },
     showCredentials() {
       return typesWithCredentials.indexOf(this.actionType) >= 0;
