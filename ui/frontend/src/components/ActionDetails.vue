@@ -136,18 +136,25 @@
               :inputHandler="updateCollectionField"
           />
 
-          <!-- TODO: Add support for radio button with optional input-file or exec-script -->
-<!--          <PropertyField-->
-<!--              id="input-file"-->
-<!--              label="Input File"-->
-<!--              :value="formValues['input-file']"-->
-<!--              :errorMsg="errors['input-file']"-->
-<!--              name="input-file"-->
-<!--              description="Optional: File path of custom shell script to execute"-->
-<!--              :show="isExec"-->
-<!--              :inputHandler="updateField"-->
-<!--          />-->
+          <b-form-group v-if="isExec" label="Select an input" v-slot="{ ariaDescribedby }">
+            <b-form-radio v-model="selectedExecInputParam" :aria-describedby="ariaDescribedby" name="exec-input" value="file">Input File</b-form-radio>
+            <b-form-radio v-model="selectedExecInputParam" :aria-describedby="ariaDescribedby" name="exec-input" value="script">Exec Script</b-form-radio>
+          </b-form-group>
+
           <PropertyField
+              v-if='selectedExecInputParam==="file"'
+              id="input-file"
+              label="Input File"
+              :value="formValues['input-file']"
+              :errorMsg="errors['input-file']"
+              name="input-file"
+              description="File path of custom shell script to execute"
+              :show="isExec"
+              :inputHandler="updateField"
+              :validator="v(required)"
+          />
+          <PropertyField
+              v-if='selectedExecInputParam==="script"'
               id="exec-script"
               label="Exec Script"
               :value="formValues['exec-script']"
@@ -500,6 +507,7 @@ export default {
       actionType: "", //stored separately to track dependencies
       jiraAssigneeDescription:
         'Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value',
+      selectedExecInputParam: 'script',
     };
   },
   mixins: [FormFieldMixin, ValidationMixin],
