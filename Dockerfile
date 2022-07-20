@@ -4,7 +4,7 @@ COPY . /server/
 WORKDIR /server/
 RUN go build -o ./bin/postee main.go
 
-FROM alpine:3.16.0
+FROM alpine:3.16.1
 RUN apk update && apk add wget ca-certificates curl jq
 EXPOSE 8082
 EXPOSE 8445
