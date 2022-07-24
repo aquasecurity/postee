@@ -18,34 +18,34 @@ check_failed(item) = true {
 
 # render_sections split collection of cells provided to chunks of 5 rows each and wraps every chunk with section element
 render_sections(rows, caption) = a { 
-    count(rows) > 0 # only if some vulnerabilities are found
-    a:=flat_array([ s |
+    count(rows) > 2 # only if some vulnerabilities are found
+    s1 := [{
+              "type": "section",
+              "text": {
+                  "type": "mrkdwn",
+                  "text": caption
+              }
+          }]
+    b:=[ s |
         # code below converts 2 dimension array like [[row1, row2, ... row5], ....]
         group_size := 10 #it's 5 but every row is represented by 2 items
         num_chunks := ceil(count(rows) / group_size) - 1
         indices := { b | b := numbers.range(0, num_chunks)[_] * group_size }
-    	fields:=[array.slice(rows, i, i + group_size) | i := indices[_]][_]
+    	fields := [array.slice(rows, i, i + group_size) | i := indices[_]][_]
 
         # builds markdown section based on slice
 
         s := [
-        	{
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": caption
-                }
-            },
             {
                 "type": "section",
-                "fields":fields
-
+                "fields": fields
             }
         ]
-	])
+	]
+	a := array.concat(s1, flat_array(b))
 }
 render_sections(rows, caption) = [] { #do not render section if provided collection is empty
-    count(rows) == 0
+    count(rows) < 3
 }
 ###########################################################################################################
 
@@ -71,7 +71,6 @@ vln_list(severity) = l {
 
               ]
     caption := sprintf("*%s severity vulnerabilities*", [severity])  #TODO make first char uppercase
-    
 
     headers := [
         {"type": "mrkdwn", "text": "*Vulnerability ID*"},
@@ -120,6 +119,15 @@ result = res {
 
     ])
 
+    checks_performed2:= flat_array([check |
+                        item := input.image_assurance_results.checks_performed[i]
+                        check:= [
+                            {"type": "mrkdwn", "text": sprintf("%d %s", [i+1, item.control])},
+                            {"type": "mrkdwn", "text": concat(" / ", [item.policy_name, by_flag("FAIL", "PASS", check_failed(item))])}
+                        ]
+
+        ])
+
     severity_stats:= flat_array([gr |
             severity := severities[_]
             gr:= [
@@ -129,7 +137,7 @@ result = res {
     ])
 
 
-	headers := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
+	headers1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
     			{"type":"section","text":{"type":"mrkdwn","text":sprintf("Registry: %s", [input.registry])}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
                                                                         "Image is non-compliant",
@@ -148,30 +156,29 @@ result = res {
                                                                     )}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy ID: %s", [input.response_policy_id])}},
-                {
-                "type": "section",
-                "fields": severity_stats
-                },
+                {"type": "section","fields": severity_stats},
+                {"type": "section","text": {"type": "mrkdwn","text": "*Assurance controls*"}},
+                {"type": "section","fields": [{"type": "mrkdwn","text": "*#* *Control*"},
+                    {"type": "mrkdwn","text": "*Policy Name* / *Status*"}]
+                }]
+
+    b:=[ s | # code below converts 2 dimension array like [[row1, row2, ... row5], ....]
+            group_size := 10 #it's 5 but every row is represented by 2 items
+            num_chunks := ceil(count(checks_performed) / group_size) - 1
+            indices := { b | b := numbers.range(0, num_chunks)[_] * group_size }
+            fields := [array.slice(checks_performed, i, i + group_size) | i := indices[_]][_]
+
+            # builds markdown section based on slice
+            s := [
                 {
                     "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Assurance controls*"
-                    }
-                },
-                {
-                "type": "section",
-                "fields": array.concat(
-                    [{
-                        "type": "mrkdwn",
-                        "text": "*#* *Control*"
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": "*Policy Name* / *Status*"
-                    }], checks_performed)
-                },
-                {
+                    "fields": fields
+                }
+            ]
+    ]
+
+    headers2 := flat_array(b)
+    headers3 := [ {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
@@ -180,6 +187,8 @@ result = res {
                 }
 	           ]
 
+    headers4 := array.concat(headers1, headers2)
+    headers = array.concat(headers4, headers3)
     postee := with_default(input, "postee", {})
     aqua_server := with_default(postee, "AquaServer", "")
 
