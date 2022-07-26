@@ -102,6 +102,20 @@ malware_list := l {
     l := render_sections(rows, "Malware")
 }
 
+got_vulns(vulnsAll) = a {
+    count(vulnsAll) > 0
+    a := [{
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "*Found vulnerabilities*"
+        }
+    }]}
+
+got_vulns(vulnsAll) = [] { #do not render section if provided collection is empty
+    count(vulnsAll) == 0
+}
+
 ###########################################################################################################
 title = sprintf("%s vulnerability scan report", [input.image]) # title is string
 
@@ -156,6 +170,7 @@ result = res {
                                                                     )}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy ID: %s", [input.response_policy_id])}},
+                {"type": "section","text": {"type": "mrkdwn","text": "*Vulnerabilities summary*"}},
                 {"type": "section","fields": severity_stats},
                 {"type": "section","text": {"type": "mrkdwn","text": "*Assurance controls*"}},
                 {"type": "section","fields": [{"type": "mrkdwn","text": "*#* *Control*"},
@@ -178,30 +193,25 @@ result = res {
     ]
 
     headers2 := flat_array(b)
-    headers3 := [ {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Found vulnerabilities*"
-                    }
-                }
-	           ]
-
-    headers4 := array.concat(headers1, headers2)
-    headers = array.concat(headers4, headers3)
+    headers := array.concat(headers1, headers2)
     postee := with_default(input, "postee", {})
     aqua_server := with_default(postee, "AquaServer", "")
 
     href:=sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
     text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
 
+    vulnsCritical := vln_list("critical")
+    vulnsHigh := vln_list("high")
+    vulnsMedium := vln_list("medium")
+    vulnsLow := vln_list("low")
+    vulnsNegligible := vln_list("negligible")
+    vulsAll := flat_array([vulnsCritical, vulnsHigh, vulnsMedium, vulnsLow, vulnsNegligible])
+    vulnsFound := got_vulns(vulsAll)
+
     res := flat_array([
         headers,
-        vln_list("critical"), 
-        vln_list("high"),
-        vln_list("medium"),
-        vln_list("low"),
-        vln_list("negligible"),
+        vulnsFound,
+        vulsAll,
         malware_list
     ])
 
