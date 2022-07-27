@@ -133,15 +133,6 @@ result = res {
 
     ])
 
-    checks_performed2:= flat_array([check |
-                        item := input.image_assurance_results.checks_performed[i]
-                        check:= [
-                            {"type": "mrkdwn", "text": sprintf("%d %s", [i+1, item.control])},
-                            {"type": "mrkdwn", "text": concat(" / ", [item.policy_name, by_flag("FAIL", "PASS", check_failed(item))])}
-                        ]
-
-        ])
-
     severity_stats:= flat_array([gr |
             severity := severities[_]
             gr:= [
