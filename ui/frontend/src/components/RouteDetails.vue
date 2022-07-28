@@ -25,7 +25,7 @@
             :inputHandler="updateField"
             :validator="v(uniqueName)"
           />
-          <h4>Input Policies</h4>
+          <h5>Input Policies</h5>
           <b-form-group>
             <small class="form-text text-muted">
               Select rego policies to trigger the route
@@ -68,7 +68,7 @@
             </small>
           </div>
 
-          <h4>Actions</h4>
+          <h5>Actions</h5>
           <b-form-group>
             <small class="form-text text-muted">
               Select actions to perform when policy is triggered
@@ -86,7 +86,7 @@
           <div>
             <b-collapse id="plugins-collapse" class="mt-2">
             <b-card>
-              <h7>Template</h7>
+              Template
               <div class="form-group form-input">
                 <small id="aHelp" class="form-text text-muted"
                 >Select template to render events</small>
