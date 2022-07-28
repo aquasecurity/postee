@@ -25,10 +25,10 @@
             :inputHandler="updateField"
             :validator="v(uniqueName)"
           />
-          <h4>Rules</h4>
+          <h4>Input Policies</h4>
           <b-form-group>
             <small class="form-text text-muted">
-              Select rules for route to filter events
+              Select rego policies to trigger the route
             </small>
             <div v-show="!custom_rule_enabled">
               <b-form-checkbox-group
@@ -71,7 +71,7 @@
           <h4>Actions</h4>
           <b-form-group>
             <small class="form-text text-muted">
-              Select actions to route events to
+              Select actions to perform when policy is triggered
             </small>
             <b-form-checkbox-group
               id="actions"
@@ -81,31 +81,32 @@
             ></b-form-checkbox-group>
           </b-form-group>
 
-          <h4>Template</h4>
-          <div class="form-group form-input">
-            <small id="aHelp" class="form-text text-muted"
-            >Select template to render events</small>
-            <select
-              class="form-select form-control"
-              v-model="formValues.template"
-              id="template"
-              name="template"
-            >
-              <option
-                v-for="template in availableTemplates"
-                v-bind:key="template"
-                :value="template"
-              >
-                {{ template }}
-              </option>
-            </select>
-
-          </div>
-
           <br/>
           <b-button v-b-toggle.plugins-collapse variant="primary" size="sm">Advanced Options</b-button>
           <div>
             <b-collapse id="plugins-collapse" class="mt-2">
+            <b-card>
+              <h7>Template</h7>
+              <div class="form-group form-input">
+                <small id="aHelp" class="form-text text-muted"
+                >Select template to render events</small>
+                <select
+                    class="form-select form-control"
+                    v-model="formValues.template"
+                    id="template"
+                    name="template"
+                >
+                  <option
+                      v-for="template in availableTemplates"
+                      v-bind:key="template"
+                      :value="template"
+                  >
+                    {{ template }}
+                  </option>
+                </select>
+              </div>
+            </b-card>
+
               <b-card>
                 <p class="card-text">
                 <PropertyField
