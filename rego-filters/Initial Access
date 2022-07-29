@@ -1,0 +1,15 @@
+package postee
+
+
+ArrayBlockedSignaturesInitialAccess := {
+    "TRC-12"
+}
+
+default BlockedSignaturesInitialAccess = false
+BlockedSignaturesInitialAccess = true{
+     contains(input.SigMetadata.ID, ArrayBlockedSignaturesInitialAccess[_])
+}
+
+allow{
+   BlockedSignaturesInitialAccess
+}

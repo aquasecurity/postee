@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/aquasecurity/postee/v2/formatting"
+
 	"github.com/aquasecurity/postee/v2/layout"
 )
 
@@ -60,5 +62,7 @@ func (e *ExecClient) Terminate() error {
 }
 
 func (e *ExecClient) GetLayoutProvider() layout.LayoutProvider {
-	return nil
+	// Todo: This is MOCK. Because Formatting isn't need for Webhook
+	// todo: The App should work with `return nil`
+	return new(formatting.HtmlProvider)
 }

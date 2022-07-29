@@ -51,7 +51,13 @@ templates:
 - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
   rego-package: postee.vuls.cyclondx
 
-
+# Rules are predefined rego policies that can be used to trigger routes
+rules:
+- name: Initial Access
+- name: Credential Access
+- name: Privilege Escalation
+- name: Defense Evasion
+- name: Persistence
 
 # Actions are target services that should consume the messages
 actions:

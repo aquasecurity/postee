@@ -11,6 +11,7 @@ import routes from './modules/routes.js'
 import settings from './modules/settings.js'
 import flags from './modules/flags.js'
 import templates from './modules/templates.js'
+import rules from './modules/rules.js'
 
 Vue.use(Vuex)
 
@@ -24,7 +25,8 @@ export default new Vuex.Store({
         routes,
         settings,
         flags,
-        templates
+        templates,
+        rules
     },
     getters: {
         getAppState(state) {
@@ -35,6 +37,7 @@ export default new Vuex.Store({
         load(context) {
             api.getConfig().then((response) => {
                 const data = response.data
+                // console.log(data.rules)
                 const settings = {
                     name: data.name,
                     AquaServer: data.AquaServer,
@@ -46,6 +49,7 @@ export default new Vuex.Store({
                 data.routes && context.commit("routes/set", data.routes)
                 data.templates && context.commit("templates/set", data.templates)
                 data.events && context.commit("events/set", data.events)
+                data.rules && context.commit("rules/set", data.rules)
                 context.commit("settings/set", settings)
                 context.commit("flags/set", { loaded: true })
             }).catch((error) => {

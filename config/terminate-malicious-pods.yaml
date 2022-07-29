@@ -1,0 +1,39 @@
+actions:
+  - type: webhook
+    name: Send Message to Webhook
+    enable: true
+    url: http://foo.com
+  - type: exec
+    name: Kill Process
+    enable: true
+    input-file: ''
+    exec-script: kill -9 $(echo $POSTEE_EVENT | jq .Context.hostParentProcessId)
+routes:
+  - name: Notify on unauthorized access
+    actions:
+      - Send Message to Webhook
+    template: raw-json
+    action: []
+    input-files:
+      - Privilege Escalation
+      - Defense Evasion
+      - Credential Access
+      - Initial Access
+  - action: []
+    input-files:
+      - Defense Evasion
+    actions:
+      - Kill Process
+      - Send Message to Webhook
+    name: Terminate offending process
+    template: raw-json
+templates:
+  - name: raw-json
+    rego-package: postee.rawmessage.json
+rules:
+  - name: Initial Access
+  - name: Credential Access
+  - name: Privilege Escalation
+  - name: Defense Evasion
+  - name: Persistence
+name: Terminating Malicious Pods

@@ -114,6 +114,7 @@ func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input []byte) boo
 		return false
 	}
 
+	// input-files will override input, if both are provided
 	if ok, err := regoservice.DoesMatchRegoCriteria(in, r.InputFiles, r.Input); err != nil {
 		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
 			prnInputLogs("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)

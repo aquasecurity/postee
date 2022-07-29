@@ -73,8 +73,8 @@ func (srv *uiServer) updateConfig(w http.ResponseWriter, r *http.Request) {
 	err = reloadWebhookCfg(srv.webhookUrl, apikey)
 
 	if err != nil {
-		log.Printf("Can not reload webhook server %v", err)
-		http.Error(w, "Can not reload webhook server", http.StatusBadRequest)
+		log.Printf("Unable to reach Postee backend %v", err)
+		http.Error(w, "Unable to reach Postee backend", http.StatusBadRequest)
 		return
 	}
 }

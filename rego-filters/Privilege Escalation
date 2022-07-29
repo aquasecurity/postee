@@ -1,0 +1,15 @@
+package postee
+
+
+ArrayBlockedSignaturesPrivilegeEscalation := {
+    "TRC-11", "TRC-14"
+}
+
+default BlockedSignaturesPrivilegeEscalation = false
+BlockedSignaturesPrivilegeEscalation = true{
+     contains(input.SigMetadata.ID, ArrayBlockedSignaturesPrivilegeEscalation[_])
+}
+
+allow{
+   BlockedSignaturesPrivilegeEscalation
+}

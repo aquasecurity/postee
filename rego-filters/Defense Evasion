@@ -1,0 +1,15 @@
+package postee
+
+
+ArrayBlockedSignaturesDefenseEvation := {
+    "TRC-2", "TRC-3", "TRC-4", "TRC-9", "TRC-5"
+}
+
+default BlockedSignaturesDefenseEvation = false
+BlockedSignaturesDefenseEvation = true{
+     contains(input.SigMetadata.ID, ArrayBlockedSignaturesDefenseEvation[_])
+}
+
+allow{
+   BlockedSignaturesDefenseEvation
+}

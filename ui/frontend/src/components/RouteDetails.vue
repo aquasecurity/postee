@@ -12,28 +12,48 @@
       >
         Remove
       </button>
+
     </div>
     <div class="card">
       <form @submit.prevent="doSubmit">
         <div class="card-body">
           <PropertyField
             :id="'name'"
-            :label="'Name'"
+            :label="'Route Name'"
             :value="formValues.name"
             :errorMsg="errors['name']"
             :inputHandler="updateField"
             :validator="v(uniqueName)"
           />
-          <PropertyField
-              class="mb-4"
-              :id="'input-files'"
-              :label="'Input Files'"
-              :value="formValues['input-files'] | toString"
-              :inputHandler="updateCollectionField"
-            />
-          <div class="form-group form-input">
-            <label class="form-label" for="input">REGO rule:</label>
+          <h5>Input Policies</h5>
+          <b-form-group>
+            <small class="form-text text-muted">
+              Select rego policies to trigger the route
+            </small>
+            <div v-show="!custom_rule_enabled">
+              <b-form-checkbox-group
+                  id="rules"
+                  v-model="formValues['input-files']"
+                  :options="availableRegoRules"
+                  name="rules"
+                  stacked
+              ></b-form-checkbox-group>
+            </div>
 
+            <br/>
+            <b-form-checkbox
+                  id="custom_rule"
+                  v-model="custom_rule_enabled"
+                  name="custom_rule"
+                  value=true
+                  button button-variant="primary"
+                  size="sm"
+              >Custom Rego Rule
+            </b-form-checkbox>
+
+          </b-form-group>
+
+          <div v-if="custom_rule_enabled" class="form-group form-input">
             <codemirror
               :value="formValues.input"
               :options="cmOptions"
@@ -48,94 +68,118 @@
             </small>
           </div>
 
-          <b-form-group label="Selected actions">
+          <h5>Actions</h5>
+          <b-form-group>
+            <small class="form-text text-muted">
+              Select actions to perform when policy is triggered
+            </small>
             <b-form-checkbox-group
               id="actions"
               v-model="formValues.actions"
               :options="availableActions"
               name="actions"
             ></b-form-checkbox-group>
-            <small class="form-text text-muted">
-              Select actions to route events to
-            </small>
           </b-form-group>
 
-          <div class="form-group form-input">
-            <label for="template">Template</label>
-            <select
-              class="form-select form-control"
-              v-model="formValues.template"
-              id="template"
-              name="template"
-            >
-              <option
-                v-for="template in availableTemplates"
-                v-bind:key="template"
-                :value="template"
-              >
-                {{ template }}
-              </option>
-            </select>
-            <small id="aHelp" class="form-text text-muted"
-              >Select templates to render events</small
-            >
-          </div>
+          <br/>
+          <b-button v-b-toggle.plugins-collapse variant="primary" size="sm">Advanced Options</b-button>
+          <div>
+            <b-collapse id="plugins-collapse" class="mt-2">
+            <b-card>
+              Template
+              <div class="form-group form-input">
+                <small id="aHelp" class="form-text text-muted"
+                >Select template to render events</small>
+                <select
+                    class="form-select form-control"
+                    v-model="formValues.template"
+                    id="template"
+                    name="template"
+                >
+                  <option
+                      v-for="template in availableTemplates"
+                      v-bind:key="template"
+                      :value="template"
+                  >
+                    {{ template }}
+                  </option>
+                </select>
+              </div>
+            </b-card>
 
-          <h4>Plugins</h4>
-          <div class="p-4">
-            <PropertyField
-              class="mb-4"
-              id="aggregateMessageNumber"
-              label="Aggregate-Message-Number"
-              :value="
+              <b-card>
+                <p class="card-text">
+                <PropertyField
+                    class="mb-4"
+                    id="aggregateMessageNumber"
+                    label="Aggregate-Message-Number"
+                    :value="
                 formValues.plugins
                   ? formValues.plugins['aggregate-message-number']
                   : undefined
               "
-              inputType="number"
-              name="aggregate-message-number"
-              description="Optional: Aggregate multiple messages into one ticket/message	Numeric number. Default is 1"
-              :inputHandler="updateRoutePluginField"
-            />
-            <PropertyField
-              class="mb-4"
-              id="aggregateMessageTimeout"
-              label="Aggregate-Message-Timeout"
-              :value="
+                    inputType="number"
+                    name="aggregate-message-number"
+                    description="Optional: Aggregate multiple messages into one ticket/message	Numeric number. Default is 1"
+                    :inputHandler="updateRoutePluginField"
+                />
+                </p>
+              </b-card>
+              <b-card>
+                <p class="card-text">
+                  <PropertyField
+                      class="mb-4"
+                      id="aggregateMessageTimeout"
+                      label="Aggregate-Message-Timeout"
+                      :value="
                 formValues.plugins
                   ? formValues.plugins['aggregate-message-timeout']
                   : undefined
               "
-              name="aggregate-message-timeout"
-              description="Optional: Aggregate multiple messages over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
-              :inputHandler="updateRoutePluginField"
-            />
-            <PropertyField
-              class="mb-4"
-              id="uniqueMessageProps"
-              label="Unique Message Props"
-              name="unique-message-props"
-              :value="
+                      name="aggregate-message-timeout"
+                      description="Optional: Aggregate multiple messages over period of time into one ticket/message	Xs (X number of seconds), Xm (X number of minutes), xH (X number of hours)"
+                      :inputHandler="updateRoutePluginField"
+                  />
+                </p>
+              </b-card>
+
+              <b-card>
+                <p class="card-text">
+                  <PropertyField
+                      class="mb-4"
+                      id="uniqueMessageProps"
+                      label="Unique Message Props"
+                      name="unique-message-props"
+                      :value="
                 formValues.plugins && formValues.plugins['unique-message-props']
                   ? formValues.plugins['unique-message-props'].join(', ')
                   : undefined
               "
-              description="Optional: Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored"
-              :inputHandler="updateRoutePluginCollectionField"
-            />
-            <PropertyField
-              class="mb-4"
-              id="uniqueMessageTimeout"
-              label="Unique-Message-Timeout"
-              :value="
+                      description="Optional: Comma separated list of top level properties which unique identify an event message. If message with same id is received more than once it will be ignored"
+                      :inputHandler="updateRoutePluginCollectionField"
+                  />
+                </p>
+              </b-card>
+
+              <b-card>
+                <p class="card-text">
+                  <PropertyField
+                      class="mb-4"
+                      id="uniqueMessageTimeout"
+                      label="Unique-Message-Timeout"
+                      :value="
                 formValues.plugins
                   ? formValues.plugins['unique-message-timeout']
                   : undefined
               "
-              name="unique-message-timeout"
-              description="Optional: Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted"
-              :inputHandler="updateRoutePluginField"
-            />
+                      name="unique-message-timeout"
+                      description="Optional: Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted"
+                      :inputHandler="updateRoutePluginField"
+                  />
+                </p>
+              </b-card>
+
+            </b-collapse>
           </div>
         </div>
       </form>
@@ -166,6 +210,7 @@ export default {
         lineNumbers: true,
         line: true,
       },
+      custom_rule_enabled: false,
     };
   },
   mixins: [FormFieldMixin, ValidationMixin],
@@ -194,6 +239,9 @@ export default {
       },
       availableTemplates(state) {
         return state.templates.all.map((item) => item.name);
+      },
+      availableRegoRules(state){
+        return state.rules.all.map((item) => item.name);
       },
     }),
   },
@@ -264,6 +312,9 @@ export default {
 
       this.formValues.plugins[propName] = v;
     },
+    custom_rule(){
+      this.custom_rule_enabled = !this.custom_rule_enabled
+    }
   },
 
   mounted() {

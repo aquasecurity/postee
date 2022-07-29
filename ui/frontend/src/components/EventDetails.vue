@@ -1,22 +1,20 @@
 <template>
   <div>
-      <table width="100%">
-        <tbody>
-        <tr v-for='(ev, index) in events' :key="index">
-          <vue-json-pretty :deep="2" deepCollapseChildren showLength showSelectController :data="{ ev }"> </vue-json-pretty>
-        </tr>
-        </tbody>
-      </table>
+    <json-viewer
+        :value="events"
+        :expand-depth=3
+        copyable
+        boxed
+    ></json-viewer>
   </div>
 </template>
 <script>
 import { mapState } from 'vuex'
-import VueJsonPretty from 'vue-json-pretty'
-import 'vue-json-pretty/lib/styles.css'
+import JsonViewer from 'vue-json-viewer'
 
 export default {
   components:{
-    VueJsonPretty,
+    JsonViewer,
   },
 
   computed: {
@@ -25,7 +23,7 @@ export default {
         return state.events.all
       }
     })
-  }
+  },
 }
 
 </script>

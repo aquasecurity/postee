@@ -20,7 +20,7 @@ Vue.use(BootstrapVueIcons);
 Vue.use(VueRouter);
 
 const routes = [
-  { name: 'home', path: '/', redirect: '/actions' },
+  { name: 'home', path: '/', redirect: '/routes' },
   { name: 'actions', path: '/actions', component: Actions },
   { name: 'routes', path: '/routes', component: Routes },
   { name: 'add-route', path: '/route', component: RouteDetails },
