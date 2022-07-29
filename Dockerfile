@@ -15,7 +15,8 @@ RUN mkdir /config
 COPY --from=builder /server/bin /server/
 COPY --from=builder /server/rego-templates /server/rego-templates
 COPY --from=builder /server/rego-filters /server/rego-filters
-COPY --from=builder /server/cfg.yaml /server/cfg.yaml
+COPY --from=builder /server/cfg.yaml /config/cfg.yaml
+COPY --from=builder /server/config /config/samples
 WORKDIR /server
 RUN chmod +x postee
 RUN addgroup -g 1099 postee
