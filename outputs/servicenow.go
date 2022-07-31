@@ -54,7 +54,7 @@ func (sn *ServiceNowOutput) Init() error {
 	return nil
 }
 
-func (sn *ServiceNowOutput) Send(content map[string]string) (string, error) {
+func (sn *ServiceNowOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending to ServiceNow via %q", sn.Name)
 	d := &servicenow.ServiceNowData{
 		ShortDescription: content["title"],
@@ -64,17 +64,17 @@ func (sn *ServiceNowOutput) Send(content map[string]string) (string, error) {
 	body, err := json.Marshal(d)
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("serviceNow Error: %w", err))
-		return EmptyID, errors.New("Error when trying to parse ServiceNow integration data")
+		return data.OutputResponse{}, errors.New("Error when trying to parse ServiceNow integration data")
 	}
 
 	err = servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Instance, sn.Table, body)
 	if err != nil {
 		log.Logger.Error("ServiceNow Error: ", err)
-		return EmptyID, errors.New("Failed inserting record to the ServiceNow table")
+		return data.OutputResponse{}, errors.New("Failed inserting record to the ServiceNow table")
 	}
 
 	log.Logger.Debugf("Successfully sent a message via ServiceNow %q", sn.Name)
-	return EmptyID, nil
+	return data.OutputResponse{}, nil
 }
 
 func (sn *ServiceNowOutput) Terminate() error {
