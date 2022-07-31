@@ -48,7 +48,7 @@ func (teams *TeamsOutput) Init() error {
 	return nil
 }
 
-func (teams *TeamsOutput) Send(input map[string]string) (data.OutputResponse, error) {
+func (teams *TeamsOutput) Send(input map[string]string) (string, error) {
 	log.Logger.Infof("Sending to MS Teams via %q", teams.Name)
 	log.Logger.Debugf("Title for %q: %q", teams.Name, input["title"])
 	log.Logger.Debugf("Url(s) for %q: %q", teams.Name, input["url"])
@@ -69,18 +69,18 @@ func (teams *TeamsOutput) Send(input map[string]string) (data.OutputResponse, er
 	escaped, err := escapeJSON(body)
 	if err != nil {
 		log.Logger.Errorf("Error while escaping payload: %v", err)
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
 
 	err = msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"])+escaped)
 
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("TeamsOutput Send Error: %w", err))
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
 
 	log.Logger.Debugf("Sending to MS Teams via %q was successful!", teams.Name)
-	return data.OutputResponse{}, nil
+	return EmptyID, nil
 }
 
 func (teams *TeamsOutput) Terminate() error {

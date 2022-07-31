@@ -68,7 +68,7 @@ func buildSlackBlock(title string, data []byte) []byte {
 	return content.Bytes()
 }
 
-func (slack *SlackOutput) Send(input map[string]string) (data.OutputResponse, error) {
+func (slack *SlackOutput) Send(input map[string]string) (string, error) {
 	log.Logger.Infof("Sending to Slack via %q", slack.Name)
 	title := clearSlackText(slack.slackLayout.TitleH2(input["title"]))
 	var body string
@@ -85,7 +85,7 @@ func (slack *SlackOutput) Send(input map[string]string) (data.OutputResponse, er
 	err := json.Unmarshal([]byte(body), &rawBlock)
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("unable to parse json: %w", err))
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
 
 	length := len(rawBlock)
@@ -93,7 +93,7 @@ func (slack *SlackOutput) Send(input map[string]string) (data.OutputResponse, er
 	if length >= slackBlockLimit {
 		message := buildShortMessage(slack.AquaServer, input["url"], slack.slackLayout)
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
-			return data.OutputResponse{}, err
+			return EmptyID, err
 		}
 		log.Logger.Debugf("Sending to Slack %q was successful!", slack.Name)
 	} else {
@@ -104,10 +104,9 @@ func (slack *SlackOutput) Send(input map[string]string) (data.OutputResponse, er
 			}
 			cutData, _ := json.Marshal(rawBlock[n : n+d])
 			cutData = cutData[1 : len(cutData)-1]
-			slackBlock := buildSlackBlock(title, cutData)
-			if err := slackAPI.SendToUrl(slack.Url, slackBlock); err != nil {
+			if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, cutData)); err != nil {
 				log.Logger.Error(fmt.Errorf("sending to Slack via %q was finished with error: %w", slack.Name, err))
-				return data.OutputResponse{}, err
+				return EmptyID, err
 			} else {
 				log.Logger.Debugf("Sending to Slack [%d/%d part] via %q was successful!",
 					int(n/49)+1, int(length/49)+1,
@@ -116,7 +115,7 @@ func (slack *SlackOutput) Send(input map[string]string) (data.OutputResponse, er
 			n += d
 		}
 	}
-	return data.OutputResponse{}, nil
+	return EmptyID, nil
 }
 
 func (slack *SlackOutput) Terminate() error {

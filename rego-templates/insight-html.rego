@@ -1,15 +1,13 @@
 package postee.insight.html
 
-title = sprintf("<h1>Insight on %s</h1><br>", [input.resource.short_path])
+title = sprintf("<h1>%s Insight Report</h1><br>", [input.insight.category])
 
 tpl:=`
 <u>Insight Details</u>
 <p><b>Insight ID: </b>%s</p>
+<p><b>Category: </b>%s</p>
 <p><b>Description: </b>%s</p>
-<p><b>Impact: </b>%s</p>
 <p><b>Severity: </b>%s</p>
-<p><b>Found Date: </b>%s</p>
-<p><b>Last Scan: </b>%s</p>
 <p><b>URL: </b><a>%s</p>
 <br>
 
@@ -18,7 +16,7 @@ tpl:=`
 <p><b>Resource ID: </b>%s</p>
 <p><b>Resource Name: </b>%s</p>
 <p><b>ARN: </b>%s</p>
-<p><b>Extra Info: </b>%s</p>
+<p>%s</p>
 <br>
 
 <u>Evidence</u>
@@ -33,9 +31,53 @@ tpl:=`
 <p><b>Response policy ID: </b>%s</p>
 `
 
+vulnsDetails:=`
+<p><b>Resource Kind: </b>%s</p>
+<p><b>Cloud Account: </b>%s</p>
+<p><b>Cloud Provider: </b>%s</p>
+<p><b>Cloud Service: </b>%s</p>
+<p><b>Cloud Region: </b>%s</p>
+`
 
-insightDetails = details {
-    details := sprintf("<code>%s</code>",[input.resource.steps])
+sensitiveDetails:=`<p><b>Image Name: </b>%s</p>
+<p><b>Registry: </b>%s</p>
+`
+
+insightDetails(category) = details {
+    details := sprintf(vulnsDetails,
+    [input.resource.steps.ResourceKind,
+    input.resource.steps.CloudAccount,
+    input.resource.steps.CloudProvider,
+    input.resource.steps.CloudService,
+    input.resource.steps.Region])
+    category == "Compound risk"
+}
+
+insightDetails(category) = details {
+    details := sprintf(vulnsDetails,
+    [input.resource.steps.ResourceKind,
+    input.resource.steps.CloudAccount,
+    input.resource.steps.CloudProvider,
+    input.resource.steps.CloudService,
+    input.resource.steps.Region])
+    category == "Malware"
+}
+
+insightDetails(category) = details {
+    details := sprintf(vulnsDetails,
+    [input.resource.steps.ResourceKind,
+    input.resource.steps.CloudAccount,
+    input.resource.steps.CloudProvider,
+    input.resource.steps.CloudService,
+    input.resource.steps.Region])
+    category == "Vulnerabilities"
+}
+
+insightDetails(category) = details {
+    details := sprintf(sensitiveDetails,
+    [input.resource.steps.Image,
+    input.resource.steps.Registry])
+    category == "Sensitive data"
 }
 
 translateSeverity(score) = b {
@@ -103,79 +145,72 @@ concat_list(prefix,list) = output{
     output := x
 }
 
-evidenceTable = table {
+evidenceTable(category) = table {
     prefix := ["<tr> <th>Vulnerability</th> <th>Severity</th> <th>Vulnerable Package</th> </tr>"]
     list := vln_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.vulnerabilities; not input.evidence.malware; not input.evidence.sensitive_data
+    category == "Compound risk"
 }
 
-evidenceTable = table {
+evidenceTable(category) = table {
     prefix := ["<tr> <th>Vulnerability</th> <th>Severity</th> <th>Vulnerable Package</th> </tr>"]
     list := vln_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.vulnerabilities; not input.evidence.malware; input.evidence.sensitive_data
+    category == "Vulnerabilities"
 }
 
-evidenceTable = table {
+evidenceTable(category) = table {
     prefix := ["<tr> <th>File Name</th> <th>File Hash</th> <th>Path</th> </tr>"]
     list := malware_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.malware; not input.evidence.vulnerabilities; not input.evidence.sensitive_data
+    category == "Malware"
 }
 
-evidenceTable = table {
+evidenceTable(category) = table {
     prefix := ["<tr> <th>File Type</th> <th>File Path</th> <th>Image</th> </tr>"]
     list := sensitive_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
+    category == "Sensitive data"
 }
 
-remediation_with_default(default_value) = default_value{
-  input.evidence.vulnerabilities_remediation==null; input.evidence.sensitive_data_remediation==""; input.evidence.malware_remediation==""
+recommendation(category) = details {
+    details := input.evidence.malware_remediation
+    category == "Malware"
 }
 
-remediation_with_default(category) = details {
+recommendation(category) = details {
+    details := input.evidence.sensitive_data_remediation
+    category == "Sensitive data"
+}
+
+recommendation(category) = details {
     details := sprintf("<code>%s</code>",[input.evidence.vulnerabilities_remediation])
-    input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation==""; input.evidence.malware_remediation==""
+    category == "Vulnerabilities"
 }
 
-remediation_with_default(category) = details {
+recommendation(category) = details {
     details := sprintf("<code>%s</code>",[input.evidence.vulnerabilities_remediation])
-    input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation!=""; input.evidence.malware_remediation==""
+    category == "Compound risk"
 }
-
-remediation_with_default(default_value) = details{
-  details := input.evidence.sensitive_data_remediation
-  details !="";input.evidence.vulnerabilities_remediation==null; input.evidence.malware_remediation==""
-}
-
-remediation_with_default(default_value) = details{
-  details := input.evidence.malware_remediation
-  details != ""; input.evidence.vulnerabilities_remediation==null; input.evidence.sensitive_data_remediation==""
-}
-
 
 
 result = msg {
     msg := sprintf(tpl, [
     input.insight.id,
+    input.insight.category,
     input.insight.description,
-    input.insight.impact,
-    translateSeverity(input.insight.priority),
-    substring(input.resource.found_date,0,19),
-    substring(input.resource.last_scanned,0,19),
+	translateSeverity(input.insight.priority),
     sprintf("https://cloud-dev.aquasec.com/ah/#/insights/%s/resource/%s",[input.insight.id,input.resource.id]),
     input.resource.id,
     input.resource.name,
     input.resource.arn,
-    insightDetails,
-    evidenceTable,
-    remediation_with_default("No Recommendation"),
+    insightDetails(input.insight.category),
+    evidenceTable(input.insight.category),
+    recommendation(input.insight.category),
     input.response_policy_name,
     input.response_policy_id
     ])

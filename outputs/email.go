@@ -78,14 +78,14 @@ func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
 	return new(formatting.HtmlProvider)
 }
 
-func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, error) {
+func (email *EmailOutput) Send(content map[string]string) (string, error) {
 	log.Logger.Infof("Sending to email via %q", email.Name)
 	subject := content["title"]
 	body := content["description"]
 	port := strconv.Itoa(email.Port)
 	recipients := getHandledRecipients(email.Recipients, &content, email.Name)
 	if len(recipients) == 0 {
-		return data.OutputResponse{}, errThereIsNoRecipient
+		return EmptyID, errThereIsNoRecipient
 	}
 
 	msg := fmt.Sprintf(
@@ -97,7 +97,7 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 
 	if email.UseMX {
 		email.sendViaMxServers(port, msg, recipients)
-		return data.OutputResponse{}, nil
+		return EmptyID, nil
 	}
 
 	var auth smtp.Auth
@@ -109,10 +109,10 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 	if err != nil {
 		log.Logger.Errorf("failed to send email: %v", err)
 		log.Logger.Debugf("failed to send email from: %q, to %v via %q:%d", email.Sender, email.Recipients, email.Host, email.Port)
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
 	log.Logger.Debug("Email was sent successfully!")
-	return data.OutputResponse{}, nil
+	return EmptyID, nil
 }
 
 func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []string) {

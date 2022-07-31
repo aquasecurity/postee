@@ -198,12 +198,12 @@ func (ctx *JiraAPI) createClient() (*jira.Client, error) {
 	return client, nil
 }
 
-func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error) {
+func (ctx *JiraAPI) Send(content map[string]string) (string, error) {
 	log.Logger.Infof("Sending to JIRA via %q", ctx.Name)
 	client, err := ctx.createClient()
 	if err != nil {
 		log.Logger.Errorf("unable to create Jira client: %s", err)
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
 
 	if ctx.boardType == "scrum" {
@@ -212,12 +212,12 @@ func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error)
 
 	metaProject, err := createMetaProject(client, ctx.ProjectKey)
 	if err != nil {
-		return data.OutputResponse{}, fmt.Errorf("failed to create meta project: %w", err)
+		return EmptyID, fmt.Errorf("failed to create meta project: %w", err)
 	}
 
 	metaIssueType, err := createMetaIssueType(metaProject, ctx.Issuetype)
 	if err != nil {
-		return data.OutputResponse{}, fmt.Errorf("failed to create meta issue type: %w", err)
+		return EmptyID, fmt.Errorf("failed to create meta issue type: %w", err)
 	}
 
 	summary, ok := content["title"]
@@ -265,7 +265,7 @@ func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error)
 
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("failed to init issue: %w", err))
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
 
 	if len(ctx.Labels) > 0 {
@@ -294,11 +294,10 @@ func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error)
 	i, err := ctx.openIssue(client, issue)
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("failed to open jira issue, %w", err))
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
-	ticketLink := fmt.Sprintf("%s/browse/%s", ctx.Url, i.Key)
-	log.Logger.Infof("Successfully created a new jira issue %s, %s", i.Key, ticketLink)
-	return data.OutputResponse{Key: i.Key, Url: ticketLink}, nil
+	log.Logger.Infof("Successfully created a new jira issue %s", i.Key)
+	return i.Key, nil
 }
 
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {

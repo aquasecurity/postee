@@ -40,7 +40,7 @@ func (hc *HTTPClient) Init() error {
 	return nil
 }
 
-func (hc HTTPClient) Send(m map[string]string) (data.OutputResponse, error) {
+func (hc HTTPClient) Send(m map[string]string) (string, error) {
 	log.Logger.Infof("Sending HTTP via %q", hc.Name)
 	headers := make(map[string][]string)
 	for k, v := range hc.Headers {
@@ -57,21 +57,21 @@ func (hc HTTPClient) Send(m map[string]string) (data.OutputResponse, error) {
 	})
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("error during HTTP Client execution: %w", err))
-		return data.OutputResponse{}, err
+		return EmptyID, err
 	}
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return data.OutputResponse{}, fmt.Errorf("unable to read HTTP response: %w", err)
+		return EmptyID, fmt.Errorf("unable to read HTTP response: %w", err)
 	}
 
 	code := resp.StatusCode
 	if code < 200 || code > 299 {
-		return data.OutputResponse{}, fmt.Errorf("http status NOT OK: HTTP %d %s, response: %s", resp.StatusCode, http.StatusText(code), string(b))
+		return EmptyID, fmt.Errorf("http status NOT OK: HTTP %d %s, response: %s", resp.StatusCode, http.StatusText(code), string(b))
 	}
 
 	log.Logger.Debugf("http execution to url %s successful", hc.URL)
-	return data.OutputResponse{}, nil
+	return EmptyID, nil
 }
 
 func (hc HTTPClient) Terminate() error {
