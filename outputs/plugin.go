@@ -23,7 +23,7 @@ type Output interface {
 	GetType() string
 	GetName() string
 	Init() error
-	Send(map[string]string) (string, error)
+	Send(map[string]string) (data.OutputResponse, error)
 	Terminate() error
 	GetLayoutProvider() layout.LayoutProvider
 	CloneSettings() *data.OutputSettings //TODO shouldn't return reference

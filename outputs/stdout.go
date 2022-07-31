@@ -34,9 +34,9 @@ func (stdout StdoutOutput) GetName() string { return stdout.Name }
 func (stdout StdoutOutput) Init() error {
 	return nil
 }
-func (stdout StdoutOutput) Send(data map[string]string) (string, error) {
-	_, err := fmt.Fprintf(os.Stdout, "%s", data["description"])
-	return EmptyID, err
+func (stdout StdoutOutput) Send(dataMap map[string]string) (data.OutputResponse, error) {
+	_, err := fmt.Fprintf(os.Stdout, "%s", dataMap["description"])
+	return data.OutputResponse{}, err
 }
 
 func (stdout StdoutOutput) Terminate() error {
