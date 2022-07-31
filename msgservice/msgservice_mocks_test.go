@@ -87,18 +87,18 @@ func (plg *DemoEmailOutput) getEmailsCount() int {
 }
 
 func (plg *DemoEmailOutput) Init() error { return nil }
-func (plg *DemoEmailOutput) Send(data map[string]string) (string, error) {
+func (plg *DemoEmailOutput) Send(dataMap map[string]string) (data.OutputResponse, error) {
 	log.Printf("Sending through demo plugin..\n")
-	log.Printf("%s\n", data["title"])
+	log.Printf("%s\n", dataMap["title"])
 
 	plg.mu.Lock()
 	plg.emailCounts++
-	plg.payloads = append(plg.payloads, data)
+	plg.payloads = append(plg.payloads, dataMap)
 	plg.mu.Unlock()
 	if plg.wg != nil {
 		plg.wg.Done()
 	}
-	return "", nil
+	return data.OutputResponse{}, nil
 }
 
 func (plg *DemoEmailOutput) Terminate() error { return nil }

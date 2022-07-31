@@ -523,7 +523,7 @@ func (ctx *Router) loadCfgCacheSourceFromPostgres() (*data.TenantSettings, error
 
 type service interface {
 	MsgHandling(input map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, aquaServer *string)
-	HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (string, error)
+	HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (data.OutputResponse, error)
 	EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool
 	GetMessageUniqueId(in map[string]interface{}, props []string) string
 }
@@ -620,8 +620,8 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 	}
 }
 
-func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) map[string]string {
-	ticketIds := make(map[string]string)
+func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) map[string]data.OutputResponse {
+	ticketIds := make(map[string]data.OutputResponse)
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs.Load(outputName)
 		if !ok {
@@ -656,7 +656,7 @@ func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) map
 			continue
 		}
 
-		if id != "" {
+		if id.Key != "" {
 			ticketIds[pl.(outputs.Output).GetType()] = id
 		}
 	}
@@ -816,7 +816,7 @@ func (ctx *Router) getMessageUniqueId(msg map[string]interface{}, routeName stri
 	return getScanService().GetMessageUniqueId(msg, route.(*routes.InputRoute).Plugins.UniqueMessageProps), nil
 }
 
-func (ctx *Router) sendByRoute(in []byte, routeName string) (ticketIds map[string]string, err error) {
+func (ctx *Router) sendByRoute(in []byte, routeName string) (ticketIds map[string]data.OutputResponse, err error) {
 	inMsg, err := parseInputMessage(in)
 	if err != nil {
 		return ticketIds, xerrors.Errorf("failed parsing input message: %s", err.Error())
@@ -825,7 +825,7 @@ func (ctx *Router) sendByRoute(in []byte, routeName string) (ticketIds map[strin
 	return ctx.sendMsgByRoute(inMsg, routeName)
 }
 
-func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) (ticketIds map[string]string, err error) {
+func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) (ticketIds map[string]data.OutputResponse, err error) {
 	val, exists := ctx.inputRoutes.Load(routeName)
 	if !exists {
 		return ticketIds, xerrors.Errorf("route %s does not exists", routeName)
