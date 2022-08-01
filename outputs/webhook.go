@@ -59,9 +59,9 @@ func (webhook *WebhookOutput) Send(content map[string]string) (string, error) {
 		return EmptyID, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		msg := "sending webhook wrong status: %q. Body: %s"
-		return EmptyID, fmt.Errorf(msg, resp.StatusCode, body)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > 299 {
+		msg := "webhook got bad status code: %q. Body: %"
+		return EmptyID, fmt.Errorf(msg, resp.StatusCode, string(body))
 	}
 	log.Logger.Debugf("Sending Webhook to %q was successful!", webhook.Name)
 	return EmptyID, nil
