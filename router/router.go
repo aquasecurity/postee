@@ -382,7 +382,7 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 	var plg actions.Action
 	var err error
 
-	switch settings.Type {
+	switch strings.ToLower(settings.Type) {
 	case "jira":
 		plg = buildJiraAction(settings)
 	case "email":
@@ -391,7 +391,7 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 		plg = buildSlackAction(settings, aquaServerUrl)
 	case "teams":
 		plg = buildTeamsAction(settings, aquaServerUrl)
-	case "serviceNow":
+	case "servicenow":
 		plg = buildServiceNow(settings)
 	case "webhook":
 		plg = buildWebhookAction(settings)
@@ -399,7 +399,7 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 		plg = buildSplunkAction(settings)
 	case "stdout":
 		plg = buildStdoutAction(settings)
-	case "nexusIq":
+	case "nexusiq":
 		plg = buildNexusIqAction(settings)
 	case "opsgenie":
 		plg = buildOpsGenieAction(settings)
