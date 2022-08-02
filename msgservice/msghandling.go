@@ -83,9 +83,9 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 	}
 }
 
-func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (string, error) {
+func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (data.OutputResponse, error) {
 	if output == nil {
-		return "", xerrors.Errorf("The given output is nil")
+		return data.OutputResponse{}, xerrors.Errorf("The given output is nil")
 	}
 
 	owners := scan.scopeOwners(in)
@@ -94,7 +94,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 	content, err := inpteval.Eval(in, *AquaServer)
 	if err != nil {
 		log.Logger.Errorf("Error while evaluating input: %v", err)
-		return "", err
+		return data.OutputResponse{}, err
 	}
 
 	if owners != "" {
@@ -107,7 +107,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 			content, err = inpteval.BuildAggregatedContent(aggregated)
 			if err != nil {
 				log.Logger.Errorf("Error while building aggregated content: %v", err)
-				return "", err
+				return data.OutputResponse{}, err
 			}
 			return output.Send(content)
 		}
@@ -124,7 +124,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 		return output.Send(content)
 	}
 
-	return "", nil
+	return data.OutputResponse{}, nil
 }
 
 // EvaluateRegoRule returns true in case the given input ([]byte) matches the input of the given route

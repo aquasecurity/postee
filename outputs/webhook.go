@@ -44,27 +44,27 @@ func (webhook *WebhookOutput) Init() error {
 	return nil
 }
 
-func (webhook *WebhookOutput) Send(content map[string]string) (string, error) {
+func (webhook *WebhookOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending webhook to %q", webhook.Url)
-	data := content["description"] //it's not supposed to work with legacy renderer
-	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(data))
+	dataStr := content["description"] //it's not supposed to work with legacy renderer
+	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(dataStr))
 	if err != nil {
 		log.Logger.Errorf("Sending webhook Error: %v", err)
-		return EmptyID, err
+		return data.OutputResponse{}, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("sending %q Error: %w", webhook.Name, err))
-		return EmptyID, err
+		return data.OutputResponse{}, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		msg := "sending webhook wrong status: %q. Body: %s"
-		return EmptyID, fmt.Errorf(msg, resp.StatusCode, body)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode > 299 {
+		msg := "webhook got bad status code: %q. Body: %s"
+		return data.OutputResponse{}, fmt.Errorf(msg, resp.StatusCode, string(body))
 	}
 	log.Logger.Debugf("Sending Webhook to %q was successful!", webhook.Name)
-	return EmptyID, nil
+	return data.OutputResponse{}, nil
 }
 
 func (webhook *WebhookOutput) Terminate() error {
