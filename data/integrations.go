@@ -35,3 +35,8 @@ type OutputSettings struct {
 	Headers         map[string][]string `json:"headers,omitempty"`
 	Template        string              `json:"template,omitempty"`
 }
+
+type OutputResponse struct {
+	Key string
+	Url string
+}
