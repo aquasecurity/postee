@@ -18,34 +18,34 @@ check_failed(item) = true {
 
 # render_sections split collection of cells provided to chunks of 5 rows each and wraps every chunk with section element
 render_sections(rows, caption) = a { 
-    count(rows) > 0 # only if some vulnerabilities are found
-    a:=flat_array([ s |
+    count(rows) > 2 # only if some vulnerabilities are found
+    s1 := [{
+              "type": "section",
+              "text": {
+                  "type": "mrkdwn",
+                  "text": caption
+              }
+          }]
+    b:=[ s |
         # code below converts 2 dimension array like [[row1, row2, ... row5], ....]
         group_size := 10 #it's 5 but every row is represented by 2 items
         num_chunks := ceil(count(rows) / group_size) - 1
         indices := { b | b := numbers.range(0, num_chunks)[_] * group_size }
-    	fields:=[array.slice(rows, i, i + group_size) | i := indices[_]][_]
+    	fields := [array.slice(rows, i, i + group_size) | i := indices[_]][_]
 
         # builds markdown section based on slice
 
         s := [
-        	{
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": caption
-                }
-            },
             {
                 "type": "section",
-                "fields":fields
-
+                "fields": fields
             }
         ]
-	])
+	]
+	a := array.concat(s1, flat_array(b))
 }
 render_sections(rows, caption) = [] { #do not render section if provided collection is empty
-    count(rows) == 0
+    count(rows) < 3
 }
 ###########################################################################################################
 
@@ -71,7 +71,6 @@ vln_list(severity) = l {
 
               ]
     caption := sprintf("*%s severity vulnerabilities*", [severity])  #TODO make first char uppercase
-    
 
     headers := [
         {"type": "mrkdwn", "text": "*Vulnerability ID*"},
@@ -103,6 +102,20 @@ malware_list := l {
     l := render_sections(rows, "Malware")
 }
 
+got_vulns(vulnsAll) = a {
+    count(vulnsAll) > 0
+    a := [{
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "*Found vulnerabilities*"
+        }
+    }]}
+
+got_vulns(vulnsAll) = [] { #do not render section if provided collection is empty
+    count(vulnsAll) == 0
+}
+
 ###########################################################################################################
 title = sprintf("%s vulnerability scan report", [input.image]) # title is string
 
@@ -129,7 +142,7 @@ result = res {
     ])
 
 
-	headers := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
+	headers1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
     			{"type":"section","text":{"type":"mrkdwn","text":sprintf("Registry: %s", [input.registry])}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
                                                                         "Image is non-compliant",
@@ -148,51 +161,48 @@ result = res {
                                                                     )}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy ID: %s", [input.response_policy_id])}},
-                {
-                "type": "section",
-                "fields": severity_stats
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Assurance controls*"
-                    }
-                },
-                {
-                "type": "section",
-                "fields": array.concat(
-                    [{
-                        "type": "mrkdwn",
-                        "text": "*#* *Control*"
-                    },
-                    {
-                        "type": "mrkdwn",
-                        "text": "*Policy Name* / *Status*"
-                    }], checks_performed)
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Found vulnerabilities*"
-                    }
-                }
-	           ]
+                {"type": "section","text": {"type": "mrkdwn","text": "*Vulnerabilities summary*"}},
+                {"type": "section","fields": severity_stats},
+                {"type": "section","text": {"type": "mrkdwn","text": "*Assurance controls*"}},
+                {"type": "section","fields": [{"type": "mrkdwn","text": "*#* *Control*"},
+                    {"type": "mrkdwn","text": "*Policy Name* / *Status*"}]
+                }]
 
+    b:=[ s | # code below converts 2 dimension array like [[row1, row2, ... row5], ....]
+            group_size := 10 #it's 5 but every row is represented by 2 items
+            num_chunks := ceil(count(checks_performed) / group_size) - 1
+            indices := { b | b := numbers.range(0, num_chunks)[_] * group_size }
+            fields := [array.slice(checks_performed, i, i + group_size) | i := indices[_]][_]
+
+            # builds markdown section based on slice
+            s := [
+                {
+                    "type": "section",
+                    "fields": fields
+                }
+            ]
+    ]
+
+    headers2 := flat_array(b)
+    headers := array.concat(headers1, headers2)
     postee := with_default(input, "postee", {})
     aqua_server := with_default(postee, "AquaServer", "")
 
     href:=sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
     text:=sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
 
+    vulnsCritical := vln_list("critical")
+    vulnsHigh := vln_list("high")
+    vulnsMedium := vln_list("medium")
+    vulnsLow := vln_list("low")
+    vulnsNegligible := vln_list("negligible")
+    vulsAll := flat_array([vulnsCritical, vulnsHigh, vulnsMedium, vulnsLow, vulnsNegligible])
+    vulnsFound := got_vulns(vulsAll)
+
     res := flat_array([
         headers,
-        vln_list("critical"), 
-        vln_list("high"),
-        vln_list("medium"),
-        vln_list("low"),
-        vln_list("negligible"),
+        vulnsFound,
+        vulsAll,
         malware_list
     ])
 

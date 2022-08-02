@@ -13,6 +13,7 @@ tpl:=`
 <p>%s</p>
 <p>%s</p>
 <!-- stats -->
+<h3>Vulnerabilities summary</h2>
 %s
 <h2>Assurance controls</h2>
 %s
