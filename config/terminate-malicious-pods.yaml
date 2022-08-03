@@ -36,4 +36,5 @@ rules:
   - name: Privilege Escalation
   - name: Defense Evasion
   - name: Persistence
+  - name: tracee-default
 name: Terminating Malicious Pods
