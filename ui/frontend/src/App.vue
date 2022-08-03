@@ -5,6 +5,10 @@
       <b-navbar-brand href="#">Postee</b-navbar-brand>
     </b-navbar>
 
+    <div>
+      <v-tour name="myTour" :callbacks="tourCallbacks" :steps="steps" :options="{ highlight: false }"></v-tour>
+    </div>
+
     <div class="container-fluid">
       <div class="row content">
         <div v-if="!isOnLogin" class="col-sm-2">
@@ -14,6 +18,7 @@
                   active-class="active"
                   :to="{ name: 'routes' }"
                   class="nav-link"
+                  id="routes"
               >Routes</router-link
               >
             </li>
@@ -46,6 +51,7 @@
                   active-class="active"
                   :to="{ name: 'events' }"
                   class="nav-link"
+                  id="events"
                 >Events</router-link
               >
             </li>
@@ -86,6 +92,71 @@ export default {
   },
   data() {
     return {
+      tourCallbacks: {
+        onStop: this.stopTour,
+      },
+      steps: [
+        {
+          target: '#routes',
+          content: "Routes are scenarios that can occur based on input events",
+          params: {
+            enableScrolling: false,
+          },
+        },
+        {
+          target: "#add-route",
+          content: "Let's begin by adding a new route",
+          params: {
+            enableScrolling: false,
+          },
+        },
+        {
+          target: "#name",
+          content: "Start by giving it a name",
+          params: {
+            enableScrolling: false,
+            placement: 'left',
+          }
+        },
+        {
+          target: "#select-input-policies",
+          content: "Policies define when a route will be triggered",
+          params: {
+            enableScrolling: false,
+            placement: 'left',
+          }
+        },
+        {
+          target: "#actions",
+          content: "When a policy is triggered, <strong>Actions</strong> are taken",
+          params: {
+            enableScrolling: false,
+            placement: 'left',
+          }
+        },
+        {
+          target: "#submit",
+          content: "Go ahead and save this route",
+          params: {
+            enableScrolling: false,
+          },
+        },
+        {
+          target: "#events",
+          content: "Let's check some incoming events",
+          params: {
+            placement: "right",
+          }
+        },
+        {
+          target: "#event-list",
+          content: "Expand to see details"
+        },
+        {
+          target: "",
+          content: `You did it! Browse full docs at: <a href="https://aquasecurity.github.io/postee/latest/" target="_blank">Postee Docs</a>`
+        }
+      ]
     };
   },
   computed: {
@@ -106,7 +177,20 @@ export default {
       this.$store.dispatch("load");
       this.$store.dispatch("stats/load");
       this.$store.dispatch("events/load");
+      this.startTour();
     },
+    startTour(){
+        if (!localStorage.getItem('disable-tour')){
+          this.$tours['myTour'].start()
+      }else {
+          this.$tours['myTour'].finish()
+        }
+    },
+    stopTour(){
+      if (!localStorage.getItem('disable-tour')) {
+        localStorage.setItem('disable-tour', 'true');
+      }
+    }
   },
   mounted() {
     if (this.$store.state.account.authenticated) {

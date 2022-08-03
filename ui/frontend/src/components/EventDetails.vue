@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="event-list">
     <json-viewer
         :value="events"
         :expand-depth=3
