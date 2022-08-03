@@ -738,7 +738,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		return nil, xerrors.Errorf("password for %q is empty", settings.Name)
 	}
 	settings.Token = utils.GetEnvironmentVarOrPlain(settings.Token)
-	if settings.Type == "jira" {
+	if strings.ToLower(settings.Type) == "jira" {
 		if len(settings.Token) == 0 {
 			if len(settings.User) == 0 || len(settings.Password) == 0 {
 				return nil, xerrors.Errorf("user or password for %q is empty", settings.Name)
@@ -751,7 +751,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 	var plg outputs.Output
 	var err error
 
-	switch settings.Type {
+	switch strings.ToLower(settings.Type) {
 	case "jira":
 		plg = buildJiraOutput(settings)
 	case "email":
@@ -760,7 +760,7 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		plg = buildSlackOutput(settings, aquaServerUrl)
 	case "teams":
 		plg = buildTeamsOutput(settings, aquaServerUrl)
-	case "serviceNow":
+	case "servicenow":
 		plg = buildServiceNow(settings)
 	case "webhook":
 		plg = buildWebhookOutput(settings)
