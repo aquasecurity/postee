@@ -24,9 +24,9 @@ services:
             - 8001:8001
         volumes:
             - bolt:/server/database
-            - config:/config-files
+            - config:/config
         environment:
-            - "POSTEE_UI_CFG=/config-files/cfg.yaml"
+            - "POSTEE_UI_CFG=/config/cfg.yaml"
             - "POSTEE_UI_PORT=8001"
             - "POSTEE_UI_UPDATE_URL=http://postee:8082"
 volumes:
