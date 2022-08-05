@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="row justify-content-end pb-3 pr-3">
-      <button type="submit" class="btn btn-primary mr-2" @click="doSubmit">
+      <button id="submit" type="submit" class="btn btn-primary mr-2" @click="doSubmit">
         Submit
       </button>
       <button
@@ -25,7 +25,7 @@
             :inputHandler="updateField"
             :validator="v(uniqueName)"
           />
-          <h5>Input Policies</h5>
+          <div id="select-input-policies"> <h5>Input Policies</h5> </div>
           <b-form-group>
             <small class="form-text text-muted">
               Select rego policies to trigger the route
