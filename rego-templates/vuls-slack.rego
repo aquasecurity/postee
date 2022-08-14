@@ -137,8 +137,8 @@ result = res {
             severity := severities[_]
             gr:= [
                 {"type": "mrkdwn", "text": sprintf("*%s*", [upper(severity)])},
-                {"type": "mrkdwn", "text": sprintf("*%d*", [input.vulnerability_summary[severity]])},
-            ]            
+                {"type": "mrkdwn", "text": sprintf("*%d*", [with_default(input.vulnerability_summary, severity, 0)])},
+            ]
     ])
 
 
