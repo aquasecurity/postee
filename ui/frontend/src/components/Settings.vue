@@ -5,6 +5,8 @@
         Submit
       </button>
     </div>
+    <div class="card-header"><h3>Settings</h3></div>
+    <div class="card-body">Modify current Postee settings.</div>
     <div class="card">
       <form @submit.prevent="doSubmit">
         <div class="card-body">

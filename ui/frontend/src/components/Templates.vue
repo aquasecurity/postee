@@ -3,6 +3,8 @@
     <div class="row justify-content-end pb-3 pr-3">
         <router-link :to="{name: 'add-template'}" class="btn btn-primary">Add Template</router-link>
     </div>
+  <div class="card-header"><h3>Templates</h3></div>
+  <div class="card-body">Templates are used to format input messages before sending them to the action.</div>
     <div class="row row-cols-1 row-cols-md-3">
         <TemplateCard v-for="(template, index) in templates" :key="'template-' + index" :name="template.name"/>
     </div>
