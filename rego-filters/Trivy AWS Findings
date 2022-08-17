@@ -1,0 +1,5 @@
+package postee
+
+allow {
+    contains(input.Findings[0].ProductFields["Product Name"], "Trivy")
+}

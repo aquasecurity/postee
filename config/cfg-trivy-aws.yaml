@@ -1,0 +1,17 @@
+actions:
+  - type: awssecurityhub
+    enable: true
+    name: Send Findings to Security Hub
+routes:
+  - name: Send Trivy Findings to AWS Security Hub
+    template: raw-json
+    actions:
+      - Send Findings to Security Hub
+    input-files:
+      - Trivy AWS Findings
+templates:
+  - name: raw-json
+    rego-package: postee.rawmessage.json
+rules:
+  - name: Trivy AWS Findings
+name: Send Trivy Results to AWS Security Hub
