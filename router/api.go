@@ -267,7 +267,12 @@ func TestOutput(input map[string]interface{}, settings *data.OutputSettings) err
 	}
 
 	if settings.Template != "" {
-		templateRegoPkg = settings.Template
+		templates := GetEmbeddedTemplates()
+		for _, template := range templates {
+			if template.Name == settings.Template {
+				templateRegoPkg = template.RegoPackage
+			}
+		}
 	}
 
 	template, err := regoservice.BuildBundledRegoEvaluator(templateRegoPkg)
