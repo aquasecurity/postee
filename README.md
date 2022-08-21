@@ -471,7 +471,7 @@ use a persistent storage option to mount the "/server/database" directory of the
 The "deploy/kubernetes" directory in this project contains an example deployment that includes a basic Host Persistency.
 
 ### Using environment variables in Postee Configuration File   
-Postee supports use of environment variables for *Output* fields: **User**, **Password** and **Token**. Add preffix `$` to the environment variable name in the configuration file, for example:
+Postee supports use of environment variables for *Output* fields: **User**, **Password** and **Token**. Add prefix `$` to the environment variable name in the configuration file, for example:
 ```
 outputs:
 - name: my-jira   

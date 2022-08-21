@@ -266,6 +266,10 @@ func TestOutput(input map[string]interface{}, settings *data.OutputSettings) err
 		templateRegoPkg = "postee.vuls.html"
 	}
 
+	if settings.Template != "" {
+		templateRegoPkg = settings.Template
+	}
+
 	template, err := regoservice.BuildBundledRegoEvaluator(templateRegoPkg)
 	if err != nil {
 		return err
