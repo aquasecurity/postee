@@ -49,6 +49,7 @@
                   <option value="serviceNow">ServiceNow</option>
                   <option value="nexusIq">Nexus IQ</option>
                   <option value="exec">Exec</option>
+                  <option value="awssecurityhub">AWS Security Hub</option>
                 </select>
                 <small id="aHelp" class="form-text text-muted"
                   >The action type</small

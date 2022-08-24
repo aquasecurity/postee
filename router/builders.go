@@ -226,3 +226,7 @@ func buildDockerAction(sourceSettings *ActionSettings) (*actions.DockerClient, e
 		Network:   sourceSettings.DockerNetwork,
 	}, nil
 }
+
+func buildAWSSecurityHubAction(sourceSettings *ActionSettings) (*actions.AWSSecurityHubClient, error) {
+	return &actions.AWSSecurityHubClient{Name: sourceSettings.Name}, nil
+}

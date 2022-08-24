@@ -427,6 +427,12 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 			log.Println(err.Error())
 			return nil
 		}
+	case "awssecurityhub":
+		plg, err = buildAWSSecurityHubAction(settings)
+		if err != nil {
+			log.Println(err.Error())
+			return nil
+		}
 	default:
 		log.Printf("Action type %q is undefined or empty. Action name is %q.",
 			settings.Type, settings.Name)
