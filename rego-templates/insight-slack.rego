@@ -1,6 +1,6 @@
 package postee.insight.slack
 
-title = sprintf("Insight on %s", [input.resource.name])
+title = sprintf("Insight on %s", [input.resource.short_path])
 
 tpl:=`
 _Insight Details_:
@@ -102,29 +102,29 @@ evidenceTable = table {
     prefix := ["|Vulnerability            |Severity                    |Vulnerable Package       |\n|-----------------------|-----------------------|----------------------------|\n"]
     list := vln_list
     table := concat_list(prefix,list)
-    input.evidence.vulnerabilities != null; input.evidence.malware == null; input.evidence.sensitive_data == null
+    input.evidence.vulnerabilities; not input.evidence.malware; not input.evidence.sensitive_data
 }
 
 evidenceTable = table {
     prefix := ["|Vulnerability            |Severity                    |Vulnerable Package       |\n|-----------------------|-----------------------|----------------------------|\n"]
     list := vln_list
     table := concat_list(prefix,list)
-    input.evidence.vulnerabilities!=null; input.evidence.malware==null; input.evidence.sensitive_data!=null
+    input.evidence.vulnerabilities; not input.evidence.malware; input.evidence.sensitive_data
 }
 
 evidenceTable = table {
 	table := sprintf("`%s`",[input.evidence.malware])
-    input.evidence.malware!=null; input.evidence.vulnerabilities==null; input.evidence.sensitive_data==null
+    input.evidence.malware; not input.evidence.vulnerabilities; not input.evidence.sensitive_data
 }
 
 evidenceTable = table {
 	table := sprintf("`%s`",[input.evidence.sensitive_data])
-    input.evidence.sensitive_data!=null; input.evidence.vulnerabilities==null; input.evidence.malware==null
+    input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
 }
 
 evidenceTable = table {
 	table := sprintf("`%s`",[input.evidence.privileged_iam_roles])
-    input.evidence.privileged_iam_roles!=null; input.evidence.sensitive_data==null; input.evidence.vulnerabilities==null; input.evidence.malware==null
+    not input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
 }
 
 remediation_with_default(default_value) = default_value{
