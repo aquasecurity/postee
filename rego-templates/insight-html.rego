@@ -1,6 +1,6 @@
 package postee.insight.html
 
-title = sprintf("<h1>Insight on %s</h1><br>", [input.resource.name])
+title = sprintf("<h1>Insight on %s</h1><br>", [input.resource.short_path])
 
 tpl:=`
 <u>Insight Details</u>
@@ -108,7 +108,7 @@ evidenceTable = table {
     list := vln_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.vulnerabilities != null; input.evidence.malware == null; input.evidence.sensitive_data == null
+    input.evidence.vulnerabilities; not input.evidence.malware; not input.evidence.sensitive_data
 }
 
 evidenceTable = table {
@@ -116,7 +116,7 @@ evidenceTable = table {
     list := vln_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.vulnerabilities!=null; input.evidence.malware==null; input.evidence.sensitive_data!=null
+    input.evidence.vulnerabilities; not input.evidence.malware; input.evidence.sensitive_data
 }
 
 evidenceTable = table {
@@ -124,7 +124,7 @@ evidenceTable = table {
     list := malware_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.malware!=null; input.evidence.vulnerabilities==null; input.evidence.sensitive_data==null
+    input.evidence.malware; not input.evidence.vulnerabilities; not input.evidence.sensitive_data
 }
 
 evidenceTable = table {
@@ -132,7 +132,7 @@ evidenceTable = table {
     list := sensitive_list
     res := concat_list(prefix,list)
     table := sprintf("<table>%s</table>",[res])
-    input.evidence.sensitive_data!=null; input.evidence.vulnerabilities==null; input.evidence.malware==null
+    input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
 }
 
 remediation_with_default(default_value) = default_value{

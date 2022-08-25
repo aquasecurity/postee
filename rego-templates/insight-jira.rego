@@ -1,6 +1,6 @@
 package postee.insight.jira
 
-title = sprintf("Insight on %s", [input.resource.name])
+title = sprintf("Insight on %s", [input.resource.short_path])
 
 
 tpl:=`
@@ -112,34 +112,34 @@ evidenceTable = table {
     prefix := ["||*Vulnerability*                    ||*Severity*                    ||*Vulnerable Package*                   ||\n"]
     list := vln_list
     table := concat_list(prefix,list)
-    input.evidence.vulnerabilities != null; input.evidence.malware == null; input.evidence.sensitive_data == null
+    input.evidence.vulnerabilities; not input.evidence.malware; not input.evidence.sensitive_data
 }
 
 evidenceTable = table {
     prefix := ["||*Vulnerability*                    ||*Severity*                    ||*Vulnerable Package*                   ||\n"]
     list := vln_list
     table := concat_list(prefix,list)
-    input.evidence.vulnerabilities!=null; input.evidence.malware==null; input.evidence.sensitive_data!=null
+    input.evidence.vulnerabilities; not input.evidence.malware; input.evidence.sensitive_data
 }
 
 evidenceTable = table {
     prefix := ["||*File Name*                    ||*File Hash*                    ||*Path*                   ||\n"]
     list := malware_list
     table := concat_list(prefix,list)
-    input.evidence.malware!=null; input.evidence.vulnerabilities==null; input.evidence.sensitive_data==null
+    input.evidence.malware; not input.evidence.vulnerabilities; not input.evidence.sensitive_data
 }
 
 evidenceTable = table {
     prefix := ["||*File Type*                    ||*File Path*                    ||*Image*                   ||\n"]
     list := sensitive_list
     table := concat_list(prefix,list)
-    input.evidence.sensitive_data!=null; input.evidence.vulnerabilities==null; input.evidence.malware==null
+    input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
 }
 
 
 evidenceTable = table {
 	table := input.evidence.privileged_iam_roles
-    input.evidence.privileged_iam_roles!=null; input.evidence.sensitive_data==null; input.evidence.vulnerabilities==null; input.evidence.malware==null
+    not input.evidence.sensitive_data; not input.evidence.vulnerabilities; not input.evidence.malware
 }
 
 
