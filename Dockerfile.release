@@ -9,7 +9,6 @@ COPY postee /server/
 COPY rego-templates /server/rego-templates
 COPY rego-filters /server/rego-filters
 COPY cfg.yaml /config/
-COPY config /config/samples
 WORKDIR /server
 RUN chmod +x postee
 RUN addgroup -g 1099 postee

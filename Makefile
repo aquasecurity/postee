@@ -39,7 +39,7 @@ composer :
 docker-webhook : build
 	@echo "Building image Dockerfile.release...."
 	docker build --no-cache -t aquasec/postee:latest -f Dockerfile.release .
-	docker run -p 8082:8082 -p 8445:8445 aquasec/postee:latest --cfgfile /config/cfg.yaml
+	docker run -p 8082:8082 -p 8445:8445 aquasec/postee:latest --cfgfile /server/cfg.yaml
 
 docker-ui :
 	@echo "Building image Dockerfile.ui...."
