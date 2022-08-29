@@ -37,6 +37,7 @@ type OutputSettings struct {
 }
 
 type OutputResponse struct {
+	Type string
 	Name string
 	Key  string
 	Url  string

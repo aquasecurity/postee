@@ -620,8 +620,8 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 	}
 }
 
-func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) map[string]data.OutputResponse {
-	ticketIds := make(map[string]data.OutputResponse)
+func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []data.OutputResponse {
+	tickets := []data.OutputResponse{}
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs.Load(outputName)
 		if !ok {
@@ -657,10 +657,11 @@ func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) map
 		}
 
 		if id.Key != "" {
-			ticketIds[pl.(outputs.Output).GetType()] = id
+			id.Type = pl.(outputs.Output).GetType()
+			tickets = append(tickets, id)
 		}
 	}
-	return ticketIds
+	return tickets
 }
 
 func (ctx *Router) handle(in []byte) {
@@ -816,33 +817,33 @@ func (ctx *Router) getMessageUniqueId(msg map[string]interface{}, routeName stri
 	return getScanService().GetMessageUniqueId(msg, route.(*routes.InputRoute).Plugins.UniqueMessageProps), nil
 }
 
-func (ctx *Router) sendByRoute(in []byte, routeName string) (ticketIds map[string]data.OutputResponse, err error) {
+func (ctx *Router) sendByRoute(in []byte, routeName string) (tickets []data.OutputResponse, err error) {
 	inMsg, err := parseInputMessage(in)
 	if err != nil {
-		return ticketIds, xerrors.Errorf("failed parsing input message: %s", err.Error())
+		return tickets, xerrors.Errorf("failed parsing input message: %s", err.Error())
 	}
 
 	return ctx.sendMsgByRoute(inMsg, routeName)
 }
 
-func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) (ticketIds map[string]data.OutputResponse, err error) {
+func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string) (tickets []data.OutputResponse, err error) {
 	val, exists := ctx.inputRoutes.Load(routeName)
 	if !exists {
-		return ticketIds, xerrors.Errorf("route %s does not exists", routeName)
+		return tickets, xerrors.Errorf("route %s does not exists", routeName)
 	}
 
 	route, ok := val.(*routes.InputRoute)
 	if ok {
 		if len(route.Outputs) == 0 {
 			log.Logger.Warnf("route %q has no outputs", routeName)
-			return ticketIds, nil
+			return tickets, nil
 		}
 
-		ticketIds = ctx.publish(inMsg, route)
+		tickets = ctx.publish(inMsg, route)
 
 	}
 
-	return ticketIds, nil
+	return tickets, nil
 }
 
 func (ctx *Router) embedTemplates() error {
