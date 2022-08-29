@@ -298,7 +298,7 @@ func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error)
 	}
 	ticketLink := fmt.Sprintf("%s/browse/%s", ctx.Url, i.Key)
 	log.Logger.Infof("Successfully created a new jira issue %s, %s", i.Key, ticketLink)
-	return data.OutputResponse{Key: i.Key, Url: ticketLink}, nil
+	return data.OutputResponse{Key: i.Key, Url: ticketLink, Name: ctx.Name}, nil
 }
 
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {
