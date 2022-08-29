@@ -75,7 +75,7 @@ func (sn *ServiceNowOutput) Send(content map[string]string) (data.OutputResponse
 
 	ticketLink := fmt.Sprintf("https://%s.service-now.com/nav_to.do?uri=%s.do?sys_id=%s", sn.Instance, sn.Table, resp.SysID)
 	log.Logger.Infof("Successfully sent a message via ServiceNow %q, ID %q, Link %q", sn.Name, resp.SysID, ticketLink)
-	return data.OutputResponse{Key: resp.SysID, Url: ticketLink}, nil
+	return data.OutputResponse{Key: resp.SysID, Url: ticketLink, Name: sn.Name}, nil
 }
 
 func (sn *ServiceNowOutput) Terminate() error {
