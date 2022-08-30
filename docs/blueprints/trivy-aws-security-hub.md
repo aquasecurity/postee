@@ -51,7 +51,7 @@ AWS Security Hub can be configured using the instructions as defined [here](http
 
 #### Install the plugin
 ```shell
-trivy plugin install https://github.com/aquasecurity/trivy-plugin-webhook
+trivy plugin install github.com/aquasecurity/trivy-plugin-webhook
 ```
 
 #### Run the Trivy scan using the plugin
