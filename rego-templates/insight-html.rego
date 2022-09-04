@@ -2,6 +2,8 @@ package postee.insight.html
 
 title = sprintf("<h1>Insight on %s</h1><br>", [input.resource.name])
 
+title_email = sprintf("Insight on %s", [input.resource.name])
+
 tpl:=`
 <u>Insight Details</u>
 <p><b>Insight ID: </b>%s</p>
@@ -30,7 +32,6 @@ tpl:=`
 <br>
 
 <p><b>Response policy name: </b>%s</p>
-<p><b>Response policy ID: </b>%s</p>
 `
 
 
@@ -176,7 +177,6 @@ result = msg {
     insightDetails,
     evidenceTable,
     remediation_with_default("No Recommendation"),
-    input.response_policy_name,
-    input.response_policy_id
+    input.response_policy_name
     ])
 }
