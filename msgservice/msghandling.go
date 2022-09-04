@@ -3,7 +3,6 @@ package msgservice
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -175,18 +174,8 @@ func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.Input
 		"AquaServer": aquaServer,
 	}
 
-	policyName := route.Name
-	policyID := ""
-
-	dash := strings.LastIndex(route.Name, "-")
-	if dash != -1 {
-		policyName = route.Name[:dash]
-		policyID = route.Name[dash+1:]
-	}
-
 	//enrich those fields even if they are empty, so the rego evaluation will not fail
-	in["response_policy_name"] = policyName
-	in["response_policy_id"] = policyID
+	in["response_policy_name"] = route.Name
 
 	scan.enrichInsightVulnsPackageName(in)
 }

@@ -27,7 +27,6 @@ _Recommendation_:
 %s
 
 *Response policy name*: %s
-*Response policy ID:* %s
 `
 
 vulnsDetails:=`*Resource Kind:* %s
@@ -184,7 +183,6 @@ result = msg {
     sprintf("%s",[input.resource.steps]),
     evidenceTable,
     remediation_with_default("No Recommendation"),
-    input.response_policy_name,
-    input.response_policy_id
+    input.response_policy_name
     ])
 }

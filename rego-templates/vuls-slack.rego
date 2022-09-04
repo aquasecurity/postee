@@ -160,7 +160,6 @@ result = res {
                                                                         with_default(input.vulnerability_summary, "sensitive", 0) > 0 #reflects current logic
                                                                     )}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
-                {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy ID: %s", [input.response_policy_id])}},
                 {"type": "section","text": {"type": "mrkdwn","text": "*Vulnerabilities summary*"}},
                 {"type": "section","fields": severity_stats},
                 {"type": "section","text": {"type": "mrkdwn","text": "*Assurance controls*"}},

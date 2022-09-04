@@ -81,6 +81,9 @@ func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
 func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending to email via %q", email.Name)
 	subject := content["title"]
+	if emailTitle := content["title_email"]; emailTitle != "" {
+		subject = emailTitle
+	}
 	body := content["description"]
 	port := strconv.Itoa(email.Port)
 	recipients := getHandledRecipients(email.Recipients, &content, email.Name)

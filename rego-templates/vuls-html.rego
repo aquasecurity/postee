@@ -30,7 +30,6 @@ tpl:=`
 <br>
 
 <p>Response policy name: %s</p>
-<p>Response policy ID: %s</p>
 `
 
 vlnrb_tpl = `
@@ -196,7 +195,6 @@ result = msg {
     render_vlnrb("Medium", vln_list("medium")),
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
-    input.response_policy_name,
-    input.response_policy_id
+    input.response_policy_name
     ])
 }
