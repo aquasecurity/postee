@@ -1,10 +1,9 @@
 package postee.insight.html
 
-title = sprintf("<h1>Insight on %s</h1><br>", [input.resource.name])
-
-title_email = sprintf("Insight on %s", [input.resource.name])
+title = sprintf("Insight on %s", [input.resource.name])
 
 tpl:=`
+<br>
 <u>Insight Details</u>
 <p><b>Insight ID: </b>%s</p>
 <p><b>Description: </b>%s</p>
