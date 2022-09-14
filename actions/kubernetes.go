@@ -82,6 +82,7 @@ func jsonOrString(input map[string]string, filter string) string {
 func (k KubernetesClient) prepareInputs(input map[string]string) (string, map[string]map[string]string) {
 	retAction := make(map[string]map[string]string)
 	var retLabelSelector string
+	retLabelSelector = k.KubeLabelSelector
 
 	if strings.Contains(k.KubeLabelSelector, regoInputPrefix) {
 		retLabelSelector = jsonOrString(input, strings.TrimPrefix(k.KubeLabelSelector, regoInputPrefix+"."))
