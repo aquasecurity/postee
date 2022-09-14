@@ -10,12 +10,12 @@ posteUi:
   user: ""
   pass: ""
   image: aquasec/postee-ui
-  tag: "2.8.3-amd64"
+  tag: "2.8.4-amd64"
 
 image:
   repository: aquasec/postee
   pullPolicy: Always
-  tag: "2.8.3-amd64"
+  tag: "2.8.4-amd64"
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent
