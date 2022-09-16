@@ -49,19 +49,19 @@ Follow these steps to set up JIRA integration:
           or
         * Token: your Personal Access Tokens.
 
-Key | Description | Possible Values
+Key | Description | Possible Values | Required
 --- | --- | ---
 *url* | Jira project url |
 *project-key* | The JIRA project key |
 *user* | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center |
-*password* | Optional: User's password. API token can also be used for Cloud Jira instances. |
-*token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center |
-*board* |  Optional: JIRA board key |
-*priority*|  Optional: ticket priority, e.g., High |
-*assignee*| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value |
-*issuetype*| Optional: issue type, e.g., Bug |
-*labels*| Optional: comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|
-*sprint*| Optional: Sprint name, e.g., "3.5 Sprint 8" |
+*password* | Optional: User's password. API token can also be used for Cloud Jira instances. | NO
+*token* | Optional: User's Personal Access Token. Used only for Jira Server/Data Center | NO
+*board* |  Optional: JIRA board key | NO
+*priority*|  Optional: ticket priority, e.g., High | NO
+*assignee*| Optional: comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value | NO
+*issuetype*| Optional: issue type, e.g., Bug | NO
+*labels*| Optional: comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]| NO
+*sprint*| Optional: Sprint name, e.g., "3.5 Sprint 8" | NO
 
 For Jira you can also specify custom fields that will be populated with values.
 Use the `unknowns` parameter in cfg.yaml for custom fields.
@@ -126,11 +126,11 @@ Possible options for getting the field name:
       ```
 
 ## Email
-Key | Description | Possible Values
+Key | Description | Possible Values | Required
 --- | --- | ---
-*use-mx* | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false
-*user* | Optional, if auth supported. User name (usually email address) |
-*password* | Optional, if auth supported. Password |
+*use-mx* | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false | 
+*user* | Optional, if auth supported. User name (usually email address) | NO
+*password* | Optional, if auth supported. Password | NO
 *host* | SMTP host name |
 *port* | SMTP port |
 *sender* |  Sender's email address |
@@ -214,24 +214,24 @@ Key | Description | Possible Values
       
     An API key from the `API Key Management` tab will produce an HTTP 403 error. This API Key is valid but cannot create alerts as it lacks necessary permissions. 
 
-Key | Required | Description | Possible Values
+Key | Required | Description | Possible Values | Required
 --- |----------| --- | ---
-token | true     | an API key from an API integration |
-user | false    | Display name of the request owner.                                                                   | 
-assignee | false    | Comma separated list of users that the alert will be routed to send notifications
-recipients | false    | Comma separated list of users that the alert will become visible to without sending any notification 
-priority | false    | Specify the alert priority. Default is "P3"                                                          | "P1" "P2" "P3" "P4" "P5"
-tags  | false    | Comma separated list of the alert tags.                                                              |
-alias | false    | Client-defined identifier of the alert.
-entity | false    | Entity field of the alert that is generally used to specify which domain alert is related to.
+token | true     | an API key from an API integration | YES
+user | false    | Display name of the request owner.                                                                   | NO
+assignee | false    | Comma separated list of users that the alert will be routed to send notifications | NO
+recipients | false    | Comma separated list of users that the alert will become visible to without sending any notification  | NO
+priority | false    | Specify the alert priority. Default is "P3"                                                          | "P1" "P2" "P3" "P4" "P5" | NO
+tags  | false    | Comma separated list of the alert tags.                                                              | NO
+alias | false    | Client-defined identifier of the alert. | NO
+entity | false    | Entity field of the alert that is generally used to specify which domain alert is related to. NO
 
 ## Exec
 
-| Option      | Usage                                                                                     |
-|-------------|-------------------------------------------------------------------------------------------|
-| env         | Optional, custom environment variables to be exposed in the shell of the executing script |
-| input-file  | Required, custom shell script to executed                                                 |
-| exec-script | Required, inline shell script executed                                                    |
+| Option      | Usage                                                                                     | Required |
+|-------------|-------------------------------------------------------------------------------------------|----------|
+| env         | Optional, custom environment variables to be exposed in the shell of the executing script | NO       |
+| input-file  | Required, custom shell script to executed                                                 | YES      |
+| exec-script | Required, inline shell script executed                                                    | YES      |
 
 The Exec Action also internally exposes the `$POSTEE_EVENT` environment variable with the input event that triggered the action. This can be helpful in situations where the event itself contains useful information.
 
@@ -243,36 +243,36 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
 ![img_1.png](img/img_1.png)
 
-| Option   | Usage                                   |
-|----------|-----------------------------------------|
-| URL      | Required, URL of the remote server      |
-| Method   | Required, e.g., GET, POST               |
-| Headers  | Optional, custom headers to send        |
-| Timeout  | Optional, custom timeout for HTTP call  |
-| Bodyfile | Optional, input file for HTTP post body |
+| Option   | Usage                                   | Required |
+|----------|-----------------------------------------|----------|
+| URL      | Required, URL of the remote server      | YES      |
+| Method   | Required, e.g., GET, POST               | YES      |
+| Headers  | Optional, custom headers to send        | NO       |
+| Timeout  | Optional, custom timeout for HTTP call  | NO       |
+| Bodyfile | Optional, input file for HTTP post body | NO       |
 
 
 ## Kubernetes
 ![img_4.png](img/img_4.png)
 
-| Option              | Usage                                                                                                                           |
-|---------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| kube-namespace      | Required. Kubernetes namespace to use.                                                                                          |
-| kube-config-file    | Required. Path to .kubeconfig file                                                                                              |
-| kube-label-selector | Required, if specifying labels or annotations.                                                                                  |
-| kube-actions        | Optional, key-value pair of labels and annotations<br/>Labels must be added via "labels" key and Annotations via "annotations". |
+| Option              | Usage                                                                                                                           | Required |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------|----------|
+| kube-namespace      | Required. Kubernetes namespace to use.                                                                                          | YES      |
+| kube-config-file    | Required. Path to .kubeconfig file                                                                                              | YES      |
+| kube-label-selector | Required, if specifying labels or annotations.                                                                                  | YES      |
+| kube-actions        | Optional, key-value pair of labels and annotations<br/>Labels must be added via "labels" key and Annotations via "annotations". | NO       |
 
 
 ## Docker
 ![img_5.png](img/img_5.png)
 
-| Option               | Usage                                                                                                                                                                    |
-|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| docker-image-name    | Required. Image name of the docker image.                                                                                                                                |
-| docker-cmd           | Required. Command to run inside the docker image.                                                                                                                        |
-| docker-env           | Optional. Environment variables to set in the container.                                                                                                                 |
-| docker-network       | Optional. Connect the action container to the specified network. {e.g. "host"}                                                                                           |
-| docker-volume-mounts | Optional*. Volume mounts present inside the container.<br/> * _If you have specified volume mounts, you also need to pass them through into the postee docker container_ |
+| Option               | Usage                                                                                                                                                                    | Required |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| docker-image-name    | Required. Image name of the docker image.                                                                                                                                | YES      |
+| docker-cmd           | Required. Command to run inside the docker image.                                                                                                                        | YES      |
+| docker-env           | Optional. Environment variables to set in the container.                                                                                                                 | NO       |
+| docker-network       | Optional. Connect the action container to the specified network. {e.g. "host"}                                                                                           | NO       |
+| docker-volume-mounts | Optional*. Volume mounts present inside the container.<br/> * _If you have specified volume mounts, you also need to pass them through into the postee docker container_ | NO       |
 
 !!! note
       When running Postee in a Docker container, it is required to mount the Docker socket within the Postee container to be able to spin up Docker Action container instances. This can be done as follows:
