@@ -76,6 +76,8 @@ data:
         legacy-scan-renderer: slack
       - name: custom-email
         url: null
+      - name: trivy-operator-slack
+        rego-package: postee.trivyoperator.slack
     name: tenant
     AquaServer: https://xxxxxxxxxxx.com
 
