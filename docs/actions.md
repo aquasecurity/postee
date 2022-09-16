@@ -126,15 +126,20 @@ Possible options for getting the field name:
       ```
 
 ## Email
-|Key          | Description | Possible Values | Required |
-|-------------|-------------|-----------------|----------|
-|*use-mx*     | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false |      |
-|*user*       | Optional, if auth supported. User name (usually email address) |      | NO      |
-|*password*   | Optional, if auth supported. Password |     | NO      |
-|*host*       | SMTP host name |          |           |
-|*port*       | SMTP port      |          |           |
-|*sender*     |  Sender's email address   |           |
-|*recipients* |  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |
+|Key          | Description                                                                   | Possible Values | Required |
+|-------------|-------------------------------------------------------------------------------|-----------------|----------|
+|*use-mx*     | Whether to send the email as an SMTP server or a client. Specify 'true' 
+                if you would like to send email as an smtp server, in this case you don't need
+               to provide user, password, host and port.                                      | true, false     |           |
+|*user*       | Optional, if auth supported. User name (usually email address)                |                 | NO        |
+|*password*   | Optional, if auth supported. Password                                         |                 | NO        |
+|*host*       | SMTP host name                                                                |                 |           |
+|*port*       | SMTP port                                                                     |                 |           |
+|*sender*     |  Sender's email address                                                       |                 |           |
+|*recipients* |  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. 
+                To send the email to the Application Owner email address (as defined in Aqua
+                Application Scope, owner email field), specify ["<%application_scope_owner%>"] 
+                as the recipients value                                                       |                 |           |
 
 ## Slack
 Getting the Slack webhooks [Create a Slack Custom App](https://api.slack.com/messaging/webhooks).
