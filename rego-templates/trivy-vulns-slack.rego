@@ -125,7 +125,7 @@ result = res {
 	severities := ["CRITICAL", "HIGH", "MEDIUM", "low", "negligible"]
 
 	headers := [
-		{"type": "section", "text": {"type": "mrkdwn", "text": sprintf("Image name: %s", [input.ArtifactName])}},
+		{"type": "section", "text": {"type": "mrkdwn", "text": sprintf("Artifact name: %s", [input.ArtifactName])}},
 		{"type": "section", "text": {"type": "mrkdwn", "text": sprintf("Type: %s", [input.ArtifactType])}},
 		{
 			"type": "section",
