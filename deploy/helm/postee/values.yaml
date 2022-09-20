@@ -3,7 +3,156 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
-posteeConfigPath: "cfg-files/*"
+posteeConfig:
+  # The configuration file contains a general settings section,
+  # routes, templates and actions sections.
+  
+  name: tenant            #  The tenant name
+  aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+  max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
+  db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
+
+  # Routes are used to define how to handle an incoming message
+  routes:
+  - name: stdout
+    actions: [ stdout ]
+    template: raw-json
+
+  #- name: route1                                 #  Route name. Must be unique
+  #  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
+  #  input-files:                                  #  Array filePaths to files with REGO rules
+  #   - Allow-Image-Name.rego
+  #   - Ignore-Image-Name.rego
+  #   - Allow-Registry.rego
+  #   - Ignore-Registry.rego
+  #   - Policy-Only-Fix-Available.rego
+  #   - Policy-Min-Vulnerability.rego
+  #   - Policy-Related-Features.rego
+  #  actions: [my-slack]                          #  Action name (needs to be defined under "actions") which will receive the message
+  #  template: slack-template                     #  Template name (needs to be defined under "templates") which will be used to process the message output format
+  #  plugins:                                     #  Optional plugins
+  #   aggregate-message-number:                   # Number of same messages to aggregate into one output message
+  #   aggregate-message-timeout:                  # Number of seconds/minutes/hours to aggregate same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
+  #   unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"] # Optional: Comma separated list of top level properties which uniqult identifies an event message. If message with same property values is received more than once it will be ignored
+  #   unique-message-timeout:                     # Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted
+
+  # Templates are used to format a message
+  templates:
+  - name: vuls-slack                  #  Out of the box template for slack
+    rego-package:  postee.vuls.slack      #  Slack template REGO package (available out of the box)
+  - name: vuls-html                       #  Out of the box HTML template
+    rego-package:  postee.vuls.html       #  HTML template REGO package (available out of the box)
+  - name: raw-html                        #  Raw message json
+    rego-package:  postee.rawmessage.html #  HTML template REGO package (available out of the box)
+  - name: legacy                          #  Out of the box legacy Golang template
+    legacy-scan-renderer: html
+  - name: legacy-slack                    #  Legacy slack template implemented in Golang
+    legacy-scan-renderer: slack
+  - name: legacy-jira                     #  Legacy jira template implemented in Golang
+    legacy-scan-renderer: jira
+  - name: custom-email                    #  Example of how to use a template from a Web URL
+    url:                                  #  URL to custom REGO file
+  - name: raw-json                        # route message "As Is" to external webhook
+    rego-package: postee.rawmessage.json
+  - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
+    rego-package: postee.vuls.cyclondx
+
+  # Rules are predefined rego policies that can be used to trigger routes
+  rules:
+  - name: Initial Access
+  - name: Credential Access
+  - name: Privilege Escalation
+  - name: Defense Evasion
+  - name: Persistence
+
+  # Actions are target services that should consume the messages
+  actions:
+  - name: stdout
+    type: stdout
+    enable: true
+
+  - name: my-jira   #  name must be unique
+    type: jira      #  supported types: jira, email
+    enable: false
+    url:            # Mandatory. E.g "https://johndoe.atlassian.net"
+    user:           # Mandatory. E.g :johndoe@gmail.com"
+    password:       # Optional. Specify Jira user API key. Used only for Jira Cloud
+    token:          # Optional. Specify Jira user Personal Access Token. Used only for Jira Server/Data Center
+    project-key:    # Mandatory. Specify the JIRA product key
+    tls-verify: false
+    board:          # Optional. Specify the Jira board name to open tickets on
+    labels:         # Optional, specify array of labels to add to Ticket, for example: ["label1", "label2"]
+    issuetype:      # Optional. Specifty the issue type to open (Bug, Task, etc.). Default is "Task"
+    priority:       # Optional. Specify the issues severity. Default is "High"
+    assignee:       # Optional. Specify the assigned user. Default is the user that opened the ticket
+
+  - name: my-email
+    type: email
+    enable: false
+    user:      # Optional (if auth supported): SMTP user name (e.g. johndoe@gmail.com)
+    password:  # Optional (if auth supported): SMTP password
+    host:      # Mandatory: SMTP host name (e.g. smtp.gmail.com)
+    port:      # Mandatory: SMTP server port (e.g. 587)
+    sender:    # Mandatory: The email address to use as a sender
+    recipients: ["", ""]  # Mandatory: comma separated list of recipients
+
+  - name: my-email-smtp-server
+    type: email
+    enable: false
+    use-mx: true
+    sender:  # Mandatory: The email address to use as a sender
+    recipients: ["", ""]  # Mandatory: comma separated list of recipients
+
+  - name: my-slack
+    type: slack
+    enable: false
+    url: https://hooks.slack.com/services/TAAAA/BBB/<key>
+
+  - name: ms-team
+    type: teams
+    enable: false
+    url: https://outlook.office.com/webhook/....   #  Webhook's url
+
+  - name: webhook
+    type: webhook
+    enable: false
+    url: https://..../webhook/   #  Webhook's url
+    timeout:                     #  Webhook's timeout. <numbers><unit suffix> pattern is used, such as "300ms" or "2h45m". Default: 120s
+
+  - name: splunk
+    type: splunk
+    enable: false
+    url: http://localhost:8088 # Mandatory. Url of a Splunk server
+    token: <token>             # Mandatory. a HTTP Event Collector Token
+    size-limit: 10000          # Optional. Maximum scan length, in bytes. Default: 10000
+
+  - name: my-servicenow
+    type: serviceNow
+    enable: false
+    user:      # Mandatory. E.g :johndoe@gmail.com"
+    password:  # Mandatory. Specify user API key
+    instance:  # Mandatory. Name of ServiceN  ow Instance
+    board:     #  Specify the ServiceNow board name to open tickets on. Default is "incident"
+
+  - name: my-nexus-iq
+    type: nexusIq
+    enable: false
+    user:             # Mandatory. User name
+    password:         # Mandatory. User password
+    url:              # Mandatory. Url of Nexus IQ server
+    organization-id:  # Mandatory. Organization UID like "222de33e8005408a844c12eab952c9b0"
+
+  - name: my-opsgenie
+    type: opsgenie
+    enable: false
+    token: <API Key>  # Mandatory. an API key from an API integration
+    user:             # Optional. Display name of the request owner.
+    assignee:         # Optional. Comma separated list of users that the alert will be routed to send notifications
+    recipients: [""]  # Optional. Comma separated list of users that the alert will become visible to without sending any notification
+    tags:             # Optional. Comma separated list of the alert tags.
+    priority:         # Optional. Specify the alert priority. Default is "P3"
+    alias:            # Optional. Client-defined identifier of the alert.
+    entity:           # Optional. Entity field of the alert that is generally used to specify which domain alert is related to.
 
 posteUi:
   port: 8000
