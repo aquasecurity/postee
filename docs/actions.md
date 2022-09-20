@@ -21,7 +21,7 @@ As a **Postee User**
 
 Actions are remote services that messages should be sent to. Each action has two mandatory fields, which are 'name' and 'type'.
 
-Key | Description | Possible Values | Example
+Key | Description | Values | Example
 --- | --- | --- | ---
 *name* | Unique name of the action. This name is used in the route definition. | Any string | teams-action
 *type* | The type of the action | You can choose from the following types: email, jira, slack, teams, webhook, splunk, serviceNow | email
