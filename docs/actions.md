@@ -49,19 +49,19 @@ Follow these steps to set up JIRA integration:
           or
         * Token: your Personal Access Tokens.
 
-Key           | Description          | Possible Values | Required 
+Key           | Description          | Values | Required 
 --------------|----------------------|-----------------|----------
-*url*         | Jira project url     |                 | YES      
-*project-key* | The JIRA project key |                 | YES      
-*user*        | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center    |             | YES         
-*password*    | User's password. API token can also be used for Cloud Jira instances. |             | NO          
-*token*       | User's Personal Access Token. Used only for Jira Server/Data Center   |             | NO          
-*board*       | JIRA board key              |           | NO          
-*priority*    | ticket priority, e.g., High |           | NO          
-*assignee*    | comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value   |               | NO          
-*issuetype*   | issue type, e.g., Bug        |           | NO         
-*labels*      | comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|         | NO          
-*sprint*      | Sprint name, e.g., "3.5 Sprint 8" |      | NO          
+*url*         | Jira project url     |                 | Yes
+*project-key* | The JIRA project key |                 | Yes
+*user*        | Jira user. Use email for Jira Cloud and UserName for Jira Server/Data Center    |             | Yes
+*password*    | User's password. API token can also be used for Cloud Jira instances. |             | No
+*token*       | User's Personal Access Token. Used only for Jira Server/Data Center   |             | No          
+*board*       | JIRA board key              |           | No
+*priority*    | ticket priority, e.g., High |           | No
+*assignee*    | comma separated list of users (emails) that will be assigned to ticket, e.g., ["john@yahoo.com"]. To assign a ticket to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the assignee value   |               | No
+*issuetype*   | issue type, e.g., Bug        |           | No
+*labels*      | comma separated list of labels that will be assigned to ticket, e.g., ["label1", "label2"]|         | No
+*sprint*      | Sprint name, e.g., "3.5 Sprint 8" |      | No
 
 For Jira you can also specify custom fields that will be populated with values.
 Use the `unknowns` parameter in cfg.yaml for custom fields.
@@ -126,22 +126,22 @@ Possible options for getting the field name:
       ```
 
 ## Email
-Key          | Description | Possible Values | Required 
+Key          | Description | Values | Required 
 -------------|-------------|-----------------|----------
 *use-mx*     | Whether to send the email as an SMTP server or a client. Specify 'true' if you would like to send email as an smtp server, in this case you don't need to provide user, password, host and port. | true, false |      
-*user*       | if auth supported. User name (usually email address) |      | NO      
-*password*   | if auth supported. Password |     | NO      
-*host*       | SMTP host name |          | YES       
-*port*       | SMTP port      |          | YES       
-*sender*     |  Sender's email address   |           | YES       
-*recipients* |  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |         | YES         
+*user*       | if auth supported. User name (usually email address) |      | No
+*password*   | if auth supported. Password |     | No
+*host*       | SMTP host name |          | Yes
+*port*       | SMTP port      |          | Yes
+*sender*     |  Sender's email address   |           | Yes
+*recipients* |  Recipients (array of comma separated emails), e.g. ["john@yahoo.com"]. To send the email to the Application Owner email address (as defined in Aqua Application Scope, owner email field), specify ["<%application_scope_owner%>"] as the recipients value |         | Yes
 
 ## Slack
 Getting the Slack webhooks [Create a Slack Custom App](https://api.slack.com/messaging/webhooks).
 
 Copy webhook url to the Postee config
 
-Key | Description | Possible Values
+Key | Description | Values
 --- | --- | ---
 *url* | Slack WebHook URL (includes the access key) |
 
@@ -155,7 +155,7 @@ Click "Add" near the Incoming Webhook connector. Click "Add" again. Provide a na
 
 You will be provided with a URL address. Copy this URL and put it in the cfg.yaml.
 
-Key | Description | Possible Values
+Key | Description | Values
 --- | --- | ---
 *url* | MS Teams WebHook URL |
 
@@ -169,29 +169,29 @@ You will need to care about an HTTP Event Collector in Splunk Enterprise or Splu
 Once you create an HTTP Event Collector you will receive a token. You should provide this token, together with the Splunk HTTP Collector
 URL, as part of the cfg.yaml settings.
 
-Key          | Description                                                         | Possible Values | Required  
+Key          | Description                                                         | Values | Required  
 ------------ | ------------------------------------------------------------------  | --------------- | ---------             
-*token*      | The Splunk HTTP event collector token                               |                 | YES       
-*url*        | URL to Splunk HTTP event collector (e.g. http://server:8088)        |                 | YES       
-*size-limit* | Maximum scan length, in bytes. Default: 10000 | 10000     |                 | NO        
+*token*      | The Splunk HTTP event collector token                               |                 | Yes
+*url*        | URL to Splunk HTTP event collector (e.g. http://server:8088)        |                 | Yes
+*size-limit* | Maximum scan length, in bytes. Default: 10000 | 10000     |                 | No
 
 ## ServiceNow
 
-Key        | Description                                                        | Possible Values  | Required  
+Key        | Description                                                        | Values  | Required  
 ---------- | ------------------------------------------------------------------ | ---------------  | --------- 
-*user*     | ServiceNow user name                                               |                  | YES                   
-*password* | User API key / password                                            |                  | YES       
-*instance* | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|                  | YES       
+*user*     | ServiceNow user name                                               |                  | Yes
+*password* | User API key / password                                            |                  | Yes
+*instance* | Name of ServiceNow Instance (usually the XXX at XXX.servicenow.com)|                  | Yes
 *board*    | ServiceNow board name to open tickets on. Default is "incident"    |                  |           
 
 ## Nexus IQ
 
-Key               | Description                                              | Possible Values | Required  
+Key               | Description                                              | Values | Required  
 ----------------- | -------------------------------------------------------- | --------------- | --------  
-*user*            | Nexus IQ user name                                       |                 | YES       
-*password*        | Nexus IQ password                                        |                 | YES       
-*url*             | Url of Nexus IQ server                                   |                 | YES       
-*organization-id* | Organization UID like "222de33e8005408a844c12eab952c9b0" |                 | YES       
+*user*            | Nexus IQ user name                                       |                 | Yes
+*password*        | Nexus IQ password                                        |                 | Yes
+*url*             | Url of Nexus IQ server                                   |                 | Yes
+*organization-id* | Organization UID like "222de33e8005408a844c12eab952c9b0" |                 | Yes
 
 ## OpsGenie
 
@@ -214,24 +214,24 @@ Key               | Description                                              | P
       
     An API key from the `API Key Management` tab will produce an HTTP 403 error. This API Key is valid but cannot create alerts as it lacks necessary permissions. 
 
-Key        | Description                             | Possible Values | Required 
+Key        | Description                             | Values | Required 
 -----------| --------------------------------------- | ----------------|--------- 
-token      | an API key from an API integration      |                 | YES      
-user       | Display name of the request owner.      |                 | NO       
-assignee   | Comma separated list of users that the alert will be routed to send notifications                     |          | NO      
-recipients | Comma separated list of users that the alert will become visible to without sending any notification  |          | NO      
-priority   | Specify the alert priority. Default is "P3" | "P1" "P2" "P3" "P4" "P5"| NO      
-tags       | Comma separated list of the alert tags.     |                         | NO      
-alias      | Client-defined identifier of the alert.     |                         | NO      
-entity     | Entity field of the alert that is generally used to specify which domain alert is related to. |        | NO       
+token      | an API key from an API integration      |                 | Yes
+user       | Display name of the request owner.      |                 | No
+assignee   | Comma separated list of users that the alert will be routed to send notifications                     |          | No
+recipients | Comma separated list of users that the alert will become visible to without sending any notification  |          | No
+priority   | Specify the alert priority. Default is "P3" | "P1" "P2" "P3" "P4" "P5"| No
+tags       | Comma separated list of the alert tags.     |                         | No
+alias      | Client-defined identifier of the alert.     |                         | No
+entity     | Entity field of the alert that is generally used to specify which domain alert is related to. |        | No
 
 ## Exec
 
  Option      | Usage                                                                                     | Required 
 -------------|-------------------------------------------------------------------------------------------|----------
- env         | custom environment variables to be exposed in the shell of the executing script | NO       
- input-file  | custom shell script to executed                                                 | YES      
- exec-script | inline shell script executed                                                    | YES      
+ env         | custom environment variables to be exposed in the shell of the executing script | No
+ input-file  | custom shell script to executed                                                 | Yes
+ exec-script | inline shell script executed                                                    | Yes
 
 The Exec Action also internally exposes the `$POSTEE_EVENT` environment variable with the input event that triggered the action. This can be helpful in situations where the event itself contains useful information.
 
@@ -245,11 +245,11 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
  Option   | Usage                                   | Required 
 ----------|-----------------------------------------|----------
- URL      | URL of the remote server      | YES      
- Method   | e.g., GET, POST               | YES      
- Headers  | custom headers to send        | NO       
- Timeout  | custom timeout for HTTP call  | NO       
- Bodyfile | input file for HTTP post body | NO       
+ URL      | URL of the remote server      | Yes
+ Method   | e.g., GET, POST               | Yes
+ Headers  | custom headers to send        | No
+ Timeout  | custom timeout for HTTP call  | No
+ Bodyfile | input file for HTTP post body | No
 
 
 ## Kubernetes
@@ -257,10 +257,10 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
  Option              | Usage                                                                                                                           | Required 
 ---------------------|---------------------------------------------------------------------------------------------------------------------------------|----------
- kube-namespace      | Kubernetes namespace to use.                                                                                          | YES      
- kube-config-file    | Path to .kubeconfig file                                                                                              | YES      
- kube-label-selector | if specifying labels or annotations.                                                                                  | YES      
- kube-actions        | key-value pair of labels and annotations<br/>Labels must be added via "labels" key and Annotations via "annotations". | NO       
+ kube-namespace      | Kubernetes namespace to use.                                                                                          | Yes
+ kube-config-file    | Path to .kubeconfig file                                                                                              | Yes
+ kube-label-selector | if specifying labels or annotations.                                                                                  | Yes
+ kube-actions        | key-value pair of labels and annotations<br/>Labels must be added via "labels" key and Annotations via "annotations". | No
 
 
 ## Docker
@@ -268,11 +268,11 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
  Option               | Usage                                                                                                                                                         | Required 
 ----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|----------
- docker-image-name    | Image name of the docker image.                                                                                                                                | YES     
- docker-cmd           | Command to run inside the docker image.                                                                                                                        | YES  
- docker-env           | Environment variables to set in the container.                                                                                                                 | NO  
- docker-network       | Connect the action container to the specified network. {e.g. "host"}                                                                                           | NO  
- docker-volume-mounts | *Volume mounts present inside the container.<br/> * _If you have specified volume mounts, you also need to pass them through into the postee docker container_ | NO  
+ docker-image-name    | Image name of the docker image.                                                                                                                                | Yes
+ docker-cmd           | Command to run inside the docker image.                                                                                                                        | Yes
+ docker-env           | Environment variables to set in the container.                                                                                                                 | No
+ docker-network       | Connect the action container to the specified network. {e.g. "host"}                                                                                           | No
+ docker-volume-mounts | *Volume mounts present inside the container.<br/> * _If you have specified volume mounts, you also need to pass them through into the postee docker container_ | No
 
 !!! note
       When running Postee in a Docker container, it is required to mount the Docker socket within the Postee container to be able to spin up Docker Action container instances. This can be done as follows:
@@ -289,7 +289,7 @@ Below is an example of using `$POSTEE_EVENT`. It uses the inline exec-script scr
 
 ## Generic Webhook
 
-Key | Description | Possible Values
+Key | Description | Values
 --- | --- | ---
 *url* | Webhook URL |
 *timeout*  | Webhook timeout  |
