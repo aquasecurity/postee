@@ -3,4 +3,5 @@ kind: ConfigMap
 metadata:
   name: {{ include "postee.fullname" . }}-cfg
 data:
-  {{ .Values.posteeConfig | toYaml | indent 2 | trim}}
+  cfg.yaml: |
+{{ .Values.posteeConfig  | indent 4 }}
