@@ -1,22 +1,17 @@
 routes:
 - name: Trivy Operator Alerts
-  input: input.report.summary.criticalCount > 0
-  actions: [tag-vulnerable-k8s]
-  template: trivy-raw-json
+  input: input.report.summary.criticalCount > 0 # You can customize this based on your needs
+  actions: [send-slack-msg]
+  template: trivy-operator-slack
 
 # Templates are used to format a message
 templates:
-- name: trivy-raw-json
-  rego-package: postee.rawmessage.json
+- name: trivy-operator-slack
+  rego-package: postee.trivyoperator.slack
 
 # Actions are target services that should consume the messages
 actions:
-- name: tag-vulnerable-k8s
-  type: kubernetes
+- name: send-slack-msg
+  type: slack
   enable: true
-  kube-namespace: "default"
-  kube-config-file: "~/.kube/config"
-  kube-label-selector: "app=nginx"
-  kube-actions:
-    labels:
-      vulnerable: "true"
+  url: <slack webhook url>

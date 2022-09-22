@@ -50,6 +50,8 @@ templates:
   rego-package: postee.rawmessage.json
 - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
   rego-package: postee.vuls.cyclondx
+- name: trivy-operator-slack
+  rego-package: postee.trivyoperator.slack
 
 # Rules are predefined rego policies that can be used to trigger routes
 rules:
