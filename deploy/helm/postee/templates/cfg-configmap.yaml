@@ -3,4 +3,5 @@ kind: ConfigMap
 metadata:
   name: {{ include "postee.fullname" . }}-cfg
 data:
-{{ (tpl (.Files.Glob .Values.posteeConfigPath).AsConfig . ) | indent 2 }}
+  cfg.yaml: |
+{{ .Values.posteeConfig  | indent 4 }}
