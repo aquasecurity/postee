@@ -15,8 +15,10 @@ nav:
     - Trivy Scan: blueprints/trivy-vulnerability-scan.md
     - Trivy AWS Security Hub: blueprints/trivy-aws-security-hub.md
     - Trivy Operator: blueprints/trivy-operator.md
-    - External Healthcheck: blueprints/external-healthcheck.md
-    - Image Processing: blueprints/image-processing.md
+    - Pagerduty: blueprints/devops-pagerduty.md
+    - Others:
+      - External Healthcheck: blueprints/external-healthcheck.md
+      - Image Processing: blueprints/image-processing.md
 - Installation: install.md
 - Configuration:
   - Config File: config.md
