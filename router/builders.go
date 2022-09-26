@@ -230,3 +230,11 @@ func buildDockerAction(sourceSettings *ActionSettings) (*actions.DockerClient, e
 func buildAWSSecurityHubAction(sourceSettings *ActionSettings) (*actions.AWSSecurityHubClient, error) {
 	return &actions.AWSSecurityHubClient{Name: sourceSettings.Name}, nil
 }
+
+func buildPagerdutyAction(sourceSettings *ActionSettings) (*actions.PagerdutyClient, error) {
+	return &actions.PagerdutyClient{
+		Name:       sourceSettings.Name,
+		AuthToken:  sourceSettings.PagerdutyAuthToken,
+		RoutingKey: sourceSettings.PagerdutyRoutingKey,
+	}, nil
+}
