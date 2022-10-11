@@ -50,9 +50,15 @@ spec:
             - name: POSTEE_UI_UPDATE_URL
               value: "http://{{ include "postee.fullname" . }}:{{ .Values.service.port }}"
             - name: POSTEE_ADMIN_USER
-              value: {{ .Values.posteUi.user }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.posteUi.existingSecret.secretName | default (printf "%s-creds" (include "postee.ui.fullname" .)) }}
+                  key: {{ .Values.posteUi.existingSecret.usernameKey | default "postee-ui-user" }}
             - name: POSTEE_ADMIN_PASSWORD
-              value: {{ .Values.posteUi.pass }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.posteUi.existingSecret.secretName | default (printf "%s-creds" (include "postee.ui.fullname" .)) }}
+                  key: {{ .Values.posteUi.existingSecret.passwordKey | default "postee-ui-password" }}
           ports:
             - name: http
               containerPort: {{ .Values.posteUi.port }}

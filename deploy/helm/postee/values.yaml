@@ -35,6 +35,11 @@ posteeConfig: |
   #   aggregate-message-timeout:                  # Number of seconds/minutes/hours to aggregate same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
   #   unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"] # Optional: Comma separated list of top level properties which uniqult identifies an event message. If message with same property values is received more than once it will be ignored
   #   unique-message-timeout:                     # Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted
+  
+  # - name: Trivy Operator Alerts
+  #   input: input.report.summary.criticalCount > 0 # You can customize this based on your needs
+  #   actions: [my-slack]
+  #   template: trivy-operator-slack
 
   # Templates are used to format a message
   templates:
@@ -56,6 +61,8 @@ posteeConfig: |
     rego-package: postee.rawmessage.json
   - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
     rego-package: postee.vuls.cyclondx
+  - name: trivy-operator-slack
+    rego-package: postee.trivyoperator.slack
 
   # Rules are predefined rego policies that can be used to trigger routes
   rules:
@@ -156,8 +163,14 @@ posteeConfig: |
 
 posteUi:
   port: 8000
-  user: ""
-  pass: ""
+  user: "postee"
+  pass: "changeme"
+  ## Use an existing secret
+  existingSecret:
+    enabled: false
+    # secretName: nameofsecret
+    # usernameKey: username
+    # passwordKey: password
   image: aquasec/postee-ui
   tag: "2.8.4-amd64"
 
