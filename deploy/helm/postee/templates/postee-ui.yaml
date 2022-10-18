@@ -34,8 +34,10 @@ spec:
           imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
           command: ["/bin/chown", "-R", "1099", "{{ .Values.persistentVolume.mountPathConfig }}"]
           volumeMounts:
-            - name: postee-config
+          {{- if .Values.persistentVolume.enabled }}        
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathConfig }}
+          {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
