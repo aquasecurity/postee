@@ -13,35 +13,6 @@ spec:
     matchLabels:
       {{- include "postee.selectorLabels" . | nindent 6 }}
   serviceName: {{ include "postee.fullname" . }}
-  volumeClaimTemplates:
-    - metadata:
-        name: {{ $fullName }}-db
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 1Gi
-    - metadata:
-        name: {{ $fullName }}-config
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 100Mi
-    - metadata:
-        name: {{ $fullName }}-rego-template
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 100Mi
-    - metadata:
-        name: {{ $fullName }}-filters
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 100Mi
   template:
     metadata:
       annotations:
@@ -65,8 +36,10 @@ spec:
           imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
           command: ["/bin/chown", "-R", "1099", "{{ .Values.persistentVolume.mountPathDb }}"]
           volumeMounts:
-            - name: {{ $fullName }}-db
+          {{- if .Values.persistentVolume.enabled }}
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathDb }}
+          {{- end }}
         - name: setting-cfg
           image: "{{ .Values.imageInit.repository }}:{{ .Values.imageInit.tag }}"
           imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
@@ -74,8 +47,10 @@ spec:
           volumeMounts:
             - name: {{ $fullName }}-configmap-vol
               mountPath: /k8s
-            - name: {{ $fullName }}-config
+          {{- if .Values.persistentVolume.enabled }}
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathConfig }}
+          {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -95,20 +70,27 @@ spec:
               containerPort: {{ .Values.service.targetPortSsl }}
               protocol: TCP
           volumeMounts:
-            - name: {{ $fullName }}-db
+          {{- if .Values.persistentVolume.enabled }}        
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathDb }}
-            - name: {{ $fullName }}-config
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathConfig }}
-            - name: {{ $fullName }}-rego-template
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathRego }}
-            - name: {{ $fullName }}-filters
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathFilters }}
+          {{- end }}                
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - configMap:
             name: {{ $fullName }}-cfg
           name: {{ $fullName }}-configmap-vol
+        {{- if .Values.persistentVolume.enabled }}
+        - name: {{ $fullName }}-data
+          persistentVolumeClaim:
+            claimName: {{ $fullName }}-pvc      
+        {{- end }}             
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

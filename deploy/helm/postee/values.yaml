@@ -258,7 +258,7 @@ affinity: {}
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##
 persistentVolume:
-  enabled: false
+  enabled: true
   mountPathDb: /server/database
   mountPathConfig: /data
   mountPathRego: /server/rego-templates/custom

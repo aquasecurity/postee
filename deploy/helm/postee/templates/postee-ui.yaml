@@ -64,19 +64,20 @@ spec:
               containerPort: {{ .Values.posteUi.port }}
               protocol: TCP
           volumeMounts:
-            - name: postee-config
+          {{- if .Values.persistentVolume.enabled }}        
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathConfig }}
-            - name: postee-db
+            - name: {{ $fullName }}-data
               mountPath: {{ .Values.persistentVolume.mountPathDb }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: postee-db
+        {{- if .Values.persistentVolume.enabled }}
+        - name: {{ $fullName }}-data
           persistentVolumeClaim:
-            claimName: "{{ $fullName }}-db-{{ $fullName }}-0"
-        - name: postee-config
-          persistentVolumeClaim:
-            claimName: "{{ $fullName }}-config-{{ $fullName }}-0"
+            claimName: {{ $fullName }}-pvc      
+        {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
