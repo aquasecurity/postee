@@ -92,7 +92,7 @@ Let's add the Helm chart and deploy Postee executing:
 helm repo add aquasecurity https://aquasecurity.github.io/helm-charts/
 helm repo update
 helm search repo postee
-helm install app --create-namespace -n postee aquasecurity/postee
+helm install app --create-namespace -n postee aqua/postee
 ```
 
 Check that all the pods are in Running state:
