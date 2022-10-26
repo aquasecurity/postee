@@ -9,8 +9,8 @@ db-verify-interval: 1   #  How often to check the DB size. By default, Postee ch
 # Routes are used to define how to handle an incoming message
 routes:
 - name: stdout
-  actions: [ stdout ]
-  template: raw-json
+  actions: [ stdout, my-servicenow ]
+  template: vuls-html
 
 #- name: route1                                 #  Route name. Must be unique
 #  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
@@ -52,6 +52,8 @@ templates:
   rego-package: postee.vuls.cyclondx
 - name: trivy-operator-slack
   rego-package: postee.trivyoperator.slack
+- name: trivy-jira
+  rego-package: postee.trivy.jira
 
 # Rules are predefined rego policies that can be used to trigger routes
 rules:
@@ -124,10 +126,10 @@ actions:
 
 - name: my-servicenow
   type: serviceNow
-  enable: false
-  user:      # Mandatory. E.g :johndoe@gmail.com"
-  password:  # Mandatory. Specify user API key
-  instance:  # Mandatory. Name of ServiceN  ow Instance
+  enable: true
+  user: admin     # Mandatory. E.g :johndoe@gmail.com"
+  password: +5V4re=ECbcY  # Mandatory. Specify user API key
+  instance: dev84605  # Mandatory. Name of ServiceN  ow Instance
   board:     #  Specify the ServiceNow board name to open tickets on. Default is "incident"
 
 - name: my-nexus-iq

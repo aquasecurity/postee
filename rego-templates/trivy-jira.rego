@@ -1,4 +1,4 @@
-package postee.vuls.html
+package postee.trivy.jira
 ############################################# Common functions ############################################
 with_default(obj, prop, default_value) = default_value {
     not obj[prop]
