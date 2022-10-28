@@ -2,7 +2,10 @@ package actions
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
@@ -31,9 +34,29 @@ func (sn *ServiceNowAction) Init() error {
 
 func (sn *ServiceNowAction) Send(content map[string]string) error {
 	log.Printf("Sending via ServiceNow %q", sn.Name)
+	// parse data
+	i, err := strconv.ParseInt(content["date"], 10, 64)
+	if err != nil {
+		return fmt.Errorf("can't convert data stamp: %w", err)
+	}
+	date := time.Unix(i, 0)
+	// parse severity
+	severity, err := strconv.Atoi(content["severity"])
+	if err != nil {
+		return fmt.Errorf("can't convert severity: %w", err)
+	}
+
 	d := &servicenow.ServiceNowData{
+		Opened:           date,
 		ShortDescription: content["title"],
+		Caller:           "abel.tuter", // TODO switch to "Aqua security"
+		Category:         "SoftWare",   // TODO switch to "Security Image Scan results"
+		Impact:           severity,
+		Urgency:          severity,
+		State:            1,       // TODO what value should we use
+		Subcategory:      "Email", // TODO switch to "Security incident"
 		WorkNotes:        "[code]" + content["description"] + "[/code]",
+		Description:      content["summary"],
 	}
 	body, err := json.Marshal(d)
 	if err != nil {

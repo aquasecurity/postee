@@ -74,10 +74,33 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		shortMessageUrl = ""
 	}
 
+	// variables for servicenow
+	// for other templates must be empty
+
+	date := ""
+	d, ok := data["result_date"]
+	if ok {
+		date = d.(json.Number).String()
+	}
+
+	severity := ""
+	s, ok := data["result_severity"]
+	if ok {
+		severity = s.(json.Number).String()
+	}
+
+	summary, err := asStringOrJson(data, "result_summary")
+	if err != nil {
+		return nil, err
+	}
+
 	return map[string]string{
 		"title":       title,
 		"description": description,
 		"url":         shortMessageUrl,
+		"date":        date,
+		"severity":    severity,
+		"summary":     summary,
 	}, nil
 
 }

@@ -1,5 +1,7 @@
 package servicenow_api
 
+import "time"
+
 const (
 	BaseServer = "service-now.com/"
 	baseApiUrl = "api/now/"
@@ -7,6 +9,14 @@ const (
 )
 
 type ServiceNowData struct {
-	ShortDescription string `json:"short_description"`
-	WorkNotes        string `json:"work_notes"`
+	ShortDescription string    `json:"short_description"`
+	WorkNotes        string    `json:"work_notes"`
+	Opened           time.Time `json:"opened_at"`
+	Caller           string    `json:"caller_id"`
+	Category         string    `json:"category"`
+	Subcategory      string    `json:"subcategory"`
+	Impact           int       `json:"impact"`
+	Urgency          int       `json:"urgency"`
+	State            int       `json:"state"`
+	Description      string    `json:"description"`
 }
