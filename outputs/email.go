@@ -111,7 +111,7 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 		log.Logger.Errorf("failed to send email: %v", err)
 		return data.OutputResponse{}, err
 	}
-	log.Logger.Infof("Email was sent successfully from '%s' trough '%s'", email.User, addr)
+	log.Logger.Infof("Email was sent successfully from '%s' through '%s'", email.User, addr)
 	return data.OutputResponse{}, nil
 }
 
