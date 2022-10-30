@@ -1,5 +1,7 @@
 package postee.insight.jira
 
+import data.postee.with_default
+
 title = sprintf("Insight on %s", [input.resource.name])
 
 
@@ -27,6 +29,7 @@ _Recommendation_:
 %s
 
 *Response policy name*: %s
+*Response policy application scopes*: %s
 `
 
 vulnsDetails:=`*Resource Kind:* %s
@@ -183,6 +186,7 @@ result = msg {
     sprintf("%s",[input.resource.steps]),
     evidenceTable,
     remediation_with_default("No Recommendation"),
-    input.response_policy_name
+    input.response_policy_name,
+    concat(", ", with_default(input, "application_scope", []))
     ])
 }

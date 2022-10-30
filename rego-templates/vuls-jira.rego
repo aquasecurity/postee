@@ -20,6 +20,7 @@ tpl:=`
 %v
 
 *Response policy name*: %s
+*Response policy application scopes*: %s
 `
 
 check_failed(item) = false {
@@ -65,6 +66,7 @@ result = msg {
     format_int(with_default(input.vulnerability_summary,"low",0), 10),
     format_int(with_default(input.vulnerability_summary,"negligible",0), 10)]),
     assurance_controls("input"),
-    input.response_policy_name
+    input.response_policy_name,
+    concat(", ", with_default(input, "application_scope", []))
     ])
 }

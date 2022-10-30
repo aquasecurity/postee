@@ -30,7 +30,7 @@ tpl:=`
 <br>
 
 <p>Response policy name: %s</p>
-`
+<p>Response policy application scopes: %s</p>`
 
 vlnrb_tpl = `
 <h3>%s severity vulnerabilities</h3>
@@ -195,6 +195,7 @@ result = msg {
     render_vlnrb("Medium", vln_list("medium")),
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
-    input.response_policy_name
+    input.response_policy_name,
+    concat(", ", with_default(input, "application_scope", []))
     ])
 }
