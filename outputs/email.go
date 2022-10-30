@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/smtp"
 	"strconv"
 	"strings"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 	"github.com/aquasecurity/postee/v2/log"
+	"github.com/aquasecurity/postee/v2/outputs/customsmtp"
 )
 
 const (
@@ -32,7 +32,7 @@ type EmailOutput struct {
 	Sender     string
 	Recipients []string
 	UseMX      bool
-	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
+	sendFunc   func(addr string, a customsmtp.Auth, from string, to []string, msg []byte) error
 }
 
 func (email *EmailOutput) GetType() string {
@@ -63,7 +63,7 @@ func (email *EmailOutput) Init() error {
 		email.Sender = email.User
 	}
 
-	email.sendFunc = smtp.SendMail
+	email.sendFunc = customsmtp.SendMail
 
 	log.Logger.Infof("Successfully initialized email output %s", email.Name)
 	return nil
@@ -100,18 +100,18 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 		return data.OutputResponse{}, nil
 	}
 
-	var auth smtp.Auth
+	addr := email.Host + ":" + port
+	var auth customsmtp.Auth
 	if len(email.Password) > 0 && len(email.User) > 0 {
-		auth = smtp.PlainAuth("", email.User, email.Password, email.Host)
+		auth = customsmtp.PlainAuth("", email.User, email.Password, email.Host)
 	}
 
-	err := email.sendFunc(email.Host+":"+port, auth, email.Sender, recipients, []byte(msg))
+	err := email.sendFunc(addr, auth, email.Sender, recipients, []byte(msg))
 	if err != nil {
 		log.Logger.Errorf("failed to send email: %v", err)
-		log.Logger.Debugf("failed to send email from: %q, to %v via %q:%d", email.Sender, email.Recipients, email.Host, email.Port)
 		return data.OutputResponse{}, err
 	}
-	log.Logger.Debug("Email was sent successfully!")
+	log.Logger.Infof("Email was sent successfully from '%s' through '%s'", email.User, addr)
 	return data.OutputResponse{}, nil
 }
 

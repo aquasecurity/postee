@@ -3,15 +3,15 @@ package outputs
 import (
 	"fmt"
 	"net"
-	"net/smtp"
 	"testing"
 
+	"github.com/aquasecurity/postee/v2/outputs/customsmtp"
 	"github.com/stretchr/testify/assert"
 )
 
-func mockSend(errToReturn error, emailSent *int) (func(string, smtp.Auth, string, []string, []byte) error, *emailRecorder) {
+func mockSend(errToReturn error, emailSent *int) (func(string, customsmtp.Auth, string, []string, []byte) error, *emailRecorder) {
 	r := new(emailRecorder)
-	return func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	return func(addr string, a customsmtp.Auth, from string, to []string, msg []byte) error {
 		*r = emailRecorder{addr, a, from, to, msg}
 		if errToReturn == nil {
 			*emailSent++
@@ -22,7 +22,7 @@ func mockSend(errToReturn error, emailSent *int) (func(string, smtp.Auth, string
 
 type emailRecorder struct {
 	addr string
-	auth smtp.Auth
+	auth customsmtp.Auth
 	from string
 	to   []string
 	msg  []byte
