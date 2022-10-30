@@ -188,7 +188,7 @@ func (c *Client) Auth(a Auth) error {
 	encoding := base64.StdEncoding
 	mech, resp, err := a.Start(&ServerInfo{c.serverName, c.tls, c.auth})
 	if err != nil {
-		c.Quit()
+		_ = c.Quit()
 		return err
 	}
 	resp64 := make([]byte, encoding.EncodedLen(len(resp)))
@@ -210,8 +210,8 @@ func (c *Client) Auth(a Auth) error {
 		}
 		if err != nil {
 			// abort the AUTH
-			c.cmd(501, "*")
-			c.Quit()
+			_, _, _ = c.cmd(501, "*")
+			_ = c.Quit()
 			break
 		}
 		if resp == nil {
