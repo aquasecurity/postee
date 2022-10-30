@@ -1,5 +1,6 @@
 package postee.incident.jira
 
+import data.postee.with_default
 
 title:="Incident Detection"
 
@@ -10,6 +11,7 @@ tpl:=`
 *Severity Score:* %v
 *Raw Details:* %v
 *Response policy name*: %s
+*Response policy application scopes*: %s
 `
 
 result = msg {
@@ -18,6 +20,7 @@ result = msg {
     input.category,
 	input.severity_score,
     input.data,
-    input.response_policy_name
+    input.response_policy_name,
+    concat(", ", with_default(input, "application_scope", []))
     ])
 }

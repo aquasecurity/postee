@@ -1,5 +1,7 @@
 package postee.insight.slack
 
+import data.postee.with_default
+
 title = sprintf("Insight on %s", [input.resource.name])
 
 tpl:=`
@@ -27,6 +29,7 @@ _Recommendation_:
 %s
 
 *Response policy name*: %s
+*Response policy application scopes*: %s
 `
 
 
@@ -169,7 +172,8 @@ result:= res {
 			sprintf("`%s`",[input.resource.steps]),
 			evidenceTable,
 			remediation_with_default("No Recommendation"),
-			input.response_policy_name
+			input.response_policy_name,
+			concat(", ", with_default(input, "application_scope", []))
             ]
 			)
 		}

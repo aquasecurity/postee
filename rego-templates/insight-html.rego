@@ -1,5 +1,7 @@
 package postee.insight.html
 
+import data.postee.with_default
+
 title = sprintf("Insight on %s", [input.resource.name])
 
 tpl:=`
@@ -31,6 +33,7 @@ tpl:=`
 <br>
 
 <p><b>Response policy name: </b>%s</p>
+<p><b>Response policy application scopes: </b>%s</p>
 `
 
 
@@ -176,6 +179,7 @@ result = msg {
     insightDetails,
     evidenceTable,
     remediation_with_default("No Recommendation"),
-    input.response_policy_name
+    input.response_policy_name,
+    concat(", ", with_default(input, "application_scope", []))
     ])
 }
