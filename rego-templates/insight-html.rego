@@ -13,7 +13,7 @@ tpl:=`
 <p><b>Severity: </b>%s</p>
 <p><b>Found Date: </b>%s</p>
 <p><b>Last Scan: </b>%s</p>
-<p><b>URL: </b><a>%s</p>
+<p><b>URL: </b><a href= %s>%s</a></p>
 <br>
 
 
@@ -165,6 +165,8 @@ remediation_with_default(default_value) = details{
 
 
 result = msg {
+    url := sprintf("https://cloud.aquasec.com/ah/#/insights/%s/resource/%s",[input.insight.id,input.resource.id])
+
     msg := sprintf(tpl, [
     input.insight.id,
     input.insight.description,
@@ -172,7 +174,7 @@ result = msg {
     translateSeverity(input.insight.priority),
     substring(input.resource.found_date,0,19),
     substring(input.resource.last_scanned,0,19),
-    sprintf("https://cloud-dev.aquasec.com/ah/#/insights/%s/resource/%s",[input.insight.id,input.resource.id]),
+    url, url,
     input.resource.id,
     input.resource.name,
     input.resource.arn,
