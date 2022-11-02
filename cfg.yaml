@@ -52,6 +52,8 @@ templates:
   rego-package: postee.vuls.cyclondx
 - name: trivy-operator-slack
   rego-package: postee.trivyoperator.slack
+- name: trivy-jira
+  rego-package: postee.trivy.jira
 
 # Rules are predefined rego policies that can be used to trigger routes
 rules:
