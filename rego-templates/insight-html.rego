@@ -165,7 +165,7 @@ remediation_with_default(default_value) = details{
 
 
 result = msg {
-    url := sprintf("https://cloud-dev.aquasec.com/ah/#/insights/%s/resource/%s",[input.insight.id,input.resource.id])
+    url := sprintf("https://cloud.aquasec.com/ah/#/insights/%s/resource/%s",[input.insight.id,input.resource.id])
 
     msg := sprintf(tpl, [
     input.insight.id,
