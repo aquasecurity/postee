@@ -43,7 +43,7 @@ vulnerabilities:
 *   low: %d,
 *   negligible: %d
 
-You can see the list of vulnerabilities in the work notes`
+%s`
 
 vlnrb_tpl = `
 <h3>%s severity vulnerabilities</h3>
@@ -183,6 +183,8 @@ text := sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
 url := by_flag("", href, aqua_server == "")
 
 aggregation_pkg := "postee.vuls.html.aggregation"
+
+############################################## result values #############################################
 result = msg {
 
     msg := sprintf(html_tpl, [
@@ -220,6 +222,9 @@ result = msg {
 }
 
 result_date = input.data_date
+result_category = "Security Image Scan results"
+result_subcategory = "Security incident"
+result_assigned_group = input.application_scope
 
 result_severity := 1 if {
     input.vulnerability_summary.critical > 0
@@ -251,5 +256,9 @@ result_summary := summary{
 	input.vulnerability_summary.medium,
 	input.vulnerability_summary.low,
 	input.vulnerability_summary.negligible,
+	by_flag(
+         "",
+         sprintf(`See more: %s`,[text]), #link
+         aqua_server == ""),
     ])
 }

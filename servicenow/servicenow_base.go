@@ -19,4 +19,6 @@ type ServiceNowData struct {
 	Urgency          int       `json:"urgency"`
 	State            int       `json:"state"`
 	Description      string    `json:"description"`
+	AssignedTo       string    `json:"assigned_to"`
+	AssignmentGroup  string    `json:"assignment_group"`
 }

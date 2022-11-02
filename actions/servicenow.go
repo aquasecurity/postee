@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aquasecurity/postee/v2/formatting"
@@ -45,16 +46,25 @@ func (sn *ServiceNowAction) Send(content map[string]string) error {
 	if err != nil {
 		return fmt.Errorf("can't convert severity: %w", err)
 	}
+	//// take 1st owner
+	owner := ""
+	for _, ow := range strings.Split(content["owners"], ";") {
+		if ow != "" {
+			owner = ow
+			break
+		}
+	}
 
 	d := &servicenow.ServiceNowData{
 		Opened:           date,
 		ShortDescription: content["title"],
-		Caller:           "abel.tuter", // TODO switch to "Aqua security"
-		Category:         "SoftWare",   // TODO switch to "Security Image Scan results"
+		Caller:           sn.User,
+		Category:         content["category"],
 		Impact:           severity,
 		Urgency:          severity,
-		State:            1,       // TODO what value should we use
-		Subcategory:      "Email", // TODO switch to "Security incident"
+		Subcategory:      content["subcategory"],
+		AssignedTo:       owner,
+		AssignmentGroup:  content["assignedGroup"],
 		WorkNotes:        "[code]" + content["description"] + "[/code]",
 		Description:      content["summary"],
 	}
