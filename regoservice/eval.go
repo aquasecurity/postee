@@ -17,6 +17,15 @@ const (
 	title_prop           = "title"
 	url_prop             = "url"
 	aggregation_pkg_prop = "aggregation_pkg"
+
+	//ServiceNow props
+	dateProp          = "result_date"
+	severityProp      = "result_severity"
+	categoryProp      = "result_category"
+	subcategoryProp   = "result_subcategory"
+	assignedToProp    = "result_assigned_to"
+	assignedGroupProp = "result_assigned_group"
+	summaryProp       = "result_summary"
 )
 
 var (
@@ -76,13 +85,13 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 
 	// variables for servicenow
 	// for other templates must be empty
-	date := getStringFromData(data, "result_date")
-	severity := getStringFromData(data, "result_severity")
-	category := getStringFromData(data, "result_category")
-	subcategory := getStringFromData(data, "result_subcategory")
-	assignedTo := getStringFromData(data, "result_assigned_to")
-	assignedGroup := getStringFromData(data, "result_assigned_group")
-	summary := getStringFromData(data, "result_summary")
+	date := getStringFromData(data, dateProp)
+	severity := getStringFromData(data, severityProp)
+	category := getStringFromData(data, categoryProp)
+	subcategory := getStringFromData(data, subcategoryProp)
+	assignedTo := getStringFromData(data, assignedToProp)
+	assignedGroup := getStringFromData(data, assignedGroupProp)
+	summary := getStringFromData(data, summaryProp)
 
 	return map[string]string{
 		"title":         title,
@@ -219,13 +228,13 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 
 	// variables for servicenow
 	// for other templates must be empty
-	date := getStringFromData(data, "result_date")
-	severity := getStringFromData(data, "result_severity")
-	category := getStringFromData(data, "result_category")
-	subcategory := getStringFromData(data, "result_subcategory")
-	assignedTo := getStringFromData(data, "result_assigned_to")
-	assignedGroup := getStringFromData(data, "result_assigned_group")
-	summary := getStringFromData(data, "result_summary")
+	date := getStringFromData(data, dateProp)
+	severity := getStringFromData(data, severityProp)
+	category := getStringFromData(data, categoryProp)
+	subcategory := getStringFromData(data, subcategoryProp)
+	assignedTo := getStringFromData(data, assignedToProp)
+	assignedGroup := getStringFromData(data, assignedGroupProp)
+	summary := getStringFromData(data, summaryProp)
 
 	return map[string]string{
 		"title":         title,
