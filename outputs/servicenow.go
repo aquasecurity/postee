@@ -3,6 +3,9 @@ package outputs
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -56,9 +59,38 @@ func (sn *ServiceNowOutput) Init() error {
 
 func (sn *ServiceNowOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending to ServiceNow via %q", sn.Name)
+	// parse data
+	i, err := strconv.ParseInt(content["date"], 10, 64)
+	if err != nil {
+		return data.OutputResponse{}, fmt.Errorf("can't convert data stamp: %w", err)
+	}
+	date := time.Unix(i, 0)
+	// parse severity
+	severity, err := strconv.Atoi(content["severity"])
+	if err != nil {
+		return data.OutputResponse{}, fmt.Errorf("can't convert severity: %w", err)
+	}
+	//// take 1st owner
+	owner := ""
+	for _, ow := range strings.Split(content["owners"], ";") {
+		if ow != "" {
+			owner = ow
+			break
+		}
+	}
+
 	d := &servicenow.ServiceNowData{
+		Opened:           date,
 		ShortDescription: content["title"],
+		Caller:           sn.User,
+		Category:         content["category"],
+		Impact:           severity,
+		Urgency:          severity,
+		Subcategory:      content["subcategory"],
+		AssignedTo:       owner,
+		AssignmentGroup:  content["assignedGroup"],
 		WorkNotes:        "[code]" + content["description"] + "[/code]",
+		Description:      content["summary"],
 	}
 
 	body, err := json.Marshal(d)
