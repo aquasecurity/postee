@@ -86,7 +86,7 @@ func (splunk *SplunkOutput) Send(input map[string]string) (data.OutputResponse, 
 
 	var rawMsg []byte
 	category, ok := eventData[EventCategoryAttribute]
-	if ok && category == CategoryIncident {
+	if ok && (category == CategoryIncident || category == CategoryInsights) {
 		rawMsg = []byte(rawEventData)
 	} else {
 		scanInfo := new(data.ScanImageInfo)
