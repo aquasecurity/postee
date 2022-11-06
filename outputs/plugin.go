@@ -14,6 +14,7 @@ const (
 
 	EventCategoryAttribute = "event_category"
 	CategoryIncident       = "incident"
+	CategoryInsights       = "insights"
 	CategoryScanResult     = "scan_result"
 
 	EmptyID = ""
