@@ -45,9 +45,9 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 
 	}
 
-	scan.enrichMsg(in, route, *AquaServer)
+	richIn := scan.enrichMsg(in, route, *AquaServer)
 
-	content, err := inpteval.Eval(in, *AquaServer)
+	content, err := inpteval.Eval(richIn, *AquaServer)
 	if err != nil {
 		log.Logger.Errorf("Error while evaluating input: %v", err)
 		return
@@ -88,9 +88,9 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 	}
 
 	owners := scan.scopeOwners(in)
-	scan.enrichMsg(in, route, *AquaServer)
+	richIn := scan.enrichMsg(in, route, *AquaServer)
 
-	content, err := inpteval.Eval(in, *AquaServer)
+	content, err := inpteval.Eval(richIn, *AquaServer)
 	if err != nil {
 		log.Logger.Errorf("Error while evaluating input: %v", err)
 		return data.OutputResponse{}, err
@@ -169,15 +169,33 @@ func (scan *MsgService) scopeOwners(in map[string]interface{}) string {
 	return owners
 }
 
-func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, aquaServer string) {
-	in["postee"] = map[string]string{
+func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, aquaServer string) map[string]interface{} {
+	richIn := make(map[string]interface{}, len(in))
+	for k, v := range in {
+		if k != "application_scope" {
+			richIn[k] = v
+		}
+	}
+
+	richIn["postee"] = map[string]string{
 		"AquaServer": aquaServer,
 	}
 
 	//enrich those fields even if they are empty, so the rego evaluation will not fail
-	in["response_policy_name"] = route.Name
+	richIn["response_policy_name"] = route.Name
 
-	scan.enrichInsightVulnsPackageName(in)
+	scan.enrichInsightVulnsPackageName(richIn)
+
+	// handle application scope
+	appScopes, exists := in["application_scope"].(map[string][]string)
+
+	if exists {
+		routeScopes, routeScopesExists := appScopes[route.Name]
+		if routeScopesExists {
+			richIn["application_scope"] = routeScopes
+		}
+	}
+	return richIn
 }
 
 func (scan *MsgService) enrichInsightVulnsPackageName(in map[string]interface{}) {
