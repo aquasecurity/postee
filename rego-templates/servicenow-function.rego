@@ -1,4 +1,4 @@
-package postee.servicenow.vm
+package postee.servicenow.function
 
 import future.keywords
 import future.keywords.if
@@ -14,8 +14,6 @@ html_tpl:=`
 <p>%s</p>
 <p>%s</p>
 <!-- stats -->
-%s
-<h2>Assurance controls</h2>
 %s
 <!-- Critical severity vulnerabilities -->
 %s
@@ -177,10 +175,22 @@ vln_list(severity) = vlnrb {
 postee := with_default(input, "postee", {})
 aqua_server := with_default(postee, "AquaServer", "")
 
-title = sprintf(`Aqua security | VM | %s | Scan report`, [input.image])
+title = sprintf(`Aqua security | function | %s | Scan report`, [input.image])
 href := sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
 text := sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
 url := by_flag("", href, aqua_server == "")
+
+# some vulnerability_summary fields may not exist
+default vulnerability_summary_critical := 0
+vulnerability_summary_critical := input.vulnerability_summary.critical
+default vulnerability_summary_high := 0
+vulnerability_summary_high := input.vulnerability_summary.high
+default vulnerability_summary_medium := 0
+vulnerability_summary_medium := input.vulnerability_summary.medium
+default vulnerability_summary_low := 0
+vulnerability_summary_low := input.vulnerability_summary.low
+default vulnerability_summary_negligible := 0
+vulnerability_summary_negligible := input.vulnerability_summary.negligible
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 
@@ -206,7 +216,6 @@ result = msg {
      input.scan_options.scan_sensitive_data #reflects current logic
 	),
     render_table([], severities_stats),
-    render_table(["#","Control","Policy Name", "Status"], assurance_controls),
 
     render_vlnrb("Critical", vln_list("critical")),
     render_vlnrb("High", vln_list("high")),
@@ -221,8 +230,8 @@ result = msg {
     ])
 }
 
-result_date = input.data_date
-result_category = "Security VM Scan results"
+result_date = input.scan_started.seconds
+result_category = "Serverless functions Scanning"
 result_subcategory = "Security incident"
 result_assigned_group = input.application_scope
 
@@ -251,11 +260,11 @@ result_summary := summary{
      "Sensitive data found: No",
      input.scan_options.scan_sensitive_data #reflects current logic
 	),
-	input.vulnerability_summary.critical,
-	input.vulnerability_summary.high,
-	input.vulnerability_summary.medium,
-	input.vulnerability_summary.low,
-	input.vulnerability_summary.negligible,
+	vulnerability_summary_critical,
+	vulnerability_summary_high,
+	vulnerability_summary_medium,
+	vulnerability_summary_low,
+	vulnerability_summary_negligible,
 	by_flag(
          "",
          sprintf(`See more: %s`,[text]), #link
