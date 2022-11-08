@@ -8,12 +8,14 @@ import data.postee.with_default
 ################################################ Templates ################################################
 #main template to render message
 html_tpl:=`
-<p>Image name: %s</p>
+<p>Name: %s</p>
 <p>Registry: %s</p>
 <p>%s</p>
 <p>%s</p>
-<p>%s</p>
-<!-- stats -->
+<!-- Stats -->
+<h3> Vulnerability summary </h3>
+%s
+<!-- Assurance controls -->
 %s
 <!-- Critical severity vulnerabilities -->
 %s
@@ -28,9 +30,8 @@ html_tpl:=`
 %s
 `
 
-summary_tpl =`Image name: %s
+summary_tpl =`Name: %s
 Registry: %s
-%s
 %s
 %s
 
@@ -47,8 +48,13 @@ vlnrb_tpl = `
 <h3>%s severity vulnerabilities</h3>
 %s
 `
-#Extra % is required in width:100%
 
+assurance_control_tpl = `
+<h3>Assurance controls</h3>
+%s
+`
+
+#Extra % is required in width:100%
 table_tpl:=`
 <TABLE border='1' style='width: 100%%; border-collapse: collapse;'>
 %s
@@ -154,6 +160,16 @@ render_vlnrb(severity, list) = "" {  #returns empty string if list of vulnerabil
     count(list) == 0
 }
 
+assurance_control_headers := ["#","Control","Policy Name", "Status"]
+
+render_assurance_control(list) = sprintf(assurance_control_tpl, [render_table(assurance_control_headers, list)]) {
+    count(list) > 0
+}
+
+render_assurance_control(list) = "" {  #returns empty string if list of assurance control is passed
+    count(list) == 0
+}
+
 # builds 2-dimension array for vulnerability table
 vln_list(severity) = vlnrb {
     some i, j
@@ -201,11 +217,6 @@ result = msg {
     input.image,
     input.registry,
 	by_flag(
-     "Image is non-compliant",
-     "Image is compliant",
-     with_default(input.image_assurance_results, "disallowed", false)
-    ),
-	by_flag(
      "Malware found: Yes",
      "Malware found: No",
      input.scan_options.scan_malware #reflects current logic
@@ -216,7 +227,7 @@ result = msg {
      input.scan_options.scan_sensitive_data #reflects current logic
 	),
     render_table([], severities_stats),
-
+    render_assurance_control(assurance_controls),
     render_vlnrb("Critical", vln_list("critical")),
     render_vlnrb("High", vln_list("high")),
     render_vlnrb("Medium", vln_list("medium")),
@@ -233,6 +244,7 @@ result = msg {
 result_date = input.scan_started.seconds
 result_category = "Serverless functions Scanning"
 result_subcategory = "Security incident"
+result_assigned_to := by_flag(input.application_scope_owners[0], "", count(input.application_scope_owners) == 1)
 result_assigned_group = input.application_scope
 
 result_severity := 1 if {
@@ -245,11 +257,6 @@ result_summary := summary{
     summary = sprintf(summary_tpl,[
     input.image,
     input.registry,
-	by_flag(
-     "Image is non-compliant",
-     "Image is compliant",
-     with_default(input.image_assurance_results, "disallowed", false)
-    ),
 	by_flag(
      "Malware found: Yes",
      "Malware found: No",
