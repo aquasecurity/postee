@@ -245,7 +245,7 @@ result_date = input.scan_started.seconds
 result_category = "Security - VM Scan results"
 result_subcategory = "Security incident"
 result_assigned_to := by_flag(input.application_scope_owners[0], "", count(input.application_scope_owners) == 1)
-result_assigned_group = by_flag(input.application_scope, "",  result_assigned_to != "")
+result_assigned_group := by_flag(input.application_scope[0], "", count(input.input.application_scope) == 1)
 
 result_severity := 1 if {
     input.vulnerability_summary.critical > 0
