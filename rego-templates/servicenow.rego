@@ -1,4 +1,4 @@
-package postee.servicenow.vm
+package postee.servicenow
 
 import future.keywords
 import future.keywords.if
@@ -190,13 +190,18 @@ vln_list(severity) = vlnrb {
 ###########################################################################################################
 postee := with_default(input, "postee", {})
 aqua_server := with_default(postee, "AquaServer", "")
+server_url := trim_suffix(aqua_server, "images/")
 
-title = sprintf(`Aqua security | VM | %s | Scan report`, [input.image])
-href := sprintf("%s%s/%s", [aqua_server, urlquery.encode(input.registry), urlquery.encode(input.image)])
-text := sprintf("%s%s/%s", [aqua_server, input.registry, input.image])
-url := by_flag("", href, aqua_server == "")
+report_type := "function" if{
+    input.entity_type == 1
+} else = "vm" if{
+    input.entity_type == 2
+} else = "image"
 
-aggregation_pkg := "postee.vuls.html.aggregation"
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
+href := sprintf("%s%s/%s/%s", [server_url, report_type, urlquery.encode(input.registry), urlquery.encode(input.image)])
+text := sprintf("%s%s/%s/%s", [server_url, report_type, input.registry, input.image])
+url := by_flag("", href, server_url == "")
 
 # some vulnerability_summary fields may not exist
 default vulnerability_summary_critical := 0
@@ -209,6 +214,8 @@ default vulnerability_summary_low := 0
 vulnerability_summary_low := input.vulnerability_summary.low
 default vulnerability_summary_negligible := 0
 vulnerability_summary_negligible := input.vulnerability_summary.negligible
+
+aggregation_pkg := "postee.vuls.html.aggregation"
 
 ############################################## result values #############################################
 result = msg {
@@ -237,15 +244,21 @@ result = msg {
     by_flag(
      "",
      sprintf(`<p>See more: <a href='%s'>%s</a></p>`,[href, text]), #link
-     aqua_server == "")
+     server_url == "")
     ])
 }
 
 result_date = input.scan_started.seconds
-result_category = "Security - VM Scan results"
+
+result_category = "Serverless functions Scanning" if {
+    report_type == "function"
+}else = "Security - VM Scan results" if {
+    report_type == "vm"
+}else = "Security Image Scan results"
+
 result_subcategory = "Security incident"
 result_assigned_to := by_flag(input.application_scope_owners[0], "", count(input.application_scope_owners) == 1)
-result_assigned_group := by_flag(input.application_scope[0], "", count(input.input.application_scope) == 1)
+result_assigned_group := by_flag(input.application_scope[0], "", count(input.application_scope) == 1)
 
 result_severity := 1 if {
     input.vulnerability_summary.critical > 0
@@ -275,6 +288,6 @@ result_summary := summary{
 	by_flag(
          "",
          sprintf(`See more: %s`,[text]), #link
-         aqua_server == ""),
+         server_url == ""),
     ])
 }
