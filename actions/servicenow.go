@@ -40,6 +40,7 @@ func (sn *ServiceNowAction) Send(content map[string]string) error {
 		return fmt.Errorf("can't convert data stamp: %w", err)
 	}
 	date := time.Unix(i, 0)
+
 	// parse severity
 	severity, err := strconv.Atoi(content["severity"])
 	if err != nil {
