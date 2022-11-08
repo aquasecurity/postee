@@ -59,15 +59,15 @@ func (sn *ServiceNowOutput) Init() error {
 func (sn *ServiceNowOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending to ServiceNow via %q", sn.Name)
 	// parse date
-	i, err := strconv.ParseInt(content["date"], 10, 64)
-	if err != nil {
-		return data.OutputResponse{}, fmt.Errorf("can't convert data stamp: %w", err)
+	date := ""
+	if i, err := strconv.ParseInt(content["date"], 10, 64); err == nil {
+		date = time.Unix(i, 0).Format("2006-01-02 15:04:05")
 	}
-	date := time.Unix(i, 0)
+
 	// parse severity
-	severity, err := strconv.Atoi(content["severity"])
-	if err != nil {
-		return data.OutputResponse{}, fmt.Errorf("can't convert severity: %w", err)
+	severity := 3 // default ServiceNow value
+	if s, err := strconv.Atoi(content["severity"]); err == nil {
+		severity = s
 	}
 
 	d := &servicenow.ServiceNowData{
