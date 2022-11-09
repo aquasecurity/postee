@@ -192,7 +192,7 @@ postee := with_default(input, "postee", {})
 aqua_server := with_default(postee, "AquaServer", "")
 server_url := trim_suffix(aqua_server, "images/")
 
-report_type := "function" if{
+report_type := "functions" if{
     input.entity_type == 1
 } else = "vm" if{
     input.entity_type == 2
@@ -251,7 +251,7 @@ result = msg {
 result_date = input.scan_started.seconds
 
 result_category = "Serverless functions Scanning" if {
-    report_type == "function"
+    report_type == "functions"
 }else = "Security - VM Scan results" if {
     report_type == "vm"
 }else = "Security Image Scan results"
