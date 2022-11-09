@@ -40,7 +40,7 @@ jobs:
         run: make test-integration
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@0.7.1
+        uses: aquasecurity/trivy-action@0.8.0
         with:
           scan-type: 'fs'
           ignore-unfixed: true
@@ -55,7 +55,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
       
       - name: Run Trivy vulnerability scanner in IaC mode
-        uses: aquasecurity/trivy-action@0.7.1
+        uses: aquasecurity/trivy-action@0.8.0
         with:
           scan-type: 'config'
           hide-progress: false
