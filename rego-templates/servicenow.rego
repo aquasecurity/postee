@@ -192,15 +192,30 @@ postee := with_default(input, "postee", {})
 aqua_server := with_default(postee, "AquaServer", "")
 server_url := trim_suffix(aqua_server, "images/")
 
-report_type := "functions" if{
+report_type := "function" if{
     input.entity_type == 1
 } else = "vm" if{
     input.entity_type == 2
 } else = "image"
 
 title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
-href := sprintf("%s%s/%s/%s", [server_url, report_type, urlquery.encode(input.registry), urlquery.encode(input.image)])
-text := sprintf("%s%s/%s/%s", [server_url, report_type, input.registry, input.image])
+
+## url formats:
+## function: <server_url>/#/functions/<registry>/<image>
+## vm: <server_url>/#/infrastructure/<image>/node
+## image: <server_url>/#/image/<registry>/<image>
+href := sprintf("%s%s/%s/%s", [server_url, "functions", urlquery.encode(input.registry), urlquery.encode(input.image)])  if{
+    report_type == "function"
+} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", urlquery.encode(input.image), "node"]){
+    report_type == "vm"
+} else = sprintf("%s%s/%s/%s", [server_url, "image", urlquery.encode(input.registry), urlquery.encode(input.image)])
+
+text :=  sprintf("%s%s/%s/%s", [server_url, "functions", input.registry, input.image]) if{
+    report_type == "function"
+} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", input.image, "node"]) {
+    report_type == "vm"
+} else = sprintf("%s%s/%s/%s", [server_url, report_type, input.registry, input.image])
+
 url := by_flag("", href, server_url == "")
 
 # some vulnerability_summary fields may not exist
@@ -251,7 +266,7 @@ result = msg {
 result_date = input.scan_started.seconds
 
 result_category = "Serverless functions Scanning" if {
-    report_type == "functions"
+    report_type == "function"
 }else = "Security - VM Scan results" if {
     report_type == "vm"
 }else = "Security Image Scan results"
