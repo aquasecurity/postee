@@ -19,7 +19,7 @@ func TestOpaRego(t *testing.T) {
 	if err != nil {
 		t.Errorf("error create file: %v", err)
 	}
-	_, err = correctFile.WriteString(fmt.Sprintf(module, rego))
+	_, err = correctFile.WriteString(fmt.Sprintf(module+allow, rego))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func TestOpaRego(t *testing.T) {
 	if err != nil {
 		t.Errorf("error create file: %v", err)
 	}
-	_, err = incorrectFile.WriteString(fmt.Sprintf(module, incorrectRego))
+	_, err = incorrectFile.WriteString(fmt.Sprintf(module+allow, incorrectRego))
 	if err != nil {
 		t.Errorf("error create file: %v", err)
 	}

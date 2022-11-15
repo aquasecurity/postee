@@ -12,13 +12,14 @@ import (
 
 const (
 	module = `package postee
+		default allow = false
+	`
+	allow = `
+		allow {
+			%s
+		}
+	`
 
-default allow = false
-
-allow {
-%s
-}
-`
 	defaultPathToRegoFilters = "./rego-filters"
 )
 
@@ -48,7 +49,13 @@ func buildRegoLoader(files []string, rule string) func(r *rego.Rego) {
 		return rego.Load(filesWithPath, nil)
 	}
 
-	return rego.Module("postee.rego", fmt.Sprintf(module, rule))
+	regoInput := module
+	orSplit := strings.Split(rule, "||")
+	for _, rule := range orSplit {
+		regoInput += fmt.Sprintf(allow, rule)
+	}
+
+	return rego.Module("postee.rego", regoInput)
 }
 func IsUsedRegoFiles(files []string) bool {
 	return len(files) != 0 && files[0] != ""
