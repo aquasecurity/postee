@@ -8,10 +8,10 @@ import data.postee.with_default
 ################################################ Templates ################################################
 #main template to render message
 html_tpl:=`
-<p>Name: %s</p>
-<p>Registry: %s</p>
-<p>%s</p>
-<p>%s</p>
+<p><b>Name:</b> %s</p>
+<p><b>Registry:</b> %s</p>
+<p><b>Malware found:</b> %s</p>
+<p><b>Sensitive data found:</b> %s</p>
 <!-- Stats -->
 <h3> Vulnerability summary </h3>
 %s
@@ -27,6 +27,8 @@ html_tpl:=`
 %s
 <!-- Negligible severity vulnerabilities -->
 %s
+<p><b>Resourse policy name:</b> %s</p>
+<p><b>Resourse policy application scopes:</b> %s</p>
 %s
 `
 
@@ -239,13 +241,13 @@ result = msg {
     input.image,
     input.registry,
 	by_flag(
-     "Malware found: Yes",
-     "Malware found: No",
+     "Yes",
+     "No",
      input.scan_options.scan_malware #reflects current logic
     ),
 	by_flag(
-	 "Sensitive data found: Yes",
-     "Sensitive data found: No",
+	 "Yes",
+     "No",
      input.scan_options.scan_sensitive_data #reflects current logic
 	),
     render_table([], severities_stats),
@@ -255,10 +257,11 @@ result = msg {
     render_vlnrb("Medium", vln_list("medium")),
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
-
+    with_default(input,"response_policy_name", ""),
+    with_default(input,"application_scope", "none"),
     by_flag(
      "",
-     sprintf(`<p>See more: <a href='%s'>%s</a></p>`,[href, text]), #link
+     sprintf(`<p><b>See more:</b> <a href='%s'>%s</a></p>`,[href, text]), #link
      server_url == "")
     ])
 }
