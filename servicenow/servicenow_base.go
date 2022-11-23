@@ -24,6 +24,8 @@ type ServiceNowData struct {
 type ServiceNowResponse struct {
 	ServiceNowResult `json:"result"`
 }
+
+// ServiceNowResult list of response values: https://docs.servicenow.com/bundle/tokyo-application-development/page/integrate/inbound-rest/concept/c_TableAPI.html#table-POST
 type ServiceNowResult struct {
 	Parent                 string `json:"parent"`
 	MadeSLA                string `json:"made_sla"`
