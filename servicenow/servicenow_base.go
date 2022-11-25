@@ -104,7 +104,7 @@ type ServiceNowResult struct {
 	Company                string                    `json:"company"`
 	ReassignmentCount      string                    `json:"reassignment_count"`
 	ActivityDue            string                    `json:"activity_due"`
-	AssignedTo             string                    `json:"assigned_to"`
+	AssignedTo             ServiceNowAssignmentTo    `json:"assigned_to"`
 	Severity               string                    `json:"severity"`
 	Comments               string                    `json:"comments"`
 	Approval               string                    `json:"approval"`
@@ -132,6 +132,11 @@ type ServiceNowSysDomain struct {
 }
 
 type ServiceNowCallerTo struct {
+	Link  string `json:"link"`
+	Value string `json:"value"`
+}
+
+type ServiceNowAssignmentTo struct {
 	Link  string `json:"link"`
 	Value string `json:"value"`
 }
