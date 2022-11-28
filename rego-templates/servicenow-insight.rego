@@ -192,6 +192,30 @@ priority_as_text = "critical" if {
     input.insight.priority == 0
 }else = "unknown"
 
+remediation_with_default(default_value) = default_value{
+  input.evidence.vulnerabilities_remediation==null; input.evidence.sensitive_data_remediation==""; input.evidence.malware_remediation==""
+}
+
+remediation_with_default(default_value) = val{
+  val := input.evidence.vulnerabilities_remediation
+  input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation==""; input.evidence.malware_remediation==""
+}
+
+remediation_with_default(default_value) = val{
+  val := input.evidence.vulnerabilities_remediation
+  input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation!=""; input.evidence.malware_remediation==""
+}
+
+remediation_with_default(default_value) = val{
+  val := input.evidence.sensitive_data_remediation
+  val !="";input.evidence.vulnerabilities_remediation==null; input.evidence.malware_remediation==""
+}
+
+remediation_with_default(default_value) = val{
+  val := input.evidence.malware_remediation
+  val != ""; input.evidence.vulnerabilities_remediation==null; input.evidence.sensitive_data_remediation==""
+}
+
 ############################################## result values #############################################
 result = msg {
 
@@ -212,7 +236,7 @@ result = msg {
     input.resource.steps,
     render_vlnrb(vln_list),
     render_sensitive_data(sensitive_data_list),
-    "TODO where is recomendations?",
+    remediation_with_default("No Recommendation"),
     input.response_policy_name,
     with_default(input,"application_scope", "none"),
     ])
