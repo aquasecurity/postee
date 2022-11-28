@@ -9,22 +9,14 @@ result_tpl = `
 <p><b>Data:</b> %s</p>
 <p><b>Resourse policy name:</b> %s</p>
 <p><b>Resourse policy application scopes:</b> %s</p>
-%s
 `
 summary_tpl =`Category: %s
 Container: %s
-ContainerID: %s
-URL: %s`
+ContainerID: %s`
 
 
 ###########################################################################################################
-postee := with_default(input, "postee", {})
-aqua_server := with_default(postee, "AquaServer", "")
-server_url := trim_suffix(aqua_server, "/#/images/")
-
 title = input.name
-href := sprintf("%s/ah/#/%s/%d", [server_url, "incidents", urlquery.encode(input.id)])
-text :=  sprintf("%s/ah/#/%s/%d", [server_url, "incidents", input.id])
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 
@@ -34,10 +26,6 @@ result := res{
         with_default(input,"data", "data not found"),
         with_default(input,"response_policy_name", ""),
         with_default(input,"application_scope", "none"),
-        by_flag(
-             "",
-             sprintf(`<p><b>See more:</b> <a href='%s'>%s</a></p>`,[text, text]), #link
-             server_url == "")
     ])
 }
 
@@ -54,9 +42,5 @@ result_summary := summary{
         input.category,
         input.container,
         input.containerid,
-        by_flag(
-            "",
-            text, #link
-            server_url == ""),
     ])
 }
