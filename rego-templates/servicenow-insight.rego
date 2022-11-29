@@ -170,13 +170,9 @@ sensitive_data_list = vlnrb {
 }
 
 ###########################################################################################################
-postee := with_default(input, "postee", {})
-aqua_server := with_default(postee, "AquaServer", "")
-server_url := trim_suffix(aqua_server, "/#/images/")
-
 title = input.insight.description
-href := sprintf("%s/ah/#/%s/%s/%s/%s", [server_url, "insights", urlquery.encode(input.insight.id), "resource", urlquery.encode(input.resource.id)])
-text :=  sprintf("%s/ah/#/%s/%s/%s/%s", [server_url, "insights", input.insight.id, "resource", input.resource.id])
+href := sprintf("https://cloud-dev.aquasec.com/ah/#/%s/%s/%s/%s", ["insights", urlquery.encode(input.insight.id), "resource", urlquery.encode(input.resource.id)])
+text :=  sprintf("https://cloud-dev.aquasec.com/ah/#/%s/%s/%s/%s", ["insights", input.insight.id, "resource", input.resource.id])
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 
@@ -226,10 +222,7 @@ result = msg {
     priority_as_text,
     input.resource.found_date,
     input.resource.last_scanned,
-    by_flag(
-        "",
-        sprintf(`<a href='%s'>%s</a>`,[href, text]), #link
-        server_url == ""),
+    sprintf(`<a href='%s'>%s</a>`,[href, text]), #link
     input.resource.id,
     input.resource.name,
     input.resource.arn,
@@ -257,9 +250,6 @@ result_summary := summary{
         priority_as_text,
         input.resource.found_date,
         input.resource.last_scanned,
-        by_flag(
-            "",
-            text, #link
-            server_url == ""),
+        text, #link
     ])
 }
