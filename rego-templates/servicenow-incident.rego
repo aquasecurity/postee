@@ -6,13 +6,15 @@ import data.postee.with_default
 
 ################################################ Templates ################################################
 result_tpl = `
+<p><b>Name:</b> %s</p>
+<p><b>Category:</b> %s</p>
+<p><b>Severity:</b> %d</p>
 <p><b>Data:</b> %s</p>
 <p><b>Resourse policy name:</b> %s</p>
 <p><b>Resourse policy application scopes:</b> %s</p>
 `
 summary_tpl =`Category: %s
-Container: %s
-ContainerID: %s`
+Severity: %d`
 
 
 ###########################################################################################################
@@ -23,7 +25,10 @@ aggregation_pkg := "postee.vuls.html.aggregation"
 ############################################## result values #############################################
 result := res{
     res = sprintf(result_tpl,[
-        with_default(input,"data", "data not found"),
+        with_default(input,"name", "name not found"),
+        with_default(input,"category", "category not found"),
+        with_default(input,"severity_score", "severity not found"),
+        json.unmarshal(input.data),
         with_default(input,"response_policy_name", ""),
         with_default(input,"application_scope", "none"),
     ])
@@ -40,7 +45,6 @@ result_severity := input.severity_score
 result_summary := summary{
     summary = sprintf(summary_tpl,[
         input.category,
-        input.container,
-        input.containerid,
+        input.severity_score,
     ])
 }
