@@ -43,11 +43,12 @@ data_list(d) := list {
 	dat := split(d, ",\"")
 	some i
     list := [r |
-    				without_slash := replace(dat[i], "\"", "")
+                    without_slash := replace(dat[i], "\"", "")
                     without_open_bkt := replace(without_slash, "{", "")
                     without_close_bkt := replace(without_open_bkt, "}", "")
                     s := split(without_close_bkt, ":")
-                    r := [s[0], trim_left(without_close_bkt, sprintf("%s:", [s[0]]))]
+                    value_with_colon := trim_left(without_close_bkt, sprintf("%s", [s[0]]))
+                    r := [s[0], trim_left(value_with_colon, ":")]
     ]
 }
 
