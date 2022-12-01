@@ -2,12 +2,15 @@ package outputs
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
@@ -136,7 +139,24 @@ func (splunk *SplunkOutput) Send(input map[string]string) (data.OutputResponse, 
 
 	req.Header.Add("Authorization", "Splunk "+splunk.Token)
 
-	resp, err := http.DefaultClient.Do(req)
+	client := http.Client{
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+			TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+		},
+		Timeout: 30 * time.Second,
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return data.OutputResponse{}, err
 	}
