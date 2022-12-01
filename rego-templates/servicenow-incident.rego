@@ -48,6 +48,7 @@ data_list(d) := list {
                     without_close_bkt := replace(without_open_bkt, "}", "")
                     s := split(without_close_bkt, ":")
                     value_with_colon := trim_left(without_close_bkt, sprintf("%s", [s[0]]))
+                    s[0] != "tracee_finding"
                     r := [s[0], trim_left(value_with_colon, ":")]
     ]
 }
