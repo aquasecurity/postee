@@ -8,14 +8,14 @@ import data.postee.with_default
 result_tpl = `
 <p><b>Name:</b> %s</p>
 <p><b>Category:</b> %s</p>
-<p><b>Severity:</b> %d</p>
-<p><b>Data:</b></p>
-%s
+<p><b>Severity:</b> %s</p>
+<p><b>Data:</b> %s</p>
+
 <p><b>Resourse policy name:</b> %s</p>
 <p><b>Resourse policy application scopes:</b> %s</p>
 `
 summary_tpl =`Category: %s
-Severity: %d`
+Severity: %s`
 
 table_tpl:=`
 <TABLE border='1' style='width: 100%%; border-collapse: collapse;'>
@@ -86,14 +86,22 @@ to_cell(txt) = c {
     c:= sprintf(cell_tpl, [txt])
 }
 
+found_data := with_default(input,"data", "")
+found_severity :=  "unknown" if{
+    with_default(input,"severity_score", "") == ""
+}else = format_int(input.severity_score, 10)
+
 ############################################## result values #############################################
 result := res{
     res = sprintf(result_tpl,[
         with_default(input,"name", "name not found"),
         with_default(input,"category", "category not found"),
-        with_default(input,"severity_score", "severity not found"),
-        render_table([], data_list(input.data)),
-        with_default(input,"response_policy_name", ""),
+        found_severity,
+        by_flag(
+               	"data not found",
+                render_table([], data_list(found_data)),
+            	found_data == ""),
+        with_default(input,"response_policy_name", "response policy name not found"),
         with_default(input,"application_scope", "none"),
     ])
 }
@@ -108,7 +116,7 @@ result_severity := input.severity_score
 
 result_summary := summary{
     summary = sprintf(summary_tpl,[
-        input.category,
-        input.severity_score,
+        with_default(input,"category", "category not found"),
+        found_severity,
     ])
 }
