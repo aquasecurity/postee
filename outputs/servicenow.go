@@ -3,6 +3,8 @@ package outputs
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -56,9 +58,30 @@ func (sn *ServiceNowOutput) Init() error {
 
 func (sn *ServiceNowOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending to ServiceNow via %q", sn.Name)
+	// parse date
+	date := ""
+	if i, err := strconv.ParseInt(content["date"], 10, 64); err == nil {
+		date = time.Unix(i, 0).Format("2006-01-02 15:04:05")
+	}
+
+	// parse severity
+	severity := 3 // default ServiceNow value
+	if s, err := strconv.Atoi(content["severity"]); err == nil {
+		severity = s
+	}
+
 	d := &servicenow.ServiceNowData{
+		Opened:           date,
 		ShortDescription: content["title"],
+		Caller:           sn.User,
+		Category:         content["category"],
+		Impact:           severity,
+		Urgency:          severity,
+		Subcategory:      content["subcategory"],
+		AssignedTo:       content["assignedTo"],
+		AssignmentGroup:  content["assignedGroup"],
 		WorkNotes:        "[code]" + content["description"] + "[/code]",
+		Description:      content["summary"],
 	}
 
 	body, err := json.Marshal(d)

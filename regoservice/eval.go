@@ -17,6 +17,15 @@ const (
 	result_prop          = "result"
 	title_prop           = "title"
 	aggregation_pkg_prop = "aggregation_pkg"
+
+	//ServiceNow props
+	dateProp          = "result_date"
+	severityProp      = "result_severity"
+	categoryProp      = "result_category"
+	subcategoryProp   = "result_subcategory"
+	assignedToProp    = "result_assigned_to"
+	assignedGroupProp = "result_assigned_group"
+	summaryProp       = "result_summary"
 )
 
 var (
@@ -68,12 +77,43 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		return nil, err
 	}
 
-	return map[string]string{
-		"title":       title,
-		"description": description,
-		"url":         serverUrl,
-	}, nil
+	// variables for servicenow
+	// for other templates must be empty
+	date := getStringFromData(data, dateProp)
+	severity := getStringFromData(data, severityProp)
+	category := getStringFromData(data, categoryProp)
+	subcategory := getStringFromData(data, subcategoryProp)
+	assignedTo := getStringFromData(data, assignedToProp)
+	assignedGroup := getStringFromData(data, assignedGroupProp)
+	summary := getStringFromData(data, summaryProp)
 
+	return map[string]string{
+		"title":         title,
+		"description":   description,
+		"url":           serverUrl,
+		"date":          date,
+		"severity":      severity,
+		"summary":       summary,
+		"category":      category,
+		"subcategory":   subcategory,
+		"assignedTo":    assignedTo,
+		"assignedGroup": assignedGroup,
+	}, nil
+}
+
+func getStringFromData(data map[string]interface{}, prop string) string {
+	value := ""
+	v, ok := data[prop]
+	if ok {
+		switch v.(type) {
+		case string:
+			value = v.(string)
+		case json.Number:
+			value = v.(json.Number).String()
+		}
+
+	}
+	return value
 }
 
 func getFirstElement(context map[string]interface{}, key string) interface{} {
@@ -128,6 +168,15 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 
 		item["title"] = scan["title"]
 
+		// ServiceNow
+		item["date"] = scan["date"]
+		item["severity"] = scan["severity"]
+		item["summary"] = scan["summary"]
+		item["category"] = scan["category"]
+		item["subcategory"] = scan["subcategory"]
+		item["assignedTo"] = scan["assignedTo"]
+		item["assignedGroup"] = scan["assignedGroup"]
+
 		aggregatedJson = append(aggregatedJson, item)
 	}
 
@@ -158,9 +207,26 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 		return nil, err
 	}
 
+	// variables for servicenow
+	// for other templates must be empty
+	date := getStringFromData(data, dateProp)
+	severity := getStringFromData(data, severityProp)
+	category := getStringFromData(data, categoryProp)
+	subcategory := getStringFromData(data, subcategoryProp)
+	assignedTo := getStringFromData(data, assignedToProp)
+	assignedGroup := getStringFromData(data, assignedGroupProp)
+	summary := getStringFromData(data, summaryProp)
+
 	return map[string]string{
-		"title":       title,
-		"description": description,
+		"title":         title,
+		"description":   description,
+		"date":          date,
+		"severity":      severity,
+		"summary":       summary,
+		"category":      category,
+		"subcategory":   subcategory,
+		"assignedTo":    assignedTo,
+		"assignedGroup": assignedGroup,
 	}, nil
 }
 
