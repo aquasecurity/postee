@@ -131,7 +131,7 @@ func (ctx *WebServer) scanHandlerByRoute(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	router.SendMsgByRoute(data, route)
+	_, _ = router.SendMsgByRoute(data, route)
 	ctx.writeResponse(w, http.StatusOK, "")
 }
 
