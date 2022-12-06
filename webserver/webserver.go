@@ -78,6 +78,7 @@ func (ctx *WebServer) Start(host, tlshost string) {
 	}
 
 	ctx.router.HandleFunc("/", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
+	ctx.router.HandleFunc("/{route}", ctx.sessionHandler(ctx.scanHandlerByRoute)).Methods("POST")
 	ctx.router.HandleFunc("/tenant/{route}", ctx.sessionHandler(ctx.tenantHandler)).Methods("POST")
 	ctx.router.HandleFunc("/scan", ctx.sessionHandler(ctx.scanHandler)).Methods("POST")
 	ctx.router.HandleFunc("/ping", ctx.sessionHandler(ctx.pingHandler)).Methods("GET")
@@ -103,6 +104,35 @@ func (ctx *WebServer) sessionHandler(f func(http.ResponseWriter, *http.Request))
 	return func(w http.ResponseWriter, r *http.Request) {
 		f(w, r)
 	}
+}
+
+func (ctx *WebServer) scanHandlerByRoute(w http.ResponseWriter, r *http.Request) {
+	route, ok := mux.Vars(r)["route"]
+	if !ok || len(route) == 0 {
+		ctx.writeResponse(w, http.StatusBadRequest, "empty route")
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Logger.Errorf("Failed ioutil.ReadAll: %s", err)
+		ctx.writeResponseError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	defer r.Body.Close()
+	log.Logger.Debugf("%s\n\n", string(body))
+
+	data := make(map[string]interface{})
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		log.Logger.Errorf("Failed to unmarshal body: %s", err)
+		ctx.writeResponseError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	_, _ = router.SendMsgByRoute(data, route)
+	ctx.writeResponse(w, http.StatusOK, "")
 }
 
 func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
