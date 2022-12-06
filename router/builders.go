@@ -58,6 +58,7 @@ func buildSlackAction(sourceSettings *ActionSettings, aqua string) *actions.Slac
 		Name:       sourceSettings.Name,
 		AquaServer: aqua,
 		Url:        sourceSettings.Url,
+		TlsVerify:  sourceSettings.TlsVerify,
 	}
 }
 

@@ -22,6 +22,7 @@ type SlackAction struct {
 	Name        string
 	AquaServer  string
 	Url         string
+	TlsVerify   bool
 	slackLayout layout.LayoutProvider
 }
 
