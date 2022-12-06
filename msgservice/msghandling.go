@@ -15,6 +15,11 @@ import (
 	"github.com/aquasecurity/postee/v2/routes"
 )
 
+const (
+	AppScopeAttribute       = "application_scope"
+	ResponsePolicyAttribute = "response_policy_name"
+)
+
 type MsgService struct {
 }
 
@@ -172,7 +177,7 @@ func (scan *MsgService) scopeOwners(in map[string]interface{}) string {
 func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, aquaServer string) map[string]interface{} {
 	richIn := make(map[string]interface{}, len(in))
 	for k, v := range in {
-		if k != "application_scope" {
+		if k != AppScopeAttribute {
 			richIn[k] = v
 		}
 	}
@@ -182,19 +187,27 @@ func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.Input
 	}
 
 	//enrich those fields even if they are empty, so the rego evaluation will not fail
-	richIn["response_policy_name"] = route.Name
+	richIn[ResponsePolicyAttribute] = route.Name
 
 	scan.enrichInsightVulnsPackageName(richIn)
 
 	// handle application scope
-	appScopes, exists := in["application_scope"].(map[string][]string)
-
-	if exists {
-		routeScopes, routeScopesExists := appScopes[route.Name]
-		if routeScopesExists {
-			richIn["application_scope"] = routeScopes
+	val, ok := in[AppScopeAttribute]
+	if ok {
+		appScopes, ok := val.(map[string][]string)
+		if ok {
+			routeScopes, ok := appScopes[route.Name]
+			if ok {
+				richIn[AppScopeAttribute] = routeScopes
+			}
+		} else if appScopes, ok := val.(map[string]interface{}); ok {
+			routeScopes, ok := appScopes[route.Name]
+			if ok {
+				richIn[AppScopeAttribute] = routeScopes
+			}
 		}
 	}
+
 	return richIn
 }
 

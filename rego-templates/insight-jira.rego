@@ -2,7 +2,7 @@ package postee.insight.jira
 
 import data.postee.with_default
 
-title = sprintf("Insight on %s", [input.resource.name])
+title = sprintf("%s | Insight on %s", [input.insight.id, input.resource.name])
 
 
 tpl:=`
