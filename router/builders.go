@@ -20,6 +20,7 @@ func buildSplunkAction(sourceSettings *ActionSettings) *actions.SplunkAction {
 		Url:        sourceSettings.Url,
 		Token:      sourceSettings.Token,
 		EventLimit: sourceSettings.SizeLimit,
+		TlsVerify:  sourceSettings.TlsVerify,
 	}
 }
 
