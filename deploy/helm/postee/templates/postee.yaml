@@ -103,12 +103,18 @@ spec:
               mountPath: {{ .Values.persistentVolume.mountPathRego }}
             - name: {{ $fullName }}-filters
               mountPath: {{ .Values.persistentVolume.mountPathFilters }}
+{{- if .Values.extraVolumeMounts }}
+{{ toYaml .Values.extraVolumeMounts | indent 12 }}
+{{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - configMap:
             name: {{ $fullName }}-cfg
           name: {{ $fullName }}-configmap-vol
+{{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes | indent 8 }}
+{{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

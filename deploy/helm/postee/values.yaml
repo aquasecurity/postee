@@ -276,3 +276,18 @@ persistentVolume:
   ##
   # storageClass: "-"
   # existingClaim: ""
+
+# Extra Volumes to add to the postee Statefulset
+extraVolumes: []
+#   - name: example_exec_env
+#     secret:
+#       defaultMode: 420
+#       secretName: example_exec_script
+
+# Extra Volumes Mounts to add to the postee Statefulset
+extraVolumeMounts: []
+#   - name: example_exec_env
+#     mountPath: /actions/exec/example_exec_env
+#     subPath: example_exec_env
+#     readOnly: true
+
