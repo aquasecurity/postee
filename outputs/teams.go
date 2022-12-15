@@ -79,7 +79,7 @@ func (teams *TeamsOutput) Send(input map[string]string) (data.OutputResponse, er
 		return data.OutputResponse{}, err
 	}
 
-	log.Logger.Debugf("Sending to MS Teams via %q was successful!", teams.Name)
+	log.Logger.Infof("Sending to MS Teams via %q was successful!", teams.Name)
 	return data.OutputResponse{}, nil
 }
 

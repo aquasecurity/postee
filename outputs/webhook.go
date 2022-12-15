@@ -63,7 +63,7 @@ func (webhook *WebhookOutput) Send(content map[string]string) (data.OutputRespon
 		msg := "webhook got bad status code: %q. Body: %s"
 		return data.OutputResponse{}, fmt.Errorf(msg, resp.StatusCode, string(body))
 	}
-	log.Logger.Debugf("Sending Webhook to %q was successful!", webhook.Name)
+	log.Logger.Infof("Sending Webhook to %q was successful!", webhook.Name)
 	return data.OutputResponse{}, nil
 }
 

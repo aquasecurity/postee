@@ -622,46 +622,77 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 
 func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []data.OutputResponse {
 	tickets := []data.OutputResponse{}
-	for _, outputName := range r.Outputs {
-		pl, ok := ctx.outputs.Load(outputName)
-		if !ok {
-			log.Logger.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
-			continue
-		}
+	msgSvc := getScanService()
 
-		templateName := r.Template
-		val, ok := ctx.outputsTemplate.Load(outputName)
-		if ok {
-			if name, ok := val.(string); ok && name != "" {
-				templateName = name
+	outputsSize := len(r.Outputs)
+	ticketsCh := make(chan data.OutputResponse, outputsSize)
+	var wg sync.WaitGroup
+	wg.Add(outputsSize)
+
+	for _, name := range r.Outputs {
+		go func(svc service, outputName string, in map[string]interface{}, route *routes.InputRoute) {
+			defer wg.Done()
+
+			ticket, err := ctx.publishOutput(svc, outputName, in, route)
+			if err != nil {
+				log.Logger.Error(err.Error())
+				return
 			}
-		}
 
-		name, ok := r.OverrideTemplate[outputName]
-		if ok && name != "" {
+			if ticket.Key != "" {
+				ticketsCh <- ticket
+			}
+		}(msgSvc, name, msg, r)
+	}
+
+	wg.Wait()
+	close(ticketsCh)
+
+	for ticket := range ticketsCh {
+		tickets = append(tickets, ticket)
+	}
+
+	return tickets
+}
+
+func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[string]interface{}, r *routes.InputRoute) (data.OutputResponse, error) {
+	pl, ok := ctx.outputs.Load(outputName)
+	if !ok {
+		return data.OutputResponse{}, fmt.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
+	}
+
+	templateName := r.Template
+	val, ok := ctx.outputsTemplate.Load(outputName)
+	if ok {
+		if name, ok := val.(string); ok && name != "" {
 			templateName = name
 		}
-
-		tmpl, ok := ctx.templates.Load(templateName)
-		if !ok {
-			log.Logger.Errorf("Route %q (output: %s) contains reference to undefined or misconfigured template %q.",
-				r.Name, outputName, templateName)
-			continue
-		}
-		log.Logger.Debugf("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
-
-		id, err := getScanService().HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
-		if err != nil {
-			log.Logger.Errorf("route %q failed sending message to output: %s", r.Name, outputName)
-			continue
-		}
-
-		if id.Key != "" {
-			id.Type = pl.(outputs.Output).GetType()
-			tickets = append(tickets, id)
-		}
 	}
-	return tickets
+
+	name, ok := r.OverrideTemplate[outputName]
+	if ok && name != "" {
+		templateName = name
+	}
+
+	tmpl, ok := ctx.templates.Load(templateName)
+	if !ok {
+		return data.OutputResponse{}, fmt.Errorf("Route %q (output: %s) contains reference to undefined or misconfigured template %q.",
+			r.Name, outputName, templateName)
+	}
+
+	log.Logger.Debugf("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
+
+	id, err := msgSvc.HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
+	if err != nil {
+		return data.OutputResponse{}, fmt.Errorf("route %q failed sending message to output: %s", r.Name, outputName)
+
+	}
+
+	if id.Key != "" {
+		id.Type = pl.(outputs.Output).GetType()
+	}
+
+	return id, nil
 }
 
 func (ctx *Router) handle(in []byte) {
