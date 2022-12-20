@@ -166,7 +166,7 @@ func (splunk *SplunkOutput) Send(input map[string]string) (data.OutputResponse, 
 		log.Logger.Error(fmt.Errorf("splunk sending error: failed response status %q. Body: %q", resp.Status, string(b)))
 		return data.OutputResponse{}, errors.New("failed response status for Splunk sending")
 	}
-	log.Logger.Debugf("Sending a message to Splunk via %q was successful!", splunk.Name)
+	log.Logger.Infof("Sending a message to Splunk via %q was successful!", splunk.Name)
 	return data.OutputResponse{}, nil
 }
 

@@ -95,7 +95,7 @@ func (slack *SlackOutput) Send(input map[string]string) (data.OutputResponse, er
 		if err := slackAPI.SendToUrl(slack.Url, buildSlackBlock(title, []byte(message))); err != nil {
 			return data.OutputResponse{}, err
 		}
-		log.Logger.Debugf("Sending to Slack %q was successful!", slack.Name)
+		log.Logger.Infof("Sending to Slack %q was successful!", slack.Name)
 	} else {
 		for n := 0; n < length; {
 			d := length - n
@@ -109,7 +109,7 @@ func (slack *SlackOutput) Send(input map[string]string) (data.OutputResponse, er
 				log.Logger.Error(fmt.Errorf("sending to Slack via %q was finished with error: %w", slack.Name, err))
 				return data.OutputResponse{}, err
 			} else {
-				log.Logger.Debugf("Sending to Slack [%d/%d part] via %q was successful!",
+				log.Logger.Infof("Sending to Slack [%d/%d part] via %q was successful!",
 					int(n/49)+1, int(length/49)+1,
 					slack.Name)
 			}

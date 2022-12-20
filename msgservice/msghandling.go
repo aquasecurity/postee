@@ -3,6 +3,7 @@ package msgservice
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"golang.org/x/xerrors"
@@ -21,6 +22,7 @@ const (
 )
 
 type MsgService struct {
+	mu sync.Mutex
 }
 
 func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
@@ -175,6 +177,9 @@ func (scan *MsgService) scopeOwners(in map[string]interface{}) string {
 }
 
 func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, aquaServer string) map[string]interface{} {
+	scan.mu.Lock()
+	defer scan.mu.Unlock()
+
 	richIn := make(map[string]interface{}, len(in))
 	for k, v := range in {
 		if k != AppScopeAttribute {

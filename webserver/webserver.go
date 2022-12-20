@@ -131,8 +131,13 @@ func (ctx *WebServer) scanHandlerByRoute(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	_, _ = router.SendMsgByRoute(data, route)
-	ctx.writeResponse(w, http.StatusOK, "")
+	tickets, err := router.SendMsgByRoute(data, route)
+	if err != nil {
+		log.Logger.Errorf("scanHandlerByRoute failed to SendMsgByRoute: %s", err.Error())
+		ctx.writeResponse(w, http.StatusInternalServerError, "")
+		return
+	}
+	ctx.writeResponse(w, http.StatusOK, tickets)
 }
 
 func (ctx *WebServer) scanHandler(w http.ResponseWriter, r *http.Request) {
