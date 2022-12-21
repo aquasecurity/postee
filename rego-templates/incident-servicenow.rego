@@ -1,4 +1,4 @@
-package postee.servicenow.incident
+package postee.incident.servicenow
 
 import future.keywords
 import data.postee.by_flag

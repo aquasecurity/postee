@@ -32,6 +32,8 @@ const (
 
 	ServiceNowTableDefault = "incident"
 	AnonymizeReplacement   = "<hidden>"
+
+	customTriggerTypeField = "custom_trigger_type"
 )
 
 type Router struct {
@@ -604,6 +606,11 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 			templateName = name
 		}
 
+		// if CustomTriggerType field in msg  is not empty - overwrite template
+		if template := chooseTemplateByCustomTriggerType(msg, pl.(outputs.Output).GetType()); template != "" {
+			templateName = template
+		}
+
 		tmpl, ok := ctx.templates.Load(templateName)
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
@@ -886,4 +893,35 @@ func (ctx *Router) embedTemplates() error {
 		}
 	}
 	return nil
+}
+
+// chooseTemplateByCustomTriggerType chooses template by message and output. Works only for servicenow templates.
+func chooseTemplateByCustomTriggerType(msg map[string]interface{}, outputType string) string {
+	template := ""
+
+	// choose template suffix by output
+	// Works only for servicenow templates
+	if outputType == "serviceNow" {
+		outputType = strings.ToLower(outputType)
+	} else {
+		return template
+	}
+
+	// choose template type by customTriggerType
+	trigger, ok := msg[customTriggerTypeField]
+	if !ok {
+		return template
+	}
+
+	switch trigger.(string) {
+	case "custom-scan_result":
+		template = fmt.Sprintf("%s-%s", "vuls", outputType)
+	case "custom-insight":
+		template = fmt.Sprintf("%s-%s", "insight", outputType)
+	case "custom-incident":
+		template = fmt.Sprintf("%s-%s", "incident", outputType)
+	case "custom-iac":
+		template = fmt.Sprintf("%s-%s", "iac", outputType)
+	}
+	return template
 }
