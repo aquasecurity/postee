@@ -11,7 +11,7 @@ import (
 	"github.com/aquasecurity/postee/v2/utils"
 )
 
-func InsertRecordToTable(user, password, instance, table string, content []byte) (*ServiceNowResponse, error) {
+var InsertRecordToTable = func(user, password, instance, table string, content []byte) (*ServiceNowResponse, error) {
 	url := fmt.Sprintf("https://%s.%s%s%s%s",
 		instance, BaseServer, baseApiUrl, tableApi, table)
 	r := bytes.NewReader(content)
