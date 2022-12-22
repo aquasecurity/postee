@@ -2,7 +2,6 @@ package router_test
 
 import (
 	"fmt"
-	servicenow "github.com/aquasecurity/postee/v2/servicenow"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -14,6 +13,8 @@ import (
 	"github.com/aquasecurity/postee/v2/router"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/stretchr/testify/assert"
+
+	servicenow "github.com/aquasecurity/postee/v2/servicenow"
 )
 
 const (
