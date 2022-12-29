@@ -13,8 +13,6 @@ import (
 	"github.com/aquasecurity/postee/v2/router"
 	"github.com/aquasecurity/postee/v2/routes"
 	"github.com/stretchr/testify/assert"
-
-	servicenow "github.com/aquasecurity/postee/v2/servicenow"
 )
 
 const (
@@ -87,113 +85,6 @@ func TestAudit(t *testing.T) {
 	defer os.Remove("webhooks.db")
 	got := <-received
 	assert.Equal(t, string(got), want, "unexpected response")
-}
-
-func TestSelectTemplateByInputField(t *testing.T) {
-	preinstalledTemplates := map[string]string{
-		"raw-json": `package example.rawmessage.json
-title:= "Audit raw json event received"
-result:= "result of raw-json template"`,
-		"vuls-servicenow": `package example.vuls.servicenow
-title:= "Audit vuls servicenow event received"
-result:= "result of vuls-servicenow template"`,
-		"insight-servicenow": `package example.insight.servicenow
-title:= "Audit insight servicenow event received"
-result:= "result of insight-servicenow template"`,
-		"incident-servicenow": `package example.incident.servicenow
-title:= "Audit incident servicenow event received"
-result:= "result of incident-servicenow template"`,
-		"iac-servicenow": `package example.iac.servicenow
-title:= "Audit iac servicenow event received"
-result:= "result of iac-servicenow template"`,
-	}
-	tests := []struct {
-		name   string
-		input  string
-		output *data.OutputSettings
-		want   string
-	}{
-		{
-			name:   "Select image servicenow",
-			input:  `{"custom_trigger_type": "custom-scan_result"}`,
-			output: &data.OutputSettings{Name: "test-sn", Type: "serviceNow", Enable: true},
-			want:   `{"short_description":"Audit vuls servicenow event received","work_notes":"[code]result of vuls-servicenow template[/code]","opened_at":"","caller_id":"","category":"","subcategory":"","impact":3,"urgency":3,"state":0,"description":"","assigned_to":"","assignment_group":""}`,
-		},
-		{
-			name:   "Select insight servicenow",
-			input:  `{"custom_trigger_type": "custom-insight"}`,
-			output: &data.OutputSettings{Name: "test-sn", Type: "serviceNow", Enable: true},
-			want:   `{"short_description":"Audit insight servicenow event received","work_notes":"[code]result of insight-servicenow template[/code]","opened_at":"","caller_id":"","category":"","subcategory":"","impact":3,"urgency":3,"state":0,"description":"","assigned_to":"","assignment_group":""}`,
-		},
-		{
-			name:   "Select incident servicenow",
-			input:  `{"custom_trigger_type": "custom-incident"}`,
-			output: &data.OutputSettings{Name: "test-sn", Type: "serviceNow", Enable: true},
-			want:   `{"short_description":"Audit incident servicenow event received","work_notes":"[code]result of incident-servicenow template[/code]","opened_at":"","caller_id":"","category":"","subcategory":"","impact":3,"urgency":3,"state":0,"description":"","assigned_to":"","assignment_group":""}`,
-		},
-		{
-			name:   "Select incident servicenow",
-			input:  `{"custom_trigger_type": "custom-iac"}`,
-			output: &data.OutputSettings{Name: "test-sn", Type: "serviceNow", Enable: true},
-			want:   `{"short_description":"Audit iac servicenow event received","work_notes":"[code]result of iac-servicenow template[/code]","opened_at":"","caller_id":"","category":"","subcategory":"","impact":3,"urgency":3,"state":0,"description":"","assigned_to":"","assignment_group":""}`,
-		},
-		{
-			name:   "Select incident jira",
-			input:  `{"custom_trigger_type": "custom-incident"}`,
-			output: &data.OutputSettings{Name: "test-sn", Type: "jira", Enable: true},
-			want:   `{"short_description":"Audit raw json event received","work_notes":"[code]result of raw-json template[/code]","opened_at":"","caller_id":"","category":"","subcategory":"","impact":3,"urgency":3,"state":0,"description":"","assigned_to":"","assignment_group":""}`,
-		},
-		{
-			name:   "Select template without 'custom_trigger_type' field",
-			input:  ``,
-			output: &data.OutputSettings{Name: "test-sn", Type: "jira", Enable: true},
-			want:   `{"short_description":"Audit raw json event received","work_notes":"[code]result of raw-json template[/code]","opened_at":"","caller_id":"","category":"","subcategory":"","impact":3,"urgency":3,"state":0,"description":"","assigned_to":"","assignment_group":""}`,
-		},
-	}
-	received := make(chan ([]byte))
-
-	if err := router.WithNewConfigAndDbPath("test", "test_webhooks.db"); err != nil {
-		t.Errorf("Unexpected WithNewConfig error: %v", err)
-	}
-
-	// overwrite InsertRecordToTable function for this test
-	savedInsertRecordToTable := servicenow.InsertRecordToTable
-	servicenow.InsertRecordToTable = func(user, password, instance, table string, content []byte) (*servicenow.ServiceNowResponse, error) {
-		received <- content
-		return &servicenow.ServiceNowResponse{ServiceNowResult: servicenow.ServiceNowResult{SysID: "testSysID"}}, nil
-	}
-	defer func() { servicenow.InsertRecordToTable = savedInsertRecordToTable }()
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			for n, r := range preinstalledTemplates {
-				err := router.AddTemplate(&data.Template{
-					Name: n,
-					Body: r,
-				})
-				if err != nil {
-					t.Logf("Error: %v", err)
-					return
-				}
-			}
-
-			err := router.AddOutput(tt.output)
-			if err != nil {
-				return
-			}
-
-			router.AddRoute(&routes.InputRoute{
-				Name:     "test",
-				Outputs:  []string{tt.output.Name},
-				Template: "raw-json",
-			})
-			router.Send([]byte(tt.input))
-			defer os.Remove("webhooks.db")
-			got := <-received
-			assert.Equal(t, tt.want, string(got), "unexpected response")
-		})
-	}
-
 }
 
 func TestConcurrentSafe(t *testing.T) {

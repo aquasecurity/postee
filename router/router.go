@@ -901,9 +901,8 @@ func chooseTemplateByCustomTriggerType(msg map[string]interface{}, outputType st
 
 	// choose template suffix by output
 	// Works only for servicenow templates
-	if outputType == "serviceNow" {
-		outputType = strings.ToLower(outputType)
-	} else {
+	outputType = strings.ToLower(outputType)
+	if outputType != "servicenow" && outputType != "jira" {
 		return template
 	}
 
