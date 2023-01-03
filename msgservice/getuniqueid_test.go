@@ -167,7 +167,7 @@ func TestGetMessageUniqueId(t *testing.T) {
 		{
 			props:   []string{"name", "items.id"},
 			name:    "Multi Level Property With Collection",
-			context: map[string]interface{}{"name": "alpine", "items": []map[string]interface{}{{"id": "KLM"}, {"id": "DEF"}}},
+			context: map[string]interface{}{"name": "alpine", "items": []interface{}{map[string]interface{}{"id": "KLM"}, map[string]interface{}{"id": "DEF"}}},
 			wantKey: "alpine-KLM",
 		},
 		{
@@ -187,6 +187,12 @@ func TestGetMessageUniqueId(t *testing.T) {
 			filename: "all-in-one-image.json",
 			wantKey:  "sha256:45388de11cfbf5c5d9e2e1418dfeac221c57cfffa1e2fffa833ac283ed029ecf-all-in-one:3.5.19223-Aqua-0-7-30-6",
 		},
+        {
+            props:    []string{"arr.foo"},
+            name:     "Multi Level Property With Collection Of Interfaces",
+            filename: "collection-of-interfaces.json",
+            wantKey:  "bar",
+        },
 	}
 
 	for _, test := range tests {

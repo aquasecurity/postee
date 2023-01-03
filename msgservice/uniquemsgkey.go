@@ -40,7 +40,7 @@ func getSingleValue(o interface{}, parts []string) string {
 			switch x := v.(type) {
 			case map[string]interface{}:
 				return getSingleValue(x, parts[1:])
-			case []map[string]interface{}:
+			case []interface{}:
 				if len(x) > 0 {
 					return getSingleValue(x[0], parts[1:]) //re-iterate with first element
 				}
