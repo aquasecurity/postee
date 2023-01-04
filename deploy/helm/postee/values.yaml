@@ -280,5 +280,5 @@ persistentVolume:
 
 ## Secrets as environment variables
 ## If defined, these secrets are mounted as environment variables
-envFrom:
-  - my-env-secret-1
+## envFrom:
+##   - my-env-secret-1
