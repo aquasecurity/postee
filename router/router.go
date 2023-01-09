@@ -674,6 +674,17 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 		templateName = name
 	}
 
+	//TODO: temp solution - should be override
+	val, ok = msg["resourceTypeKey"]
+	if ok {
+		resource, ok := val.(string)
+		if ok {
+			if resource == "code-repository" {
+				templateName = "raw-message-json"
+			}
+		}
+	}
+
 	tmpl, ok := ctx.templates.Load(templateName)
 	if !ok {
 		return data.OutputResponse{}, fmt.Errorf("Route %q (output: %s) contains reference to undefined or misconfigured template %q.",
