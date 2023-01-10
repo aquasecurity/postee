@@ -33,8 +33,12 @@ const (
 	ServiceNowTableDefault = "incident"
 	AnonymizeReplacement   = "<hidden>"
 
-	customTriggerTypeField = "custom_trigger_type"
+	resourceTypeKey   = "resourceTypeKey"
+	codeRepositoryKey = "code-repository"
+	rawMessageJson    = "raw-message-json"
 )
+
+var supportedOutputsForRepository = []string{"jira", "servicenow"}
 
 type Router struct {
 	mutexScan              sync.Mutex
@@ -607,7 +611,7 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 		}
 
 		// if CustomTriggerType field in msg  is not empty - overwrite template
-		if template := chooseTemplateByCustomTriggerType(msg, pl.(outputs.Output).GetType()); template != "" {
+		if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType()); template != "" {
 			templateName = template
 		}
 
@@ -906,32 +910,19 @@ func (ctx *Router) embedTemplates() error {
 	return nil
 }
 
-// chooseTemplateByCustomTriggerType chooses template by message and output. Works only for servicenow templates.
-func chooseTemplateByCustomTriggerType(msg map[string]interface{}, outputType string) string {
-	template := ""
+// selectRepositoryTemplateByResourceTypeKey chooses iac template by ResourceTypeKey and output. It currently works only for servicenow, jira templates.
+func selectRepositoryTemplateByResourceTypeKey(msg map[string]interface{}, outputType string) string {
+	// if msg doesn't have `resourceTypeKey` or `resourceTypeKey` != `code-repository` => don't need to change template
+	if key, ok := msg[resourceTypeKey]; !ok || key != codeRepositoryKey {
+		return ""
+	}
 
 	// choose template suffix by output
-	// Works only for servicenow templates
 	outputType = strings.ToLower(outputType)
-	if outputType != "servicenow" && outputType != "jira" {
-		return template
+	for _, output := range supportedOutputsForRepository {
+		if output == outputType {
+			return fmt.Sprintf("%s-%s", "iac", outputType)
+		}
 	}
-
-	// choose template type by customTriggerType
-	trigger, ok := msg[customTriggerTypeField]
-	if !ok {
-		return template
-	}
-
-	switch trigger.(string) {
-	case "custom-scan_result":
-		template = fmt.Sprintf("%s-%s", "vuls", outputType)
-	case "custom-insight":
-		template = fmt.Sprintf("%s-%s", "insight", outputType)
-	case "custom-incident":
-		template = fmt.Sprintf("%s-%s", "incident", outputType)
-	case "custom-iac":
-		template = fmt.Sprintf("%s-%s", "iac", outputType)
-	}
-	return template
+	return rawMessageJson // raw message json template uses for unsupported outputs
 }
