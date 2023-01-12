@@ -675,12 +675,16 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 	}
 
 	//TODO: temp solution - should be override
-	val, ok = msg["resourceTypeKey"]
+	val, ok = msg[outputs.ResourceTypeKey]
 	if ok {
 		resource, ok := val.(string)
 		if ok {
-			if resource == "code-repository" {
+			if resource == outputs.CodeRepoResource {
 				templateName = "raw-message-json"
+
+				if pl.(outputs.Output).GetType() == outputs.SlackType {
+					templateName = "generic-slack"
+				}
 			}
 		}
 	}
@@ -696,7 +700,6 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 	id, err := msgSvc.HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 	if err != nil {
 		return data.OutputResponse{}, fmt.Errorf("route %q failed sending message to output: %s", r.Name, outputName)
-
 	}
 
 	if id.Key != "" {
