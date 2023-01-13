@@ -25,6 +25,12 @@ func TestSelectRepositoryTemplateByResourceTypeKey(t *testing.T) {
 			want:       "iac-servicenow",
 		},
 		{
+			name:       "select iac-slack template",
+			msg:        map[string]interface{}{"resourceTypeKey": "code-repository"},
+			outputType: "slack",
+			want:       "iac-slack",
+		},
+		{
 			name:       "wrong resourceTypeKey",
 			msg:        map[string]interface{}{"resourceTypeKey": "wrong"},
 			outputType: "serviceNow",

@@ -38,7 +38,7 @@ const (
 	rawMessageJson    = "raw-message-json"
 )
 
-var supportedOutputsForRepository = []string{"jira", "servicenow"}
+var supportedOutputsForRepository = []string{"jira", "servicenow", "slack"}
 
 type Router struct {
 	mutexScan              sync.Mutex
@@ -685,15 +685,9 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 		templateName = name
 	}
 
-	//TODO: temp solution - should be override
-	val, ok = msg["resourceTypeKey"]
-	if ok {
-		resource, ok := val.(string)
-		if ok {
-			if resource == "code-repository" {
-				templateName = "raw-message-json"
-			}
-		}
+	// if CustomTriggerType field in msg  is not empty - overwrite template
+	if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType()); template != "" {
+		templateName = template
 	}
 
 	tmpl, ok := ctx.templates.Load(templateName)
