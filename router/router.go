@@ -38,7 +38,13 @@ const (
 	rawMessageJson    = "raw-message-json"
 )
 
-var supportedOutputsForRepository = []string{"jira", "servicenow", "slack"}
+var repositoryTemplatesForOutputs = map[string]string{
+	"jira":       "iac-jira",
+	"servicenow": "iac-servicenow",
+	"slack":      "iac-slack",
+	"email":      "iac-html",
+	"teams":      "iac-html",
+}
 
 type Router struct {
 	mutexScan              sync.Mutex
@@ -911,12 +917,10 @@ func selectRepositoryTemplateByResourceTypeKey(msg map[string]interface{}, outpu
 		return ""
 	}
 
-	// choose template suffix by output
+	// choose template by output
 	outputType = strings.ToLower(outputType)
-	for _, output := range supportedOutputsForRepository {
-		if output == outputType {
-			return fmt.Sprintf("%s-%s", "iac", outputType)
-		}
+	if template, ok := repositoryTemplatesForOutputs[strings.ToLower(outputType)]; ok {
+		return template
 	}
 	return rawMessageJson // raw message json template uses for unsupported outputs
 }
