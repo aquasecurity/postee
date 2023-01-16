@@ -30,9 +30,6 @@ func CreateMessageByWebhook(webhook, content string) error {
 	if message, _ := ioutil.ReadAll(resp.Body); resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("InsertRecordToTable Error: %q. %s", resp.Status, message)
 	} else {
-		if message[0] != '1' {
-			return fmt.Errorf("Teams Body Error: %q", string(message))
-		}
 		log.Logger.Debugf("Response body: %q", message)
 	}
 	return nil

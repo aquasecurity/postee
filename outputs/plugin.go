@@ -18,6 +18,9 @@ const (
 	CategoryScanResult     = "scan_result"
 
 	EmptyID = ""
+
+	ResourceTypeKey  = "resourceTypeKey"
+	CodeRepoResource = "code-repository"
 )
 
 type Output interface {

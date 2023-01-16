@@ -87,9 +87,13 @@ func (splunk *SplunkOutput) Send(input map[string]string) (data.OutputResponse, 
 	eventFormat := "{\"sourcetype\": \"_json\", \"event\": "
 	constLimit := len(eventFormat) - 1
 
+	_, imageFound := eventData["image"]
+
 	var rawMsg []byte
 	category, ok := eventData[EventCategoryAttribute]
 	if ok && (category == CategoryIncident || category == CategoryInsights) {
+		rawMsg = []byte(rawEventData)
+	} else if resource, ok := eventData[ResourceTypeKey].(string); ok && resource == CodeRepoResource && !imageFound {
 		rawMsg = []byte(rawEventData)
 	} else {
 		scanInfo := new(data.ScanImageInfo)
@@ -171,7 +175,7 @@ func (splunk *SplunkOutput) Send(input map[string]string) (data.OutputResponse, 
 }
 
 func (splunk *SplunkOutput) Terminate() error {
-	log.Logger.Infof("Splunk output %q terminated", splunk.Name)
+	log.Logger.Debugf("Splunk output %q terminated", splunk.Name)
 	return nil
 }
 
