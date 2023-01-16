@@ -8,6 +8,7 @@ import future.keywords.if
 ################################################ Templates ################################################
 # Template is used in `work notes`.
 html_tpl:=`
+<p><b>Triggered by:</b> %s</p>
 <p><b>Repository Name:</b> %s</p>
 <p> </p>
 <!-- Stats -->
@@ -21,7 +22,8 @@ html_tpl:=`
 <p><b>Resourse policy application scopes:</b> %s</p>
 `
 
-summary_tpl =`Registry name: %s`
+summary_tpl =`Triggered by: %s
+Registry name: %s`
 
 #Extra % is required in width:100%
 table_tpl:=`
@@ -94,12 +96,13 @@ result_severity := 1 if {
 } else = 3
 
 result_summary := summary{
-    summary := sprintf(summary_tpl, [input.repository_name])
+    summary := sprintf(summary_tpl, [with_default(input, "triggered_by", ""), input.repository_name])
 }
 
 result = msg {
 
     msg := sprintf(html_tpl, [
+    with_default(input, "triggered_by", ""),
     input.repository_name,
     render_table(severities_stats("vulnerability")),
     render_table(severities_stats("misconfiguration")),

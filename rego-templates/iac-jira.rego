@@ -4,6 +4,7 @@ import data.postee.with_default
 
 ################################################ Templates ################################################
 tpl:=`
+*Triggered by:* %s
 *Repository name:* %s
 
 %v
@@ -29,6 +30,7 @@ severities_stats_table(vuln_type) = sprintf("\n*%s summary:*\n||*Severity*      
 title = sprintf("%s repository scan report", [input.repository_name])
 result = msg {
     msg := sprintf(tpl, [
+    with_default(input, "triggered_by", ""),
     input.repository_name,
     severities_stats_table("Vulnerability"),
     severities_stats_table("Misconfiguration"),

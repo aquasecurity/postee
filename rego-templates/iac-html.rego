@@ -4,6 +4,7 @@ import data.postee.with_default
 
 ################################################ Templates ################################################
 tpl:=`
+<p><b>Triggered by:</b> %s</p>
 <p><b>Repository Name:</b> %s</p>
 <p> </p>
 <!-- Stats -->
@@ -78,6 +79,7 @@ title = sprintf("%s repository scan report", [input.repository_name])
 result = msg {
 
     msg := sprintf(tpl, [
+    with_default(input, "triggered_by", ""),
     input.repository_name,
     render_table(severities_stats("vulnerability")),
     render_table(severities_stats("misconfiguration")),
