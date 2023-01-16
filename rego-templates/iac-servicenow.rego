@@ -67,36 +67,14 @@ to_severity_color(color, level) = spn {
  spn:=to_colored_text(color, format_int(with_default(input,level,0), 10))
 }
 
-severities_stats(critical, high, medium, low, unknown) := [
-                        ["critical", to_severity_color("#c00000", critical)],
-                        ["high", to_severity_color("#e0443d", high)],
-                        ["medium", to_severity_color("#f79421", medium)],
-                        ["low", to_severity_color("#e1c930", low)],
-                        ["unknown", to_severity_color("green", unknown)]
-                    ]
-
-vulnerability_stats = stats{
-    stats := severities_stats("vulnerability_critical_count",
-                              "vulnerability_high_count",
-                              "vulnerability_medium_count",
-                              "vulnerability_low_count",
-                              "vulnerability_unknown_count")
-}
-
-misconfiguration_stats = stats{
-    stats := severities_stats("misconfiguration_critical_count",
-                              "misconfiguration_high_count",
-                              "misconfiguration_medium_count",
-                              "misconfiguration_low_count",
-                              "misconfiguration_unknown_count")
-}
-
-pipeline_stats = stats{
-    stats := severities_stats("pipeline_misconfiguration_critical_count",
-                              "pipeline_misconfiguration_high_count",
-                              "pipeline_misconfiguration_medium_count",
-                              "pipeline_misconfiguration_low_count",
-                              "pipeline_misconfiguration_unknown_count")
+severities_stats(vuln_type) = stats{
+    stats := [
+          ["critical", to_severity_color("#c00000", sprintf("%s_critical_count", [vuln_type]))],
+          ["high", to_severity_color("#e0443d", sprintf("%s_high_count", [vuln_type]))],
+          ["medium", to_severity_color("#f79421", sprintf("%s_medium_count", [vuln_type]))],
+          ["low", to_severity_color("#e1c930", sprintf("%s_low_count", [vuln_type]))],
+          ["unknown", to_severity_color("green", sprintf("%s_unknown_count", [vuln_type]))]
+      ]
 }
 
 ############################################## result values #############################################
@@ -123,9 +101,9 @@ result = msg {
 
     msg := sprintf(html_tpl, [
     input.repository_name,
-    render_table(vulnerability_stats),
-    render_table(misconfiguration_stats),
-    render_table(pipeline_stats),
+    render_table(severities_stats("vulnerability")),
+    render_table(severities_stats("misconfiguration")),
+    render_table(severities_stats("pipeline_misconfiguration")),
     with_default(input, "response_policy_name", "none"),
     with_default(input, "application_scope", "none")
     ])

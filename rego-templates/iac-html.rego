@@ -80,8 +80,8 @@ result = msg {
     msg := sprintf(tpl, [
     input.repository_name,
     render_table(severities_stats("vulnerability")),
-    render_table(severities_stats("vulnerability")),
-    render_table(severities_stats("vulnerability")),
+    render_table(severities_stats("misconfiguration")),
+    render_table(severities_stats("pipeline_misconfiguration")),
     with_default(input, "response_policy_name", "none"),
     with_default(input, "application_scope", "none")
     ])

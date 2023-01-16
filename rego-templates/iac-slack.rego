@@ -22,7 +22,7 @@ title = sprintf("%s repository scan report", [input.repository_name]) # title is
 
 result = res {
 	res := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Repository name: %s", [input.repository_name])}},
-	            {"type": "section","text": {"type": "mrkdwn","text": "*Vulnerabilities summar:y*"}},
+	            {"type": "section","text": {"type": "mrkdwn","text": "*Vulnerabilities summary:*"}},
                 {"type": "section","fields": severity_stats("vulnerability")},
                 {"type": "section","text": {"type": "mrkdwn","text": "*Misconfiguration summary:*"}},
                 {"type": "section","fields": severity_stats("misconfiguration")},
