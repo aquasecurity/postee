@@ -87,6 +87,13 @@ spec:
               value: /data/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- range . }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}

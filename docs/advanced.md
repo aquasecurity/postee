@@ -13,6 +13,27 @@ actions:
   token: $JIRA_SERVER_TOKEN         
 ```
 
+### Helm
+
+When installing Postee on Kubernetes with Helm, you can provide environment variables from Kubernetes secrets.
+Given there is a Secret containing sensitive information:
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  JIRA_USERNAME: secret-username
+  JIRA_SERVER_TOKEN: secret-token
+```
+
+You can refer to this secret and use its data in Postee by specifying its name in the Helm values:
+```
+envFrom:
+  - mysecret
+```
+
 ## Customizing Templates
 Postee loads bundle of templates from `rego-templates` folder. This folder includes several templates shipped with Postee, which can be used out of the box. You can add additional custom templates by placing Rego file under the 'rego-templates' directory.
 
