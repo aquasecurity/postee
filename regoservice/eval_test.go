@@ -37,6 +37,20 @@ ttle:="Audit event received"
 	regoWithoutAnyExpression = `
 package rego1
 `
+	regoServiceNowSimpleExample = `
+package rego1
+title:="test title"
+result = "test description"
+
+result_date = 1667725398
+result_category = "test category"
+result_subcategory = "test subcategory"
+result_assigned_group = "test assigned group"
+
+result_severity := 1
+
+result_summary := "test summary"
+`
 	invalidRego = `
 package rego1
 default input = false
@@ -116,6 +130,22 @@ func TestEval(t *testing.T) {
 				"title":       "Audit event received",
 				"description": `{"assignee":"demo"}`,
 				"url":         "",
+			},
+		},
+		{
+			regoRule:    &regoServiceNowSimpleExample,
+			caseDesc:    "producing ServiceNow output",
+			input:       &input,
+			regoPackage: "rego1",
+			expectedValues: map[string]string{
+				"title":         "test title",
+				"description":   "test description",
+				"date":          "1667725398",
+				"severity":      "1",
+				"summary":       "test summary",
+				"category":      "test category",
+				"subcategory":   "test subcategory",
+				"assignedGroup": "test assigned group",
 			},
 		},
 		/* cases which should fail are below*/
