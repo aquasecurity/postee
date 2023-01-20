@@ -2,6 +2,7 @@ package postee.iac.slack
 
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.with_default
+import data.postee.severity_as_string
 import future.keywords.if
 
 
@@ -12,8 +13,8 @@ severities := ["critical", "high", "medium", "low", "unknown"]
 severity_stats(vuln_type) := flat_array([gr |
 	severity := severities[_]
 	gr := [
-		{"type": "mrkdwn", "text": sprintf("*%s*", [severity])},
-		{"type": "mrkdwn", "text": sprintf("*%d*", [with_default(input, sprintf("%s_%s_count", [vuln_type, severity]), 0)])},
+		{"type": "mrkdwn", "text": sprintf("%s", [severity])},
+		{"type": "mrkdwn", "text": sprintf("%d", [with_default(input, sprintf("%s_%s_count", [vuln_type, severity]), 0)])},
 	]
 ])
 
@@ -49,42 +50,30 @@ render_sections(rows, caption) = [] { #do not render section if provided collect
     count(rows) < 3
 }
 
-vln_list(severity) = l {
+vln_list = l {
     some i
 	vlnrb := [r |
                     result := input.results[i]
-                    result.severity == severity
     				avd_id := result.avd_id
-                    id := result.id
-                    type := sprintf("%d", [result.type])
+                    severity := severity_as_string(result.severity)
 
                     r := [
                     	{"type": "mrkdwn", "text": avd_id},
-                    	{"type": "mrkdwn", "text": concat("/", [id, type])}
+                    	{"type": "mrkdwn", "text": severity}
                     ]
 
               ]
-    caption := sprintf("*%s severity vulnerabilities*", [severity_as_string(severity)])
+    caption := "*List of CVEs:*"
 
     headers := [
-        {"type": "mrkdwn", "text": "*Vulnerability ID*"},
-        {"type": "mrkdwn", "text": "*ID / Type*"}
+        {"type": "mrkdwn", "text": "*ID*"},
+        {"type": "mrkdwn", "text": "*Severity*"}
     ]
     rows := array.concat(headers, flat_array(vlnrb))
 
     # split rows and wrap slices with markdown section
     l := render_sections(rows, caption)
 }
-
-severity_as_string(severity) := "Critical" if {
-    severity == 0
-} else = "High" if {
-    severity == 1
-} else = "Medium" if {
-    severity == 2
-} else = "Low" if {
-    severity == 3
-} else = "Unknown"
 
 ####################################### results #######################################
 
@@ -106,11 +95,9 @@ result = res {
                                          [with_default(input, "application_scope", "none")])}}
     ]
 
-    vulsAll := flat_array([vln_list(0), vln_list(1), vln_list(2), vln_list(3)])
-
     res := flat_array([
         header1,
-    	vulsAll,
+    	vln_list,
     	header2
     ])
 }

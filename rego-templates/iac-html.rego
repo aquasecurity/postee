@@ -1,6 +1,8 @@
 package postee.iac.html
 
 import data.postee.with_default
+import data.postee.severity_as_string
+
 
 ################################################ Templates ################################################
 tpl:=`
@@ -14,15 +16,7 @@ tpl:=`
 %s
 <h3> Pipeline Misconfiguration summary: </h3>
 %s
-<!-- Critical severity vulnerabilities -->
-%s
-<!-- High severity vulnerabilities -->
-%s
-<!-- Medium severity vulnerabilities -->
-%s
-<!-- Low severity vulnerabilities -->
-%s
-<!-- Unknown severity vulnerabilities -->
+<h3> List of CVEs: </h3>
 %s
 <p><b>Resourse policy name:</b> %s</p>
 <p><b>Resourse policy application scopes:</b> %s</p>
@@ -45,11 +39,6 @@ row_tpl:=`
 <TR>
 %s
 </TR>`
-
-vlnrb_tpl = `
-<h3>%s severity vulnerabilities</h3>
-%s
-`
 
 colored_text_tpl:="<span style='color:%s'>%s</span>"
 
@@ -106,30 +95,18 @@ severities_stats(vuln_type) = stats{
       ]
 }
 
-vln_list(severity) = vlnrb {
+vlnrb_headers := ["ID", "Severity"]
+
+vln_list = vlnrb {
 	some i
 	vlnrb := [r |
     				result := input.results[i]
-                    result.severity == severity
-
     				avd_id := result.avd_id
-                    id := result.id
-                    type := sprintf("%d",[result.type])
-                    r := [avd_id, id, type]
+                    severity := severity_as_string(result.severity)
+
+                    r := [avd_id, severity]
               ]
 }
-
-vlnrb_headers := ["Vulnerability ID", "ID", "Type"]
-
-
-render_vlnrb(severity, list) = sprintf(vlnrb_tpl, [severity, render_table(vlnrb_headers, list)]) {
-    count(list) > 0
-}
-
-render_vlnrb(severity, list) = "" {  #returns empty string if list of vulnerabilities is passed
-    count(list) == 0
-}
-
 
 ############################################## result values #############################################
 title = sprintf("%s repository scan report", [input.repository_name])
@@ -142,11 +119,7 @@ result = msg {
     render_table([],severities_stats("vulnerability")),
     render_table([],severities_stats("misconfiguration")),
     render_table([],severities_stats("pipeline_misconfiguration")),
-    render_vlnrb("Critical", vln_list(0)),
-    render_vlnrb("High", vln_list(1)),
-    render_vlnrb("Medium", vln_list(2)),
-    render_vlnrb("Low", vln_list(3)),
-    render_vlnrb("Unknown", vln_list(4)),
+    render_table(vlnrb_headers, vln_list),
     with_default(input, "response_policy_name", "none"),
     with_default(input, "application_scope", "none")
     ])
