@@ -1,4 +1,4 @@
-package postee.servicenow
+package postee.vuls.servicenow
 
 import future.keywords
 import future.keywords.if

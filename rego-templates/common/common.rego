@@ -1,4 +1,6 @@
 package postee
+
+import future.keywords.if
 ############################################# Common functions ############################################
 by_flag(a, b, flag) = a {
 	flag
@@ -29,3 +31,13 @@ with_default(obj, prop, default_value) = default_value{
 with_default(obj, prop, default_value) = obj[prop]{
  obj[prop]
 }
+
+severity_as_string(severity) := "Critical" if {
+    severity == 4
+} else = "High" if {
+    severity == 3
+} else = "Medium" if {
+    severity == 2
+} else = "Low" if {
+    severity == 1
+} else = "Unknown"

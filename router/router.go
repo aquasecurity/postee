@@ -32,7 +32,19 @@ const (
 
 	ServiceNowTableDefault = "incident"
 	AnonymizeReplacement   = "<hidden>"
+
+	resourceTypeKey   = "resourceTypeKey"
+	codeRepositoryKey = "code-repository"
+	rawMessageJson    = "raw-message-json"
 )
+
+var repositoryTemplatesForOutputs = map[string]string{
+	"jira":       "iac-jira",
+	"servicenow": "iac-servicenow",
+	"slack":      "iac-slack",
+	"email":      "iac-html",
+	"teams":      "iac-html",
+}
 
 type Router struct {
 	mutexScan              sync.Mutex
@@ -604,6 +616,11 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 			templateName = name
 		}
 
+		// if CustomTriggerType field in msg  is not empty - overwrite template
+		if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType()); template != "" {
+			templateName = template
+		}
+
 		tmpl, ok := ctx.templates.Load(templateName)
 		if !ok {
 			log.Logger.Errorf("Route %q contains reference to undefined or misconfigured template %q.",
@@ -674,19 +691,9 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 		templateName = name
 	}
 
-	//TODO: temp solution - should be override
-	val, ok = msg[outputs.ResourceTypeKey]
-	if ok {
-		resource, ok := val.(string)
-		if ok {
-			if resource == outputs.CodeRepoResource {
-				templateName = "raw-message-json"
-
-				if pl.(outputs.Output).GetType() == outputs.SlackType {
-					templateName = "generic-slack"
-				}
-			}
-		}
+	// if CustomTriggerType field in msg  is not empty - overwrite template
+	if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType()); template != "" {
+		templateName = template
 	}
 
 	tmpl, ok := ctx.templates.Load(templateName)
@@ -700,6 +707,7 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 	id, err := msgSvc.HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 	if err != nil {
 		return data.OutputResponse{}, fmt.Errorf("route %q failed sending message to output: %s", r.Name, outputName)
+
 	}
 
 	if id.Key != "" {
@@ -900,4 +908,19 @@ func (ctx *Router) embedTemplates() error {
 		}
 	}
 	return nil
+}
+
+// selectRepositoryTemplateByResourceTypeKey chooses iac template by ResourceTypeKey and output. It currently works only for servicenow, jira templates.
+func selectRepositoryTemplateByResourceTypeKey(msg map[string]interface{}, outputType string) string {
+	// if msg doesn't have `resourceTypeKey` or `resourceTypeKey` != `code-repository` => don't need to change template
+	if key, ok := msg[resourceTypeKey]; !ok || key != codeRepositoryKey {
+		return ""
+	}
+
+	// choose template by output
+	outputType = strings.ToLower(outputType)
+	if template, ok := repositoryTemplatesForOutputs[strings.ToLower(outputType)]; ok {
+		return template
+	}
+	return rawMessageJson // raw message json template uses for unsupported outputs
 }

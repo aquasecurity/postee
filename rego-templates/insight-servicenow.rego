@@ -1,4 +1,4 @@
-package postee.servicenow.insight
+package postee.insight.servicenow
 
 import future.keywords
 import future.keywords.if
