@@ -95,7 +95,7 @@ severities_stats(vuln_type) = stats{
       ]
 }
 
-vlnrb_headers := ["ID", "Severity"]
+vlnrb_headers := ["ID", "Severity", "New"]
 
 vln_list = vlnrb {
 	some i
@@ -103,8 +103,9 @@ vln_list = vlnrb {
     				result := input.results[i]
     				avd_id := result.avd_id
                     severity := severity_as_string(result.severity)
+                    is_new := with_default(result, "is_new", false)
 
-                    r := [avd_id, severity]
+                    r := [avd_id, severity, is_new]
               ]
 }
 

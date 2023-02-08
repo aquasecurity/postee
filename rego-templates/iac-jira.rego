@@ -36,8 +36,9 @@ vln_list = vlnrb {
     				result := input.results[i]
     				avd_id := result.avd_id
                     severity := severity_as_string(result.severity)
+                    is_new := with_default(result, "is_new", false)
 
-                    r := sprintf("|%s|%s|\n",[avd_id, severity])
+                    r := sprintf("|%s|%s|%s|\n",[avd_id, severity, is_new])
               ]
 }
 
@@ -50,7 +51,7 @@ concat_list(prefix,list) = output{
 vln_list_table = table {
                 list := vln_list
                 count(list) > 0
-                prefix := ["\n*List of CVEs:*\n||*ID*                    ||*Severity*                   ||\n"]
+                prefix := ["\n*List of CVEs:*\n||*ID*                    ||*Severity*                   ||*New*                   ||\n"]
                 table := concat_list(prefix,list)
 }
 
