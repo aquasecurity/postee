@@ -1,9 +1,9 @@
 package postee.iac.html
 
+import future.keywords.if
 import data.postee.with_default
 import data.postee.severity_as_string
-
-
+import data.postee.number_of_vulns
 ################################################ Templates ################################################
 tpl:=`
 <p><b>Triggered by:</b> %s</p>
@@ -82,16 +82,16 @@ to_colored_text(color, txt) = spn {
 
 ####################################### Template specific functions #######################################
 to_severity_color(color, level) = spn {
- spn:=to_colored_text(color, format_int(with_default(input,level,0), 10))
+ spn:=to_colored_text(color, level)
 }
 
 severities_stats(vuln_type) = stats{
     stats := [
-          ["critical", to_severity_color("#c00000", sprintf("%s_critical_count", [vuln_type]))],
-          ["high", to_severity_color("#e0443d", sprintf("%s_high_count", [vuln_type]))],
-          ["medium", to_severity_color("#f79421", sprintf("%s_medium_count", [vuln_type]))],
-          ["low", to_severity_color("#e1c930", sprintf("%s_low_count", [vuln_type]))],
-          ["unknown", to_severity_color("green", sprintf("%s_unknown_count", [vuln_type]))]
+          ["critical", to_severity_color("#c00000", number_of_vulns(vuln_type, 4))],
+          ["high", to_severity_color("#e0443d", number_of_vulns(vuln_type, 3))],
+          ["medium", to_severity_color("#f79421", number_of_vulns(vuln_type, 2))],
+          ["low", to_severity_color("#e1c930", number_of_vulns(vuln_type, 1))],
+          ["unknown", to_severity_color("green", number_of_vulns(vuln_type, 0))]
       ]
 }
 
