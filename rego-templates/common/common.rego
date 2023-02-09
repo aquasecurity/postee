@@ -85,7 +85,8 @@ get_numbers_of_new_vulns(vuln_type, severity) = n{
 number_of_vulns(vuln_type, severity) = str{
     new = get_numbers_of_new_vulns(vuln_type, severity)
     new == 0
-    str := sprintf("%d",[new])
+    all_vulns = with_default(input,sprintf("%s_%s_count", [vuln_type, lower(severity_as_string(severity))]), 0)
+    str := sprintf("%d",[all_vulns])
 }
 
 number_of_vulns(vuln_type, severity) = str{
