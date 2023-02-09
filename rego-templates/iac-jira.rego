@@ -2,6 +2,7 @@ package postee.iac.jira
 
 import data.postee.with_default
 import data.postee.severity_as_string
+import data.postee.number_of_vulns
 import future.keywords.if
 
 ################################################ Templates ################################################
@@ -22,13 +23,13 @@ tpl:=`
 `
 
 ####################################### Template specific functions #######################################
-severities_stats_table(vuln_type) = sprintf("\n*%s summary:*\n||*Severity*                        ||*Score*                       ||\n|Critical|%v|\n|High|%v|\n|Meduim|%v|\n|Low|%v|\n|Unknown|%v|\n", [
+severities_stats_table(vuln_type) = sprintf("\n*%s summary:*\n||*Severity*                        ||*Score*                       ||\n|Critical|%s|\n|High|%s|\n|Meduim|%s|\n|Low|%s|\n|Unknown|%s|\n", [
                                     vuln_type,
-                                    format_int(with_default(input,sprintf("%s_critical_count", [lower(replace(vuln_type, " ", "_"))]),0), 10),
-                                    format_int(with_default(input,sprintf("%s_high_count", [lower(replace(vuln_type, " ", "_"))]),0), 10),
-                                    format_int(with_default(input,sprintf("%s_medium_count", [lower(replace(vuln_type, " ", "_"))]),0), 10),
-                                    format_int(with_default(input,sprintf("%s_low_count", [lower(replace(vuln_type, " ", "_"))]),0), 10),
-                                    format_int(with_default(input,sprintf("%s_unknown_count", [lower(replace(vuln_type, " ", "_"))]),0), 10)])
+                                    number_of_vulns(lower(replace(vuln_type, " ", "_")), 4),
+                                    number_of_vulns(lower(replace(vuln_type, " ", "_")), 3),
+                                    number_of_vulns(lower(replace(vuln_type, " ", "_")), 2),
+                                    number_of_vulns(lower(replace(vuln_type, " ", "_")), 1),
+                                    number_of_vulns(lower(replace(vuln_type, " ", "_")), 0)])
 
 vln_list = vlnrb {
 	some i
@@ -36,8 +37,9 @@ vln_list = vlnrb {
     				result := input.results[i]
     				avd_id := result.avd_id
                     severity := severity_as_string(result.severity)
+                    is_new := with_default(result, "is_new", false)
 
-                    r := sprintf("|%s|%s|\n",[avd_id, severity])
+                    r := sprintf("|%s|%s|%s|\n",[avd_id, severity, is_new])
               ]
 }
 
@@ -50,7 +52,7 @@ concat_list(prefix,list) = output{
 vln_list_table = table {
                 list := vln_list
                 count(list) > 0
-                prefix := ["\n*List of CVEs:*\n||*ID*                    ||*Severity*                   ||\n"]
+                prefix := ["\n*List of CVEs:*\n||*ID*                    ||*Severity*                   ||*New*                   ||\n"]
                 table := concat_list(prefix,list)
 }
 

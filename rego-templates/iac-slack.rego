@@ -4,17 +4,17 @@ import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...}
 import data.postee.with_default
 import data.postee.severity_as_string
 import future.keywords.if
-
+import data.postee.number_of_vulns
 
 ####################################### Template specific functions #######################################
 
-severities := ["critical", "high", "medium", "low", "unknown"]
+severities := [4, 3, 2, 1, 0]
 
 severity_stats(vuln_type) := flat_array([gr |
 	severity := severities[_]
 	gr := [
-		{"type": "mrkdwn", "text": sprintf("%s", [severity])},
-		{"type": "mrkdwn", "text": sprintf("%d", [with_default(input, sprintf("%s_%s_count", [vuln_type, severity]), 0)])},
+		{"type": "mrkdwn", "text": sprintf("%s", [severity_as_string(severity)])},
+		{"type": "mrkdwn", "text": number_of_vulns(vuln_type, severity)},
 	]
 ])
 
@@ -56,10 +56,11 @@ vln_list = l {
                     result := input.results[i]
     				avd_id := result.avd_id
                     severity := severity_as_string(result.severity)
+                    is_new := with_default(result, "is_new", false)
 
                     r := [
                     	{"type": "mrkdwn", "text": avd_id},
-                    	{"type": "mrkdwn", "text": severity}
+                    	{"type": "mrkdwn", "text": sprintf("%s/%s", [severity, is_new])},
                     ]
 
               ]
@@ -67,7 +68,7 @@ vln_list = l {
 
     headers := [
         {"type": "mrkdwn", "text": "*ID*"},
-        {"type": "mrkdwn", "text": "*Severity*"}
+        {"type": "mrkdwn", "text": "*Severity / New*"}
     ]
     rows := array.concat(headers, flat_array(vlnrb))
 
