@@ -3,6 +3,7 @@ package postee.iac.slack
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.with_default
 import data.postee.severity_as_string
+import data.postee.is_new_vuln
 import future.keywords.if
 import data.postee.number_of_vulns
 
@@ -50,25 +51,45 @@ render_sections(rows, caption) = [] { #do not render section if provided collect
     count(rows) < 3
 }
 
-vln_list = l {
-    some i
+critical_vln_list = vlnrb {
+	some i
 	vlnrb := [r |
                     result := input.results[i]
+                    result.severity == 4
     				avd_id := result.avd_id
                     severity := severity_as_string(result.severity)
-                    is_new := with_default(result, "is_new", false)
+                    is_new := is_new_vuln(with_default(result, "is_new", false))
 
                     r := [
                     	{"type": "mrkdwn", "text": avd_id},
                     	{"type": "mrkdwn", "text": sprintf("%s/%s", [severity, is_new])},
                     ]
-
               ]
-    caption := "*List of CVEs:*"
+}
+
+high_vln_list = vlnrb {
+	some i
+	vlnrb := [r |
+                    result := input.results[i]
+                    result.severity == 3
+    				avd_id := result.avd_id
+                    severity := severity_as_string(result.severity)
+                    is_new := is_new_vuln(with_default(result, "is_new", false))
+
+                    r := [
+                    	{"type": "mrkdwn", "text": avd_id},
+                    	{"type": "mrkdwn", "text": sprintf("%s/%s", [severity, is_new])},
+                    ]
+              ]
+}
+
+vln_list = l {
+    vlnrb := array.concat(critical_vln_list, high_vln_list)
+    caption := "*List of Critical/High CVEs:*"
 
     headers := [
         {"type": "mrkdwn", "text": "*ID*"},
-        {"type": "mrkdwn", "text": "*Severity / New*"}
+        {"type": "mrkdwn", "text": "*Severity / New Finding*"}
     ]
     rows := array.concat(headers, flat_array(vlnrb))
 

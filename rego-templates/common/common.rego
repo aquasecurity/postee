@@ -44,6 +44,10 @@ severity_as_string(severity) := "Critical" if {
     severity == 1
 } else = "Unknown"
 
+is_new_vuln(is_new) = "Yes" if{
+    is_new == true
+} else = "No"
+
 
 is_misconfig(vuln_type) = true if {
 	vuln_type != 0; vuln_type != 7; vuln_type != 8; vuln_type != 10; vuln_type != 11
