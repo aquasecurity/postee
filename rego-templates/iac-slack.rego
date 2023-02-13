@@ -3,6 +3,8 @@ package postee.iac.slack
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.with_default
 import data.postee.severity_as_string
+import data.postee.triggered_by_as_string
+import data.postee.is_critical_or_high_vuln
 import data.postee.is_new_vuln
 import future.keywords.if
 import data.postee.number_of_vulns
@@ -51,40 +53,21 @@ render_sections(rows, caption) = [] { #do not render section if provided collect
     count(rows) < 3
 }
 
-critical_vln_list = vlnrb {
-	some i
-	vlnrb := [r |
-                    result := input.results[i]
-                    result.severity == 4
-    				avd_id := result.avd_id
-                    severity := severity_as_string(result.severity)
-                    is_new := is_new_vuln(with_default(result, "is_new", false))
-
-                    r := [
-                    	{"type": "mrkdwn", "text": avd_id},
-                    	{"type": "mrkdwn", "text": sprintf("%s/%s", [severity, is_new])},
-                    ]
-              ]
-}
-
-high_vln_list = vlnrb {
-	some i
-	vlnrb := [r |
-                    result := input.results[i]
-                    result.severity == 3
-    				avd_id := result.avd_id
-                    severity := severity_as_string(result.severity)
-                    is_new := is_new_vuln(with_default(result, "is_new", false))
-
-                    r := [
-                    	{"type": "mrkdwn", "text": avd_id},
-                    	{"type": "mrkdwn", "text": sprintf("%s/%s", [severity, is_new])},
-                    ]
-              ]
-}
-
 vln_list = l {
-    vlnrb := array.concat(critical_vln_list, high_vln_list)
+    vlnrb := [r |
+                        result := input.results[i]
+                        is_critical_or_high_vuln(result.severity) # add only critical and high vulns
+        				avd_id := result.avd_id
+        				startswith(avd_id , "CVE") # add only `CVE-xxx` vulns
+                        severity := severity_as_string(result.severity)
+                        is_new := is_new_vuln(with_default(result, "is_new", false))
+
+                        r := [
+                        	{"type": "mrkdwn", "text": avd_id},
+                        	{"type": "mrkdwn", "text": sprintf("%s/%s", [severity, is_new])},
+                        ]
+                  ]
+
     caption := "*List of Critical/High CVEs:*"
 
     headers := [
@@ -102,7 +85,7 @@ vln_list = l {
 title = sprintf("%s repository scan report", [input.repository_name]) # title is string
 
 result = res {
-	header1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Triggered by: %s", [input.triggered_by])}},
+	header1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Triggered by: %s", [triggered_by_as_string(with_default(input, "triggered_by", "")),])}},
 	            {"type":"section","text":{"type":"mrkdwn","text":sprintf("Repository name: %s", [input.repository_name])}},
 	            {"type": "section","text": {"type": "mrkdwn","text": "*Vulnerabilities summary:*"}},
                 {"type": "section","fields": severity_stats("vulnerability")},

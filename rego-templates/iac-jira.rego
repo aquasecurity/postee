@@ -2,6 +2,8 @@ package postee.iac.jira
 
 import data.postee.with_default
 import data.postee.severity_as_string
+import data.postee.triggered_by_as_string
+import data.postee.is_critical_or_high_vuln
 import data.postee.is_new_vuln
 import data.postee.number_of_vulns
 import future.keywords.if
@@ -32,25 +34,13 @@ severities_stats_table(vuln_type) = sprintf("\n*%s summary:*\n||*Severity*      
                                     number_of_vulns(lower(replace(vuln_type, " ", "_")), 1),
                                     number_of_vulns(lower(replace(vuln_type, " ", "_")), 0)])
 
-critical_vln_list = vlnrb {
+vln_list = vlnrb {
 	some i
 	vlnrb := [r |
     				result := input.results[i]
-    				result.severity == 4
+    				is_critical_or_high_vuln(result.severity) # add only critical and high vulns
     				avd_id := result.avd_id
-                    severity := severity_as_string(result.severity)
-                    is_new := is_new_vuln(with_default(result, "is_new", false))
-
-                    r := sprintf("|%s|%s|%s|\n",[avd_id, severity, is_new])
-              ]
-}
-
-high_vln_list = vlnrb {
-	some i
-	vlnrb := [r |
-    				result := input.results[i]
-    				result.severity == 3
-    				avd_id := result.avd_id
+    				startswith(avd_id , "CVE") # add only `CVE-xxx` vulns
                     severity := severity_as_string(result.severity)
                     is_new := is_new_vuln(with_default(result, "is_new", false))
 
@@ -65,14 +55,14 @@ concat_list(prefix,list) = output{
 }
 
 vln_list_table = table {
-                list := array.concat(critical_vln_list, high_vln_list)
+                list := vln_list
                 count(list) > 0
                 prefix := ["\n*List of Critical/High CVEs:*\n||*ID*                    ||*Severity*                   ||*New Finding*                   ||\n"]
                 table := concat_list(prefix,list)
 }
 
 vln_list_table = "" { # no vulnerabilities of this severity
-                list := array.concat(critical_vln_list, high_vln_list)
+                list := vln_list
                 count(list) == 0
 }
 
@@ -80,7 +70,7 @@ vln_list_table = "" { # no vulnerabilities of this severity
 title = sprintf("%s repository scan report", [input.repository_name])
 result = msg {
     msg := sprintf(tpl, [
-    with_default(input, "triggered_by", ""),
+    triggered_by_as_string(with_default(input, "triggered_by", "")),
     input.repository_name,
     severities_stats_table("Vulnerability"),
     severities_stats_table("Misconfiguration"),

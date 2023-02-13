@@ -3,6 +3,8 @@ package postee.iac.servicenow
 import data.postee.by_flag
 import data.postee.with_default
 import data.postee.severity_as_string
+import data.postee.triggered_by_as_string
+import data.postee.is_critical_or_high_vuln
 import data.postee.is_new_vuln
 import data.postee.number_of_vulns
 import future.keywords
@@ -105,25 +107,13 @@ severities_stats(vuln_type) = stats{
 
 vlnrb_headers := ["ID", "Severity", "New Finding"]
 
-critical_vln_list = vlnrb {
+vln_list = vlnrb {
 	some i
 	vlnrb := [r |
-    				result := input.results[i]
-    				result.severity == 4
+                    result := input.results[i]
+    				is_critical_or_high_vuln(result.severity) # add only critical and high vulns
     				avd_id := result.avd_id
-                    severity := severity_as_string(result.severity)
-                    is_new := is_new_vuln(with_default(result, "is_new", false))
-
-                    r := [avd_id, severity, is_new]
-              ]
-}
-
-high_vln_list = vlnrb {
-	some i
-	vlnrb := [r |
-    				result := input.results[i]
-    				result.severity == 3
-    				avd_id := result.avd_id
+    				startswith(avd_id , "CVE") # add only `CVE-xxx` vulns
                     severity := severity_as_string(result.severity)
                     is_new := is_new_vuln(with_default(result, "is_new", false))
 
@@ -154,12 +144,12 @@ result_summary := summary{
 result = msg {
 
     msg := sprintf(html_tpl, [
-    with_default(input, "triggered_by", ""),
+    triggered_by_as_string(with_default(input, "triggered_by", "")),
     input.repository_name,
     render_table([], severities_stats("vulnerability"), "50%"),
     render_table([], severities_stats("misconfiguration"), "50%"),
     render_table([], severities_stats("pipeline_misconfiguration"), "50%"),
-    render_table(vlnrb_headers, array.concat(critical_vln_list, high_vln_list), "33%"),
+    render_table(vlnrb_headers, vln_list, "33%"),
     with_default(input, "response_policy_name", "none"),
     with_default(input, "application_scope", "none")
     ])
