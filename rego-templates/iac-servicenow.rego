@@ -23,7 +23,7 @@ html_tpl:=`
 %s
 <h3> Pipeline Misconfiguration summary: </h3>
 %s
-<h3> List of Critical/High CVEs: </h3>
+<!-- CVE list -->
 %s
 <p><b>Resourse policy name:</b> %s</p>
 <p><b>Resourse policy application scopes:</b> %s</p>
@@ -51,6 +51,9 @@ row_tpl:=`
 </TR>`
 
 colored_text_tpl:="<span style='color:%s'>%s</span>"
+
+vln_list_table_tpl := `<h3> List of Critical/High CVEs: </h3>
+%s`
 
 ############################################## Html rendering #############################################
 render_table_headers(headers) = row {
@@ -121,6 +124,14 @@ vln_list = vlnrb {
               ]
 }
 
+render_vuln_list_table = s {
+    count(vln_list) > 0
+    s := sprintf(vln_list_table_tpl, [render_table(vlnrb_headers, vln_list, "33%")])
+}
+
+render_vuln_list_table = "" {
+    count(vln_list) == 0
+}
 ############################################## result values #############################################
 title = sprintf(`Aqua security | Repository | %s | Scan report`, [input.repository_name])
 
@@ -149,7 +160,7 @@ result = msg {
     render_table([], severities_stats("vulnerability"), "50%"),
     render_table([], severities_stats("misconfiguration"), "50%"),
     render_table([], severities_stats("pipeline_misconfiguration"), "50%"),
-    render_table(vlnrb_headers, vln_list, "33%"),
+    render_vuln_list_table,
     with_default(input, "response_policy_name", "none"),
     with_default(input, "application_scope", "none")
     ])
