@@ -53,6 +53,10 @@ func TestGetAsDataTemplates(t *testing.T) {
 					Name:        "common",
 					RegoPackage: "postee",
 				},
+				{
+					Name:        "iac",
+					RegoPackage: "postee",
+				},
 			},
 		},
 		{
