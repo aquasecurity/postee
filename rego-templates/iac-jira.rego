@@ -26,7 +26,7 @@ tpl:=`
 `
 
 ####################################### Template specific functions #######################################
-severities_stats_table(vuln_type) = sprintf("\n*%s summary:*\n||*Severity*                        ||                        ||\n|Critical|%s|\n|High|%s|\n|Medium|%s|\n|Low|%s|\n|Unknown|%s|\n", [
+severities_stats_table(vuln_type) = sprintf("\n*%s summary:*\n||*Severity*                        ||*Summary*                        ||\n|Critical|%s|\n|High|%s|\n|Medium|%s|\n|Low|%s|\n|Unknown|%s|\n", [
                                     vuln_type,
                                     number_of_vulns(lower(replace(vuln_type, " ", "_")), 4),
                                     number_of_vulns(lower(replace(vuln_type, " ", "_")), 3),
