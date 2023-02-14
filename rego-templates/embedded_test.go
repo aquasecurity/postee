@@ -4,6 +4,7 @@ import (
 	"embed"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 	"testing"
 
@@ -97,6 +98,9 @@ func TestGetAsDataTemplates(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			actual := getAsDataTemplates(test.input)
+			sort.Slice(actual, func(i, j int) bool {
+				return actual[i].Name < actual[j].Name
+			})
 			if !reflect.DeepEqual(actual, test.expected) {
 				t.Fatalf("expected data templates: %v, actual: %v", test.expected, actual)
 			}
