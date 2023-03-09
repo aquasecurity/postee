@@ -1,4 +1,4 @@
-FROM node:alpine3.15 as vuebuilder
+FROM node:18-alpine3.17 as vuebuilder
 COPY ./ui/frontend /frontend
 WORKDIR /frontend
 
