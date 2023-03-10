@@ -54,6 +54,8 @@ templates:
   rego-package: postee.rawmessage.json
 - name: swit-json
   rego-package: postee.swit.json
+- name: swit-text
+  rego-package: postee.swit.text
 - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
   rego-package: postee.vuls.cyclondx
 - name: trivy-operator-slack
