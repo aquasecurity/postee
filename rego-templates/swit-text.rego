@@ -7,31 +7,22 @@ import data.postee.by_flag
 import data.postee.with_default
 
 ################################################ Templates ################################################
-#main template to render message
-html_tpl:=`
-Name: %s
-<p><b>Registry:</b> %s</p>
-<p><b>Malware found:</b> %s</p>
-<p><b>Sensitive data found:</b> %s</p>
-<!-- Stats -->
-<h3> Vulnerability summary </h3>
+swit_tpl:=`Name: %s
+Registry: %s
+Malware found: %s
+Sensitive data found: %s
+
+Vulnerability summary
 %s
-<!-- Assurance controls -->
 %s
-<!-- Critical severity vulnerabilities -->
 %s
-<!-- High severity vulnerabilities -->
 %s
-<!-- Medium severity vulnerabilities -->
 %s
-<!-- Low severity vulnerabilities -->
 %s
-<!-- Negligible severity vulnerabilities -->
 %s
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
-%s
-`
+Resourse policy name: %s
+Resourse policy application scopes: %s
+%s`
 
 summary_tpl =`Name: %s
 Registry: %s
@@ -47,39 +38,26 @@ vulnerabilities:
 
 %s`
 
-vlnrb_tpl = `
-<h3>%s severity vulnerabilities</h3>
-%s
-`
+vlnrb_tpl = `%s severity vulnerabilities
+%s`
 
-assurance_control_tpl = `
-<h3>Assurance controls</h3>
-%s
-`
+assurance_control_tpl = `Assurance controls
+%s`
 
 #Extra % is required in width:100%
-table_tpl:=`
-<TABLE border='1' style='width: 100%%; border-collapse: collapse;'>
-%s
-</TABLE>
+table_tpl:=`%s`
+
+cell_tpl:=`%s |`
+
+header_tpl:=` %s |`
+
+row_tpl:=`| %s
 `
 
-cell_tpl:=`<TD style='padding: 5px;'>%s</TD>
-`
-
-header_tpl:=`<TH style='padding: 5px;'>%s</TH>
-`
-
-row_tpl:=`
-<TR>
-%s
-</TR>`
-
-colored_text_tpl:="<span style='color:%s'>%s</span>"
+colored_text_tpl:="%s"
 
 ###########################################################################################################
-
-############################################## Html rendering #############################################
+############################################## Template rendering #########################################
 
 render_table_headers(headers) = row {
     count(headers) > 0
@@ -116,7 +94,8 @@ to_cell(txt) = c {
 }
 
 to_colored_text(color, txt) = spn {
-    spn :=sprintf(colored_text_tpl, [color, txt])
+    spn :=sprintf(colored_text_tpl, [txt])
+#    spn :=sprintf(colored_text_tpl, [color, txt])
 }
 
 ####################################### Template specific functions #######################################
@@ -233,7 +212,7 @@ aggregation_pkg := "postee.vuls.html.aggregation"
 ############################################## result values #############################################
 content = msg {
 
-    msg := sprintf(html_tpl, [
+    msg := sprintf(swit_tpl, [
     input.image,
     input.registry,
 	by_flag(
