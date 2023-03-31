@@ -12,9 +12,9 @@ routes:
   actions: [ stdout ]
   template: raw-json
 
-- name: stdout2
-  actions: [ stdout ]
-  template: swit-json
+- name: webhook-swit
+  actions: [ webhook ]
+  template: swit-text
 
 #- name: route1                                 #  Route name. Must be unique
 #  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
