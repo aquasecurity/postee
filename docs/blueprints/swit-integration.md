@@ -1,4 +1,4 @@
-# Configure your SWIT App
+# Configure your SWIT action
 
 At first, you need to get Swit incoming webhook. The documentation is [here](https://help.swit.io/swit-store/webhook).
 
