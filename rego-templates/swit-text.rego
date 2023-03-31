@@ -236,7 +236,7 @@ content = msg {
     with_default(input,"application_scope", "none"),
     by_flag(
      "",
-     sprintf(`<p><b>See more:</b> <a href='%s'>%s</a></p>`,[href, text]), #link
+     sprintf(`See more: %s`,[href]), #link
      server_url == "")
     ])
 }
