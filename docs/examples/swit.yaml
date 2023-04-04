@@ -1,0 +1,22 @@
+# This example will forward to SWIT
+
+name: myserver
+aqua-server: https://myserver.com
+max-db-size: 1000       # Max size of DB. MB. if empty then unlimited
+delete-old-data: 100    # delete data older than N day(s).  If empty then we do not delete.
+db-verify-interval: 1   # hours. an Interval between tests of DB. Default: 1 hour
+
+routes:
+- name: swit
+  outputs: [my-swit]
+  template: swit-text
+
+outputs:
+- name: my-swit
+  type: webhook
+  enable: true
+  url: https://hook.swit.io/chat/<CHANNEL_ID>/<WEBHOOK_ID>
+
+templates:
+- name: swit-text
+  rego-package: postee.swit.text
