@@ -675,7 +675,7 @@ func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []d
 func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[string]interface{}, r *routes.InputRoute) (data.OutputResponse, error) {
 	pl, ok := ctx.outputs.Load(outputName)
 	if !ok {
-		return data.OutputResponse{}, fmt.Errorf("Route %q contains reference to not enabled output %q.", r.Name, outputName)
+		return data.OutputResponse{}, fmt.Errorf("route %q contains reference to not enabled output %q", r.Name, outputName)
 	}
 
 	templateName := r.Template
@@ -698,7 +698,7 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 
 	tmpl, ok := ctx.templates.Load(templateName)
 	if !ok {
-		return data.OutputResponse{}, fmt.Errorf("Route %q (output: %s) contains reference to undefined or misconfigured template %q.",
+		return data.OutputResponse{}, fmt.Errorf("route %q (output: %s) contains reference to undefined or misconfigured template %q",
 			r.Name, outputName, templateName)
 	}
 
@@ -706,7 +706,7 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 
 	id, err := msgSvc.HandleSendToOutput(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 	if err != nil {
-		return data.OutputResponse{}, fmt.Errorf("route %q failed sending message to output: %s", r.Name, outputName)
+		return data.OutputResponse{}, fmt.Errorf("route %q failed sending message to output %q: %s", r.Name, outputName, err.Error())
 
 	}
 
