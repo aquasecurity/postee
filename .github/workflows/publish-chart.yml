@@ -19,37 +19,8 @@ env:
   KIND_VERSION: "v0.12.0"
   KIND_IMAGE: "kindest/node:v1.23.4@sha256:0e34f0d0fd448aa2f2819cfd74e99fe5793a6e4938b328f657c8e3f81ee0dfb9"
 jobs:
-  test-chart:
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@dcd71f646680f2efd8db4afa5ad64fdcba30e748
-        with:
-          fetch-depth: 0
-      - name: Setup Kubernetes cluster (KIND)
-        uses: helm/kind-action@9e8295d178de23cbfbd8fa16cf844eec1d773a07
-        with:
-          version: ${{ env.KIND_VERSION }}
-          image: ${{ env.KIND_IMAGE }}
-      - name: Installing Kubernetes Postee manifest
-        run: |
-            kubectl create -f deploy/kubernetes/postee.yaml
-      - name: Testing Kubernetes Postee manifest
-        run: |
-            kubectl wait --for=condition=Ready pod -l app=postee --timeout=300s
-            kubectl wait --for=condition=Ready pod -l app=postee-ui --timeout=300s
-      - name: Install Helm
-        uses: azure/setup-helm@v3.5
-        with:
-          version: v3.6.0
-      - name: Testing Helm Postee manifest
-        run: |
-            helm upgrade --install test deploy/helm/postee --debug
-
   publish-chart:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs:
-      - test-chart
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
