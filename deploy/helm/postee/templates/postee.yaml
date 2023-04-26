@@ -47,9 +47,9 @@ spec:
       annotations:
       {{- if not .Values.configuration.existingSecret.enabled }}
         checksum/secret: {{ include (print $.Template.BasePath "/cfg-secret.yaml") . | sha256sum }}
+      {{- end }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
       {{- end }}
       labels:
         {{- include "postee.selectorLabels" . | nindent 8 }}
