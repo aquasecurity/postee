@@ -44,8 +44,8 @@ spec:
             storage: 100Mi
   template:
     metadata:
-      {{- if not .Values.configuration.existingSecret.enabled }}
       annotations:
+      {{- if not .Values.configuration.existingSecret.enabled }}
         checksum/secret: {{ include (print $.Template.BasePath "/cfg-secret.yaml") . | sha256sum }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
