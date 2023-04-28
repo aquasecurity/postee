@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/open-policy-agent/opa/rego"
+	"io/fs"
+	"log"
 )
 
 const (
@@ -273,10 +273,19 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 	ctx := context.Background()
 	query := fmt.Sprintf("data.%s", rego_package)
 
+	// there is case when k8s creates `lost+found` file without access (bad permission) in template folder
+	// skip this file to avoid error
+	filter := func(abspath string, info fs.FileInfo, depth int) bool {
+		if info.Name() == "lost+found" {
+			return true
+		}
+		return false
+	}
+
 	r, err := rego.New(
 		rego.Query(query),
 		jsonFmtFunc(),
-		rego.Load(buildinRegoTemplates, nil),
+		rego.Load(buildinRegoTemplates, filter),
 	).PrepareForEval(ctx)
 
 	if err != nil {
@@ -317,10 +326,19 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, error) {
 	ctx := context.Background()
 
+	// there is case when k8s creates `lost+found` file without access (bad permission) in template folder
+	// skip this file to avoid error
+	filter := func(abspath string, info fs.FileInfo, depth int) bool {
+		if info.Name() == "lost+found" {
+			return true
+		}
+		return false
+	}
+
 	r, err := rego.New(
 		rego.Query("data"),
 		jsonFmtFunc(),
-		rego.Load(commonRegoTemplates, nil), //only common modules
+		rego.Load(commonRegoTemplates, filter), //only common modules
 		rego.Module(filename, body),
 	).PrepareForEval(ctx)
 
