@@ -273,19 +273,10 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 	ctx := context.Background()
 	query := fmt.Sprintf("data.%s", rego_package)
 
-	// there is case when k8s creates `lost+found` file without access (bad permission) in template folder
-	// skip this file to avoid error
-	filter := func(abspath string, info fs.FileInfo, depth int) bool {
-		if info.Name() == "lost+found" {
-			return true
-		}
-		return false
-	}
-
 	r, err := rego.New(
 		rego.Query(query),
 		jsonFmtFunc(),
-		rego.Load(buildinRegoTemplates, filter),
+		rego.Load(buildinRegoTemplates, filterRegoTemplateFiles),
 	).PrepareForEval(ctx)
 
 	if err != nil {
@@ -294,6 +285,16 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 
 	return &r, nil
 }
+
+// there is case when k8s creates `lost+found` file without access (bad permission) in template folder
+// skip this file to avoid error
+func filterRegoTemplateFiles(_ string, info fs.FileInfo, _ int) bool {
+	if info.Name() == "lost+found" {
+		return true
+	}
+	return false
+}
+
 func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery, error) {
 	ctx := context.Background()
 
@@ -326,19 +327,10 @@ func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery
 func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, error) {
 	ctx := context.Background()
 
-	// there is case when k8s creates `lost+found` file without access (bad permission) in template folder
-	// skip this file to avoid error
-	filter := func(abspath string, info fs.FileInfo, depth int) bool {
-		if info.Name() == "lost+found" {
-			return true
-		}
-		return false
-	}
-
 	r, err := rego.New(
 		rego.Query("data"),
 		jsonFmtFunc(),
-		rego.Load(commonRegoTemplates, filter), //only common modules
+		rego.Load(commonRegoTemplates, filterRegoTemplateFiles), //only common modules
 		rego.Module(filename, body),
 	).PrepareForEval(ctx)
 
