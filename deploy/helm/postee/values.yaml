@@ -175,6 +175,12 @@ posteUi:
   image: aquasec/postee-ui
   tag: "2.8.4-amd64"
 
+configuration:
+  # If set to true, ensure the externally generated secret to be named
+  # postee-secret and that it contains the JSON under a key called "cfg.yaml"
+  existingSecret:
+    enabled: false
+
 image:
   repository: aquasec/postee
   pullPolicy: Always
