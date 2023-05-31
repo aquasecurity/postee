@@ -14,7 +14,7 @@ RUN apk add git
 ARG TARGETOS TARGETARCH
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build --ldflags "-s -w" -o posteeui
 
-FROM alpine:3.16.2
+FROM alpine:3.18.0
 EXPOSE 8001
 
 RUN mkdir /uiserver
