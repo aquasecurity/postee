@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/open-policy-agent/opa/rego"
+	"io/fs"
+	"log"
 )
 
 const (
@@ -276,7 +276,7 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 	r, err := rego.New(
 		rego.Query(query),
 		jsonFmtFunc(),
-		rego.Load(buildinRegoTemplates, nil),
+		rego.Load(buildinRegoTemplates, filterRegoTemplateFiles),
 	).PrepareForEval(ctx)
 
 	if err != nil {
@@ -285,6 +285,16 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 
 	return &r, nil
 }
+
+// there is case when k8s creates `lost+found` file without access (bad permission) in template folder
+// skip this file to avoid error
+func filterRegoTemplateFiles(_ string, info fs.FileInfo, _ int) bool {
+	if info.Name() == "lost+found" {
+		return true
+	}
+	return false
+}
+
 func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery, error) {
 	ctx := context.Background()
 
@@ -320,7 +330,7 @@ func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, er
 	r, err := rego.New(
 		rego.Query("data"),
 		jsonFmtFunc(),
-		rego.Load(commonRegoTemplates, nil), //only common modules
+		rego.Load(commonRegoTemplates, filterRegoTemplateFiles), //only common modules
 		rego.Module(filename, body),
 	).PrepareForEval(ctx)
 

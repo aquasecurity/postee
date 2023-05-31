@@ -1,4 +1,4 @@
-FROM node:alpine3.15 as vuebuilder
+FROM node:18-alpine3.17 as vuebuilder
 COPY ./ui/frontend /frontend
 WORKDIR /frontend
 
@@ -11,9 +11,10 @@ FROM golang:1.18-alpine as gobuilder
 COPY . /server
 WORKDIR /server/ui/backend
 RUN apk add git
-RUN go build -o posteeui
+ARG TARGETOS TARGETARCH
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build --ldflags "-s -w" -o posteeui
 
-FROM alpine:3.16.2
+FROM alpine:3.18.0
 EXPOSE 8001
 
 RUN mkdir /uiserver

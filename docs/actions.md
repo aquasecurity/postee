@@ -297,3 +297,22 @@ Key | Description | Values
 !!! tip
 The generic webhook action can be used for sending Postee output to any endpoint that can receive a request. You can find some interesting examples as part of the [Postee Blueprints](/blueprints)
 
+## DefectDojo
+
+DefectDojo is a DevOpsSec and vulnerability management tool. When sending a Trivy operator report, the API expects us to send a multipart/form-data POST request to the API endpoint. Authentication is done through an API token that can be easily provided by either environment variables or K8s secrets.
+
+At the time of writing, Postee doesn't provide any native action module targeting the DefectDojo API. Instead the solution is to apply a shell script through an EXEC action that consumes the JSON output of a custom made REGO template that mangles the JSON payload received from a Trivy operator instance.
+
+The REGO template will be use-case specific because the metadata added heavily depends on the users setup and hierarchical structure inside the user's DefectDojo instance.
+
+The resulting JSON data puts the Trivy report under the `report` key and derived meta data under the `metadata` key. The idea behind this is to provide a data structure that will make it easy to develop a more generic shell script. In a subsequent step an EXEC module is called consuming the resulting JSON structure from an environment variable called `POSTEE_EVENT`. For more information see the [EXEC action](#Exec).
+
+### Implementation
+
+1. DefectDojo - create an non-interactive API user and an API token
+2. Postee - deploy the token as `DEFECTDOJO_API_TOKEN` environment variable
+3. Postee - deploy the base URL for DefectDojo using `DEFECTDOJO_URL`
+4. Mount the [example shell script](../actions/example/exec/defectdojo-curl-upload-scan.sh) into the container
+5. Mount the [example rego template](../rego-templates/example/defectdojo/trivy-operator-defectdojo.rego) into the container
+6. Update your configuration according to the [example](../config/cfg-trivy-operator-defectdojo.yaml) provided
+7. Validate the setup by sending an example report in JSON format using the following shell command `curl -X POST -H "Content-Type: application/json" -d @trivy-operator-report.json http://postee:8082`
