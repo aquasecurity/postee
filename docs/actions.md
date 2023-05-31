@@ -297,7 +297,7 @@ Key | Description | Values
 !!! tip
 The generic webhook action can be used for sending Postee output to any endpoint that can receive a request. You can find some interesting examples as part of the [Postee Blueprints](/blueprints)
 
-## DefectDojo - EXEC action calling CURL
+## DefectDojo
 
 DefectDojo is a DevOpsSec and vulnerability management tool. When sending a Trivy operator report, the API expects us to send a multipart/form-data POST request to the API endpoint. Authentication is done through an API token that can be easily provided by either environment variables or K8s secrets.
 
