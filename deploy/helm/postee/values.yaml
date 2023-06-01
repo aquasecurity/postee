@@ -6,7 +6,7 @@ replicaCount: 1
 posteeConfig: |
   # The configuration file contains a general settings section,
   # routes, templates and actions sections.
-  
+
   name: tenant            #  The tenant name
   aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
   max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
@@ -35,7 +35,7 @@ posteeConfig: |
   #   aggregate-message-timeout:                  # Number of seconds/minutes/hours to aggregate same messages into one output. Maximum is 24 hours. Use Xs or Xm or Xh
   #   unique-message-props: ["digest","image","registry", "vulnerability_summary.high", "vulnerability_summary.medium", "vulnerability_summary.low"] # Optional: Comma separated list of top level properties which uniqult identifies an event message. If message with same property values is received more than once it will be ignored
   #   unique-message-timeout:                     # Number of seconds/minutes/hours/days before expiring of a message. Expired messages are removed from db. If option is empty message is never deleted
-  
+
   # - name: Trivy Operator Alerts
   #   input: input.report.summary.criticalCount > 0 # You can customize this based on your needs
   #   actions: [my-slack]
@@ -175,6 +175,12 @@ posteUi:
   image: aquasec/postee-ui
   tag: "2.8.4-amd64"
 
+configuration:
+  # If set to true, ensure the externally generated secret to be named
+  # postee-secret and that it contains the JSON under a key called "cfg.yaml"
+  existingSecret:
+    enabled: false
+
 image:
   repository: aquasec/postee
   pullPolicy: Always
@@ -229,6 +235,7 @@ ingress:
     - host: chart-example.local
       paths:
       - path: /
+        pathType: Prefix
         backend:
           serviceName: chart-example.local
           servicePort: 80

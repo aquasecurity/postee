@@ -2,9 +2,10 @@ FROM golang:1.18-alpine as builder
 # RUN apk add --update git
 COPY . /server/
 WORKDIR /server/
-RUN go build -o ./bin/postee main.go
+ARG TARGETOS TARGETARCH
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build --ldflags "-s -w" -o ./bin/postee main.go
 
-FROM alpine:3.16.2
+FROM alpine:3.18.0
 RUN apk update && apk add wget ca-certificates curl jq
 EXPOSE 8082
 EXPOSE 8445
