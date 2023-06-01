@@ -45,7 +45,9 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/cfg-configmap.yaml") . | sha256sum }}
+      {{- if not .Values.configuration.existingSecret.enabled }}
+        checksum/secret: {{ include (print $.Template.BasePath "/cfg-secret.yaml") . | sha256sum }}
+      {{- end }}
       {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -72,7 +74,7 @@ spec:
           imagePullPolicy: {{ .Values.imageInit.pullPolicy }}
           command: ["/bin/cp", "/k8s/cfg.yaml", "/data/cfg.yaml"]
           volumeMounts:
-            - name: {{ $fullName }}-configmap-vol
+            - name: {{ $fullName }}-secret-vol
               mountPath: /k8s
             - name: {{ $fullName }}-config
               mountPath: {{ .Values.persistentVolume.mountPathConfig }}
@@ -87,6 +89,13 @@ spec:
               value: /data/cfg.yaml
             - name: POSTEE_DEBUG
               value: "not"
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- range . }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
@@ -106,9 +115,9 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - configMap:
-            name: {{ $fullName }}-cfg
-          name: {{ $fullName }}-configmap-vol
+        - secret:
+            secretName: {{ $fullName }}-secret
+          name: {{ $fullName }}-secret-vol
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

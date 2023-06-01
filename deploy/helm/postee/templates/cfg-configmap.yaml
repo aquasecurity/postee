@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ include "postee.fullname" . }}-cfg
-data:
-  cfg.yaml: |
-{{ .Values.posteeConfig  | indent 4 }}

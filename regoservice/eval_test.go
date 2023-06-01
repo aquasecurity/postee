@@ -2,9 +2,13 @@ package regoservice
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -36,6 +40,20 @@ ttle:="Audit event received"
 `
 	regoWithoutAnyExpression = `
 package rego1
+`
+	regoServiceNowSimpleExample = `
+package rego1
+title:="test title"
+result = "test description"
+
+result_date = 1667725398
+result_category = "test category"
+result_subcategory = "test subcategory"
+result_assigned_group = "test assigned group"
+
+result_severity := 1
+
+result_summary := "test summary"
 `
 	invalidRego = `
 package rego1
@@ -116,6 +134,22 @@ func TestEval(t *testing.T) {
 				"title":       "Audit event received",
 				"description": `{"assignee":"demo"}`,
 				"url":         "",
+			},
+		},
+		{
+			regoRule:    &regoServiceNowSimpleExample,
+			caseDesc:    "producing ServiceNow output",
+			input:       &input,
+			regoPackage: "rego1",
+			expectedValues: map[string]string{
+				"title":         "test title",
+				"description":   "test description",
+				"date":          "1667725398",
+				"severity":      "1",
+				"summary":       "test summary",
+				"category":      "test category",
+				"subcategory":   "test subcategory",
+				"assignedGroup": "test assigned group",
 			},
 		},
 		/* cases which should fail are below*/
@@ -253,4 +287,64 @@ func parseJson(in *string) map[string]interface{} {
 		log.Printf("received an unexpected error: %v\n", err)
 	}
 	return r
+}
+
+func TestBuildBundledRegoForPackage(t *testing.T) {
+	tests := []struct {
+		name      string
+		fileName  string
+		perm      fs.FileMode
+		wantRules bool
+		wantErr   string
+	}{
+		{
+			name:      "happy path",
+			fileName:  "rego1.rego",
+			perm:      0644,
+			wantRules: true,
+		},
+		{
+			name:     "bad permission",
+			fileName: "rego1.rego",
+			perm:     0000,
+			wantErr:  "permission denied",
+		},
+		{
+			name:     "lost+found",
+			fileName: "lost+found",
+			perm:     0644,
+		},
+		{
+			name:     "lost+found with bad permission",
+			fileName: "lost+found",
+			perm:     0000,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			regoFilePath := filepath.Join(t.TempDir(), tt.fileName)
+			err := os.WriteFile(regoFilePath, []byte(regoHtml), tt.perm)
+			require.NoError(t, err)
+
+			savedBuildinRegoTemplates := buildinRegoTemplates
+			buildinRegoTemplates = []string{regoFilePath}
+			defer func() {
+				buildinRegoTemplates = savedBuildinRegoTemplates
+			}()
+
+			r, err := buildBundledRegoForPackage("rego1")
+			if tt.wantErr != "" {
+				assert.ErrorContains(t, err, tt.wantErr)
+				return
+			}
+
+			if tt.wantRules {
+				assert.NotEmpty(t, r.Modules())
+				return
+			}
+
+			assert.Empty(t, r.Modules())
+
+		})
+	}
 }

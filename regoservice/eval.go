@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/open-policy-agent/opa/rego"
+	"io/fs"
+	"log"
 )
 
 const (
@@ -17,6 +17,15 @@ const (
 	title_prop           = "title"
 	url_prop             = "url"
 	aggregation_pkg_prop = "aggregation_pkg"
+
+	//ServiceNow props
+	dateProp          = "result_date"
+	severityProp      = "result_severity"
+	categoryProp      = "result_category"
+	subcategoryProp   = "result_subcategory"
+	assignedToProp    = "result_assigned_to"
+	assignedGroupProp = "result_assigned_group"
+	summaryProp       = "result_summary"
 )
 
 var (
@@ -74,12 +83,43 @@ func (regoEvaluator *regoEvaluator) Eval(in map[string]interface{}, serverUrl st
 		shortMessageUrl = ""
 	}
 
+	// variables for servicenow
+	// for other templates must be empty
+	date := getStringFromData(data, dateProp)
+	severity := getStringFromData(data, severityProp)
+	category := getStringFromData(data, categoryProp)
+	subcategory := getStringFromData(data, subcategoryProp)
+	assignedTo := getStringFromData(data, assignedToProp)
+	assignedGroup := getStringFromData(data, assignedGroupProp)
+	summary := getStringFromData(data, summaryProp)
+
 	return map[string]string{
-		"title":       title,
-		"description": description,
-		"url":         shortMessageUrl,
+		"title":         title,
+		"description":   description,
+		"url":           shortMessageUrl,
+		"date":          date,
+		"severity":      severity,
+		"summary":       summary,
+		"category":      category,
+		"subcategory":   subcategory,
+		"assignedTo":    assignedTo,
+		"assignedGroup": assignedGroup,
 	}, nil
 
+}
+func getStringFromData(data map[string]interface{}, prop string) string {
+	value := ""
+	v, ok := data[prop]
+	if ok {
+		switch v.(type) {
+		case string:
+			value = v.(string)
+		case json.Number:
+			value = v.(json.Number).String()
+		}
+
+	}
+	return value
 }
 
 func getFirstElement(context map[string]interface{}, key string) interface{} {
@@ -142,6 +182,15 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 
 		item[url_prop] = scan[url_prop]
 
+		// ServiceNow
+		item["date"] = scan["date"]
+		item["severity"] = scan["severity"]
+		item["summary"] = scan["summary"]
+		item["category"] = scan["category"]
+		item["subcategory"] = scan["subcategory"]
+		item["assignedTo"] = scan["assignedTo"]
+		item["assignedGroup"] = scan["assignedGroup"]
+
 		aggregatedJson = append(aggregatedJson, item)
 	}
 
@@ -177,10 +226,27 @@ func (regoEvaluator *regoEvaluator) BuildAggregatedContent(scans []map[string]st
 		shortMessageUrl = ""
 	}
 
+	// variables for servicenow
+	// for other templates must be empty
+	date := getStringFromData(data, dateProp)
+	severity := getStringFromData(data, severityProp)
+	category := getStringFromData(data, categoryProp)
+	subcategory := getStringFromData(data, subcategoryProp)
+	assignedTo := getStringFromData(data, assignedToProp)
+	assignedGroup := getStringFromData(data, assignedGroupProp)
+	summary := getStringFromData(data, summaryProp)
+
 	return map[string]string{
-		"title":       title,
-		"description": description,
-		"url":         shortMessageUrl,
+		"title":         title,
+		"description":   description,
+		"url":           shortMessageUrl,
+		"date":          date,
+		"severity":      severity,
+		"summary":       summary,
+		"category":      category,
+		"subcategory":   subcategory,
+		"assignedTo":    assignedTo,
+		"assignedGroup": assignedGroup,
 	}, nil
 }
 
@@ -210,7 +276,7 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 	r, err := rego.New(
 		rego.Query(query),
 		jsonFmtFunc(),
-		rego.Load(buildinRegoTemplates, nil),
+		rego.Load(buildinRegoTemplates, filterRegoTemplateFiles),
 	).PrepareForEval(ctx)
 
 	if err != nil {
@@ -219,6 +285,16 @@ func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, e
 
 	return &r, nil
 }
+
+// there is case when k8s creates `lost+found` file without access (bad permission) in template folder
+// skip this file to avoid error
+func filterRegoTemplateFiles(_ string, info fs.FileInfo, _ int) bool {
+	if info.Name() == "lost+found" {
+		return true
+	}
+	return false
+}
+
 func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery, error) {
 	ctx := context.Background()
 
@@ -254,7 +330,7 @@ func BuildExternalRegoEvaluator(filename string, body string) (data.Inpteval, er
 	r, err := rego.New(
 		rego.Query("data"),
 		jsonFmtFunc(),
-		rego.Load(commonRegoTemplates, nil), //only common modules
+		rego.Load(commonRegoTemplates, filterRegoTemplateFiles), //only common modules
 		rego.Module(filename, body),
 	).PrepareForEval(ctx)
 
