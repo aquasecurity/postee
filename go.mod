@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/PagerDuty/go-pagerduty v1.5.1
-	github.com/aquasecurity/go-jira v0.0.0-20211103111421-b62ce48827be
+	github.com/aquasecurity/go-jira v0.0.0-20230606054137-358abd58fd26
 	github.com/aws/aws-sdk-go-v2 v1.16.11
 	github.com/aws/aws-sdk-go-v2/config v1.17.1
 	github.com/aws/aws-sdk-go-v2/service/securityhub v1.22.7
