@@ -486,6 +486,7 @@ func TestJiraAPI_Send(t *testing.T) {
 		fieldList      *[]jira.Field
 		priorityList   *[]jira.Priority
 		issue          *jira.Issue
+		serverInfo     *jira.JiraServerInfo
 		content        map[string]string
 		wantError      string
 	}{
@@ -503,6 +504,7 @@ func TestJiraAPI_Send(t *testing.T) {
 			fieldList:      fieldList,
 			priorityList:   &[]jira.Priority{{Name: "High"}},
 			issue:          &jira.Issue{},
+			serverInfo:     &jira.JiraServerInfo{VersionNumbers: []int{8, 3, 0}},
 			content:        map[string]string{"title": "title_content", "description": "description_content"},
 		},
 		{
@@ -517,18 +519,21 @@ func TestJiraAPI_Send(t *testing.T) {
 		{
 			name:           "sad path (Failed to get issuetype)",
 			jiraApi:        &JiraAPI{Issuetype: "bogusIssueType", ProjectKey: "project"},
+			serverInfo:     &jira.JiraServerInfo{VersionNumbers: []int{8, 3, 0}},
 			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
 			wantError:      "Failed to get issuetype",
 		},
 		{
 			name:           "sad path (Failed to create fields config)",
 			jiraApi:        &JiraAPI{ProjectKey: "project"},
+			serverInfo:     &jira.JiraServerInfo{VersionNumbers: []int{8, 3, 0}},
 			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
 			wantError:      "Failed to create fields config",
 		},
 		{
 			name:           "sad path (Failed to init issue)",
 			jiraApi:        &JiraAPI{ProjectKey: "project", Unknowns: map[string]string{"bad field": "bad field"}},
+			serverInfo:     &jira.JiraServerInfo{VersionNumbers: []int{8, 3, 0}},
 			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
 			fieldList:      fieldList,
 			priorityList:   &[]jira.Priority{{Name: "High"}},
@@ -537,6 +542,7 @@ func TestJiraAPI_Send(t *testing.T) {
 		{
 			name:           "sad path (Failed to open issue)",
 			jiraApi:        &JiraAPI{ProjectKey: "project"},
+			serverInfo:     &jira.JiraServerInfo{VersionNumbers: []int{8, 3, 0}},
 			createMetaInfo: &jira.CreateMetaInfo{Projects: []*jira.MetaProject{{Key: "project", IssueTypes: []*jira.MetaIssueType{metaIssuetype}}}},
 			fieldList:      fieldList,
 			priorityList:   &[]jira.Priority{{Name: "High"}},
@@ -550,10 +556,11 @@ func TestJiraAPI_Send(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mux := http.NewServeMux()
-			mux.HandleFunc("/rest/api/2/issue/createmeta", buildHttpHandler(test.createMetaInfo, test.wantError))
+			mux.HandleFunc("/rest/api/2/issue/createmeta/", buildHttpHandler(test.createMetaInfo, test.wantError))
 			mux.HandleFunc("/rest/api/2/field", buildHttpHandler(test.fieldList, test.wantError))
 			mux.HandleFunc("/rest/api/2/priority", buildHttpHandler(test.priorityList, test.wantError))
 			mux.HandleFunc("/rest/api/2/issue", buildHttpHandler(test.issue, test.wantError))
+			mux.HandleFunc("/rest/api/2/serverInfo", buildHttpHandler(test.serverInfo, test.wantError))
 			ts := httptest.NewServer(mux)
 			defer ts.Close()
 
@@ -651,7 +658,10 @@ func TestJiraAPI_CreateMetaProject(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ts := httptest.NewServer(http.HandlerFunc(buildHttpHandler(test.metaInfo, test.wantError)))
+			mux := http.NewServeMux()
+			mux.HandleFunc("/rest/api/2/issue/createmeta/", buildHttpHandler(test.metaInfo, test.wantError))
+			mux.HandleFunc("/rest/api/2/serverInfo", buildHttpHandler(&jira.JiraServerInfo{VersionNumbers: []int{8, 4, 0}}, test.wantError))
+			ts := httptest.NewServer(mux)
 			defer ts.Close()
 
 			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
