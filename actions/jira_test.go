@@ -658,7 +658,10 @@ func TestJiraAPI_CreateMetaProject(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			ts := httptest.NewServer(http.HandlerFunc(buildHttpHandler(test.metaInfo, test.wantError)))
+			mux := http.NewServeMux()
+			mux.HandleFunc("/rest/api/2/issue/createmeta/", buildHttpHandler(test.metaInfo, test.wantError))
+			mux.HandleFunc("/rest/api/2/serverInfo", buildHttpHandler(&jira.JiraServerInfo{VersionNumbers: []int{8, 4, 0}}, test.wantError))
+			ts := httptest.NewServer(mux)
 			defer ts.Close()
 
 			jiraClient, err := jira.NewClient(ts.Client(), ts.URL)
