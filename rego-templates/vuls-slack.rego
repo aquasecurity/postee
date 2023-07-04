@@ -161,11 +161,12 @@ result = res {
                                                                     )}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy name: %s", [input.response_policy_name])}},
                 {"type":"section","text":{"type":"mrkdwn","text":sprintf("Response policy application scopes: %s", [concat(", ", with_default(input, "application_scope", []))])}},
+                {"type":"section","text":{"type":"mrkdwn","text":sprintf("See more: %s", [input.url])}},
                 {"type": "section","text": {"type": "mrkdwn","text": "*Vulnerabilities summary*"}},
                 {"type": "section","fields": severity_stats},
                 {"type": "section","text": {"type": "mrkdwn","text": "*Assurance controls*"}},
                 {"type": "section","fields": [{"type": "mrkdwn","text": "*#* *Control*"},
-                    {"type": "mrkdwn","text": "*Policy Name* / *Status*"}]
+                {"type": "mrkdwn","text": "*Policy Name* / *Status*"}]
                 }]
 
     b:=[ s | # code below converts 2 dimension array like [[row1, row2, ... row5], ....]
