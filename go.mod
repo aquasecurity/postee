@@ -3,7 +3,7 @@ module github.com/aquasecurity/postee/v2
 go 1.17
 
 require (
-	github.com/aquasecurity/go-jira v0.0.0-20230606054137-358abd58fd26
+	github.com/aquasecurity/go-jira v0.0.0-20230705100506-377a24fba5b6
 	github.com/ghodss/yaml v1.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jmoiron/sqlx v1.2.0
