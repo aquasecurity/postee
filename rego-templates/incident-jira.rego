@@ -12,6 +12,7 @@ tpl:=`
 *Raw Details:* %v
 *Response policy name*: %s
 *Response policy application scopes*: %s
+*See more*: %s
 `
 
 result = msg {
@@ -21,6 +22,7 @@ result = msg {
 	input.severity_score,
     input.data,
     input.response_policy_name,
-    concat(", ", with_default(input, "application_scope", []))
+    concat(", ", with_default(input, "application_scope", [])),
+    input.url
     ])
 }

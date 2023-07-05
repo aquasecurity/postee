@@ -17,6 +17,8 @@ result:= res {
 	{ "type":"section",
 	  "text": {"type":"mrkdwn","text": sprintf("*Response policy name:* %s", [input.response_policy_name])}},
     { "type":"section",
-    	  "text": {"type":"mrkdwn","text": sprintf("*Response policy application scopes:* %s", [concat(", ", with_default(input, "application_scope", []))])}}
+    	  "text": {"type":"mrkdwn","text": sprintf("*Response policy application scopes:* %s", [concat(", ", with_default(input, "application_scope", []))])}},
+    { "type":"section",
+    	  "text": {"type":"mrkdwn","text": sprintf("*See more:* %s", [input.url])}}
  ]
 }
