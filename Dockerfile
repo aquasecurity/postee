@@ -5,7 +5,7 @@ WORKDIR /server/
 ARG TARGETOS TARGETARCH
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build --ldflags "-s -w" -o ./bin/postee main.go
 
-FROM alpine:3.18.0
+FROM alpine:3.18.2
 RUN apk update && apk add wget ca-certificates curl jq
 EXPOSE 8082
 EXPOSE 8445
