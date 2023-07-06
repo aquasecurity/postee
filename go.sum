@@ -58,8 +58,8 @@ github.com/PuerkitoBio/purell v1.1.1/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbt
 github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
 github.com/agnivade/levenshtein v1.1.1 h1:QY8M92nrzkmr798gCo3kmMyqXFzdQVpxLlGPRBij0P8=
 github.com/agnivade/levenshtein v1.1.1/go.mod h1:veldBMzWxcCG2ZvUTKD2kJNRdCk5hVbJomOvKkmgYbo=
-github.com/aquasecurity/go-jira v0.0.0-20230606054137-358abd58fd26 h1:1/tjfCdtYFWEkDQ1fZ23/wgeIweVCk77qeL12fOWCKM=
-github.com/aquasecurity/go-jira v0.0.0-20230606054137-358abd58fd26/go.mod h1:IHtKzIAdk0t3Xse7rJSY7pJlA8gB7lqY2b4l5WYZYsk=
+github.com/aquasecurity/go-jira v0.0.0-20230705211506-0cd878ce5449 h1:iiLF0O6h/Y5bdWSmxlb2EhdozYa5HTn+asKHSqr0R0M=
+github.com/aquasecurity/go-jira v0.0.0-20230705211506-0cd878ce5449/go.mod h1:IHtKzIAdk0t3Xse7rJSY7pJlA8gB7lqY2b4l5WYZYsk=
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0 h1:jfIu9sQUG6Ig+0+Ap1h4unLjW6YQJpKZVmUzxsD4E/Q=
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0/go.mod h1:t2tdKJDJF9BV14lnkjHmOQgcvEKgtqs5a1N3LNdJhGE=
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
