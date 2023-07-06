@@ -1,5 +1,9 @@
 FROM alpine:3.18.0
-RUN  apk add --no-cache wget ca-certificates
+RUN apk add --no-cache \
+  ca-certificates \
+  curl \
+  jq \
+  wget
 EXPOSE 8082
 EXPOSE 8445
 RUN mkdir /server
