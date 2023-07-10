@@ -27,9 +27,9 @@ html_tpl:=`
 %s
 <!-- Negligible severity vulnerabilities -->
 %s
-<p><b>Response policy name:</b> %s</p>
-<p><b>Response policy application scopes:</b> %s</p>
-<p><b>See more:</b> %s</p>
+<p><b>Resourse policy name:</b> %s</p>
+<p><b>Resourse policy application scopes:</b> %s</p>
+%s
 `
 
 summary_tpl =`Name: %s
@@ -259,7 +259,10 @@ result = msg {
     render_vlnrb("Negligible", vln_list("negligible")),
     with_default(input,"response_policy_name", ""),
     with_default(input,"application_scope", "none"),
-    input.url
+    by_flag(
+     "",
+     sprintf(`<p><b>See more:</b> <a href='%s'>%s</a></p>`,[href, text]), #link
+     server_url == "")
     ])
 }
 
