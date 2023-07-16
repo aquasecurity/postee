@@ -36,6 +36,8 @@ const (
 	resourceTypeKey   = "resourceTypeKey"
 	codeRepositoryKey = "code-repository"
 	rawMessageJson    = "raw-message-json"
+
+	V2Version = "v2"
 )
 
 var repositoryTemplatesForOutputs = map[string]string{
@@ -63,6 +65,7 @@ type Router struct {
 	databaseCfgCacheSource *data.TenantSettings
 	callbackMu             sync.RWMutex
 	lockEval               sync.Mutex
+	version                string
 }
 
 var (
@@ -224,7 +227,7 @@ func (ctx *Router) Send(data []byte) {
 	ctx.queue <- data
 }
 
-func (ctx *Router) addTemplate(template *data.Template) error {
+func (ctx *Router) AddTemplate(template *data.Template) error {
 	if err := ctx.initTemplate(template); err != nil {
 		return err
 	}
@@ -354,7 +357,7 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings, synchronous b
 	//----------------------------------------------------
 
 	for i := range tenant.InputRoutes {
-		ctx.addRoute(&tenant.InputRoutes[i])
+		ctx.AddRoute(&tenant.InputRoutes[i])
 	}
 	for _, t := range tenant.Templates {
 		err := ctx.initTemplate(&t)
@@ -366,7 +369,7 @@ func (ctx *Router) initTenantSettings(tenant *data.TenantSettings, synchronous b
 	for _, settings := range tenant.Outputs {
 		log.Logger.Debugf("%#v", anonymizeSettings(&settings))
 
-		err := ctx.addOutput(&settings)
+		err := ctx.AddOutput(&settings)
 
 		if err != nil {
 			log.Logger.Errorf("Can not initialize output %s: %v", settings.Name, err)
@@ -387,7 +390,7 @@ func (ctx *Router) setInputCallbackFunc(routeName string, callback InputCallback
 	ctx.inputCallBacks[routeName] = inputCallBacks
 }
 
-func (ctx *Router) addRoute(r *routes.InputRoute) {
+func (ctx *Router) AddRoute(r *routes.InputRoute) {
 	log.Logger.Infof("Adding new route: %v", r.Name)
 	ctx.inputRoutes.Store(r.Name, routes.ConfigureTimeouts(r))
 }
@@ -439,7 +442,7 @@ func (ctx *Router) listRoutes() []routes.InputRoute {
 	return list
 }
 
-func (ctx *Router) addOutput(settings *data.OutputSettings) error {
+func (ctx *Router) AddOutput(settings *data.OutputSettings) error {
 	if settings.Enable {
 		plg, err := buildAndInitOtpt(settings, ctx.aquaServer)
 		if err != nil {
@@ -538,6 +541,7 @@ type service interface {
 	HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (data.OutputResponse, error)
 	EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool
 	GetMessageUniqueId(in map[string]interface{}, props []string) string
+	OnDemandSend(in map[string]interface{}, output outputs.Output, inpteval data.Inpteval)
 }
 
 var getScanService = func() service {
@@ -629,6 +633,11 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 		}
 		log.Logger.Infof("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
 
+		if ctx.version == V2Version {
+			getScanService().OnDemandSend(msg, pl.(outputs.Output), tmpl.(data.Inpteval))
+			continue
+		}
+
 		if ctx.synchronous {
 			getScanService().MsgHandling(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 		} else {
@@ -717,7 +726,11 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 	return id, nil
 }
 
-func (ctx *Router) handle(in []byte) {
+func (ctx *Router) SendNotifications(in []byte) {
+	ctx.Handle(in)
+}
+
+func (ctx *Router) Handle(in []byte) {
 	ctx.inputRoutes.Range(func(key, _ interface{}) bool {
 		routeName, ok := key.(string)
 		if ok {
@@ -847,7 +860,7 @@ func (ctx *Router) listen() {
 		case <-ctx.quit:
 			return
 		case data := <-ctx.queue:
-			go ctx.handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
+			go ctx.Handle(bytes.ReplaceAll(data, []byte{'`'}, []byte{'\''}))
 		}
 	}
 }
@@ -902,7 +915,7 @@ func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string
 func (ctx *Router) embedTemplates() error {
 	templates := rego_templates.GetAllTemplates()
 	for _, t := range templates {
-		err := ctx.addTemplate(&t)
+		err := ctx.AddTemplate(&t)
 		if err != nil {
 			return err
 		}
