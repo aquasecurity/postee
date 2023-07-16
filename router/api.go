@@ -68,7 +68,7 @@ func WithLogger(logger log.LoggerType) error {
 	return nil
 }
 
-//initialize instance with custom db location
+// initialize instance with custom db location
 func WithNewConfigAndDbPath(tenantName, dbPath string) error { //tenant name
 	Instance().Terminate()
 	err := dbservice.ConfigureDb(dbPath, "", "")
@@ -101,9 +101,9 @@ func DBTestInterval(dbTestInterval int) { //optional
 func DBRemoveOldData(dbRemoveOldData int) { //optional
 }
 
-//------------------Outputs-------------------
+// ------------------Outputs-------------------
 func AddOutput(output *data.OutputSettings) error {
-	return Instance().addOutput(output)
+	return Instance().AddOutput(output)
 }
 
 func UpdateOutput(output *data.OutputSettings) error {
@@ -111,7 +111,7 @@ func UpdateOutput(output *data.OutputSettings) error {
 	if err != nil {
 		return err
 	}
-	return Instance().addOutput(output)
+	return Instance().AddOutput(output)
 }
 
 func ListOutputs() []data.OutputSettings {
@@ -124,9 +124,9 @@ func DeleteOutput(name string) error {
 
 //-----------------------------------------------
 
-//------------------Routes--------------------
+// ------------------Routes--------------------
 func AddRoute(route *routes.InputRoute) {
-	Instance().addRoute(route)
+	Instance().AddRoute(route)
 }
 
 func DeleteRoute(name string) error {
@@ -142,18 +142,18 @@ func UpdateRoute(route *routes.InputRoute) error {
 	if err != nil {
 		return err
 	}
-	Instance().addRoute(route)
+	Instance().AddRoute(route)
 	return nil
 }
 
 //-----------------------------------------------
 
-//-------------------Templates-------------------
+// -------------------Templates-------------------
 func AddTemplate(template *data.Template) error {
-	return Instance().addTemplate(template)
+	return Instance().AddTemplate(template)
 }
 
-//helper method
+// helper method
 func AddRegoTemplateFromFile(name, filename string) error {
 	b, err := os.ReadFile(filename)
 	if err != nil {
@@ -173,7 +173,7 @@ func UpdateTemplate(template *data.Template) error {
 		return err
 	}
 
-	return Instance().addTemplate(template)
+	return Instance().AddTemplate(template)
 }
 
 func DeleteTemplate(name string) error {
@@ -202,7 +202,7 @@ func GetEmbeddedTemplates() []data.Template {
 //-----------------------------------------------
 
 func Send(b []byte) {
-	Instance().handle(parseBytes(b))
+	Instance().Handle(parseBytes(b))
 }
 
 func SendMsg(msg map[string]interface{}) {
