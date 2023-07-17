@@ -249,6 +249,20 @@ func (scan *MsgService) enrichInsightVulnsPackageName(in map[string]interface{})
 	}
 }
 
+func (scan *MsgService) OnDemandSend(in map[string]interface{}, output outputs.Output, inpteval data.Inpteval) {
+	content, err := inpteval.Eval(in, "")
+	if err != nil {
+		log.Logger.Errorf("Error while evaluating input: %v", err)
+		return
+	}
+
+	_, err = output.Send(content)
+	if err != nil {
+		log.Logger.Errorf("Error while sending event: %v", err)
+	}
+
+}
+
 func send(otpt outputs.Output, cnt map[string]string) {
 	go func() {
 		_, err := otpt.Send(cnt)

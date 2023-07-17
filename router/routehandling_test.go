@@ -149,7 +149,7 @@ func runTestRouteHandlingCase(t *testing.T, caseDesc string, cfgPath string, exp
 		t.Fatalf("[%s] Unexpected error %v", caseDesc, err)
 	}
 
-	wrap.instance.handle([]byte(payload))
+	wrap.instance.Handle([]byte(payload))
 	timeoutDuration := 3 * time.Second
 	if len(expctdInvctns) == 0 {
 		timeoutDuration = time.Second
@@ -339,7 +339,7 @@ func TestCallBack(t *testing.T) {
 				wrap.instance.setInputCallbackFunc("route1", tt.callback)
 			}
 
-			wrap.instance.handle([]byte(payload))
+			wrap.instance.Handle([]byte(payload))
 			timeout := time.After(1 * time.Second)
 			for {
 				select {
