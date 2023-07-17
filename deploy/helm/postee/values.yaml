@@ -173,7 +173,7 @@ posteUi:
     # usernameKey: username
     # passwordKey: password
   image: aquasec/postee-ui
-  tag: "2.8.4-amd64"
+  tag: "2.12.0-amd64"
 
 configuration:
   # If set to true, ensure the externally generated secret to be named
@@ -184,7 +184,7 @@ configuration:
 image:
   repository: aquasec/postee
   pullPolicy: Always
-  tag: "2.8.4-amd64"
+  tag: "2.12.0-amd64"
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent
