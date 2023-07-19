@@ -6,12 +6,12 @@ title = sprintf("[Aqua] - %s - %s", [input.resource.name, input.policy.name])
 
 tpl:=`
 _%s_:
-*Policy description ID:* %s
+*Policy description:* %s
 *Issues's creation date:* %s
 *Severity:* %s
 *Risks:* %s
 *Remediation:* %s
-*Link to aqua's platform*: %s
+*Link*: %s
 
 
 _Resource Details_:
