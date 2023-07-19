@@ -2,13 +2,12 @@ package postee.issues.jira
 
 import data.postee.with_default
 
-title = sprintf("Issue on %s", [input.resource.name])
+title = sprintf("[Aqua] - %s - %s", [input.resource.name, input.policy.name])
 
 
 tpl:=`
-_Issue Details_:
-*Policy name:* %s
-*Policy descriptioD:* %s
+_%s_:
+*Policy description ID:* %s
 *Issues's creation date:* %s
 *Severity:* %s
 *Risks:* %s
