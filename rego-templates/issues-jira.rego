@@ -4,7 +4,6 @@ import data.postee.with_default
 
 title = sprintf("[Aqua] - %s - %s", [input.resource.name, input.policy.name])
 
-
 tpl:=`
 _%s_:
 *Policy description ID:* %s
@@ -20,9 +19,6 @@ _Resource Details_:
 *Origin:* %s
 *Type:* %s
 *Category:* %s
-
-
-
 `
 
 result = msg {
