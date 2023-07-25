@@ -54,5 +54,12 @@ func main() {
 		Template: "raw-message-json",
 	})
 
-	rt.SendNotifications(msg)
+	res := rt.SendNotifications(msg)
+	for _, r := range res.OutputResponses {
+		if r.Err != nil {
+			log.Logger.Errorf("failed to send notification: %s", r.Err)
+		} else {
+			log.Logger.Infof("successfully sent notification: %s", r.OutputResponse.Name)
+		}
+	}
 }
