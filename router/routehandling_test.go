@@ -210,7 +210,10 @@ func TestInvalidRouteName(t *testing.T) {
 		t.Fatalf("Unexpected error %v", err)
 	}
 
-	wrap.instance.HandleRoute("not-exist", []byte(payload))
+	_, err = wrap.instance.HandleRoute("not-exist", []byte(payload))
+	if err != nil {
+		t.Logf("failed to handle route %q: %v", "not-exist", err)
+	}
 	timeout := time.After(1 * time.Second)
 	for {
 		select {
@@ -239,7 +242,10 @@ func TestRouteWithNoValidRego(t *testing.T) {
 		t.Fatalf("Unexpected error %v", err)
 	}
 
-	wrap.instance.HandleRoute("fail_evaluation", []byte(payload))
+	_, err = wrap.instance.HandleRoute("fail_evaluation", []byte(payload))
+	if err != nil {
+		t.Logf("failed to handle route %q: %v", "fail_evaluation", err)
+	}
 	timeout := time.After(1 * time.Second)
 	for {
 		select {
