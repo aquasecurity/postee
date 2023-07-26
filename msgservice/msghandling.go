@@ -17,295 +17,295 @@ import (
 )
 
 const (
-    AppScopeAttribute       = "application_scope"
-    ResponsePolicyAttribute = "response_policy_name"
+	AppScopeAttribute       = "application_scope"
+	ResponsePolicyAttribute = "response_policy_name"
 )
 
 type MsgService struct {
-    mu sync.Mutex
+	mu sync.Mutex
 }
 
 func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) {
-    if output == nil {
-        return
-    }
+	if output == nil {
+		return
+	}
 
-    //TODO marshalling message back to bytes, change after merge with https://github.com/aquasecurity/postee/pull/150
-    input, _ := json.Marshal(in)
+	//TODO marshalling message back to bytes, change after merge with https://github.com/aquasecurity/postee/pull/150
+	input, _ := json.Marshal(in)
 
-    //TODO move logic below somewhere close to Jira output implementation
-    owners := scan.scopeOwners(in)
+	//TODO move logic below somewhere close to Jira output implementation
+	owners := scan.scopeOwners(in)
 
-    if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 {
-        msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
-        expired := calculateExpired(route.Plugins.UniqueMessageTimeoutSeconds)
+	if route.Plugins.UniqueMessageProps != nil && len(route.Plugins.UniqueMessageProps) > 0 {
+		msgKey := GetMessageUniqueId(in, route.Plugins.UniqueMessageProps)
+		expired := calculateExpired(route.Plugins.UniqueMessageTimeoutSeconds)
 
-        wasStored, err := dbservice.Db.MayBeStoreMessage(input, msgKey, expired)
-        if err != nil {
-            log.Logger.Errorf("Error while storing input: %v", err)
-            return
-        }
-        if !wasStored {
-            log.Logger.Infof("The same message was received before: %s", msgKey)
-            return
-        }
+		wasStored, err := dbservice.Db.MayBeStoreMessage(input, msgKey, expired)
+		if err != nil {
+			log.Logger.Errorf("Error while storing input: %v", err)
+			return
+		}
+		if !wasStored {
+			log.Logger.Infof("The same message was received before: %s", msgKey)
+			return
+		}
 
-    }
+	}
 
-    richIn := scan.enrichMsg(in, route, *AquaServer)
+	richIn := scan.enrichMsg(in, route, *AquaServer)
 
-    content, err := inpteval.Eval(richIn, *AquaServer)
-    if err != nil {
-        log.Logger.Errorf("Error while evaluating input: %v", err)
-        return
-    }
+	content, err := inpteval.Eval(richIn, *AquaServer)
+	if err != nil {
+		log.Logger.Errorf("Error while evaluating input: %v", err)
+		return
+	}
 
-    if owners != "" {
-        content["owners"] = owners
-    }
+	if owners != "" {
+		content["owners"] = owners
+	}
 
-    if route.Plugins.AggregateMessageNumber > 0 && inpteval.IsAggregationSupported() {
-        aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateMessageNumber, false)
-        if len(aggregated) > 0 {
-            content, err = inpteval.BuildAggregatedContent(aggregated)
-            if err != nil {
-                log.Logger.Errorf("Error while building aggregated content: %v", err)
-                return
-            }
-            send(output, content)
-        }
-    } else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
-        AggregateScanAndGetQueue(route.Name, content, 0, true)
+	if route.Plugins.AggregateMessageNumber > 0 && inpteval.IsAggregationSupported() {
+		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateMessageNumber, false)
+		if len(aggregated) > 0 {
+			content, err = inpteval.BuildAggregatedContent(aggregated)
+			if err != nil {
+				log.Logger.Errorf("Error while building aggregated content: %v", err)
+				return
+			}
+			send(output, content)
+		}
+	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
+		AggregateScanAndGetQueue(route.Name, content, 0, true)
 
-        if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
-            log.Logger.Infof("about to schedule %s", route.Name)
-            RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
-        } else {
-            log.Logger.Infof("%s is already scheduled", route.Name)
-        }
-    } else {
-        send(output, content)
+		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
+			log.Logger.Infof("about to schedule %s", route.Name)
+			RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
+		} else {
+			log.Logger.Infof("%s is already scheduled", route.Name)
+		}
+	} else {
+		send(output, content)
 
-    }
+	}
 }
 
 func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (data.OutputResponse, error) {
-    if output == nil {
-        return data.OutputResponse{}, xerrors.Errorf("The given output is nil")
-    }
+	if output == nil {
+		return data.OutputResponse{}, xerrors.Errorf("The given output is nil")
+	}
 
-    owners := scan.scopeOwners(in)
-    richIn := scan.enrichMsg(in, route, *AquaServer)
+	owners := scan.scopeOwners(in)
+	richIn := scan.enrichMsg(in, route, *AquaServer)
 
-    content, err := inpteval.Eval(richIn, *AquaServer)
-    if err != nil {
-        log.Logger.Errorf("Error while evaluating input: %v", err)
-        return data.OutputResponse{}, err
-    }
+	content, err := inpteval.Eval(richIn, *AquaServer)
+	if err != nil {
+		log.Logger.Errorf("Error while evaluating input: %v", err)
+		return data.OutputResponse{}, err
+	}
 
-    if owners != "" {
-        content["owners"] = owners
-    }
+	if owners != "" {
+		content["owners"] = owners
+	}
 
-    if route.Plugins.AggregateMessageNumber > 0 && inpteval.IsAggregationSupported() {
-        aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateMessageNumber, false)
-        if len(aggregated) > 0 {
-            content, err = inpteval.BuildAggregatedContent(aggregated)
-            if err != nil {
-                log.Logger.Errorf("Error while building aggregated content: %v", err)
-                return data.OutputResponse{}, err
-            }
-            return output.Send(content)
-        }
-    } else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
-        AggregateScanAndGetQueue(route.Name, content, 0, true)
+	if route.Plugins.AggregateMessageNumber > 0 && inpteval.IsAggregationSupported() {
+		aggregated := AggregateScanAndGetQueue(route.Name, content, route.Plugins.AggregateMessageNumber, false)
+		if len(aggregated) > 0 {
+			content, err = inpteval.BuildAggregatedContent(aggregated)
+			if err != nil {
+				log.Logger.Errorf("Error while building aggregated content: %v", err)
+				return data.OutputResponse{}, err
+			}
+			return output.Send(content)
+		}
+	} else if route.Plugins.AggregateTimeoutSeconds > 0 && inpteval.IsAggregationSupported() {
+		AggregateScanAndGetQueue(route.Name, content, 0, true)
 
-        if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
-            log.Logger.Infof("about to schedule %s", route.Name)
-            RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
-        } else {
-            log.Logger.Infof("%s is already scheduled", route.Name)
-        }
-    } else {
-        return output.Send(content)
-    }
+		if !route.IsSchedulerRun() { //TODO route shouldn't have any associated logic
+			log.Logger.Infof("about to schedule %s", route.Name)
+			RunScheduler(route, send, AggregateScanAndGetQueue, inpteval, &route.Name, output)
+		} else {
+			log.Logger.Infof("%s is already scheduled", route.Name)
+		}
+	} else {
+		return output.Send(content)
+	}
 
-    return data.OutputResponse{}, nil
+	return data.OutputResponse{}, nil
 }
 
 // EvaluateRegoRule returns true in case the given input ([]byte) matches the input of the given route
 func (scan *MsgService) EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool {
-    if ok, err := regoservice.DoesMatchRegoCriteria(input, r.InputFiles, r.Input); err != nil {
-        if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-            log.PrnInputError("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
-        } else {
-            log.PrnInputError("Error while evaluating rego rule for input files :%v for the input %s", err, input)
-        }
-        return false
-    } else if !ok {
-        if !regoservice.IsUsedRegoFiles(r.InputFiles) {
-            log.Logger.Debugf("Input doesn't match for route '%s' and REGO rule: %s", r.Name, r.Input)
-        } else {
-            log.PrnInputInfo("Input %s... doesn't match a REGO input files rule", input)
-        }
-        return false
-    }
+	if ok, err := regoservice.DoesMatchRegoCriteria(input, r.InputFiles, r.Input); err != nil {
+		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
+			log.PrnInputError("Error while evaluating rego rule %s :%v for the input %s", r.Input, err, input)
+		} else {
+			log.PrnInputError("Error while evaluating rego rule for input files :%v for the input %s", err, input)
+		}
+		return false
+	} else if !ok {
+		if !regoservice.IsUsedRegoFiles(r.InputFiles) {
+			log.Logger.Debugf("Input doesn't match for route '%s' and REGO rule: %s", r.Name, r.Input)
+		} else {
+			log.PrnInputInfo("Input %s... doesn't match a REGO input files rule", input)
+		}
+		return false
+	}
 
-    return true
+	return true
 }
 
 func (scan *MsgService) scopeOwners(in map[string]interface{}) string {
-    //TODO move logic below somewhere close to Jira output implementation
-    owners := ""
-    applicationScopeOwnersObj, ok := in["application_scope_owners"]
-    if ok {
-        ownersList, ok := applicationScopeOwnersObj.([]interface{})
-        if !ok {
-            log.Logger.Error("Error while asserting application_scope_owners attribute: type of []interface{} is expected")
-        } else {
-            if len(ownersList) > 0 {
-                for i, owner := range ownersList {
-                    if i > 0 {
-                        owners += ";"
-                    }
-                    owners += fmt.Sprint(owner)
-                }
-            }
-        }
-    }
-    return owners
+	//TODO move logic below somewhere close to Jira output implementation
+	owners := ""
+	applicationScopeOwnersObj, ok := in["application_scope_owners"]
+	if ok {
+		ownersList, ok := applicationScopeOwnersObj.([]interface{})
+		if !ok {
+			log.Logger.Error("Error while asserting application_scope_owners attribute: type of []interface{} is expected")
+		} else {
+			if len(ownersList) > 0 {
+				for i, owner := range ownersList {
+					if i > 0 {
+						owners += ";"
+					}
+					owners += fmt.Sprint(owner)
+				}
+			}
+		}
+	}
+	return owners
 }
 
 func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, aquaServer string) map[string]interface{} {
-    scan.mu.Lock()
-    defer scan.mu.Unlock()
+	scan.mu.Lock()
+	defer scan.mu.Unlock()
 
-    richIn := make(map[string]interface{}, len(in))
-    for k, v := range in {
-        if k != AppScopeAttribute {
-            richIn[k] = v
-        }
-    }
+	richIn := make(map[string]interface{}, len(in))
+	for k, v := range in {
+		if k != AppScopeAttribute {
+			richIn[k] = v
+		}
+	}
 
-    richIn["postee"] = map[string]string{
-        "AquaServer": aquaServer,
-    }
+	richIn["postee"] = map[string]string{
+		"AquaServer": aquaServer,
+	}
 
-    //enrich those fields even if they are empty, so the rego evaluation will not fail
-    richIn[ResponsePolicyAttribute] = route.Name
+	//enrich those fields even if they are empty, so the rego evaluation will not fail
+	richIn[ResponsePolicyAttribute] = route.Name
 
-    scan.enrichInsightVulnsPackageName(richIn)
+	scan.enrichInsightVulnsPackageName(richIn)
 
-    // handle application scope
-    val, ok := in[AppScopeAttribute]
-    if ok {
-        appScopes, ok := val.(map[string][]string)
-        if ok {
-            routeScopes, ok := appScopes[route.Name]
-            if ok {
-                richIn[AppScopeAttribute] = routeScopes
-            }
-        } else if appScopes, ok := val.(map[string]interface{}); ok {
-            routeScopes, ok := appScopes[route.Name]
-            if ok {
-                richIn[AppScopeAttribute] = routeScopes
-            }
-        }
-    }
+	// handle application scope
+	val, ok := in[AppScopeAttribute]
+	if ok {
+		appScopes, ok := val.(map[string][]string)
+		if ok {
+			routeScopes, ok := appScopes[route.Name]
+			if ok {
+				richIn[AppScopeAttribute] = routeScopes
+			}
+		} else if appScopes, ok := val.(map[string]interface{}); ok {
+			routeScopes, ok := appScopes[route.Name]
+			if ok {
+				richIn[AppScopeAttribute] = routeScopes
+			}
+		}
+	}
 
-    return richIn
+	return richIn
 }
 
 func (scan *MsgService) enrichInsightVulnsPackageName(in map[string]interface{}) {
-    ev, ok := in["evidence"]
-    if ok {
-        evMap, ok := ev.(map[string]interface{})
-        if ok {
-            vulns, ok := evMap["vulnerabilities"]
-            if ok {
-                vulnsList, ok := vulns.([]interface{})
-                if ok {
-                    var newList []interface{}
-                    for _, v := range vulnsList {
-                        vulnsMap, ok := v.(map[string]interface{})
-                        if ok {
-                            pkg, ok := vulnsMap["package"]
-                            if ok {
-                                packgeName, ok := pkg.(string)
-                                if ok {
-                                    vulnsMap["package_name"] = packgeName
+	ev, ok := in["evidence"]
+	if ok {
+		evMap, ok := ev.(map[string]interface{})
+		if ok {
+			vulns, ok := evMap["vulnerabilities"]
+			if ok {
+				vulnsList, ok := vulns.([]interface{})
+				if ok {
+					var newList []interface{}
+					for _, v := range vulnsList {
+						vulnsMap, ok := v.(map[string]interface{})
+						if ok {
+							pkg, ok := vulnsMap["package"]
+							if ok {
+								packgeName, ok := pkg.(string)
+								if ok {
+									vulnsMap["package_name"] = packgeName
 
-                                }
-                            }
-                            newList = append(newList, vulnsMap)
-                        }
-                    }
+								}
+							}
+							newList = append(newList, vulnsMap)
+						}
+					}
 
-                    evMap["vulnerabilities"] = newList
-                    in["evidence"] = evMap
-                }
-            }
-        }
-    }
+					evMap["vulnerabilities"] = newList
+					in["evidence"] = evMap
+				}
+			}
+		}
+	}
 }
 
 func (scan *MsgService) OnDemandSend(in map[string]interface{}, output outputs.Output, inpteval data.Inpteval) (outputResponse data.OutputResponse, err error) {
-    content, err := inpteval.Eval(in, "")
-    if err != nil {
-        log.Logger.Errorf("Error while evaluating input: %v", err)
-        return
-    }
+	content, err := inpteval.Eval(in, "")
+	if err != nil {
+		log.Logger.Errorf("Error while evaluating input: %v", err)
+		return
+	}
 
-    outputResponse, err = output.Send(content)
-    if err != nil {
-        log.Logger.Errorf("Error while sending event: %v", err)
-        return data.OutputResponse{}, err
-    }
+	outputResponse, err = output.Send(content)
+	if err != nil {
+		log.Logger.Errorf("Error while sending event: %v", err)
+		return data.OutputResponse{} , err
+	}
 
-    return outputResponse, nil
+	return outputResponse, nil
 
 }
 
 func send(otpt outputs.Output, cnt map[string]string) {
-    go func() {
-        _, err := otpt.Send(cnt)
-        if err != nil {
-            log.Logger.Errorf("Error while sending event: %v", err)
-        }
-    }()
+	go func() {
+		_, err := otpt.Send(cnt)
+		if err != nil {
+			log.Logger.Errorf("Error while sending event: %v", err)
+		}
+	}()
 
-    if dbservice.Db != nil {
-        err := dbservice.Db.RegisterPlgnInvctn(otpt.GetName())
-        if err != nil {
-            log.Logger.Errorf("Error while building aggregated content: %v", err)
-            return
-        }
-    }
+	if dbservice.Db != nil {
+		err := dbservice.Db.RegisterPlgnInvctn(otpt.GetName())
+		if err != nil {
+			log.Logger.Errorf("Error while building aggregated content: %v", err)
+			return
+		}
+	}
 
 }
 
 func calculateExpired(UniqueMessageTimeoutSeconds int) *time.Time {
-    if UniqueMessageTimeoutSeconds == 0 {
-        return nil
-    }
-    timeToExpire := time.Duration(UniqueMessageTimeoutSeconds) * time.Second
-    expired := time.Now().UTC().Add(timeToExpire)
-    return &expired
+	if UniqueMessageTimeoutSeconds == 0 {
+		return nil
+	}
+	timeToExpire := time.Duration(UniqueMessageTimeoutSeconds) * time.Second
+	expired := time.Now().UTC().Add(timeToExpire)
+	return &expired
 }
 
 var AggregateScanAndGetQueue = func(outputName string, currentContent map[string]string, counts int, ignoreLength bool) []map[string]string {
-    aggregatedScans, err := dbservice.Db.AggregateScans(outputName, currentContent, counts, ignoreLength)
-    if err != nil {
-        log.Logger.Errorf("AggregateScans Error: %v", err)
-        return aggregatedScans
-    }
-    if len(currentContent) != 0 && len(aggregatedScans) == 0 {
-        log.Logger.Infof("New scan was added to the queue of %q without sending.", outputName)
-        return nil
-    }
-    return aggregatedScans
+	aggregatedScans, err := dbservice.Db.AggregateScans(outputName, currentContent, counts, ignoreLength)
+	if err != nil {
+		log.Logger.Errorf("AggregateScans Error: %v", err)
+		return aggregatedScans
+	}
+	if len(currentContent) != 0 && len(aggregatedScans) == 0 {
+		log.Logger.Infof("New scan was added to the queue of %q without sending.", outputName)
+		return nil
+	}
+	return aggregatedScans
 }
 
 func (scan *MsgService) GetMessageUniqueId(in map[string]interface{}, props []string) string {
-    return GetMessageUniqueId(in, props)
+	return GetMessageUniqueId(in, props)
 }
