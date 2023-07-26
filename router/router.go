@@ -764,7 +764,10 @@ func (ctx *Router) handleMsg(msg map[string]interface{}) {
 	ctx.inputRoutes.Range(func(key, _ interface{}) bool {
 		routeName, ok := key.(string)
 		if ok {
-			ctx.handleRouteMsgParsed(routeName, msg)
+			_, err := ctx.handleRouteMsgParsed(routeName, msg)
+			if err != nil {
+				log.Logger.Errorf("failed to handle route %q: %v", routeName, err)
+			}
 		}
 		return true
 	})
