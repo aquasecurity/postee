@@ -26,6 +26,9 @@ func (ctx *WebServer) tenantHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 	log.Logger.Debugf("%s\n\n", string(body))
-	router.Instance().HandleRoute(route, body)
+	_, err = router.Instance().HandleRoute(route, body)
+	if err != nil {
+		log.Logger.Errorf("failed to handle route %q: %v", route, err)
+	}
 	ctx.writeResponse(w, http.StatusOK, "")
 }

@@ -68,6 +68,14 @@ type Router struct {
 	version                string
 }
 
+type Response struct {
+	OutputResponses []OutputResponseInfo
+}
+type OutputResponseInfo struct {
+	OutputResponse data.OutputResponse
+	Err            error
+}
+
 var (
 	initCtx       sync.Once
 	routerCtx     *Router
@@ -541,7 +549,7 @@ type service interface {
 	HandleSendToOutput(in map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, AquaServer *string) (data.OutputResponse, error)
 	EvaluateRegoRule(r *routes.InputRoute, input map[string]interface{}) bool
 	GetMessageUniqueId(in map[string]interface{}, props []string) string
-	OnDemandSend(in map[string]interface{}, output outputs.Output, inpteval data.Inpteval)
+	OnDemandSend(in map[string]interface{}, output outputs.Output, inpteval data.Inpteval) (data.OutputResponse, error)
 }
 
 var getScanService = func() service {
@@ -552,13 +560,13 @@ var getHttpClient = func() *http.Client {
 	return http.DefaultClient
 }
 
-func (ctx *Router) HandleRoute(routeName string, in []byte) {
+func (ctx *Router) HandleRoute(routeName string, in []byte) (Response, error) {
 	inMsg, err := parseInputMessage(in)
 	if err != nil {
-		return
+		return Response{}, err
 	}
 
-	ctx.handleRouteMsgParsed(routeName, inMsg)
+	return ctx.handleRouteMsgParsed(routeName, inMsg)
 }
 
 func (ctx *Router) getCallbacks(name string) []InputCallbackFunc {
@@ -567,28 +575,28 @@ func (ctx *Router) getCallbacks(name string) []InputCallbackFunc {
 	return ctx.inputCallBacks[name]
 }
 
-func (ctx *Router) handleRouteMsgParsed(routeName string, inMsg map[string]interface{}) {
+func (ctx *Router) handleRouteMsgParsed(routeName string, inMsg map[string]interface{}) (Response, error) {
 	val, ok := ctx.inputRoutes.Load(routeName)
 	if !ok {
 		log.Logger.Errorf("There isn't route %q", routeName)
-		return
+		return Response{}, fmt.Errorf("there isn't route %q", routeName)
 	}
 	r, ok := val.(*routes.InputRoute)
 	if !ok || r == nil {
 		log.Logger.Errorf("route %q is nil", routeName)
-		return
+		return Response{}, fmt.Errorf("route %q is nil", routeName)
 	}
 
 	if len(r.Outputs) == 0 {
 		log.Logger.Errorf("route %q has no outputs", routeName)
-		return
+		return Response{}, fmt.Errorf("route %q has no outputs", routeName)
 	}
 
 	if !ctx.isRouteMatch(r, inMsg) {
-		return
+		return Response{}, fmt.Errorf("route %q is not matched", routeName)
 	}
 
-	ctx.publishToOutput(inMsg, r)
+	return ctx.publishToOutput(inMsg, r), nil
 }
 
 func parseInputMessage(in []byte) (msg map[string]interface{}, err error) {
@@ -599,7 +607,7 @@ func parseInputMessage(in []byte) (msg map[string]interface{}, err error) {
 	return msg, err
 }
 
-func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRoute) {
+func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRoute) (response Response) {
 	for _, outputName := range r.Outputs {
 		pl, ok := ctx.outputs.Load(outputName)
 		if !ok {
@@ -634,7 +642,11 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 		log.Logger.Infof("route %q is associated with output %q and template %q", r.Name, outputName, templateName)
 
 		if ctx.version == V2Version {
-			getScanService().OnDemandSend(msg, pl.(outputs.Output), tmpl.(data.Inpteval))
+			outputresponse, err := getScanService().OnDemandSend(msg, pl.(outputs.Output), tmpl.(data.Inpteval))
+			response.OutputResponses = append(response.OutputResponses, OutputResponseInfo{
+				OutputResponse: outputresponse,
+				Err:            err,
+			})
 			continue
 		}
 
@@ -644,6 +656,8 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 			go getScanService().MsgHandling(msg, pl.(outputs.Output), r, tmpl.(data.Inpteval), &ctx.aquaServer)
 		}
 	}
+
+	return response
 }
 
 func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []data.OutputResponse {
@@ -726,25 +740,34 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 	return id, nil
 }
 
-func (ctx *Router) SendNotifications(in []byte) {
-	ctx.Handle(in)
+func (ctx *Router) SendNotifications(in []byte) (response Response) {
+	return ctx.Handle(in)
 }
 
-func (ctx *Router) Handle(in []byte) {
+func (ctx *Router) Handle(in []byte) (response Response) {
 	ctx.inputRoutes.Range(func(key, _ interface{}) bool {
 		routeName, ok := key.(string)
 		if ok {
-			ctx.HandleRoute(routeName, in)
+			r, err := ctx.HandleRoute(routeName, in)
+			if err != nil {
+				log.Logger.Errorf("failed to handle route %q: %v", routeName, err)
+			}
+			response.OutputResponses = append(response.OutputResponses, r.OutputResponses...)
 		}
 		return true
 	})
+
+	return response
 }
 
 func (ctx *Router) handleMsg(msg map[string]interface{}) {
 	ctx.inputRoutes.Range(func(key, _ interface{}) bool {
 		routeName, ok := key.(string)
 		if ok {
-			ctx.handleRouteMsgParsed(routeName, msg)
+			_, err := ctx.handleRouteMsgParsed(routeName, msg)
+			if err != nil {
+				log.Logger.Errorf("failed to handle route %q: %v", routeName, err)
+			}
 		}
 		return true
 	})

@@ -107,7 +107,8 @@ func (ctx *ctxWrapper) init() {
 	ctx.instance = Instance()
 }
 
-func (ctx *ctxWrapper) OnDemandSend(in map[string]interface{}, output outputs.Output, inpteval data.Inpteval) {
+func (ctx *ctxWrapper) OnDemandSend(in map[string]interface{}, output outputs.Output, inpteval data.Inpteval) (outputResponse data.OutputResponse, err error) {
+	return data.OutputResponse{}, nil
 }
 
 func (ctx *ctxWrapper) MsgHandling(_ map[string]interface{}, output outputs.Output, route *routes.InputRoute, inpteval data.Inpteval, _ *string) {
