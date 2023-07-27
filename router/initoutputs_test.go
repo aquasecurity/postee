@@ -87,6 +87,21 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"*actions.NexusIqAction",
 		},
 		{
+			"Simple Dependency Track action",
+			ActionSettings{
+				Url:                   "http://localhost:8080",
+				Name:                  "my-dependencytrack",
+				Type:                  "dependencytrack",
+				DependencyTrackAPIKey: "api-key",
+			},
+			map[string]interface{}{
+				"Url":    "http://localhost:8080",
+				"APIKey": "api-key",
+			},
+			false,
+			"*actions.DependencyTrackAction",
+		},
+		{
 			"Simple Jira action",
 			ActionSettings{
 				Url:        "localhost:2990",

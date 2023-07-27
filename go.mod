@@ -3,6 +3,7 @@ module github.com/aquasecurity/postee/v2
 go 1.18
 
 require (
+	github.com/DependencyTrack/client-go v0.11.0
 	github.com/PagerDuty/go-pagerduty v1.5.1
 	github.com/aquasecurity/go-jira v0.0.0-20230705211506-0cd878ce5449
 	github.com/aws/aws-sdk-go-v2 v1.16.11
@@ -11,7 +12,7 @@ require (
 	github.com/aws/smithy-go v1.12.1
 	github.com/docker/docker v20.10.24+incompatible
 	github.com/ghodss/yaml v1.0.0
-	github.com/google/uuid v1.2.0
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/nats-io/nats-server/v2 v2.7.4
 	github.com/nats-io/nats.go v1.13.1-0.20220308171302-2f2f6968e98d
@@ -20,7 +21,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799
 	github.com/opsgenie/opsgenie-go-sdk-v2 v1.2.10
 	github.com/spf13/cobra v1.5.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/gjson v1.14.0
 	go.etcd.io/bbolt v1.3.6
 	k8s.io/api v0.23.3
@@ -51,7 +52,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
