@@ -52,6 +52,8 @@ templates:
   rego-package: postee.vuls.cyclondx
 - name: trivy-operator-slack
   rego-package: postee.trivyoperator.slack
+- name: trivy-operator-dependencytrack
+  rego-package: postee.trivyoperator.dependencytrack
 - name: trivy-jira
   rego-package: postee.trivy.jira
 
@@ -140,6 +142,12 @@ actions:
   password:         # Mandatory. User password
   url:              # Mandatory. Url of Nexus IQ server
   organization-id:  # Mandatory. Organization UID like "222de33e8005408a844c12eab952c9b0"
+
+  - name: my-dependencytrack
+    type: dependencytrack
+    enable: false
+    url:                       # Mandatory. Url of Dependency Track server
+    dependency-track-api-key:  # Mandatory. API key of Dependency Track server
 
 - name: my-opsgenie
   type: opsgenie
