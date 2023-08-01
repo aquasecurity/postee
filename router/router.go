@@ -935,8 +935,13 @@ func (ctx *Router) sendMsgByRoute(inMsg map[string]interface{}, routeName string
 	return tickets, nil
 }
 
-func (ctx *Router) embedTemplates() error {
-	templates := rego_templates.GetAllTemplates()
+func (ctx *Router) embedTemplates(requiredTemplate string) error {
+	var templates []data.Template
+	if requiredTemplate == "" {
+		templates = rego_templates.GetAllTemplates()
+	} else {
+		templates = rego_templates.GetTemplateByName(requiredTemplate)
+	}
 	for _, t := range templates {
 		err := ctx.AddTemplate(&t)
 		if err != nil {

@@ -102,3 +102,30 @@ func getAsDataTemplates(embedded map[string]string) []data.Template {
 
 	return templates
 }
+
+func GetTemplateByName(name string) []data.Template {
+	return getAsDataTemplates(TemplateByName(name))
+}
+
+func TemplateByName(name string) map[string]string {
+	templatesMu.Lock()
+	defer templatesMu.Unlock()
+	if len(templates) != 0 {
+		if val, ok := templates[name]; ok {
+			return map[string]string{name: val}
+		}
+	}
+	populateTemplate(embeddedFiles, templates, localDir, name)
+
+	return map[string]string{name: templates[name]}
+}
+
+func populateTemplate(files embed.FS, storage map[string]string, dirPath string, filename string) {
+	bt, err := fs.ReadFile(files, filepath.Join(dirPath, filename))
+	if err != nil {
+		log.Logger.Errorf("failed to read embedded file '%s': %s", filename, err)
+		return
+	}
+
+	storage[filename] = string(bt)
+}

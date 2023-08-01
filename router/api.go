@@ -50,7 +50,7 @@ func WithNewConfig(tenantName string) error { //tenant name
 func New(logger ...log.LoggerType) error {
 	Instance(logger...).Terminate()
 	Instance().cleanChannels(true)
-	err := Instance().embedTemplates()
+	err := Instance().embedTemplates("")
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func New(logger ...log.LoggerType) error {
 func WithLogger(logger log.LoggerType) error {
 	Instance().Terminate()
 	Instance().cleanChannels(true)
-	err := Instance().embedTemplates()
+	err := Instance().embedTemplates("")
 	if err != nil {
 		return err
 	}
