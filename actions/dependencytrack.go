@@ -62,6 +62,8 @@ func (dta *DependencyTrackAction) Send(content map[string]string) error {
 		return fmt.Errorf("failed to upload BOM: %w", err)
 	}
 
+	log.Printf("successfully sent: %q to Dependency Track", dta.Name)
+
 	return nil
 }
 
