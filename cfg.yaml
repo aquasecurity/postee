@@ -146,8 +146,8 @@ actions:
   - name: my-dependencytrack
     type: dependencytrack
     enable: false
-    url:                       # Mandatory. Url of Dependency Track server
-    dependency-track-api-key:  # Mandatory. API key of Dependency Track server
+    url: http://localhost:8080/  # Mandatory. Url of Dependency Track server
+    dependency-track-api-key:    # Mandatory. API key of Dependency Track server
 
 - name: my-opsgenie
   type: opsgenie
