@@ -50,6 +50,8 @@ templates:
   rego-package: postee.rawmessage.json
 - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
   rego-package: postee.vuls.cyclondx
+- name: trivy-operator-jira
+  rego-package: postee.trivyoperator.jira
 - name: trivy-operator-slack
   rego-package: postee.trivyoperator.slack
 - name: trivy-jira
