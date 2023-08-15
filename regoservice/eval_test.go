@@ -2,148 +2,83 @@ package regoservice
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
+	"flag"
 	"github.com/stretchr/testify/require"
 	"io/fs"
-	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-var (
-	regoHtml = `
-package rego1
-title:="Audit event received"
-result:=sprintf("Audit event received from %s", [input.user])	
-url:="Audit-registry-received/Audit-image-received"
-`
-	regoJson = `
-package rego1
-title:="Audit event received"
-result:={
-	"assignee": input.user
-}
-url:="Audit-registry-received/Audit-image-received"
-`
-	regoJsonWithoutUrl = `
-package rego1
-title:="Audit event received"
-result:={
-	"assignee": input.user
-}
-`
-	regoWithoutResult = `
-package rego1
-ttle:="Audit event received"
-`
-	regoWithoutAnyExpression = `
-package rego1
-`
-	regoServiceNowSimpleExample = `
-package rego1
-title:="test title"
-result = "test description"
-
-result_date = 1667725398
-result_category = "test category"
-result_subcategory = "test subcategory"
-result_assigned_group = "test assigned group"
-
-result_severity := 1
-
-result_summary := "test summary"
-`
-	invalidRego = `
-package rego1
-default input = false
-`
-
-	regoHtmlWithComplexPackage = `
-package postee.rego1
-title:="Audit event received"
-result:=sprintf("Audit event received from %s", [input.user])	
-url:="Audit-registry-received/Audit-image-received"
-`
-
-	input = `{
-		"user": "demo"
-	}
-`
-	commonRego = `package postee
-flat_array(a) = o {
-	o:=[item |
-		item:=a[_][_]
-	]
-}	
-`
-)
+var update = flag.Bool("update", false, "update golden files")
 
 func TestEval(t *testing.T) {
 	tests := []struct {
-		regoRule          *string
-		caseDesc          string
-		input             *string
-		regoPackage       string
-		expectedValues    map[string]string
-		shouldEvalFail    bool
-		shouldPrepareFail bool
-		skipBuildin       bool
-		skipExternal      bool
+		regoRule                *string
+		templateFile            string
+		caseDesc                string
+		inputFile               string
+		regoPackage             string
+		expectedValues          map[string]string // Description will save in golden file
+		expectedDescriptionFile string
+		shouldEvalFail          bool
+		shouldPrepareFail       bool
+		skipBuildin             bool
+		skipExternal            bool
 	}{
+		/* cases for basic functionality */
 		{
-			regoRule:    &regoHtml,
-			caseDesc:    "simple case producing html output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:                "simple case producing html output",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/html.rego",
+			regoPackage:             "rego1",
+			expectedDescriptionFile: "testdata/goldens/html.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": "Audit event received from demo",
-				"url":         "Audit-registry-received/Audit-image-received",
+				"title": "Audit event received",
+				"url":   "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
-			regoRule:    &regoHtmlWithComplexPackage,
-			caseDesc:    "Multilevel package",
-			input:       &input,
-			regoPackage: "postee.rego1",
+			caseDesc:                "Multilevel package",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/html-with-complex-pkg.rego",
+			regoPackage:             "postee.rego1",
+			expectedDescriptionFile: "testdata/goldens/html-with-complex-pkg.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": "Audit event received from demo",
-				"url":         "Audit-registry-received/Audit-image-received",
+				"title": "Audit event received",
+				"url":   "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
-			regoRule:    &regoJson,
-			caseDesc:    "producing json output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:                "producing json output",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/json.rego",
+			regoPackage:             "rego1",
+			expectedDescriptionFile: "testdata/goldens/json.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": `{"assignee":"demo"}`,
-				"url":         "Audit-registry-received/Audit-image-received",
+				"title": "Audit event received",
+				"url":   "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
-			regoRule:    &regoJsonWithoutUrl,
-			caseDesc:    "producing json output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:                "producing json output without url",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/json-without-url.rego",
+			regoPackage:             "rego1",
+			expectedDescriptionFile: "testdata/goldens/json-without-url.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": `{"assignee":"demo"}`,
-				"url":         "",
+				"title": "Audit event received",
+				"url":   "",
 			},
 		},
 		{
-			regoRule:    &regoServiceNowSimpleExample,
-			caseDesc:    "producing ServiceNow output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:                "producing ServiceNow output",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/servicenow.rego",
+			expectedDescriptionFile: "testdata/goldens/servicenow.golden",
+			regoPackage:             "rego1",
 			expectedValues: map[string]string{
 				"title":         "test title",
-				"description":   "test description",
 				"date":          "1667725398",
 				"severity":      "1",
 				"summary":       "test summary",
@@ -152,144 +87,174 @@ func TestEval(t *testing.T) {
 				"assignedGroup": "test assigned group",
 			},
 		},
+		/* cases for templates from `rego-templates` directory */
+		{
+			caseDesc:     "raw-message-html.rego template",
+			inputFile:    "testdata/inputs/simple-input.json",
+			templateFile: "../rego-templates/raw-message-html.rego",
+			regoPackage:  "postee.rawmessage.html",
+			expectedValues: map[string]string{
+				"title": "Raw Message Received",
+			},
+			expectedDescriptionFile: "testdata/goldens/raw-message-html.golden",
+		},
 		/* cases which should fail are below*/
 		{
-			regoRule:          &regoWithoutResult,
 			caseDesc:          "Rego with wrong package specified",
-			input:             &input,
+			inputFile:         "testdata/inputs/simple-input.json",
+			templateFile:      "testdata/templates/without-result.rego",
 			regoPackage:       "rego3",
 			expectedValues:    map[string]string{},
 			shouldPrepareFail: true,
 			skipExternal:      true,
 		},
 		{
-			regoRule:       &regoWithoutAnyExpression,
 			caseDesc:       "Rego without any expression",
-			input:          &input,
+			inputFile:      "testdata/inputs/simple-input.json",
+			templateFile:   "testdata/templates/without-any-expression.rego",
 			regoPackage:    "rego1",
 			shouldEvalFail: true,
 		},
 		{
-			regoRule:       &invalidRego,
 			caseDesc:       "Invalid Rego",
-			input:          &input,
+			inputFile:      "testdata/inputs/simple-input.json",
+			templateFile:   "testdata/templates/invalid.rego",
 			regoPackage:    "rego1",
 			expectedValues: map[string]string{},
 			shouldEvalFail: true,
 		},
 	}
 	for _, test := range tests {
-		if !test.skipBuildin {
-			evaluateBuildinRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
-		}
+		t.Run(test.caseDesc, func(t *testing.T) {
+			if !test.skipBuildin {
+				evaluateBuildinRego(t, test.caseDesc, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
+			}
 
-		if !test.skipExternal {
-			evaluateExternalRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
-		}
+			if !test.skipExternal {
+				evaluateExternalRego(t, test.caseDesc, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
+			}
+		})
 	}
 }
 
-func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
+func evaluateBuildinRego(t *testing.T, caseDesc, inputFile, templateFile, descriptionGoldenFile, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
 	buildinRegoTemplatesSaved := buildinRegoTemplates
-	testRego := "rego1.rego"
-	buildinRegoTemplates = []string{testRego}
-
-	errWrite := ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
-	if errWrite != nil {
-		t.Fatal(errWrite)
-	}
-
+	buildinRegoTemplates = []string{templateFile}
 	defer func() {
 		buildinRegoTemplates = buildinRegoTemplatesSaved
-		os.Remove(testRego)
 	}()
-	demo, err := BuildBundledRegoEvaluator(regoPackage)
-	if err != nil && !shouldPrepareFail {
-		t.Errorf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
-		return
-	}
-	if err == nil && shouldPrepareFail {
-		t.Errorf("test case [%s] should fail on prepare\n", caseDesc)
-	}
 
+	demo, err := BuildBundledRegoEvaluator(regoPackage)
 	if shouldPrepareFail {
+		require.Error(t, err, "test case should fail on prepare")
 		return
 	}
+	require.NoError(t, err)
 
 	if demo.IsAggregationSupported() {
 		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
 	}
-	r, err := demo.Eval(parseJson(input), "")
-	if err != nil && !shouldEvalFail {
-		t.Errorf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
+
+	f, err := os.Open(inputFile)
+	require.NoError(t, err)
+	defer f.Close()
+
+	in := make(map[string]interface{})
+	err = json.NewDecoder(f).Decode(&in)
+	require.NoError(t, err)
+
+	r, err := demo.Eval(in, "")
+	if shouldEvalFail {
+		require.Error(t, err, "test case should fail on eval")
+		return
 	}
-	if err == nil && shouldEvalFail {
-		t.Errorf("test case [%s] should fail on eval\n", caseDesc)
+	require.NoError(t, err)
+
+	// write description in file
+	descriptionFile := filepath.Join(t.TempDir(), "description.txt")
+	if *update {
+		descriptionFile = descriptionGoldenFile
 	}
+
+	err = os.WriteFile(descriptionFile, []byte(r["description"]), 0644)
+	require.NoError(t, err)
+
+	compareDescriptions(t, descriptionGoldenFile, descriptionFile)
 
 	for key, expected := range expectedValues {
-		if r[key] != expected {
-			t.Errorf("[%s] Incorrect %s: expected %s, got %s\n", caseDesc, key, expected, r[key])
-		}
-
+		want := r[key]
+		require.EqualValues(t, expected, want)
 	}
 }
-func evaluateExternalRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
+func evaluateExternalRego(t *testing.T, caseDesc, inputFile, templateFile, descriptionGoldenFile string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
 	commonRegoTemplatesSaved := commonRegoTemplates
-	testRego := "rego1.rego"
-	commonRegoFilename := "common.rego"
-	commonRegoTemplates = []string{commonRegoFilename}
-
-	err := ioutil.WriteFile(commonRegoFilename, []byte(commonRego), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	commonRegoTemplates = []string{"testdata/templates/common/common.rego"}
 	defer func() {
 		commonRegoTemplates = commonRegoTemplatesSaved
-		os.Remove(commonRegoFilename)
 	}()
 
-	demo, err := BuildExternalRegoEvaluator(testRego, *regoRule)
-	if err != nil && !shouldPrepareFail {
-		t.Errorf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
-		return
-	}
-	if err == nil && shouldPrepareFail {
-		t.Errorf("test case [%s] should fail on prepare\n", caseDesc)
-	}
+	b, err := os.ReadFile(templateFile)
+	require.NoError(t, err)
 
+	demo, err := BuildExternalRegoEvaluator(templateFile, string(b))
 	if shouldPrepareFail {
+		require.Error(t, err, "test case should fail on prepare")
 		return
 	}
+	require.NoError(t, err)
+
 	if demo.IsAggregationSupported() {
 		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
 	}
-	r, err := demo.Eval(parseJson(input), "")
-	if err != nil && !shouldEvalFail {
-		t.Errorf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
+
+	f, err := os.Open(inputFile)
+	require.NoError(t, err)
+	defer f.Close()
+
+	in := make(map[string]interface{})
+	err = json.NewDecoder(f).Decode(&in)
+	require.NoError(t, err)
+
+	r, err := demo.Eval(in, "")
+	if shouldEvalFail {
+		require.Error(t, err, "test case should fail on eval")
+		return
 	}
-	if err == nil && shouldEvalFail {
-		t.Errorf("test case [%s] should fail on eval\n", caseDesc)
+	require.NoError(t, err)
+
+	// write description in file
+	descriptionFile := filepath.Join(t.TempDir(), "description.txt")
+	if *update {
+		descriptionFile = descriptionGoldenFile
 	}
+
+	err = os.WriteFile(descriptionFile, []byte(r["description"]), 0644)
+	require.NoError(t, err)
+
+	compareDescriptions(t, descriptionGoldenFile, descriptionFile)
 
 	for key, expected := range expectedValues {
-		if r[key] != expected {
-			t.Errorf("[%s] Incorrect %s: expected %s, got %s\n", caseDesc, key, expected, r[key])
-		}
-
+		want := r[key]
+		require.EqualValues(t, expected, want)
 	}
 }
 
-func parseJson(in *string) map[string]interface{} {
-	r := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(*in), &r); err != nil {
-		log.Printf("received an unexpected error: %v\n", err)
-	}
-	return r
+func compareDescriptions(t *testing.T, expectedFile, gotFile string) {
+	expected, err := os.ReadFile(expectedFile)
+	require.NoError(t, err)
+	got, err := os.ReadFile(gotFile)
+	require.NoError(t, err)
+
+	require.Equal(t, expected, got)
 }
 
 func TestBuildBundledRegoForPackage(t *testing.T) {
+	regoRule := `
+package rego1
+title:="Audit event received"
+result:=sprintf("Audit event received from %s", [input.user])	
+url:="Audit-registry-received/Audit-image-received"
+`
 	tests := []struct {
 		name      string
 		fileName  string
@@ -323,7 +288,7 @@ func TestBuildBundledRegoForPackage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			regoFilePath := filepath.Join(t.TempDir(), tt.fileName)
-			err := os.WriteFile(regoFilePath, []byte(regoHtml), tt.perm)
+			err := os.WriteFile(regoFilePath, []byte(regoRule), tt.perm)
 			require.NoError(t, err)
 
 			savedBuildinRegoTemplates := buildinRegoTemplates
@@ -334,16 +299,16 @@ func TestBuildBundledRegoForPackage(t *testing.T) {
 
 			r, err := buildBundledRegoForPackage("rego1")
 			if tt.wantErr != "" {
-				assert.ErrorContains(t, err, tt.wantErr)
+				require.ErrorContains(t, err, tt.wantErr)
 				return
 			}
 
 			if tt.wantRules {
-				assert.NotEmpty(t, r.Modules())
+				require.NotEmpty(t, r.Modules())
 				return
 			}
 
-			assert.Empty(t, r.Modules())
+			require.Empty(t, r.Modules())
 
 		})
 	}
