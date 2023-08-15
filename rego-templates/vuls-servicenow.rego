@@ -29,6 +29,7 @@ html_tpl:=`
 %s
 <p><b>Resourse policy name:</b> %s</p>
 <p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>See more:</b> <a href="url">%s</a></p>
 %s
 `
 
@@ -259,6 +260,7 @@ result = msg {
     render_vlnrb("Negligible", vln_list("negligible")),
     with_default(input,"response_policy_name", ""),
     with_default(input,"application_scope", "none"),
+    with_default(input, "url", ""),
     by_flag(
      "",
      sprintf(`<p><b>See more:</b> <a href='%s'>%s</a></p>`,[href, text]), #link
