@@ -19,7 +19,7 @@ func TestEval(t *testing.T) {
 		caseDesc                string
 		inputFile               string
 		regoPackage             string
-		expectedValues          map[string]string // Description will save in golden file
+		expectedValues          map[string]string // Description saves in golden file
 		expectedDescriptionFile string
 		shouldEvalFail          bool
 		shouldPrepareFail       bool
@@ -97,6 +97,16 @@ func TestEval(t *testing.T) {
 				"title": "Raw Message Received",
 			},
 			expectedDescriptionFile: "testdata/goldens/raw-message-html.golden",
+		},
+		{
+			caseDesc:     "raw-message-json.rego template",
+			inputFile:    "testdata/inputs/simple-input.json",
+			templateFile: "../rego-templates/raw-message-json.rego",
+			regoPackage:  "postee.rawmessage.json",
+			expectedValues: map[string]string{
+				"title": "-",
+			},
+			expectedDescriptionFile: "testdata/goldens/raw-message-json.golden",
 		},
 		/* cases which should fail are below*/
 		{
@@ -188,7 +198,8 @@ func evaluateBuildinRego(t *testing.T, caseDesc, inputFile, templateFile, descri
 }
 func evaluateExternalRego(t *testing.T, caseDesc, inputFile, templateFile, descriptionGoldenFile string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
 	commonRegoTemplatesSaved := commonRegoTemplates
-	commonRegoTemplates = []string{"testdata/templates/common/common.rego"}
+	commonRegoDir := filepath.Join(filepath.Dir(templateFile), "common", "common.rego")
+	commonRegoTemplates = []string{commonRegoDir}
 	defer func() {
 		commonRegoTemplates = commonRegoTemplatesSaved
 	}()
