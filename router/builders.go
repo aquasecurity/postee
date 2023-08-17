@@ -84,6 +84,14 @@ func buildNexusIqAction(sourceSettings *ActionSettings) *actions.NexusIqAction {
 	}
 }
 
+func buildDependencyTrackAction(sourceSettings *ActionSettings) *actions.DependencyTrackAction {
+	return &actions.DependencyTrackAction{
+		Name:   sourceSettings.Name,
+		Url:    sourceSettings.Url,
+		APIKey: sourceSettings.DependencyTrackAPIKey,
+	}
+}
+
 func buildOpsGenieAction(sourceSettings *ActionSettings) *actions.OpsGenieAction {
 	return &actions.OpsGenieAction{
 		Name:           sourceSettings.Name,

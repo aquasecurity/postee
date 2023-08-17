@@ -41,6 +41,11 @@ posteeConfig: |
   #   actions: [my-slack]
   #   template: trivy-operator-slack
 
+  # - name: Trivy Operator Sbom Report to Dependency Track
+  #   input: contains(input.kind, "SbomReport")
+  #   actions: [ my-dependencytrack ]
+  #   template: trivy-operator-dependencytrack
+
   # Templates are used to format a message
   templates:
   - name: vuls-slack                  #  Out of the box template for slack
@@ -63,6 +68,8 @@ posteeConfig: |
     rego-package: postee.vuls.cyclondx
   - name: trivy-operator-slack
     rego-package: postee.trivyoperator.slack
+  - name: trivy-operator-dependencytrack
+    rego-package: postee.trivyoperator.dependencytrack
 
   # Rules are predefined rego policies that can be used to trigger routes
   rules:
@@ -149,6 +156,12 @@ posteeConfig: |
     password:         # Mandatory. User password
     url:              # Mandatory. Url of Nexus IQ server
     organization-id:  # Mandatory. Organization UID like "222de33e8005408a844c12eab952c9b0"
+
+  - name: my-dependencytrack
+    type: dependencytrack
+    enable: false
+    url:                       # Mandatory. Url of Dependency Track
+    dependency-track-api-key:  # Mandatory. API key of Dependency Track
 
   - name: my-opsgenie
     type: opsgenie

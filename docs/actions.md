@@ -193,6 +193,13 @@ Key               | Description                                              | V
 *url*             | Url of Nexus IQ server                                   |                 | Yes
 *organization-id* | Organization UID like "222de33e8005408a844c12eab952c9b0" |                 | Yes
 
+## Dependency Track
+
+Key                        | Description                    | Values  | Required  
+-------------------------- | ------------------------------ | ------- | --------  
+*url*                      | Url of Dependency Track        |         | Yes
+*dependency-track-api-key* | API key of Dependency Track    |         | Yes
+
 ## OpsGenie
 
 ??? note "Set up OpsGenie and get a token"
