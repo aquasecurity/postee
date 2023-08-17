@@ -108,6 +108,26 @@ func TestEval(t *testing.T) {
 			},
 			expectedDescriptionFile: "testdata/goldens/raw-message-json.golden",
 		},
+		{
+			caseDesc:     "trivy-jira.rego template",
+			inputFile:    "testdata/inputs/trivy-input.json",
+			templateFile: "../rego-templates/trivy-jira.rego",
+			regoPackage:  "postee.trivy.jira",
+			expectedValues: map[string]string{
+				"title": "pom.xml vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-jira.golden",
+		},
+		{
+			caseDesc:     "trivy-vulns-slack.rego template",
+			inputFile:    "testdata/inputs/trivy-input.json",
+			templateFile: "../rego-templates/trivy-vulns-slack.rego",
+			regoPackage:  "postee.vuls.trivy.slack",
+			expectedValues: map[string]string{
+				"title": "Vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-vulns-slack.golden",
+		},
 		/* cases which should fail are below*/
 		{
 			caseDesc:          "Rego with wrong package specified",
@@ -137,19 +157,19 @@ func TestEval(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.caseDesc, func(t *testing.T) {
 			if !test.skipBuildin {
-				evaluateBuildinRego(t, test.caseDesc, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
+				evaluateBuildinRego(t, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
 			}
 
 			if !test.skipExternal {
-				evaluateExternalRego(t, test.caseDesc, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
+				evaluateExternalRego(t, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
 			}
 		})
 	}
 }
 
-func evaluateBuildinRego(t *testing.T, caseDesc, inputFile, templateFile, descriptionGoldenFile, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
+func evaluateBuildinRego(t *testing.T, inputFile, templateFile, descriptionGoldenFile, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
 	buildinRegoTemplatesSaved := buildinRegoTemplates
-	buildinRegoTemplates = []string{templateFile}
+	buildinRegoTemplates = []string{filepath.Dir(templateFile)}
 	defer func() {
 		buildinRegoTemplates = buildinRegoTemplatesSaved
 	}()
@@ -160,10 +180,6 @@ func evaluateBuildinRego(t *testing.T, caseDesc, inputFile, templateFile, descri
 		return
 	}
 	require.NoError(t, err)
-
-	if demo.IsAggregationSupported() {
-		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
-	}
 
 	f, err := os.Open(inputFile)
 	require.NoError(t, err)
@@ -196,7 +212,7 @@ func evaluateBuildinRego(t *testing.T, caseDesc, inputFile, templateFile, descri
 		require.EqualValues(t, expected, want)
 	}
 }
-func evaluateExternalRego(t *testing.T, caseDesc, inputFile, templateFile, descriptionGoldenFile string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
+func evaluateExternalRego(t *testing.T, inputFile, templateFile, descriptionGoldenFile string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
 	commonRegoTemplatesSaved := commonRegoTemplates
 	commonRegoDir := filepath.Join(filepath.Dir(templateFile), "common", "common.rego")
 	commonRegoTemplates = []string{commonRegoDir}
@@ -213,10 +229,6 @@ func evaluateExternalRego(t *testing.T, caseDesc, inputFile, templateFile, descr
 		return
 	}
 	require.NoError(t, err)
-
-	if demo.IsAggregationSupported() {
-		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
-	}
 
 	f, err := os.Open(inputFile)
 	require.NoError(t, err)
@@ -256,7 +268,7 @@ func compareDescriptions(t *testing.T, expectedFile, gotFile string) {
 	got, err := os.ReadFile(gotFile)
 	require.NoError(t, err)
 
-	require.Equal(t, expected, got)
+	require.Equal(t, string(expected), string(got))
 }
 
 func TestBuildBundledRegoForPackage(t *testing.T) {

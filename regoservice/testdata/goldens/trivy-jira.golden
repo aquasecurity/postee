@@ -1,0 +1,44 @@
+
+h1. Image name: pom.xml
+
+h4. Critical severity vulnerabilities
+
+
+| || Layer || Title || Vulnerability ID || Resource name || Path || Installed version || Fix version || Url  
+| | pom.xml | log4j: deserialization of untrusted data in SocketServer | CVE-2019-17571 | log4j:log4j | none | 1.2.17 | 2.0-alpha1 | https://avd.aquasec.com/nvd/cve-2019-17571  
+| | pom.xml | log4j: SQL injection in Log4j 1.x when application is configured to use JDBCAppender | CVE-2022-23305 | log4j:log4j | none | 1.2.17 | none | https://avd.aquasec.com/nvd/cve-2022-23305  
+
+
+
+h4. High severity vulnerabilities
+
+
+| || Layer || Title || Vulnerability ID || Resource name || Path || Installed version || Fix version || Url  
+| | pom.xml | Remote code execution in Log4j 1.x when application is configured to use JMSAppender | CVE-2021-4104 | log4j:log4j | none | 1.2.17 | none | https://avd.aquasec.com/nvd/cve-2021-4104  
+| | pom.xml | log4j: Unsafe deserialization flaw in Chainsaw log viewer | CVE-2022-23307 | log4j:log4j | none | 1.2.17 | none | https://avd.aquasec.com/nvd/cve-2022-23307  
+
+
+
+h4. Medium severity vulnerabilities
+
+
+| || Layer || Title || Vulnerability ID || Resource name || Path || Installed version || Fix version || Url  
+| | pom.xml | log4j: Remote code execution in Log4j 1.x when application is configured to use JMSSink | CVE-2022-23302 | log4j:log4j | none | 1.2.17 | none | https://avd.aquasec.com/nvd/cve-2022-23302  
+
+
+
+h4. Low severity vulnerabilities
+
+
+| || Layer || Title || Vulnerability ID || Resource name || Path || Installed version || Fix version || Url  
+| | pom.xml | log4j: improper validation of certificate with host mismatch in SMTP appender | CVE-2020-9488 | log4j:log4j | none | 1.2.17 | 2.12.3, 2.13.2 | https://avd.aquasec.com/nvd/cve-2020-9488  
+
+
+
+h4. Unknown severity vulnerabilities
+
+
+| || Layer || Title || Vulnerability ID || Resource name || Path || Installed version || Fix version || Url  
+| | pom.xml | DoS via hashmap logging | CVE-2023-26464 | log4j:log4j | none | 1.2.17 | 2.0 | https://avd.aquasec.com/nvd/cve-2023-26464  
+
+

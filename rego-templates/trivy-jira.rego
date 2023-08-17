@@ -105,7 +105,7 @@ severities_stats := [
     ["high", to_severity_color("#e0443d", "high")],
     ["medium", to_severity_color("#f79421", "medium")],
     ["low", to_severity_color("#e1c930", "low")],
-    ["negligible", to_severity_color("green", "negligible")],
+    ["unknown", to_severity_color("green", "unknown")],
 ]
 
 vlnrb_headers := ["Layer", "Title","Vulnerability ID", "Resource name", "Path", "Installed version", "Fix version", "Url"]
@@ -153,6 +153,6 @@ result = msg {
     render_vlnrb("High", vln_list("HIGH")),
     render_vlnrb("Medium", vln_list("MEDIUM")),
     render_vlnrb("Low", vln_list("LOW")),
-    render_vlnrb("Negligible", vln_list("NEGLIGIBLE"))
+    render_vlnrb("Unknown", vln_list("UNKNOWN"))
     ])
 }
