@@ -1,2 +1,2 @@
-package rego1
+package rego1.without.result
 ttle:="Audit event received"

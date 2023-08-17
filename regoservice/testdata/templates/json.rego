@@ -1,4 +1,4 @@
-package rego1
+package rego1.json
 title:="Audit event received"
 result:={
 	"assignee": input.user

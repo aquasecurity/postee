@@ -1,2 +1,2 @@
-package rego1
+package rego1.invalid
 default input = false

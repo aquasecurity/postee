@@ -31,7 +31,7 @@ func TestEval(t *testing.T) {
 			caseDesc:                "simple case producing html output",
 			inputFile:               "testdata/inputs/simple-input.json",
 			templateFile:            "testdata/templates/html.rego",
-			regoPackage:             "rego1",
+			regoPackage:             "rego1.html",
 			expectedDescriptionFile: "testdata/goldens/html.golden",
 			expectedValues: map[string]string{
 				"title": "Audit event received",
@@ -42,7 +42,7 @@ func TestEval(t *testing.T) {
 			caseDesc:                "Multilevel package",
 			inputFile:               "testdata/inputs/simple-input.json",
 			templateFile:            "testdata/templates/html-with-complex-pkg.rego",
-			regoPackage:             "postee.rego1",
+			regoPackage:             "rego2.html",
 			expectedDescriptionFile: "testdata/goldens/html-with-complex-pkg.golden",
 			expectedValues: map[string]string{
 				"title": "Audit event received",
@@ -53,7 +53,7 @@ func TestEval(t *testing.T) {
 			caseDesc:                "producing json output",
 			inputFile:               "testdata/inputs/simple-input.json",
 			templateFile:            "testdata/templates/json.rego",
-			regoPackage:             "rego1",
+			regoPackage:             "rego1.json",
 			expectedDescriptionFile: "testdata/goldens/json.golden",
 			expectedValues: map[string]string{
 				"title": "Audit event received",
@@ -64,7 +64,7 @@ func TestEval(t *testing.T) {
 			caseDesc:                "producing json output without url",
 			inputFile:               "testdata/inputs/simple-input.json",
 			templateFile:            "testdata/templates/json-without-url.rego",
-			regoPackage:             "rego1",
+			regoPackage:             "rego1.json.without.url",
 			expectedDescriptionFile: "testdata/goldens/json-without-url.golden",
 			expectedValues: map[string]string{
 				"title": "Audit event received",
@@ -76,7 +76,7 @@ func TestEval(t *testing.T) {
 			inputFile:               "testdata/inputs/simple-input.json",
 			templateFile:            "testdata/templates/servicenow.rego",
 			expectedDescriptionFile: "testdata/goldens/servicenow.golden",
-			regoPackage:             "rego1",
+			regoPackage:             "rego1.servicenow",
 			expectedValues: map[string]string{
 				"title":         "test title",
 				"date":          "1667725398",
@@ -142,14 +142,14 @@ func TestEval(t *testing.T) {
 			caseDesc:       "Rego without any expression",
 			inputFile:      "testdata/inputs/simple-input.json",
 			templateFile:   "testdata/templates/without-any-expression.rego",
-			regoPackage:    "rego1",
+			regoPackage:    "rego1.without.any.expression",
 			shouldEvalFail: true,
 		},
 		{
 			caseDesc:       "Invalid Rego",
 			inputFile:      "testdata/inputs/simple-input.json",
 			templateFile:   "testdata/templates/invalid.rego",
-			regoPackage:    "rego1",
+			regoPackage:    "rego1.invalid",
 			expectedValues: map[string]string{},
 			shouldEvalFail: true,
 		},

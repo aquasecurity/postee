@@ -1,4 +1,4 @@
-package rego1
+package rego1.servicenow
 title:="test title"
 result = "test description"
 
