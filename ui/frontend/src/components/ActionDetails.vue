@@ -48,6 +48,7 @@
                   <option value="splunk">Splunk</option>
                   <option value="serviceNow">ServiceNow</option>
                   <option value="nexusIq">Nexus IQ</option>
+                  <option value="dependencytrack">Dependency Track</option>
                   <option value="exec">Exec</option>
                   <option value="awssecurityhub">AWS Security Hub</option>
                 </select>
@@ -121,6 +122,19 @@
             name="organization-id"
             description="ID of organization to create reports in"
             :show="isNexusIQ"
+            :inputHandler="updateField"
+            :validator="v(required)"
+          />
+          <!-- -->
+          <!-- dependencytrack custom properties start -->
+          <PropertyField
+            id="dependencyTrackApiKey"
+            label="Dependency Track API Key"
+            :value="formValues['dependency-track-api-key']"
+            :errorMsg="errors['dependencyTrackApiKey']"
+            name="dependency-track-api-key"
+            description="Key for API to upload BOM to Dependency Track"
+            :show="isDependencyTrack"
             :inputHandler="updateField"
             :validator="v(required)"
           />
@@ -493,6 +507,7 @@ const urlDescriptionByType = {
   jira: 'Mandatory. E.g "https://johndoe.atlassian.net"',
   slack: "",
   nexusIq: "Url of Nexus IQ server",
+  dependencytrack: "Url of Dependency Track server",
 };
 const typesWithCredentials = ["serviceNow", "email", "nexusIq"]; //TODO add description strings
 
@@ -551,6 +566,9 @@ export default {
     },
     isNexusIQ() {
       return this.actionType === "nexusIq";
+    },
+    isDependencyTrack() {
+      return this.actionType === "dependencytrack";
     },
     isExec(){
       return this.actionType === "exec";

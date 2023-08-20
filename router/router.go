@@ -401,6 +401,8 @@ func BuildAndInitOtpt(settings *ActionSettings, aquaServerUrl string) actions.Ac
 		plg = buildStdoutAction(settings)
 	case "nexusiq":
 		plg = buildNexusIqAction(settings)
+	case "dependencytrack":
+		plg = buildDependencyTrackAction(settings)
 	case "opsgenie":
 		plg = buildOpsGenieAction(settings)
 	case "exec":
