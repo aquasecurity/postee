@@ -128,6 +128,16 @@ func TestEval(t *testing.T) {
 			},
 			expectedDescriptionFile: "testdata/goldens/trivy-vulns-slack.golden",
 		},
+		{
+			caseDesc:     "vuls-html.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-html.rego",
+			regoPackage:  "postee.vuls.html",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223 vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-html.golden",
+		},
 		/* cases which should fail are below*/
 		{
 			caseDesc:          "Rego with wrong package specified",
