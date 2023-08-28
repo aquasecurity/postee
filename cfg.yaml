@@ -94,6 +94,7 @@ actions:
   host:      # Mandatory: SMTP host name (e.g. smtp.gmail.com)
   port:      # Mandatory: SMTP server port (e.g. 587)
   sender:    # Mandatory: The email address to use as a sender
+  local-name: # Optional: setting the local name instead of `localhost`
   recipients: ["", ""]  # Mandatory: comma separated list of recipients
 
 - name: my-email-smtp-server
