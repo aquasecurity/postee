@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -26,6 +27,7 @@ type EmailAction struct {
 	Port       int
 	Sender     string
 	Recipients []string
+	LocalName  string
 	UseMX      bool
 	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 }
@@ -39,8 +41,12 @@ func (email *EmailAction) Init() error {
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
+	if email.LocalName != "" {
+		email.sendFunc = email.sendEmailWithCustomClient
+	} else {
+		email.sendFunc = smtp.SendMail
+	}
 
-	email.sendFunc = smtp.SendMail
 	return nil
 }
 
@@ -86,6 +92,75 @@ func (email *EmailAction) Send(content map[string]string) error {
 		return err
 	}
 	log.Println("Email was sent successfully!")
+	return nil
+}
+
+func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	log.Println("senging an email via Custom client")
+
+	if err := validateLine(from); err != nil {
+		return err
+	}
+	for _, recp := range to {
+		if err := validateLine(recp); err != nil {
+			return err
+		}
+	}
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
+	}
+	c, err := smtp.NewClient(conn, email.Host)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	// test and set `localName`
+	if err := c.Hello(email.LocalName); err != nil {
+		return err
+	}
+
+	if ok, _ := c.Extension("STARTTLS"); ok {
+		config := &tls.Config{ServerName: email.Host}
+		if err = c.StartTLS(config); err != nil {
+			return err
+		}
+	}
+	if a != nil {
+		if err = c.Auth(a); err != nil {
+			return err
+		}
+	}
+	if err = c.Mail(from); err != nil {
+		return err
+	}
+	for _, addr := range to {
+		if err = c.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(msg)
+	if err != nil {
+		return err
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return c.Quit()
+
+	return nil
+}
+
+func validateLine(line string) error {
+	if strings.ContainsAny(line, "\n\r") {
+		return errors.New("smtp: A line must not contain CR or LF")
+	}
 	return nil
 }
 

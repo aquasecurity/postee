@@ -71,6 +71,7 @@ func buildEmailAction(sourceSettings *ActionSettings) *actions.EmailAction {
 		Port:       sourceSettings.Port,
 		Sender:     sourceSettings.Sender,
 		Recipients: sourceSettings.Recipients,
+		LocalName:  sourceSettings.LocalName,
 		UseMX:      sourceSettings.UseMX,
 	}
 }
