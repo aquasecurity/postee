@@ -98,14 +98,6 @@ func (email *EmailAction) Send(content map[string]string) error {
 func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 	log.Println("senging an email via Custom client")
 
-	if err := validateLine(from); err != nil {
-		return err
-	}
-	for _, recp := range to {
-		if err := validateLine(recp); err != nil {
-			return err
-		}
-	}
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return err
@@ -154,13 +146,6 @@ func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, fro
 	}
 	return c.Quit()
 
-	return nil
-}
-
-func validateLine(line string) error {
-	if strings.ContainsAny(line, "\n\r") {
-		return errors.New("smtp: A line must not contain CR or LF")
-	}
 	return nil
 }
 
