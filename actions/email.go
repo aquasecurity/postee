@@ -145,8 +145,6 @@ func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, fro
 		return err
 	}
 	return c.Quit()
-
-	return nil
 }
 
 func (email EmailAction) sendViaMxServers(port string, msg string, recipients []string) {
