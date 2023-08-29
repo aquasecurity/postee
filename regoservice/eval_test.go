@@ -71,22 +71,6 @@ func TestEval(t *testing.T) {
 				"url":   "",
 			},
 		},
-		{
-			caseDesc:                "producing ServiceNow output",
-			inputFile:               "testdata/inputs/simple-input.json",
-			templateFile:            "testdata/templates/servicenow.rego",
-			expectedDescriptionFile: "testdata/goldens/servicenow.golden",
-			regoPackage:             "rego1.servicenow",
-			expectedValues: map[string]string{
-				"title":         "test title",
-				"date":          "1667725398",
-				"severity":      "1",
-				"summary":       "test summary",
-				"category":      "test category",
-				"subcategory":   "test subcategory",
-				"assignedGroup": "test assigned group",
-			},
-		},
 		/* cases for templates from `rego-templates` directory */
 		{
 			caseDesc:     "raw-message-html.rego template",
@@ -137,6 +121,53 @@ func TestEval(t *testing.T) {
 				"title": "all-in-one:3.5.19223 vulnerability scan report",
 			},
 			expectedDescriptionFile: "testdata/goldens/vuls-html.golden",
+		},
+		{
+			caseDesc:     "vuls-html.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-html.rego",
+			regoPackage:  "postee.vuls.html",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223 vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-html.golden",
+		},
+		{
+			caseDesc:     "vuls-slack.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-slack.rego",
+			regoPackage:  "postee.vuls.slack",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223 vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-slack.golden",
+		},
+		{
+			caseDesc:     "vuls-cyclonedx.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-cyclonedx.rego",
+			regoPackage:  "postee.vuls.cyclondx",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-cyclonedx.golden",
+		},
+		{
+			caseDesc:     "servicenow.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/servicenow.rego",
+			regoPackage:  "postee.servicenow",
+			expectedValues: map[string]string{
+				"title":         "Aqua security | image | all-in-one:3.5.19223 | Scan report",
+				"category":      "Security Image Scan results",
+				"subcategory":   "Security incident",
+				"date":          "1624544066",
+				"severity":      "1",
+				"summary":       "Name: all-in-one:3.5.19223\nRegistry: Aqua\nMalware found: Yes\nSensitive data found: Yes\n\nvulnerabilities:\n*   critical: 1,\n*   high: 1,\n*   medium: 1,\n*   low: 1,\n*   negligible: 1\n\n",
+				"assignedTo":    "owner",
+				"assignedGroup": "group",
+			},
+			expectedDescriptionFile: "testdata/goldens/servicenow.golden",
 		},
 		/* cases which should fail are below*/
 		{
