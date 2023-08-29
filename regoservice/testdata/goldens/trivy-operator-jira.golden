@@ -1,0 +1,46 @@
+
+h1. Image: library/nginx:1.16 in namespace default
+
+h4. Summary totals:
+|critical: {color:#c00000}2{color}|high: {color:#e0443d}0{color}|medium: {color:#f79421}0{color}|low: {color:#e1c930}0{color}|unknown: {color:#505f79}0{color}|
+
+
+h4. Critical severity vulnerabilities
+
+
+|| ID || Title || Resource || Installed version || Fixed version || Url  ||
+| CVE-2019-20367 |  | libbsd0 | 0.9.1-2 | 0.9.1-2+deb10u1 | https://avd.aquasec.com/nvd/cve-2019-20367  |
+
+
+
+h4. High severity vulnerabilities
+
+
+|| ID || Title || Resource || Installed version || Fixed version || Url  ||
+| CVE-2018-25009 | libwebp: out-of-bounds read in WebPMuxCreateInternal | libwebp6 | 0.6.1-2 |  | https://avd.aquasec.com/nvd/cve-2018-25009  |
+
+
+
+h4. Medium severity vulnerabilities
+
+
+|| ID || Title || Resource || Installed version || Fixed version || Url  ||
+| CVE-2018-25010 | libwebp: out-of-bounds read in WebPMuxCreateInternal | libwebp3 | 0.6.1-2 |  | https://avd.aquasec.com/nvd/cve-2018-25009  |
+
+
+
+h4. Low severity vulnerabilities
+
+
+|| ID || Title || Resource || Installed version || Fixed version || Url  ||
+| CVE-2018-25011 | libwebp: out-of-bounds read in WebPMuxCreateInternal | libwebp4 | 0.6.1-2 |  | https://avd.aquasec.com/nvd/cve-2018-25009  |
+
+
+
+h4. Unknown severity vulnerabilities
+
+
+|| ID || Title || Resource || Installed version || Fixed version || Url  ||
+| CVE-2018-25012 | libwebp: out-of-bounds read in WebPMuxCreateInternal | libwebp5 | 0.6.1-2 |  | https://avd.aquasec.com/nvd/cve-2018-25009  |
+
+

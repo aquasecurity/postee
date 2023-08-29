@@ -1,0 +1,117 @@
+
+<p><b>Name:</b> test</p>
+<p><b>Category:</b> Test</p>
+<p><b>Severity:</b> 3</p>
+<p><b>Data:</b> 
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TD style='padding: 5px;'>host</TD>
+<TD style='padding: 5px;'> ubuntu</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>rule</TD>
+<TD style='padding: 5px;'> Test-Default-Policy</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>level</TD>
+<TD style='padding: 5px;'> block</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>action</TD>
+<TD style='padding: 5px;'> test malware delete</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>hostid</TD>
+<TD style='padding: 5px;'> host</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>hostip</TD>
+<TD style='padding: 5px;'> 10.100.102.19</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>reason</TD>
+<TD style='padding: 5px;'> Malware detection</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>result</TD>
+<TD style='padding: 5px;'> 2</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>tactic</TD>
+<TD style='padding: 5px;'> Defense Evasion, Execution, Privilege Escalation, Initial Access</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>control</TD>
+<TD style='padding: 5px;'> Malware scanning Control</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>malware</TD>
+<TD style='padding: 5px;'> Eicar-Test-Signature</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>subtype</TD>
+<TD style='padding: 5px;'> malware protection</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>category</TD>
+<TD style='padding: 5px;'> malware</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>resource</TD>
+<TD style='padding: 5px;'> /home/usr/tmp/malware/eicar.test</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>severity</TD>
+<TD style='padding: 5px;'> 4</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>rule_type</TD>
+<TD style='padding: 5px;'> host.runtime.policy (Test)</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>technique</TD>
+<TD style='padding: 5px;'> Execution Guardrails, Exploit Public Facing Application, Client Execution, Privilege Escalation, Remote Services</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>k8s_cluster</TD>
+<TD style='padding: 5px;'> Cluster-Test</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>malware_type</TD>
+<TD style='padding: 5px;'> Virus</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>resource_digest</TD>
+<TD style='padding: 5px;'> 0000</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>malware_scan_type</TD>
+<TD style='padding: 5px;'> file</TD>
+
+</TR>
+</TABLE>
+</p>
+
+<p><b>Resourse policy name:</b> test</p>
+<p><b>Resourse policy application scopes:</b> ["scope1", "scope2"]</p>

@@ -169,6 +169,52 @@ func TestEval(t *testing.T) {
 			},
 			expectedDescriptionFile: "testdata/goldens/servicenow.golden",
 		},
+		{
+			caseDesc:     "servicenow-incident.rego template",
+			inputFile:    "testdata/inputs/aqua-incident-input.json",
+			templateFile: "../rego-templates/servicenow-incident.rego",
+			regoPackage:  "postee.servicenow.incident",
+			expectedValues: map[string]string{
+				"title":    "test",
+				"category": "Security incident",
+				"severity": "3",
+				"summary":  "Category: Test\nSeverity: 3",
+			},
+			expectedDescriptionFile: "testdata/goldens/servicenow-incident.golden",
+		},
+		{
+			caseDesc:     "servicenow-insight.rego template",
+			inputFile:    "testdata/inputs/aqua-insight-input.json",
+			templateFile: "../rego-templates/servicenow-insight.rego",
+			regoPackage:  "postee.servicenow.insight",
+			expectedValues: map[string]string{
+				"title":    "Workloads or images containing login data",
+				"category": "Security insight",
+				"severity": "2",
+				"summary":  "Insight ID: aqua-3006\nDescription: Workloads or images containing login data\nImpact: Attackers with access to this workload or image might be able to use the login data to gain initial access to other resources\nSeverity: medium\nFound Date: 2022-08-25T09:02:28.991Z\nLast Scan: 2022-08-25T08:59:42.314673Z\nURL: ",
+			},
+			expectedDescriptionFile: "testdata/goldens/servicenow-insight.golden",
+		},
+		{
+			caseDesc:     "trivy-operator-jira.rego template",
+			inputFile:    "testdata/inputs/trivy-operator-input.json",
+			templateFile: "../rego-templates/trivy-operator-jira.rego",
+			regoPackage:  "postee.trivyoperator.jira",
+			expectedValues: map[string]string{
+				"title": "Vulnerability issue with image library/nginx:1.16 in namespace default",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-operator-jira.golden",
+		},
+		{
+			caseDesc:     "trivy-operator-slack.rego template",
+			inputFile:    "testdata/inputs/trivy-operator-input.json",
+			templateFile: "../rego-templates/trivy-operator-slack.rego",
+			regoPackage:  "postee.trivyoperator.slack",
+			expectedValues: map[string]string{
+				"title": "Vulnerability scan report library/nginx:1.16",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-operator-slack.golden",
+		},
 		/* cases which should fail are below*/
 		{
 			caseDesc:          "Rego with wrong package specified",
