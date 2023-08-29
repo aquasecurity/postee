@@ -199,7 +199,9 @@ configuration:
 image:
   repository: aquasec/postee
   pullPolicy: Always
-  # tag: "2.12.0-amd64"
+  # By default `tag` is taken from `.Chart.AppVersion`
+  # To use different version - uncomment this line and enter the desired version
+  # tag: ""
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent
