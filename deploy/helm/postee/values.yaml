@@ -186,7 +186,9 @@ posteUi:
     # usernameKey: username
     # passwordKey: password
   image: aquasec/postee-ui
-  # tag: "2.12.0-amd64"
+  # By default `tag` is taken from `.Chart.AppVersion`
+  # To use different version - uncomment this line and enter the desired version
+  # tag: ""
 
 configuration:
   # If set to true, ensure the externally generated secret to be named
