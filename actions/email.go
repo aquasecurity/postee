@@ -96,6 +96,9 @@ func (email *EmailAction) Send(content map[string]string) error {
 	return nil
 }
 
+// sendEmailWithCustomClient replaces smtp.SendMail() in cases
+// where it is necessary to establish a custom client host name instead of "localhost",
+// while keeping the remaining behavior unchanged.
 func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 	log.Printf("Sending an email via Custom client for action %q", email.Name)
 
@@ -105,7 +108,6 @@ func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, fro
 	}
 	defer c.Close()
 
-	// test and set `localName`
 	if err := c.Hello(email.LocalName); err != nil {
 		return err
 	}
