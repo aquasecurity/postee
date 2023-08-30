@@ -42,6 +42,7 @@ func (email *EmailAction) Init() error {
 		email.Sender = email.User
 	}
 	if email.LocalName != "" {
+		log.Printf("Action %q uses a custom client name %q instead of `localhost`", email.Name, email.LocalName)
 		email.sendFunc = email.sendEmailWithCustomClient
 	} else {
 		email.sendFunc = smtp.SendMail
@@ -96,7 +97,7 @@ func (email *EmailAction) Send(content map[string]string) error {
 }
 
 func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
-	log.Println("senging an email via Custom client")
+	log.Printf("Sending an email via Custom client for action %q", email.Name)
 
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
