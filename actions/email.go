@@ -99,11 +99,7 @@ func (email *EmailAction) Send(content map[string]string) error {
 func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 	log.Printf("Sending an email via Custom client for action %q", email.Name)
 
-	conn, err := net.Dial("tcp", addr)
-	if err != nil {
-		return err
-	}
-	c, err := smtp.NewClient(conn, email.Host)
+	c, err := smtp.Dial(addr)
 	if err != nil {
 		return err
 	}
