@@ -12,12 +12,6 @@ duplicate(a, b, col) = b {col == 2}
 clamp(a, b) = b { a > b }
 clamp(a, b) = a { a <= b }
 
-by_flag(a, b, flag) = a {
-	flag
-}
-by_flag(a, b, flag) = b {
-	flag = false
-}
 flat_array(a) = o {
 	o:=[item |
     	item:=a[_][_]

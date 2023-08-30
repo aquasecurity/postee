@@ -2,294 +2,369 @@ package regoservice
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
+	"flag"
 	"github.com/stretchr/testify/require"
 	"io/fs"
-	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-var (
-	regoHtml = `
-package rego1
-title:="Audit event received"
-result:=sprintf("Audit event received from %s", [input.user])	
-url:="Audit-registry-received/Audit-image-received"
-`
-	regoJson = `
-package rego1
-title:="Audit event received"
-result:={
-	"assignee": input.user
-}
-url:="Audit-registry-received/Audit-image-received"
-`
-	regoJsonWithoutUrl = `
-package rego1
-title:="Audit event received"
-result:={
-	"assignee": input.user
-}
-`
-	regoWithoutResult = `
-package rego1
-ttle:="Audit event received"
-`
-	regoWithoutAnyExpression = `
-package rego1
-`
-	regoServiceNowSimpleExample = `
-package rego1
-title:="test title"
-result = "test description"
-
-result_date = 1667725398
-result_category = "test category"
-result_subcategory = "test subcategory"
-result_assigned_group = "test assigned group"
-
-result_severity := 1
-
-result_summary := "test summary"
-`
-	invalidRego = `
-package rego1
-default input = false
-`
-
-	regoHtmlWithComplexPackage = `
-package postee.rego1
-title:="Audit event received"
-result:=sprintf("Audit event received from %s", [input.user])	
-url:="Audit-registry-received/Audit-image-received"
-`
-
-	input = `{
-		"user": "demo"
-	}
-`
-	commonRego = `package postee
-flat_array(a) = o {
-	o:=[item |
-		item:=a[_][_]
-	]
-}	
-`
-)
+var update = flag.Bool("update", false, "update golden files")
 
 func TestEval(t *testing.T) {
 	tests := []struct {
-		regoRule          *string
-		caseDesc          string
-		input             *string
-		regoPackage       string
-		expectedValues    map[string]string
-		shouldEvalFail    bool
-		shouldPrepareFail bool
-		skipBuildin       bool
-		skipExternal      bool
+		regoRule                *string
+		templateFile            string
+		caseDesc                string
+		inputFile               string
+		regoPackage             string
+		expectedValues          map[string]string // Description saves in golden file
+		expectedDescriptionFile string
+		shouldEvalFail          bool
+		shouldPrepareFail       bool
+		skipBuildin             bool
+		skipExternal            bool
 	}{
+		/* cases for basic functionality */
 		{
-			regoRule:    &regoHtml,
-			caseDesc:    "simple case producing html output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:                "simple case producing html output",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/html.rego",
+			regoPackage:             "rego1.html",
+			expectedDescriptionFile: "testdata/goldens/html.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": "Audit event received from demo",
-				"url":         "Audit-registry-received/Audit-image-received",
+				"title": "Audit event received",
+				"url":   "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
-			regoRule:    &regoHtmlWithComplexPackage,
-			caseDesc:    "Multilevel package",
-			input:       &input,
-			regoPackage: "postee.rego1",
+			caseDesc:                "Multilevel package",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/html-with-complex-pkg.rego",
+			regoPackage:             "rego2.html",
+			expectedDescriptionFile: "testdata/goldens/html-with-complex-pkg.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": "Audit event received from demo",
-				"url":         "Audit-registry-received/Audit-image-received",
+				"title": "Audit event received",
+				"url":   "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
-			regoRule:    &regoJson,
-			caseDesc:    "producing json output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:                "producing json output",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/json.rego",
+			regoPackage:             "rego1.json",
+			expectedDescriptionFile: "testdata/goldens/json.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": `{"assignee":"demo"}`,
-				"url":         "Audit-registry-received/Audit-image-received",
+				"title": "Audit event received",
+				"url":   "Audit-registry-received/Audit-image-received",
 			},
 		},
 		{
-			regoRule:    &regoJsonWithoutUrl,
-			caseDesc:    "producing json output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:                "producing json output without url",
+			inputFile:               "testdata/inputs/simple-input.json",
+			templateFile:            "testdata/templates/json-without-url.rego",
+			regoPackage:             "rego1.json.without.url",
+			expectedDescriptionFile: "testdata/goldens/json-without-url.golden",
 			expectedValues: map[string]string{
-				"title":       "Audit event received",
-				"description": `{"assignee":"demo"}`,
-				"url":         "",
+				"title": "Audit event received",
+				"url":   "",
 			},
 		},
+		/* cases for templates from `rego-templates` directory */
 		{
-			regoRule:    &regoServiceNowSimpleExample,
-			caseDesc:    "producing ServiceNow output",
-			input:       &input,
-			regoPackage: "rego1",
+			caseDesc:     "raw-message-html.rego template",
+			inputFile:    "testdata/inputs/simple-input.json",
+			templateFile: "../rego-templates/raw-message-html.rego",
+			regoPackage:  "postee.rawmessage.html",
 			expectedValues: map[string]string{
-				"title":         "test title",
-				"description":   "test description",
-				"date":          "1667725398",
+				"title": "Raw Message Received",
+			},
+			expectedDescriptionFile: "testdata/goldens/raw-message-html.golden",
+		},
+		{
+			caseDesc:     "raw-message-json.rego template",
+			inputFile:    "testdata/inputs/simple-input.json",
+			templateFile: "../rego-templates/raw-message-json.rego",
+			regoPackage:  "postee.rawmessage.json",
+			expectedValues: map[string]string{
+				"title": "-",
+			},
+			expectedDescriptionFile: "testdata/goldens/raw-message-json.golden",
+		},
+		{
+			caseDesc:     "trivy-jira.rego template",
+			inputFile:    "testdata/inputs/trivy-input.json",
+			templateFile: "../rego-templates/trivy-jira.rego",
+			regoPackage:  "postee.trivy.jira",
+			expectedValues: map[string]string{
+				"title": "pom.xml vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-jira.golden",
+		},
+		{
+			caseDesc:     "trivy-vulns-slack.rego template",
+			inputFile:    "testdata/inputs/trivy-input.json",
+			templateFile: "../rego-templates/trivy-vulns-slack.rego",
+			regoPackage:  "postee.vuls.trivy.slack",
+			expectedValues: map[string]string{
+				"title": "Vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-vulns-slack.golden",
+		},
+		{
+			caseDesc:     "vuls-html.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-html.rego",
+			regoPackage:  "postee.vuls.html",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223 vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-html.golden",
+		},
+		{
+			caseDesc:     "vuls-html.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-html.rego",
+			regoPackage:  "postee.vuls.html",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223 vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-html.golden",
+		},
+		{
+			caseDesc:     "vuls-slack.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-slack.rego",
+			regoPackage:  "postee.vuls.slack",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223 vulnerability scan report",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-slack.golden",
+		},
+		{
+			caseDesc:     "vuls-cyclonedx.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/vuls-cyclonedx.rego",
+			regoPackage:  "postee.vuls.cyclondx",
+			expectedValues: map[string]string{
+				"title": "all-in-one:3.5.19223",
+			},
+			expectedDescriptionFile: "testdata/goldens/vuls-cyclonedx.golden",
+		},
+		{
+			caseDesc:     "servicenow.rego template",
+			inputFile:    "testdata/inputs/aqua-input.json",
+			templateFile: "../rego-templates/servicenow.rego",
+			regoPackage:  "postee.servicenow",
+			expectedValues: map[string]string{
+				"title":         "Aqua security | image | all-in-one:3.5.19223 | Scan report",
+				"category":      "Security Image Scan results",
+				"subcategory":   "Security incident",
+				"date":          "1624544066",
 				"severity":      "1",
-				"summary":       "test summary",
-				"category":      "test category",
-				"subcategory":   "test subcategory",
-				"assignedGroup": "test assigned group",
+				"summary":       "Name: all-in-one:3.5.19223\nRegistry: Aqua\nMalware found: Yes\nSensitive data found: Yes\n\nvulnerabilities:\n*   critical: 1,\n*   high: 1,\n*   medium: 1,\n*   low: 1,\n*   negligible: 1\n\n",
+				"assignedTo":    "owner",
+				"assignedGroup": "group",
 			},
+			expectedDescriptionFile: "testdata/goldens/servicenow.golden",
+		},
+		{
+			caseDesc:     "servicenow-incident.rego template",
+			inputFile:    "testdata/inputs/aqua-incident-input.json",
+			templateFile: "../rego-templates/servicenow-incident.rego",
+			regoPackage:  "postee.servicenow.incident",
+			expectedValues: map[string]string{
+				"title":    "test",
+				"category": "Security incident",
+				"severity": "3",
+				"summary":  "Category: Test\nSeverity: 3",
+			},
+			expectedDescriptionFile: "testdata/goldens/servicenow-incident.golden",
+		},
+		{
+			caseDesc:     "servicenow-insight.rego template",
+			inputFile:    "testdata/inputs/aqua-insight-input.json",
+			templateFile: "../rego-templates/servicenow-insight.rego",
+			regoPackage:  "postee.servicenow.insight",
+			expectedValues: map[string]string{
+				"title":    "Workloads or images containing login data",
+				"category": "Security insight",
+				"severity": "2",
+				"summary":  "Insight ID: aqua-3006\nDescription: Workloads or images containing login data\nImpact: Attackers with access to this workload or image might be able to use the login data to gain initial access to other resources\nSeverity: medium\nFound Date: 2022-08-25T09:02:28.991Z\nLast Scan: 2022-08-25T08:59:42.314673Z\nURL: ",
+			},
+			expectedDescriptionFile: "testdata/goldens/servicenow-insight.golden",
+		},
+		{
+			caseDesc:     "trivy-operator-jira.rego template",
+			inputFile:    "testdata/inputs/trivy-operator-input.json",
+			templateFile: "../rego-templates/trivy-operator-jira.rego",
+			regoPackage:  "postee.trivyoperator.jira",
+			expectedValues: map[string]string{
+				"title": "Vulnerability issue with image library/nginx:1.16 in namespace default",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-operator-jira.golden",
+		},
+		{
+			caseDesc:     "trivy-operator-slack.rego template",
+			inputFile:    "testdata/inputs/trivy-operator-input.json",
+			templateFile: "../rego-templates/trivy-operator-slack.rego",
+			regoPackage:  "postee.trivyoperator.slack",
+			expectedValues: map[string]string{
+				"title": "Vulnerability scan report library/nginx:1.16",
+			},
+			expectedDescriptionFile: "testdata/goldens/trivy-operator-slack.golden",
 		},
 		/* cases which should fail are below*/
 		{
-			regoRule:          &regoWithoutResult,
 			caseDesc:          "Rego with wrong package specified",
-			input:             &input,
+			inputFile:         "testdata/inputs/simple-input.json",
+			templateFile:      "testdata/templates/without-result.rego",
 			regoPackage:       "rego3",
 			expectedValues:    map[string]string{},
 			shouldPrepareFail: true,
 			skipExternal:      true,
 		},
 		{
-			regoRule:       &regoWithoutAnyExpression,
 			caseDesc:       "Rego without any expression",
-			input:          &input,
-			regoPackage:    "rego1",
+			inputFile:      "testdata/inputs/simple-input.json",
+			templateFile:   "testdata/templates/without-any-expression.rego",
+			regoPackage:    "rego1.without.any.expression",
 			shouldEvalFail: true,
 		},
 		{
-			regoRule:       &invalidRego,
 			caseDesc:       "Invalid Rego",
-			input:          &input,
-			regoPackage:    "rego1",
+			inputFile:      "testdata/inputs/simple-input.json",
+			templateFile:   "testdata/templates/invalid.rego",
+			regoPackage:    "rego1.invalid",
 			expectedValues: map[string]string{},
 			shouldEvalFail: true,
 		},
 	}
 	for _, test := range tests {
-		if !test.skipBuildin {
-			evaluateBuildinRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
-		}
+		t.Run(test.caseDesc, func(t *testing.T) {
+			if !test.skipBuildin {
+				evaluateBuildinRego(t, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
+			}
 
-		if !test.skipExternal {
-			evaluateExternalRego(t, test.caseDesc, test.regoRule, test.input, test.regoPackage, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
-		}
+			if !test.skipExternal {
+				evaluateExternalRego(t, test.inputFile, test.templateFile, test.expectedDescriptionFile, test.expectedValues, test.shouldEvalFail, test.shouldPrepareFail)
+			}
+		})
 	}
 }
 
-func evaluateBuildinRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
+func evaluateBuildinRego(t *testing.T, inputFile, templateFile, descriptionGoldenFile, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
 	buildinRegoTemplatesSaved := buildinRegoTemplates
-	testRego := "rego1.rego"
-	buildinRegoTemplates = []string{testRego}
-
-	errWrite := ioutil.WriteFile(testRego, []byte(*regoRule), 0644)
-	if errWrite != nil {
-		t.Fatal(errWrite)
-	}
-
+	buildinRegoTemplates = []string{filepath.Dir(templateFile)}
 	defer func() {
 		buildinRegoTemplates = buildinRegoTemplatesSaved
-		os.Remove(testRego)
 	}()
+
 	demo, err := BuildBundledRegoEvaluator(regoPackage)
-	if err != nil && !shouldPrepareFail {
-		t.Errorf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
-		return
-	}
-	if err == nil && shouldPrepareFail {
-		t.Errorf("test case [%s] should fail on prepare\n", caseDesc)
-	}
-
 	if shouldPrepareFail {
+		require.Error(t, err, "test case should fail on prepare")
 		return
 	}
+	require.NoError(t, err)
 
-	if demo.IsAggregationSupported() {
-		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
+	f, err := os.Open(inputFile)
+	require.NoError(t, err)
+	defer f.Close()
+
+	in := make(map[string]interface{})
+	err = json.NewDecoder(f).Decode(&in)
+	require.NoError(t, err)
+
+	r, err := demo.Eval(in, "")
+	if shouldEvalFail {
+		require.Error(t, err, "test case should fail on eval")
+		return
 	}
-	r, err := demo.Eval(parseJson(input), "")
-	if err != nil && !shouldEvalFail {
-		t.Errorf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
+	require.NoError(t, err)
+
+	// write description in file
+	descriptionFile := filepath.Join(t.TempDir(), "description.txt")
+	if *update {
+		descriptionFile = descriptionGoldenFile
 	}
-	if err == nil && shouldEvalFail {
-		t.Errorf("test case [%s] should fail on eval\n", caseDesc)
-	}
+
+	err = os.WriteFile(descriptionFile, []byte(r["description"]), 0644)
+	require.NoError(t, err)
+
+	compareDescriptions(t, descriptionGoldenFile, descriptionFile)
 
 	for key, expected := range expectedValues {
-		if r[key] != expected {
-			t.Errorf("[%s] Incorrect %s: expected %s, got %s\n", caseDesc, key, expected, r[key])
-		}
-
+		want := r[key]
+		require.EqualValues(t, expected, want)
 	}
 }
-func evaluateExternalRego(t *testing.T, caseDesc string, regoRule *string, input *string, regoPackage string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
+func evaluateExternalRego(t *testing.T, inputFile, templateFile, descriptionGoldenFile string, expectedValues map[string]string, shouldEvalFail bool, shouldPrepareFail bool) {
 	commonRegoTemplatesSaved := commonRegoTemplates
-	testRego := "rego1.rego"
-	commonRegoFilename := "common.rego"
-	commonRegoTemplates = []string{commonRegoFilename}
-
-	err := ioutil.WriteFile(commonRegoFilename, []byte(commonRego), 0644)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	commonRegoDir := filepath.Join(filepath.Dir(templateFile), "common", "common.rego")
+	commonRegoTemplates = []string{commonRegoDir}
 	defer func() {
 		commonRegoTemplates = commonRegoTemplatesSaved
-		os.Remove(commonRegoFilename)
 	}()
 
-	demo, err := BuildExternalRegoEvaluator(testRego, *regoRule)
-	if err != nil && !shouldPrepareFail {
-		t.Errorf("[%s] received an unexpected error while preparing query: %v\n", caseDesc, err)
+	b, err := os.ReadFile(templateFile)
+	require.NoError(t, err)
+
+	demo, err := BuildExternalRegoEvaluator(templateFile, string(b))
+	if shouldPrepareFail {
+		require.Error(t, err, "test case should fail on prepare")
 		return
 	}
-	if err == nil && shouldPrepareFail {
-		t.Errorf("test case [%s] should fail on prepare\n", caseDesc)
+	require.NoError(t, err)
+
+	f, err := os.Open(inputFile)
+	require.NoError(t, err)
+	defer f.Close()
+
+	in := make(map[string]interface{})
+	err = json.NewDecoder(f).Decode(&in)
+	require.NoError(t, err)
+
+	r, err := demo.Eval(in, "")
+	if shouldEvalFail {
+		require.Error(t, err, "test case should fail on eval")
+		return
+	}
+	require.NoError(t, err)
+
+	// write description in file
+	descriptionFile := filepath.Join(t.TempDir(), "description.txt")
+	if *update {
+		descriptionFile = descriptionGoldenFile
 	}
 
-	if shouldPrepareFail {
-		return
-	}
-	if demo.IsAggregationSupported() {
-		t.Errorf("[%s] rule shouldn't support aggregation", caseDesc)
-	}
-	r, err := demo.Eval(parseJson(input), "")
-	if err != nil && !shouldEvalFail {
-		t.Errorf("[%s] unexpected error received while evaluating query: %v\n", caseDesc, err)
-	}
-	if err == nil && shouldEvalFail {
-		t.Errorf("test case [%s] should fail on eval\n", caseDesc)
-	}
+	err = os.WriteFile(descriptionFile, []byte(r["description"]), 0644)
+	require.NoError(t, err)
+
+	compareDescriptions(t, descriptionGoldenFile, descriptionFile)
 
 	for key, expected := range expectedValues {
-		if r[key] != expected {
-			t.Errorf("[%s] Incorrect %s: expected %s, got %s\n", caseDesc, key, expected, r[key])
-		}
-
+		want := r[key]
+		require.EqualValues(t, expected, want)
 	}
 }
 
-func parseJson(in *string) map[string]interface{} {
-	r := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(*in), &r); err != nil {
-		log.Printf("received an unexpected error: %v\n", err)
-	}
-	return r
+func compareDescriptions(t *testing.T, expectedFile, gotFile string) {
+	expected, err := os.ReadFile(expectedFile)
+	require.NoError(t, err)
+	got, err := os.ReadFile(gotFile)
+	require.NoError(t, err)
+
+	require.Equal(t, string(expected), string(got))
 }
 
 func TestBuildBundledRegoForPackage(t *testing.T) {
+	regoRule := `
+package rego1
+title:="Audit event received"
+result:=sprintf("Audit event received from %s", [input.user])	
+url:="Audit-registry-received/Audit-image-received"
+`
 	tests := []struct {
 		name      string
 		fileName  string
@@ -323,7 +398,7 @@ func TestBuildBundledRegoForPackage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			regoFilePath := filepath.Join(t.TempDir(), tt.fileName)
-			err := os.WriteFile(regoFilePath, []byte(regoHtml), tt.perm)
+			err := os.WriteFile(regoFilePath, []byte(regoRule), tt.perm)
 			require.NoError(t, err)
 
 			savedBuildinRegoTemplates := buildinRegoTemplates
@@ -334,16 +409,16 @@ func TestBuildBundledRegoForPackage(t *testing.T) {
 
 			r, err := buildBundledRegoForPackage("rego1")
 			if tt.wantErr != "" {
-				assert.ErrorContains(t, err, tt.wantErr)
+				require.ErrorContains(t, err, tt.wantErr)
 				return
 			}
 
 			if tt.wantRules {
-				assert.NotEmpty(t, r.Modules())
+				require.NotEmpty(t, r.Modules())
 				return
 			}
 
-			assert.Empty(t, r.Modules())
+			require.Empty(t, r.Modules())
 
 		})
 	}

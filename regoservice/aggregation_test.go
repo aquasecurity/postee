@@ -29,6 +29,14 @@ result := res {
     res:= concat("\n", flat_array(scans))
 }
 `
+
+	commonRego = `package postee
+flat_array(a) = o {
+	o:=[item |
+		item:=a[_][_]
+	]
+}	
+`
 )
 
 func TestAggregation(t *testing.T) {
@@ -62,11 +70,11 @@ description2`,
 		},
 	}
 	for _, test := range tests {
-		aggregateBuildinRego(t, test.caseDesc, test.regoRule, test.aggregationRegoRule, test.items, test.regoPackage, test.expectedValues)
+		aggregateBuildinRego(t, test.regoRule, test.aggregationRegoRule, test.items, test.regoPackage, test.expectedValues)
 	}
 }
 
-func aggregateBuildinRego(t *testing.T, caseDesc string, regoRule *string, aggregationRegoRule *string, items []map[string]string, regoPackage string, expectedValues map[string]string) {
+func aggregateBuildinRego(t *testing.T, regoRule *string, aggregationRegoRule *string, items []map[string]string, regoPackage string, expectedValues map[string]string) {
 	buildinRegoTemplatesSaved := buildinRegoTemplates
 	testRego := "rego1.rego"
 	aggrRego := "aggr1.rego"

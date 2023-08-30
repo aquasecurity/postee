@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<bom serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79" version="1"
+     xmlns="http://cyclonedx.org/schema/bom/1.1"
+     xmlns:v="http://cyclonedx.org/schema/ext/vulnerability/1.0">
+  <components>
+      <component type="application">
+      <name>libgcrypt</name>
+      <version>1.8.3-r0</version>
+      <licenses>
+        <license>
+          <id>LGPL</id>
+        </license>
+      </licenses>
+      <v:vulnerabilities>
+        <v:vulnerability>
+          <v:id>CVE-2019-12904</v:id> 
+          <v:source name="NVD">
+            <v:url>https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12904</v:url>
+          </v:source>
+          <v:ratings>
+            <v:rating>
+              <v:score>
+                <v:base>4.3</v:base>
+                <v:impact>4.3</v:impact>
+                <v:exploitability>4.3</v:exploitability>
+              </v:score>
+              <v:severity>medium</v:severity>
+              <v:method>CVSS V2</v:method>
+              <v:vector>AV:N/AC:M/Au:N/C:P/I:N/A:N</v:vector>
+            </v:rating>
+          </v:ratings>
+          <v:recommendations>
+            <v:recommendation>Upgrade package libgcrypt to version 1.8.3-r1 or above.</v:recommendation>
+          </v:recommendations>
+        </v:vulnerability>
+        <v:vulnerability>
+          <v:id>CVE-2021-33560</v:id> 
+          <v:source name="NVD">
+            <v:url>https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-33560</v:url>
+          </v:source>
+          <v:ratings>
+            <v:rating>
+              <v:score>
+                <v:base>5</v:base>
+                <v:impact>5</v:impact>
+                <v:exploitability>5</v:exploitability>
+              </v:score>
+              <v:severity>high</v:severity>
+              <v:method>CVSS V2</v:method>
+              <v:vector>AV:N/AC:L/Au:N/C:P/I:N/A:N</v:vector>
+            </v:rating>
+          </v:ratings>
+          <v:recommendations>
+            <v:recommendation>No solution available</v:recommendation>
+          </v:recommendations>
+        </v:vulnerability></v:vulnerabilities>
+    </component>    <component type="application">
+      <name>busybox</name>
+      <version>1.28.4-r3</version>
+      <licenses>
+        <license>
+          <id>GPL2</id>
+        </license>
+      </licenses>
+      <v:vulnerabilities>
+        <v:vulnerability>
+          <v:id>CVE-2018-1000517</v:id> 
+          <v:source name="NVD">
+            <v:url>https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-1000517</v:url>
+          </v:source>
+          <v:ratings>
+            <v:rating>
+              <v:score>
+                <v:base>7.5</v:base>
+                <v:impact>7.5</v:impact>
+                <v:exploitability>7.5</v:exploitability>
+              </v:score>
+              <v:severity>critical</v:severity>
+              <v:method>CVSS V2</v:method>
+              <v:vector>AV:N/AC:L/Au:N/C:P/I:P/A:P</v:vector>
+            </v:rating>
+          </v:ratings>
+          <v:recommendations>
+            <v:recommendation>No solution available</v:recommendation>
+          </v:recommendations>
+        </v:vulnerability>
+        <v:vulnerability>
+          <v:id>CVE-2018-20679</v:id> 
+          <v:source name="NVD">
+            <v:url>https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-20679</v:url>
+          </v:source>
+          <v:ratings>
+            <v:rating>
+              <v:score>
+                <v:base>5</v:base>
+                <v:impact>5</v:impact>
+                <v:exploitability>5</v:exploitability>
+              </v:score>
+              <v:severity>low</v:severity>
+              <v:method>CVSS V2</v:method>
+              <v:vector>AV:N/AC:L/Au:N/C:P/I:N/A:N</v:vector>
+            </v:rating>
+          </v:ratings>
+          <v:recommendations>
+            <v:recommendation>No solution available</v:recommendation>
+          </v:recommendations>
+        </v:vulnerability>
+        <v:vulnerability>
+          <v:id>CVE-2019-5747</v:id> 
+          <v:source name="NVD">
+            <v:url>https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-5747</v:url>
+          </v:source>
+          <v:ratings>
+            <v:rating>
+              <v:score>
+                <v:base>5</v:base>
+                <v:impact>5</v:impact>
+                <v:exploitability>5</v:exploitability>
+              </v:score>
+              <v:severity>negligible</v:severity>
+              <v:method>CVSS V2</v:method>
+              <v:vector>AV:N/AC:L/Au:N/C:P/I:N/A:N</v:vector>
+            </v:rating>
+          </v:ratings>
+          <v:recommendations>
+            <v:recommendation>No solution available</v:recommendation>
+          </v:recommendations>
+        </v:vulnerability></v:vulnerabilities>
+    </component>
+  </components>
+</bom>

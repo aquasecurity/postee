@@ -1,0 +1,237 @@
+{
+  "image": "all-in-one:3.5.19223",
+  "registry": "Aqua",
+  "scan_started": {
+    "seconds": 1624544066,
+    "nanos": 881635578
+  },
+  "scan_duration": 3,
+  "pull_skipped": true,
+  "image_size": 178041649,
+  "digest": "sha256:45388de11cfbf5c5d9e2e1418dfeac221c57cfffa1e2fffa833ac283ed029ecf",
+  "os": "alpine",
+  "version": "3.8.4",
+  "resources": [
+    {
+      "resource": {
+        "format": "apk",
+        "name": "libgcrypt",
+        "version": "1.8.3-r0",
+        "arch": "x86_64",
+        "cpe": "pkg:/alpine:3.8.4:libgcrypt:1.8.3-r0",
+        "license": "LGPL",
+        "layer_digest": "sha256:18282a568fb5f423d55ad20369f729a22e3a912da9ddd0bff0b063c81544f785",
+        "src_name": "libgcrypt",
+        "src_version": "1.8.3-r0"
+      },
+      "scanned": true,
+      "vulnerabilities": [
+        {
+          "name": "CVE-2019-12904",
+          "description": "** DISPUTED ** In Libgcrypt 1.8.4, the C implementation of AES is vulnerable to a flush-and-reload side-channel attack because physical addresses are available to other processes. (The C implementation is used on platforms where an assembly-language implementation is unavailable.) NOTE: the vendor's position is that the issue report cannot be validated because there is no description of an attack.",
+          "nvd_score": 4.3,
+          "nvd_score_version": "CVSS v2",
+          "nvd_vectors": "AV:N/AC:M/Au:N/C:P/I:N/A:N",
+          "nvd_severity": "medium",
+          "nvd_url": "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12904",
+          "vendor_score_version": "CVSS v2",
+          "publish_date": "2019-06-20",
+          "modification_date": "2021-03-04",
+          "fix_version": "1.8.3-r1",
+          "solution": "Upgrade package libgcrypt to version 1.8.3-r1 or above.",
+          "nvd_score_v3": 5.9,
+          "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+          "nvd_severity_v3": "medium",
+          "aqua_score": 4.3,
+          "aqua_severity": "medium",
+          "aqua_vectors": "AV:N/AC:M/Au:N/C:P/I:N/A:N",
+          "aqua_scoring_system": "CVSS V2",
+          "heuristic_ref_id": 328557,
+          "aqua_severity_classification": "NVD CVSS V2 Score: 4.3",
+          "aqua_score_classification": "NVD CVSS V2 Score: 4.3"
+        },
+        {
+          "name": "CVE-2021-33560",
+          "description": "Libgcrypt before 1.8.8 and 1.9.x before 1.9.3 mishandles ElGamal encryption because it lacks exponent blinding to address a side-channel attack against mpi_powm, and the window size is not chosen appropriately. (There is also an interoperability problem because the selection of the k integer value does not properly consider the differences between basic ElGamal encryption and generalized ElGamal encryption.) This, for example, affects use of ElGamal in OpenPGP.",
+          "nvd_score": 5,
+          "nvd_score_version": "CVSS v2",
+          "nvd_vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+          "nvd_severity": "high",
+          "nvd_url": "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2021-33560",
+          "publish_date": "2021-06-08",
+          "modification_date": "2021-06-15",
+          "fix_version": "1.8.8",
+          "nvd_score_v3": 7.5,
+          "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+          "nvd_severity_v3": "high",
+          "aqua_score": 5,
+          "aqua_severity": "high",
+          "aqua_vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+          "aqua_scoring_system": "CVSS V2",
+          "aqua_severity_classification": "NVD CVSS V2 Score: 5.0",
+          "aqua_score_classification": "NVD CVSS V2 Score: 5.0"
+        }
+      ]
+    },
+    {
+      "resource": {
+        "format": "apk",
+        "name": "busybox",
+        "version": "1.28.4-r3",
+        "arch": "x86_64",
+        "cpe": "pkg:/alpine:3.8.4:busybox:1.28.4-r3",
+        "license": "GPL2",
+        "layer_digest": "sha256:c87736221ed0bcaa60b8e92a19bec2284899ef89226f2a07968677cf59e637a4",
+        "src_name": "busybox",
+        "src_version": "1.28.4-r3"
+      },
+      "scanned": true,
+      "vulnerabilities": [
+        {
+          "name": "CVE-2018-1000517",
+          "description": "BusyBox project BusyBox wget version prior to commit 8e2174e9bd836e53c8b9c6e00d1bc6e2a718686e contains a Buffer Overflow vulnerability in Busybox wget that can result in heap buffer overflow. This attack appear to be exploitable via network connectivity. This vulnerability appears to have been fixed in after commit 8e2174e9bd836e53c8b9c6e00d1bc6e2a718686e.",
+          "nvd_score": 7.5,
+          "nvd_score_version": "CVSS v2",
+          "nvd_vectors": "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+          "nvd_severity": "critical",
+          "nvd_url": "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-1000517",
+          "publish_date": "2018-06-26",
+          "modification_date": "2021-02-18",
+          "fix_version": "1.29.0",
+          "nvd_score_v3": 9.8,
+          "nvd_vectors_v3": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+          "nvd_severity_v3": "critical",
+          "aqua_score": 7.5,
+          "aqua_severity": "critical",
+          "aqua_vectors": "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+          "aqua_scoring_system": "CVSS V2",
+          "aqua_severity_classification": "NVD CVSS V2 Score: 7.5",
+          "aqua_score_classification": "NVD CVSS V2 Score: 7.5"
+        },
+        {
+          "name": "CVE-2018-20679",
+          "description": "An issue was discovered in BusyBox before 1.30.0. An out of bounds read in udhcp components (consumed by the DHCP server, client, and relay) allows a remote attacker to leak sensitive information from the stack by sending a crafted DHCP message. This is related to verification in udhcp_get_option() in networking/udhcp/common.c that 4-byte options are indeed 4 bytes.",
+          "nvd_score": 5,
+          "nvd_score_version": "CVSS v2",
+          "nvd_vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+          "nvd_severity": "low",
+          "nvd_url": "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2018-20679",
+          "publish_date": "2019-01-09",
+          "modification_date": "2019-09-04",
+          "fix_version": "1.30.0",
+          "nvd_score_v3": 7.5,
+          "nvd_vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+          "nvd_severity_v3": "low",
+          "aqua_score": 5,
+          "aqua_severity": "low",
+          "aqua_vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+          "aqua_scoring_system": "CVSS V2",
+          "aqua_severity_classification": "NVD CVSS V2 Score: 5.0",
+          "aqua_score_classification": "NVD CVSS V2 Score: 5.0"
+        },
+        {
+          "name": "CVE-2019-5747",
+          "description": "An issue was discovered in BusyBox through 1.30.0. An out of bounds read in udhcp components (consumed by the DHCP server, client, and/or relay) might allow a remote attacker to leak sensitive information from the stack by sending a crafted DHCP message. This is related to assurance of a 4-byte length when decoding DHCP_SUBNET. NOTE: this issue exists because of an incomplete fix for CVE-2018-20679.",
+          "nvd_score": 5,
+          "nvd_score_version": "CVSS v2",
+          "nvd_vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+          "nvd_severity": "negligible",
+          "nvd_url": "https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-5747",
+          "publish_date": "2019-01-09",
+          "modification_date": "2019-09-04",
+          "already_acknowledged": true,
+          "nvd_score_v3": 7.5,
+          "nvd_vectors_v3": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+          "nvd_severity_v3": "negligible",
+          "aqua_score": 5,
+          "aqua_severity": "negligible",
+          "aqua_vectors": "AV:N/AC:L/Au:N/C:P/I:N/A:N",
+          "aqua_scoring_system": "CVSS V2",
+          "aqua_severity_classification": "NVD CVSS V2 Score: 5.0",
+          "aqua_score_classification": "NVD CVSS V2 Score: 5.0"
+        }
+      ]
+    }
+  ],
+  "image_assurance_results": {
+    "checks_performed": [
+      {
+        "policy_id": 1,
+        "policy_name": "Default",
+        "control": "malware"
+      },
+      {
+        "policy_id": 1,
+        "policy_name": "Default",
+        "control": "license"
+      },
+      {
+        "policy_id": 1,
+        "policy_name": "Default",
+        "control": "max_severity",
+        "maximum_severity_allowed": "critical",
+        "maximum_severity_found": "high"
+      }
+    ]
+  },
+  "vulnerability_summary": {
+    "total": 5,
+    "critical": 1,
+    "high": 1,
+    "medium": 1,
+    "low": 1,
+    "negligible": 1,
+    "sensitive": 0,
+    "malware": 0,
+    "score_average": 5.020931
+  },
+  "scan_options": {
+    "scan_executables": true,
+    "scan_sensitive_data": true,
+    "show_will_not_fix": true,
+    "webhook_url": "https://975cb1e5b1fc.ngrok.io",
+    "scan_malware": true,
+    "strict_scan": true,
+    "scan_files": true,
+    "scan_timeout": 3600000000000,
+    "manual_pull_fallback": true,
+    "dockerless": true,
+    "enable_fast_scanning": true,
+    "memoryThrottling": true,
+    "suggest_os_upgrade": true,
+    "seim_enabled": true
+  },
+  "previous_digest": "sha256:45388de11cfbf5c5d9e2e1418dfeac221c57cfffa1e2fffa833ac283ed029ecf",
+  "vulnerability_diff": {
+    "total": 0,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "negligible": 0,
+    "sensitive": 0,
+    "malware": 0
+  },
+  "initiating_user": "upwork",
+  "data_date": 1624490283,
+  "pull_name": "registry.aquasec.com/all-in-one:3.5.19223",
+  "changed_result": false,
+  "function_metadata": {},
+  "scan_id": 386815,
+  "required_image_platform": "amd64:::",
+  "scanned_image_platform": "amd64::linux:",
+  "security_feeds_used": {
+    "executables": "92475757e80429"
+  },
+  "image_id": 704,
+  "internal_digest_id": {
+    "id": 1095
+  },
+  "application_scope": [
+    "group"
+  ],
+  "application_scope_owners": [
+    "owner"
+  ]
+}
+

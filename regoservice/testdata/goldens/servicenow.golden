@@ -1,0 +1,192 @@
+
+<p><b>Name:</b> all-in-one:3.5.19223</p>
+<p><b>Registry:</b> Aqua</p>
+<p><b>Malware found:</b> Yes</p>
+<p><b>Sensitive data found:</b> Yes</p>
+<!-- Stats -->
+<h3> Vulnerability summary </h3>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TD style='padding: 5px;'>critical</TD>
+<TD style='padding: 5px;'><span style='color:#c00000'>1</span></TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>high</TD>
+<TD style='padding: 5px;'><span style='color:#e0443d'>1</span></TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>medium</TD>
+<TD style='padding: 5px;'><span style='color:#f79421'>1</span></TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>low</TD>
+<TD style='padding: 5px;'><span style='color:#e1c930'>1</span></TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>negligible</TD>
+<TD style='padding: 5px;'><span style='color:green'>1</span></TD>
+
+</TR>
+</TABLE>
+
+<!-- Assurance controls -->
+
+<h3>Assurance controls</h3>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TH style='padding: 5px;'>#</TH>
+<TH style='padding: 5px;'>Control</TH>
+<TH style='padding: 5px;'>Policy Name</TH>
+<TH style='padding: 5px;'>Status</TH>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>1</TD>
+<TD style='padding: 5px;'>malware</TD>
+<TD style='padding: 5px;'>Default</TD>
+<TD style='padding: 5px;'>PASS</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>2</TD>
+<TD style='padding: 5px;'>license</TD>
+<TD style='padding: 5px;'>Default</TD>
+<TD style='padding: 5px;'>PASS</TD>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>3</TD>
+<TD style='padding: 5px;'>max_severity</TD>
+<TD style='padding: 5px;'>Default</TD>
+<TD style='padding: 5px;'>PASS</TD>
+
+</TR>
+</TABLE>
+
+
+<!-- Critical severity vulnerabilities -->
+
+<h3>Critical severity vulnerabilities</h3>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TH style='padding: 5px;'>Vulnerability ID</TH>
+<TH style='padding: 5px;'>Resource name</TH>
+<TH style='padding: 5px;'>Installed version</TH>
+<TH style='padding: 5px;'>Fix version</TH>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>CVE-2018-1000517</TD>
+<TD style='padding: 5px;'>busybox</TD>
+<TD style='padding: 5px;'>1.28.4-r3</TD>
+<TD style='padding: 5px;'>1.29.0</TD>
+
+</TR>
+</TABLE>
+
+
+<!-- High severity vulnerabilities -->
+
+<h3>High severity vulnerabilities</h3>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TH style='padding: 5px;'>Vulnerability ID</TH>
+<TH style='padding: 5px;'>Resource name</TH>
+<TH style='padding: 5px;'>Installed version</TH>
+<TH style='padding: 5px;'>Fix version</TH>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>CVE-2021-33560</TD>
+<TD style='padding: 5px;'>libgcrypt</TD>
+<TD style='padding: 5px;'>1.8.3-r0</TD>
+<TD style='padding: 5px;'>1.8.8</TD>
+
+</TR>
+</TABLE>
+
+
+<!-- Medium severity vulnerabilities -->
+
+<h3>Medium severity vulnerabilities</h3>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TH style='padding: 5px;'>Vulnerability ID</TH>
+<TH style='padding: 5px;'>Resource name</TH>
+<TH style='padding: 5px;'>Installed version</TH>
+<TH style='padding: 5px;'>Fix version</TH>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>CVE-2019-12904</TD>
+<TD style='padding: 5px;'>libgcrypt</TD>
+<TD style='padding: 5px;'>1.8.3-r0</TD>
+<TD style='padding: 5px;'>1.8.3-r1</TD>
+
+</TR>
+</TABLE>
+
+
+<!-- Low severity vulnerabilities -->
+
+<h3>Low severity vulnerabilities</h3>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TH style='padding: 5px;'>Vulnerability ID</TH>
+<TH style='padding: 5px;'>Resource name</TH>
+<TH style='padding: 5px;'>Installed version</TH>
+<TH style='padding: 5px;'>Fix version</TH>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>CVE-2018-20679</TD>
+<TD style='padding: 5px;'>busybox</TD>
+<TD style='padding: 5px;'>1.28.4-r3</TD>
+<TD style='padding: 5px;'>1.30.0</TD>
+
+</TR>
+</TABLE>
+
+
+<!-- Negligible severity vulnerabilities -->
+
+<h3>Negligible severity vulnerabilities</h3>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TH style='padding: 5px;'>Vulnerability ID</TH>
+<TH style='padding: 5px;'>Resource name</TH>
+<TH style='padding: 5px;'>Installed version</TH>
+<TH style='padding: 5px;'>Fix version</TH>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>CVE-2019-5747</TD>
+<TD style='padding: 5px;'>busybox</TD>
+<TD style='padding: 5px;'>1.28.4-r3</TD>
+<TD style='padding: 5px;'>none</TD>
+
+</TR>
+</TABLE>
+
+
+<p><b>Resourse policy name:</b> </p>
+<p><b>Resourse policy application scopes:</b> ["group"]</p>
+

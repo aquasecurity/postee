@@ -1,0 +1,16 @@
+{
+  "create_time": 0,
+  "event_category": "incident",
+  "type": "Malware",
+  "host_name": "ubuntu",
+  "host_id": "test",
+  "category": "Test",
+  "result": 2,
+  "severity_score": 3,
+  "name": "test",
+  "response_policy_name": "test",
+  "data": "{\"host\": \"ubuntu\",\"rule\": \"Test-Default-Policy\",\"level\": \"block\",\"action\": \"test malware delete\",\"hostid\": \"host\",\"hostip\": \"10.100.102.19\",\"reason\": \"Malware detection\",\"result\": 2,\"tactic\": \"Defense Evasion, Execution, Privilege Escalation, Initial Access\",\"control\": \"Malware scanning Control\",\"malware\": \"Eicar-Test-Signature\",\"subtype\": \"malware protection\",\"category\": \"malware\",\"resource\": \"/home/usr/tmp/malware/eicar.test\",\"severity\": 4,\"rule_type\": \"host.runtime.policy (Test)\",\"technique\": \"Execution Guardrails, Exploit Public Facing Application, Client Execution, Privilege Escalation, Remote Services\",\"k8s_cluster\": \"Cluster-Test\",\"malware_type\": \"Virus\",\"resource_digest\": \"0000\",\"malware_scan_type\": \"file\"}",
+  "application_scope": [
+    "scope1",
+    "scope2"    ]
+}

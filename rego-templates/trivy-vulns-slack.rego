@@ -28,7 +28,7 @@ render_sections(rows, caption, headers) = a {
 		num_chunks := ceil(count(rows) / group_size) - 1
 		indices := {b | b := numbers.range(0, num_chunks)[_] * group_size}
 		some k
-		fields := [array.slice(rows, i, i + group_size) | i := indices[_]][k]
+		fields := [array.slice(rows_and_header, i, i + group_size) | i := indices[_]][k]
 		# builds markdown section based on slice
 
     	s := with_caption(fields, caption, k)
@@ -122,7 +122,7 @@ title = sprintf("Vulnerability scan report", []) # title is
 aggregation_pkg := "postee.vuls.slack.trivy.aggregation"
 
 result = res {
-	severities := ["CRITICAL", "HIGH", "MEDIUM", "low", "negligible"]
+	severities := ["CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"]
 
 	headers := [
 		{"type": "section", "text": {"type": "mrkdwn", "text": sprintf("Artifact name: %s", [input.ArtifactName])}},
@@ -136,13 +136,24 @@ result = res {
 		},
 	]
 
+	summary:= [
+	    {
+    		"type": "section",
+    	    "text": {
+    			"type": "mrkdwn",
+    			"text": "*Found vulnerabilities*",
+    		},
+    	},
+    ]
+
 	res := flat_array([
 		headers,
 		vln_list("CRITICAL"),
 		vln_list("HIGH"),
 		vln_list("MEDIUM"),
 		vln_list("LOW"),
-		vln_list("NEGLIGIBLE"),
+		vln_list("UNKNOWN"),
+		summary,
 		[{
 			"type": "section",
 			"fields": [
@@ -154,8 +165,8 @@ result = res {
 				{"type": "mrkdwn", "text": sprintf("*%d*", [cnt_by_severity("MEDIUM")])},
 				{"type": "mrkdwn", "text": "Low"},
 				{"type": "mrkdwn", "text": sprintf("*%d*", [cnt_by_severity("LOW")])},
-				{"type": "mrkdwn", "text": "Negligible"},
-				{"type": "mrkdwn", "text": sprintf("*%d*", [cnt_by_severity("NEGLIGIBLE")])},
+				{"type": "mrkdwn", "text": "Unknown"},
+				{"type": "mrkdwn", "text": sprintf("*%d*", [cnt_by_severity("UNKNOWN")])},
 			],
 		}],
 	])

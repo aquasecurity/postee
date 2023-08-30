@@ -1,0 +1,69 @@
+{
+  "account_id": "4700",
+  "customTriggerType": "custom-insight",
+  "evidence": {
+    "malware": null,
+    "malware_remediation": "",
+    "privileged_iam_roles": null,
+    "privileged_iam_roles_remediation": null,
+    "privileged_workloads": null,
+    "privileged_workloads_remediation": null,
+    "sensitive_data": [
+      {
+        "file_name": "",
+        "file_path": "/private-key.pem",
+        "file_type": "RSA PRIVATE KEY",
+        "function": "",
+        "image": "shayyo/sensitive_data:latest"            }
+    ],
+    "sensitive_data_remediation": "",
+    "vulnerabilities": null,
+    "vulnerabilities_remediation": null    },
+  "global_id": "bab1e6eb-5017-42f3-b419-5db95464e443",
+  "id": "6131180",
+  "insight": {
+    "category": "",
+    "description": "Workloads or images containing login data",
+    "id": "aqua-3006",
+    "impact": "Attackers with access to this workload or image might be able to use the login data to gain initial access to other resources",
+    "instance": 0,
+    "priority": 2,
+    "rank": 380,
+    "suppress_resources": 0,
+    "suppress_resources_with_expiration": 0,
+    "total_impacted_resources": 0    },
+  "postee": {
+    "AquaServer": ""    },
+  "resource": {
+    "arn": "",
+    "cluster_arn": "",
+    "comment": "",
+    "found_date": "2022-08-25T09:02:28.991Z",
+    "full_path": "",
+    "global_id": "3614f379-0ac0-4074-8bb7-8bc7b1fd5b26",
+    "id": "6131180",
+    "internet_exposure_status": "unknown",
+    "is_connected": false,
+    "is_suppressed": false,
+    "last_scanned": "2022-08-25T08:59:42.314673Z",
+    "name": "shayyo/sensitive_data:latest",
+    "num_pods": 0,
+    "short_path": "",
+    "steps": {
+      "Image": "sensitive_data:latest",
+      "Registry": "Docker Hub",
+      "RegistryDomain": "docker.io"        },
+    "suppress": {
+      "configuration": {
+        "description": "",
+        "duration_days": 0,
+        "user": "",
+        "with_expiration": false            },
+      "date": "0001-01-01T00:00:00Z",
+      "expiration_date": "0001-01-01T00:00:00Z"        }
+  },
+  "resourceTypeKey": "",
+  "application_scope": ["scope1","scope2"],
+  "response_policy_id": "11",
+  "response_policy_name": "insights_login data",
+  "type": "Image"}

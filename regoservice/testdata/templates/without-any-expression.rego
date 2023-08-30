@@ -1,0 +1,1 @@
+package rego1.without.any.expression
