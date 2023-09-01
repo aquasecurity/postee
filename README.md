@@ -51,3 +51,10 @@ Join the community, and talk to us about any matter in [GitHub Discussions] or [
 [Open Source Work and Portfolio]: https://www.aquasec.com/products/open-source-projects/
 [Slack]: https://slack.aquasec.com/
 [GitHub Discussions]: https://github.com/aquasecurity/postee/discussions
+
+
+## Release
+
+1. Bump version of [helm chart](https://github.com/aquasecurity/postee/blob/main/deploy/helm/postee/Chart.yaml).
+1. (By repository admin) Create a new tag. Postee and helm charts are automatically released by github actions.
+1. (By repository admin) Run [publish-docs workflow](https://github.com/aquasecurity/postee/blob/main/.github/workflows/publish-docs.yml), if document has been updated.
