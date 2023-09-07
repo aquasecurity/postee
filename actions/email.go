@@ -20,16 +20,16 @@ var (
 )
 
 type EmailAction struct {
-	Name       string
-	User       string
-	Password   string
-	Host       string
-	Port       int
-	Sender     string
-	Recipients []string
-	LocalName  string
-	UseMX      bool
-	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
+	Name           string
+	User           string
+	Password       string
+	Host           string
+	Port           int
+	Sender         string
+	Recipients     []string
+	ClientHostName string
+	UseMX          bool
+	sendFunc       func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 }
 
 func (email *EmailAction) GetName() string {
@@ -41,8 +41,8 @@ func (email *EmailAction) Init() error {
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
-	if email.LocalName != "" {
-		log.Printf("Action %q uses a custom client name %q instead of `localhost`", email.Name, email.LocalName)
+	if email.ClientHostName != "" {
+		log.Printf("Action %q uses a custom client name %q instead of `localhost`", email.Name, email.ClientHostName)
 		email.sendFunc = email.sendEmailWithCustomClient
 	} else {
 		email.sendFunc = smtp.SendMail
@@ -108,7 +108,7 @@ func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, fro
 	}
 	defer c.Close()
 
-	if err := c.Hello(email.LocalName); err != nil {
+	if err := c.Hello(email.ClientHostName); err != nil {
 		return err
 	}
 

@@ -25,7 +25,7 @@ type ActionSettings struct {
 	Recipients            []string                     `json:"recipients,omitempty"`
 	Sender                string                       `json:"sender,omitempty"`
 	Token                 string                       `json:"token,omitempty"`
-	LocalName             string                       `json:"local-name,omitempty"`
+	ClientHostName        string                       `json:"client-host-name,omitempty"`
 	UseMX                 bool                         `json:"use-mx,omitempty"`
 	InstanceName          string                       `json:"instance,omitempty"`
 	SizeLimit             int                          `json:"size-limit,omitempty"`
