@@ -66,6 +66,8 @@ posteeConfig: |
     rego-package: postee.rawmessage.json
   - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
     rego-package: postee.vuls.cyclondx
+  - name: trivy-operator-jira
+    rego-package: postee.trivyoperator.jira
   - name: trivy-operator-slack
     rego-package: postee.trivyoperator.slack
   - name: trivy-operator-dependencytrack
@@ -186,7 +188,9 @@ posteUi:
     # usernameKey: username
     # passwordKey: password
   image: aquasec/postee-ui
-  tag: "2.12.0-amd64"
+  # By default `tag` is taken from `.Chart.AppVersion`
+  # To use different version - uncomment this line and enter the desired version
+  # tag: ""
 
 configuration:
   # If set to true, ensure the externally generated secret to be named
@@ -197,7 +201,9 @@ configuration:
 image:
   repository: aquasec/postee
   pullPolicy: Always
-  tag: "2.12.0-amd64"
+  # By default `tag` is taken from `.Chart.AppVersion`
+  # To use different version - uncomment this line and enter the desired version
+  # tag: ""
 imageInit:
   repository: busybox
   pullPolicy: IfNotPresent

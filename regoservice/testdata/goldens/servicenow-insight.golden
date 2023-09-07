@@ -1,0 +1,47 @@
+
+<!-- Insight Details -->
+<h2> <i>Insight Details:</i> </h2>
+<p><b>Insight ID:</b> aqua-3006</p>
+<p><b>Description:</b> Workloads or images containing login data</p>
+<p><b>Impact:</b> Attackers with access to this workload or image might be able to use the login data to gain initial access to other resources</p>
+<p><b>Severity:</b> medium</p>
+<p><b>Found Date:</b> 2022-08-25T09:02:28.991Z</p>
+<p><b>Last Scan:</b> 2022-08-25T08:59:42.314673Z</p>
+<p><b>URL:</b> </p>
+<!-- TODO  -->
+<!-- Resourse Details -->
+<h2> <i>Resourse Details:</i> </h2>
+<p><b>Resourse ID:</b> 6131180</p>
+<p><b>Resourse Name:</b> shayyo/sensitive_data:latest</p>
+<p><b>ARN:</b> </p>
+<p><b>Extra Info:</b> {"Image": "sensitive_data:latest", "Registry": "Docker Hub", "RegistryDomain": "docker.io"}</p>
+<!-- Evidence -->
+<h2> <i>Evidence:</i> </h2>
+<!-- Vulnerabilities -->
+
+<!-- Sensitive data -->
+
+<p>Sensitive data</p>
+
+<TABLE border='1' style='width: 100%; border-collapse: collapse;'>
+
+<TR>
+<TH style='padding: 5px;'>File Type</TH>
+<TH style='padding: 5px;'>File Path</TH>
+<TH style='padding: 5px;'>Image</TH>
+
+</TR>
+<TR>
+<TD style='padding: 5px;'>RSA PRIVATE KEY</TD>
+<TD style='padding: 5px;'>/private-key.pem</TD>
+<TD style='padding: 5px;'>shayyo/sensitive_data:latest</TD>
+
+</TR>
+</TABLE>
+
+
+<!-- Recommendation -->
+<h2> <i>Recommendation:</i> </h2>
+No Recommendation
+<p><b>Resourse policy name:</b> insights_login data</p>
+<p><b>Resourse policy application scopes:</b> ["scope1", "scope2"]</p>
