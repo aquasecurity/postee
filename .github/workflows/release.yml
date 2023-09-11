@@ -82,7 +82,7 @@ jobs:
           password: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
 
       - name: Release
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v5
         with:
           version: ~> 0.180
           args: release --rm-dist
