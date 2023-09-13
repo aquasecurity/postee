@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -19,15 +20,16 @@ var (
 )
 
 type EmailAction struct {
-	Name       string
-	User       string
-	Password   string
-	Host       string
-	Port       int
-	Sender     string
-	Recipients []string
-	UseMX      bool
-	sendFunc   func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
+	Name           string
+	User           string
+	Password       string
+	Host           string
+	Port           int
+	Sender         string
+	Recipients     []string
+	ClientHostName string
+	UseMX          bool
+	sendFunc       func(addr string, a smtp.Auth, from string, to []string, msg []byte) error
 }
 
 func (email *EmailAction) GetName() string {
@@ -39,8 +41,13 @@ func (email *EmailAction) Init() error {
 	if email.Sender == "" {
 		email.Sender = email.User
 	}
+	if email.ClientHostName != "" {
+		log.Printf("Action %q uses a custom client name %q instead of `localhost`", email.Name, email.ClientHostName)
+		email.sendFunc = email.sendEmailWithCustomClient
+	} else {
+		email.sendFunc = smtp.SendMail
+	}
 
-	email.sendFunc = smtp.SendMail
 	return nil
 }
 
@@ -87,6 +94,56 @@ func (email *EmailAction) Send(content map[string]string) error {
 	}
 	log.Println("Email was sent successfully!")
 	return nil
+}
+
+// sendEmailWithCustomClient replaces smtp.SendMail() in cases
+// where it is necessary to establish a custom client host name instead of "localhost",
+// while keeping the remaining behavior unchanged.
+func (email EmailAction) sendEmailWithCustomClient(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	log.Printf("Sending an email via Custom client for action %q", email.Name)
+
+	c, err := smtp.Dial(addr)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	if err := c.Hello(email.ClientHostName); err != nil {
+		return err
+	}
+
+	if ok, _ := c.Extension("STARTTLS"); ok {
+		config := &tls.Config{ServerName: email.Host}
+		if err = c.StartTLS(config); err != nil {
+			return err
+		}
+	}
+	if a != nil {
+		if err = c.Auth(a); err != nil {
+			return err
+		}
+	}
+	if err = c.Mail(from); err != nil {
+		return err
+	}
+	for _, addr := range to {
+		if err = c.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(msg)
+	if err != nil {
+		return err
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return c.Quit()
 }
 
 func (email EmailAction) sendViaMxServers(port string, msg string, recipients []string) {

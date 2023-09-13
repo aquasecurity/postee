@@ -64,14 +64,15 @@ func buildSlackAction(sourceSettings *ActionSettings, aqua string) *actions.Slac
 
 func buildEmailAction(sourceSettings *ActionSettings) *actions.EmailAction {
 	return &actions.EmailAction{
-		Name:       sourceSettings.Name,
-		User:       sourceSettings.User,
-		Password:   sourceSettings.Password,
-		Host:       sourceSettings.Host,
-		Port:       sourceSettings.Port,
-		Sender:     sourceSettings.Sender,
-		Recipients: sourceSettings.Recipients,
-		UseMX:      sourceSettings.UseMX,
+		Name:           sourceSettings.Name,
+		User:           sourceSettings.User,
+		Password:       sourceSettings.Password,
+		Host:           sourceSettings.Host,
+		Port:           sourceSettings.Port,
+		Sender:         sourceSettings.Sender,
+		Recipients:     sourceSettings.Recipients,
+		ClientHostName: sourceSettings.ClientHostName,
+		UseMX:          sourceSettings.UseMX,
 	}
 }
 func buildNexusIqAction(sourceSettings *ActionSettings) *actions.NexusIqAction {
