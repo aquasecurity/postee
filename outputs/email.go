@@ -1,6 +1,7 @@
 package outputs
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -24,15 +25,16 @@ var (
 )
 
 type EmailOutput struct {
-	Name       string
-	User       string
-	Password   string
-	Host       string
-	Port       int
-	Sender     string
-	Recipients []string
-	UseMX      bool
-	sendFunc   func(addr string, a customsmtp.Auth, from string, to []string, msg []byte) error
+	Name           string
+	User           string
+	Password       string
+	Host           string
+	Port           int
+	Sender         string
+	Recipients     []string
+	ClientHostName string
+	UseMX          bool
+	sendFunc       func(addr string, a customsmtp.Auth, from string, to []string, msg []byte) error
 }
 
 func (email *EmailOutput) GetType() string {
@@ -63,10 +65,62 @@ func (email *EmailOutput) Init() error {
 		email.Sender = email.User
 	}
 
-	email.sendFunc = customsmtp.SendMail
+	if email.ClientHostName != "" {
+		log.Logger.Infof("Action %q uses a custom client name %q instead of `localhost`", email.Name, email.ClientHostName)
+		email.sendFunc = email.sendEmailWithCustomClient
+	} else {
+		email.sendFunc = customsmtp.SendMail
+	}
 
 	log.Logger.Infof("Successfully initialized email output %s", email.Name)
 	return nil
+}
+
+func (email *EmailOutput) sendEmailWithCustomClient(addr string, a customsmtp.Auth, from string, to []string, msg []byte) error {
+	log.Logger.Infof("Sending an email via Custom client for action %q", email.Name)
+
+	c, err := customsmtp.Dial(addr)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	if err := c.Hello(email.ClientHostName); err != nil {
+		return err
+	}
+
+	if ok, _ := c.Extension("STARTTLS"); ok {
+		config := &tls.Config{ServerName: email.Host}
+		if err = c.StartTLS(config); err != nil {
+			return err
+		}
+	}
+	if a != nil {
+		if err = c.Auth(a); err != nil {
+			return err
+		}
+	}
+	if err = c.Mail(from); err != nil {
+		return err
+	}
+	for _, addr := range to {
+		if err = c.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(msg)
+	if err != nil {
+		return err
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return c.Quit()
 }
 
 func (email *EmailOutput) Terminate() error {

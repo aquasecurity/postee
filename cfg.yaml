@@ -63,6 +63,7 @@ outputs:
   user:           # Mandatory. E.g :johndoe@gmail.com"
   password:       # Optional. Specify Jira user API key. Used only for Jira Cloud
   token:          # Optional. Specify Jira user Personal Access Token. Used only for Jira Server/Data Center
+  client-host-name: # Optional: setting the local client name instead of `localhost`
   project-key:    # Mandatory. Specify the JIRA product key
   tls-verify: false
   board:          # Optional. Specify the Jira board name to open tickets on
