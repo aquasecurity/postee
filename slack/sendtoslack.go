@@ -2,6 +2,7 @@ package slack_api
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,8 +10,12 @@ import (
 )
 
 func SendToUrl(url string, data []byte) error {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
 	r := bytes.NewReader(data)
-	resp, err := http.Post(url, "application/json", r)
+	resp, err := client.Post(url, "application/json", r)
 	if err != nil {
 		log.Printf("Slack API error: %v", err)
 		return err
