@@ -2,17 +2,27 @@ package postee.issues.jira
 
 import data.postee.with_default
 
-create_title(info) = b {
+issue_type := "issue"
+policy_type := "policy"
+
+create_title(info, entity_type) = b {
+    entity_type == policy_type
+    b := sprintf("[Aqua] - %s - %d issues", [info.name, count(info.issues)])
+}
+
+create_title(info, entity_type) = b {
+    entity_type == issue_type
     count(info) > 1
     b := sprintf("[Aqua] - %d issues", [count(info)])
 }
 
-create_title(info) = b {
+create_title(info, entity_type) = b {
+    entity_type == issue_type
     count(info) == 1
     b := sprintf("[Aqua] - %s - %s", [info[0].resource.name, info[0].policy.name])
 }
 
-title = create_title(input.info)
+title = create_title(input.info, input.entity_type)
 
 issue_tpl:=`
 _%s_:
@@ -31,15 +41,30 @@ table_tpl:=`
 %s
 `
 
+policy_tpl:=`
+*Policy name:* %s
+*Policy description:* %s
+*Severity:* %s
+*Risks:* %s
+*Remediation:* %s
+%s
+`
+
 concat_list(prefix,list) = output{
     out := array.concat(prefix, list)
     x := concat("", out)
     output := x
 }
 
-issuesTable = table {
+multipleIssuesTable = table {
     prefix := ["||*Policy*                    ||*Severity*                    ||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||\n"]
-    list := rows
+    list := multipleIssuesRows
+    table := concat_list(prefix,list)
+}
+
+policyIssuesTable = table {
+    prefix := ["||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||\n"]
+    list := policyIssuesRows
     table := concat_list(prefix,list)
 }
 
@@ -53,7 +78,7 @@ with_local_default(v, default_value) = v{
 
 
 # Make input.info from an array to arrays of arrays of values and call it rows
-rows := [row |
+multipleIssuesRows := [row |
     info := input.info[_]
     policyNameWithDefault := with_local_default(info.policy.name, "unknown")
     resourceNameWithDefault := with_local_default(info.resource.name, "unknown")
@@ -63,6 +88,25 @@ rows := [row |
     severityWithDefault := with_local_default(info.issue.severity, "unknown")
 
     row := sprintf("|%s|%s|%s|%s|%s|%s|\n", [policyNameWithDefault, severityWithDefault, resourceNameWithDefault, typeWithDefault, originWithDefault, creationDateWithDefault])
+]
+
+policyIssuesRows := [row |
+    info := input.info.issues[_]
+    resourceNameWithDefault := with_local_default(info.resource_name, "unknown")
+    typeWithDefault := with_local_default(info.resource_type, "unknown")
+    originWithDefault := with_local_default(info.resource_vendor, "unknown")
+    creationDateWithDefault := with_local_default(info.created_date, "unknown")
+
+    row := sprintf("|%s|%s|%s|%s|\n", [resourceNameWithDefault, typeWithDefault, originWithDefault, creationDateWithDefault])
+]
+
+policy := [
+    input.info.name,
+    input.info.description,
+    input.info.severity,
+    input.info.risks,
+    input.info.remediation,
+    policyIssuesTable
 ]
 
 single_issue := [
@@ -78,19 +122,31 @@ single_issue := [
 
 # return table tpl if we have more than one item in input.info, else return issue_tpl 
 get_template(d) = table_tpl{
+    d.entity_type== issue_type
     count(d.info) > 1
 }
 
 get_template(d) = issue_tpl{
+    d.entity_type== issue_type
     count(d.info) == 1
+}
+
+get_template(d) = policy_tpl{
+    d.entity_type == policy_type
 }
 
 get_values(d) = single_issue{
+    d.entity_type == issue_type
     count(d.info) == 1
 }
 
-get_values(d) = [issuesTable]{
+get_values(d) = [multipleIssuesTable]{
+    d.entity_type == issue_type
     count(d.info) > 1
+}
+
+get_values(d) = policy{
+    d.entity_type == policy_type
 }
 
 result = msg {
