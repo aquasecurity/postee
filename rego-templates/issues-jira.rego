@@ -35,6 +35,7 @@ _Resource Details_:
 *Resource Name:* %s
 *Origin:* %s
 *Type:* %s
+*Aqua link:* %s
 `
 
 table_tpl:=`
@@ -57,13 +58,13 @@ concat_list(prefix,list) = output{
 }
 
 multipleIssuesTable = table {
-    prefix := ["||*Policy*                    ||*Severity*                    ||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||\n"]
+    prefix := ["||*Policy*                    ||*Severity*                    ||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||*Aqau link*                   ||\n"]
     list := multipleIssuesRows
     table := concat_list(prefix,list)
 }
 
 policyIssuesTable = table {
-    prefix := ["||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||\n"]
+    prefix := ["||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||*Aqua link*                   ||\n"]
     list := policyIssuesRows
     table := concat_list(prefix,list)
 }
@@ -86,8 +87,9 @@ multipleIssuesRows := [row |
     originWithDefault := with_local_default(info.resource.origin, "unknown")
     creationDateWithDefault := with_local_default(info.issue.creation_date, "unknown")
     severityWithDefault := with_local_default(info.issue.severity, "unknown")
+    aquaLink := with_local_default(info.issue.aqua_link, "unknown")
 
-    row := sprintf("|%s|%s|%s|%s|%s|%s|\n", [policyNameWithDefault, severityWithDefault, resourceNameWithDefault, typeWithDefault, originWithDefault, creationDateWithDefault])
+    row := sprintf("|%s|%s|%s|%s|%s|%s|%s|\n", [policyNameWithDefault, severityWithDefault, resourceNameWithDefault, typeWithDefault, originWithDefault, creationDateWithDefault, aquaLink])
 ]
 
 policyIssuesRows := [row |
@@ -95,9 +97,10 @@ policyIssuesRows := [row |
     resourceNameWithDefault := with_local_default(info.resource_name, "unknown")
     typeWithDefault := with_local_default(info.resource_type, "unknown")
     originWithDefault := with_local_default(info.resource_vendor, "unknown")
-    creationDateWithDefault := with_local_default(info.created_date, "unknown")
+    creationDateWithDefault := with_local_default(info.creation_date, "unknown")
+    aquaLink := with_local_default(info.aqua_link, "unknown")
 
-    row := sprintf("|%s|%s|%s|%s|\n", [resourceNameWithDefault, typeWithDefault, originWithDefault, creationDateWithDefault])
+    row := sprintf("|%s|%s|%s|%s|%s|\n", [resourceNameWithDefault, typeWithDefault, originWithDefault, creationDateWithDefault, aquaLink])
 ]
 
 policy := [
@@ -118,6 +121,7 @@ single_issue := [
     input.info[0].resource.name,
     input.info[0].resource.origin,
     input.info[0].resource.type,
+    input.info[0].issue.aqua_link
 ]
 
 # return table tpl if we have more than one item in input.info, else return issue_tpl 
