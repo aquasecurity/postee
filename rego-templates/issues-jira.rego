@@ -4,10 +4,16 @@ import data.postee.with_default
 
 issue_type := "issue"
 policy_type := "policy"
+resource_type := "resource"
 
 create_title(info, entity_type) = b {
     entity_type == policy_type
     b := sprintf("[Aqua] - %s - %d issues", [info.name, count(info.issues)])
+}
+
+create_title(info, entity_type) = b {
+    entity_type == resource_type
+    b := sprintf("[Aqua] - %s - %d issues", [info[0].resource.name, count(info)])   
 }
 
 create_title(info, entity_type) = b {
@@ -39,15 +45,30 @@ _Resource Details_:
 `
 
 table_tpl:=`
+_Issues Overview Section_:
 %s
 `
 
 policy_tpl:=`
+_Policy Overview Section_:
 *Policy name:* %s
 *Policy description:* %s
 *Severity:* %s
 *Risks:* %s
 *Remediation:* %s
+
+_Issues Overview Section_:
+%s
+`
+
+#add in category below type once ready and have it
+resource_tpl:=`
+_Resource Overview Section_:
+*Name:* %s
+*Origin:* %s
+*Type:* %s
+
+_Issues Overview Section_:
 %s
 `
 
@@ -58,7 +79,7 @@ concat_list(prefix,list) = output{
 }
 
 multipleIssuesTable = table {
-    prefix := ["||*Policy*                    ||*Severity*                    ||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||*Aqau link*                   ||\n"]
+    prefix := ["||*Policy*                    ||*Severity*                    ||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||*Aqua link*                   ||\n"]
     list := multipleIssuesRows
     table := concat_list(prefix,list)
 }
@@ -67,6 +88,12 @@ policyIssuesTable = table {
     prefix := ["||*Resource name*                   ||*Resource type*                   ||*Resource origin*                   ||*Creation date*                   ||*Aqua link*                   ||\n"]
     list := policyIssuesRows
     table := concat_list(prefix,list)
+}
+
+resourceIssuesTable = table {
+    prefix := ["||*Policy name*                        ||*Severity*                      ||*Creation date*                    ||*Aqua link*                  ||\n"]
+    list := resourceIssuesRows
+    table := concat_list(prefix, list)
 }
 
 with_local_default(v, default_value) = default_value{
@@ -112,6 +139,24 @@ policy := [
     policyIssuesTable
 ]
 
+#add in remediation below type once ready and have it for issue
+resourceIssuesRows := [row | 
+    info := input.info[_]
+    policyNameWithDefault := with_local_default(info.policy.name, "unknown")
+    severityWithDefault := with_local_default(info.issue.severity, "unknown")
+    creationDateWithDefault := with_local_default(info.issue.creation_date, "unknown")
+    aquaLinkWithDefault := with_local_default(info.issue.aqua_link, "unknown")
+
+    row := sprintf("|%s|%s|%s|%s|\n", [policyNameWithDefault, severityWithDefault, creationDateWithDefault, aquaLinkWithDefault])
+]
+
+resource := [
+    input.info[0].resource.name,
+    input.info[0].resource.origin,
+    input.info[0].resource.type,
+    resourceIssuesTable
+]
+
 single_issue := [
     input.info[0].policy.name,
     input.info[0].policy.description,
@@ -126,17 +171,21 @@ single_issue := [
 
 # return table tpl if we have more than one item in input.info, else return issue_tpl 
 get_template(d) = table_tpl{
-    d.entity_type== issue_type
+    d.entity_type == issue_type
     count(d.info) > 1
 }
 
 get_template(d) = issue_tpl{
-    d.entity_type== issue_type
+    d.entity_type == issue_type
     count(d.info) == 1
 }
 
 get_template(d) = policy_tpl{
     d.entity_type == policy_type
+}
+
+get_template(d) = resource_tpl{
+    d.entity_type == resource_type
 }
 
 get_values(d) = single_issue{
@@ -151,6 +200,10 @@ get_values(d) = [multipleIssuesTable]{
 
 get_values(d) = policy{
     d.entity_type == policy_type
+}
+
+get_values(d) = resource{
+    d.entity_type == resource_type
 }
 
 result = msg {
