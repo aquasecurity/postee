@@ -20,8 +20,8 @@ Vulnerability summary
 %s
 %s
 %s
-Resourse policy name: %s
-Resourse policy application scopes: %s
+Response policy name: %s
+Response policy application scopes: %s
 %s`
 
 summary_tpl =`Name: %s
