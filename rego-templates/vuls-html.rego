@@ -7,7 +7,7 @@ import data.postee.with_default
 ################################################ Templates ################################################
 #main template to render message
 tpl:=`
-<p>Image name: %s</p>
+<p>%s name: %s</p>
 <p>Registry: %s</p>
 <p>%s</p>
 <p>%s</p>
@@ -164,17 +164,24 @@ vln_list(severity) = vlnrb {
 postee := with_default(input, "postee", {})
 aqua_server := with_default(postee, "AquaServer", "")
 
-title = sprintf("%s vulnerability scan report", [input.image])
+report_type := "Function" if{
+    input.entity_type == 1
+} else = "VM" if{
+    input.entity_type == 2
+} else = "Image"
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
 
     msg := sprintf(tpl, [
+    report_type,
     input.image,
     input.registry,
 	by_flag(
-     "Image is non-compliant",
-     "Image is compliant",
+     sprintf("%s is non-compliant", [report_type]),
+     sprintf("%s is compliant", [report_type]),
      with_default(input.image_assurance_results, "disallowed", false)
     ),
 	by_flag(

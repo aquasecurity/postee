@@ -117,7 +117,13 @@ got_vulns(vulnsAll) = [] { #do not render section if provided collection is empt
 }
 
 ###########################################################################################################
-title = sprintf("%s vulnerability scan report", [input.image]) # title is string
+report_type := "Function" if{
+    input.entity_type == 1
+} else = "VM" if{
+    input.entity_type == 2
+} else = "Image"
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
 
 aggregation_pkg := "postee.vuls.slack.aggregation"
 
@@ -142,11 +148,11 @@ result = res {
     ])
 
 
-	headers1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("Image name: %s", [input.image])}},
+	headers1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("%s name: %s", [report_type ,input.image])}},
     			{"type":"section","text":{"type":"mrkdwn","text":sprintf("Registry: %s", [input.registry])}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
-                                                                        "Image is non-compliant",
-                                                                        "Image is compliant",
+                                                                        sprintf("%s is non-compliant", [report_type]),
+                                                                        sprintf("%s is compliant", [report_type]),
                                                                         with_default(input.image_assurance_results, "disallowed", false)
                                                                     )}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
