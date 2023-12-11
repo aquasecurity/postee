@@ -11,8 +11,8 @@ result_tpl = `
 <p><b>Severity:</b> %s</p>
 <p><b>Data:</b> %s</p>
 
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>Response policy name:</b> %s</p>
+<p><b>Response policy application scopes:</b> %s</p>
 `
 summary_tpl =`Category: %s
 Severity: %s`

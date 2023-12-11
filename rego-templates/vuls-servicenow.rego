@@ -27,8 +27,8 @@ html_tpl:=`
 %s
 <!-- Negligible severity vulnerabilities -->
 %s
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>Response policy name:</b> %s</p>
+<p><b>Response policy application scopes:</b> %s</p>
 %s
 `
 
@@ -194,11 +194,11 @@ postee := with_default(input, "postee", {})
 aqua_server := with_default(postee, "AquaServer", "")
 server_url := trim_suffix(aqua_server, "images/")
 
-report_type := "function" if{
+report_type := "Function" if{
     input.entity_type == 1
-} else = "vm" if{
+} else = "VM" if{
     input.entity_type == 2
-} else = "image"
+} else = "Image"
 
 title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
 
@@ -207,15 +207,15 @@ title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.ima
 ## vm: <server_url>/#/infrastructure/<image>/node
 ## image: <server_url>/#/image/<registry>/<image>
 href := sprintf("%s%s/%s/%s", [server_url, "functions", urlquery.encode(input.registry), urlquery.encode(input.image)])  if{
-    report_type == "function"
+    report_type == "Function"
 } else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", urlquery.encode(input.image), "node"]){
-    report_type == "vm"
+    report_type == "VM"
 } else = sprintf("%s%s/%s/%s", [server_url, "image", urlquery.encode(input.registry), urlquery.encode(input.image)])
 
 text :=  sprintf("%s%s/%s/%s", [server_url, "functions", input.registry, input.image]) if{
-    report_type == "function"
+    report_type == "Function"
 } else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", input.image, "node"]) {
-    report_type == "vm"
+    report_type == "VM"
 } else = sprintf("%s%s/%s/%s", [server_url, report_type, input.registry, input.image])
 
 url := by_flag("", href, server_url == "")
@@ -269,9 +269,9 @@ result = msg {
 result_date = input.scan_started.seconds
 
 result_category = "Serverless functions Scanning" if {
-    report_type == "function"
+    report_type == "Function"
 }else = "Security - VM Scan results" if {
-    report_type == "vm"
+    report_type == "VM"
 }else = "Security Image Scan results"
 
 result_subcategory = "Security incident"
