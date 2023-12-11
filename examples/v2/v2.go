@@ -18,7 +18,7 @@ var (
 
 func main() {
 	// initialize new library instance
-	rt, err := router.NewV2()
+	rt, err := router.NewV2("")
 	if err != nil {
 		log.Logger.Fatal(err)
 	}

@@ -21,8 +21,8 @@ tpl:=`
 %s
 <!-- CVE list -->
 %s
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>Response policy name:</b> %s</p>
+<p><b>Response policy application scopes:</b> %s</p>
 `
 
 #Extra % is required in width:100%

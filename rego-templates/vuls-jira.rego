@@ -5,11 +5,16 @@ import data.postee.with_default
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.array_concat
 
-title = sprintf("%s vulnerability scan report", [input.image])
+report_type := "Function" if{
+    input.entity_type == 1
+} else = "VM" if{
+    input.entity_type == 2
+} else = "Image"
 
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
 
 tpl:=`
-*Image name:* %s
+*%s name:* %s
 *Registry:* %s
 %s
 %s
@@ -21,6 +26,7 @@ tpl:=`
 
 *Response policy name*: %s
 *Response policy application scopes*: %s
+*See more*: %s
 `
 
 check_failed(item) = false {
@@ -42,11 +48,12 @@ assurance_controls(inp) = l {
 
 result = msg {
     msg := sprintf(tpl, [
+    report_type,
     input.image,
     input.registry,
 	by_flag(
-     "Image is _*non-compliant*_",
-     "Image is _*compliant*_",
+     sprintf("%s is _*non-compliant*_", [report_type]),
+     sprintf("%s is _*compliant*_", [report_type]),
      with_default(input.image_assurance_results, "disallowed", false)
     ),
 	by_flag(
@@ -67,6 +74,7 @@ result = msg {
     format_int(with_default(input.vulnerability_summary,"negligible",0), 10)]),
     assurance_controls("input"),
     input.response_policy_name,
-    concat(", ", with_default(input, "application_scope", []))
+    concat(", ", with_default(input, "application_scope", [])),
+    with_default(input, "url", "")
     ])
 }

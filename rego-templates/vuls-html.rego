@@ -7,7 +7,7 @@ import data.postee.with_default
 ################################################ Templates ################################################
 #main template to render message
 tpl:=`
-<p>Image name: %s</p>
+<p>%s name: %s</p>
 <p>Registry: %s</p>
 <p>%s</p>
 <p>%s</p>
@@ -30,7 +30,9 @@ tpl:=`
 <br>
 
 <p>Response policy name: %s</p>
-<p>Response policy application scopes: %s</p>`
+<p>Response policy application scopes: %s</p>
+<p>See more: <a href="url">%s</a></p>
+`
 
 vlnrb_tpl = `
 <h3>%s severity vulnerabilities</h3>
@@ -161,20 +163,25 @@ vln_list(severity) = vlnrb {
               ]
 }
 ###########################################################################################################
-postee := with_default(input, "postee", {})
-aqua_server := with_default(postee, "AquaServer", "")
 
-title = sprintf("%s vulnerability scan report", [input.image])
+report_type := "Function" if{
+    input.entity_type == 1
+} else = "VM" if{
+    input.entity_type == 2
+} else = "Image"
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
 
     msg := sprintf(tpl, [
+    report_type,
     input.image,
     input.registry,
 	by_flag(
-     "Image is non-compliant",
-     "Image is compliant",
+     sprintf("%s is non-compliant", [report_type]),
+     sprintf("%s is compliant", [report_type]),
      with_default(input.image_assurance_results, "disallowed", false)
     ),
 	by_flag(
@@ -196,6 +203,7 @@ result = msg {
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
     input.response_policy_name,
-    concat(", ", with_default(input, "application_scope", []))
+    concat(", ", with_default(input, "application_scope", [])),
+    with_default(input, "url", "")
     ])
 }
