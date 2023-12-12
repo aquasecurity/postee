@@ -48,6 +48,7 @@ assurance_controls(inp) = l {
 
 result = msg {
     msg := sprintf(tpl, [
+    report_type,
     input.image,
     input.registry,
 	by_flag(

@@ -64,14 +64,15 @@ func buildSlackOutput(sourceSettings *data.OutputSettings, aqua string) *outputs
 
 func buildEmailOutput(sourceSettings *data.OutputSettings) *outputs.EmailOutput {
 	return &outputs.EmailOutput{
-		Name:       sourceSettings.Name,
-		User:       sourceSettings.User,
-		Password:   sourceSettings.Password,
-		Host:       sourceSettings.Host,
-		Port:       sourceSettings.Port,
-		Sender:     sourceSettings.Sender,
-		Recipients: sourceSettings.Recipients,
-		UseMX:      sourceSettings.UseMX,
+		Name:           sourceSettings.Name,
+		User:           sourceSettings.User,
+		Password:       sourceSettings.Password,
+		Host:           sourceSettings.Host,
+		Port:           sourceSettings.Port,
+		Sender:         sourceSettings.Sender,
+		Recipients:     sourceSettings.Recipients,
+		ClientHostName: sourceSettings.ClientHostName,
+		UseMX:          sourceSettings.UseMX,
 	}
 }
 
