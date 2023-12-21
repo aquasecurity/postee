@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: [main]
 env:
-  GO_VERSION: "1.18"
+  GO_VERSION: "1.21"
 
 jobs:
   build:
