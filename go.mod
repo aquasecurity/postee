@@ -1,6 +1,6 @@
 module github.com/aquasecurity/postee/v2
 
-go 1.18
+go 1.21
 
 require (
 	github.com/DependencyTrack/client-go v0.11.0
