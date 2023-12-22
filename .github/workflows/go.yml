@@ -25,10 +25,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup golangci-lint
-        uses: golangci/golangci-lint-action@v3.1.0
+        uses: golangci/golangci-lint-action@v3.7.0
         with:
           args: --timeout=10m --verbose
-          version: v1.45
+          version: v1.54
 
       - name: Build
         run: make build
