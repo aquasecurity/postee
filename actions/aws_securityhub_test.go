@@ -121,7 +121,7 @@ const GoodFindings = `{
 }`
 
 type mockAWSSHClient struct {
-	securityHubAPI
+	_ securityHubAPI
 
 	batchImportFindingsFunc func(ctx context.Context, params *securityhub.BatchImportFindingsInput, optFns ...func(*securityhub.Options)) (*securityhub.BatchImportFindingsOutput, error)
 }
