@@ -18,10 +18,10 @@ html_tpl:=`
 <p><b>Last Scan:</b> %s</p>
 <p><b>URL:</b> %s</p>
 <!-- TODO  -->
-<!-- Resourse Details -->
-<h2> <i>Resourse Details:</i> </h2>
-<p><b>Resourse ID:</b> %s</p>
-<p><b>Resourse Name:</b> %s</p>
+<!-- Response Details -->
+<h2> <i>Resource Details:</i> </h2>
+<p><b>Resource ID:</b> %s</p>
+<p><b>Resource Name:</b> %s</p>
 <p><b>ARN:</b> %s</p>
 <p><b>Extra Info:</b> %s</p>
 <!-- Evidence -->
@@ -33,8 +33,8 @@ html_tpl:=`
 <!-- Recommendation -->
 <h2> <i>Recommendation:</i> </h2>
 %s
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>Response policy name:</b> %s</p>
+<p><b>Response policy application scopes:</b> %s</p>
 `
 
 summary_tpl =`Insight ID: %s

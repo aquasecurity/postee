@@ -25,8 +25,8 @@ html_tpl:=`
 %s
 <!-- CVE list -->
 %s
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>Response policy name:</b> %s</p>
+<p><b>Response policy application scopes:</b> %s</p>
 `
 
 summary_tpl =`Triggered by: %s

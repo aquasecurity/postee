@@ -27,10 +27,9 @@ html_tpl:=`
 %s
 <!-- Negligible severity vulnerabilities -->
 %s
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>Response policy name:</b> %s</p>
+<p><b>Response policy application scopes:</b> %s</p>
 <p><b>See more:</b> <a href="url">%s</a></p>
-%s
 `
 
 summary_tpl =`Name: %s
@@ -44,8 +43,7 @@ vulnerabilities:
 *   medium: %d,
 *   low: %d,
 *   negligible: %d
-
-%s`
+`
 
 vlnrb_tpl = `
 <h3>%s severity vulnerabilities</h3>
@@ -191,35 +189,13 @@ vln_list(severity) = vlnrb {
               ]
 }
 ###########################################################################################################
-postee := with_default(input, "postee", {})
-aqua_server := with_default(postee, "AquaServer", "")
-server_url := trim_suffix(aqua_server, "images/")
-
-report_type := "function" if{
+report_type := "Function" if{
     input.entity_type == 1
-} else = "vm" if{
+} else = "VM" if{
     input.entity_type == 2
-} else = "image"
+} else = "Image"
 
 title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
-
-## url formats:
-## function: <server_url>/#/functions/<registry>/<image>
-## vm: <server_url>/#/infrastructure/<image>/node
-## image: <server_url>/#/image/<registry>/<image>
-href := sprintf("%s%s/%s/%s", [server_url, "functions", urlquery.encode(input.registry), urlquery.encode(input.image)])  if{
-    report_type == "function"
-} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", urlquery.encode(input.image), "node"]){
-    report_type == "vm"
-} else = sprintf("%s%s/%s/%s", [server_url, "image", urlquery.encode(input.registry), urlquery.encode(input.image)])
-
-text :=  sprintf("%s%s/%s/%s", [server_url, "functions", input.registry, input.image]) if{
-    report_type == "function"
-} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", input.image, "node"]) {
-    report_type == "vm"
-} else = sprintf("%s%s/%s/%s", [server_url, report_type, input.registry, input.image])
-
-url := by_flag("", href, server_url == "")
 
 # some vulnerability_summary fields may not exist
 default vulnerability_summary_critical := 0
@@ -260,20 +236,16 @@ result = msg {
     render_vlnrb("Negligible", vln_list("negligible")),
     with_default(input,"response_policy_name", ""),
     with_default(input,"application_scope", "none"),
-    with_default(input, "url", ""),
-    by_flag(
-     "",
-     sprintf(`<p><b>See more:</b> <a href='%s'>%s</a></p>`,[href, text]), #link
-     server_url == "")
+    with_default(input, "url", "")
     ])
 }
 
 result_date = input.scan_started.seconds
 
 result_category = "Serverless functions Scanning" if {
-    report_type == "function"
+    report_type == "Function"
 }else = "Security - VM Scan results" if {
-    report_type == "vm"
+    report_type == "VM"
 }else = "Security Image Scan results"
 
 result_subcategory = "Security incident"
@@ -304,10 +276,6 @@ result_summary := summary{
 	vulnerability_summary_high,
 	vulnerability_summary_medium,
 	vulnerability_summary_low,
-	vulnerability_summary_negligible,
-	by_flag(
-         "",
-         sprintf(`See more: %s`,[text]), #link
-         server_url == ""),
+	vulnerability_summary_negligible
     ])
 }

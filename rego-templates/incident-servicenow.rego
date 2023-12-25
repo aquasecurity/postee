@@ -11,8 +11,8 @@ result_tpl = `
 <p><b>Severity:</b> %s</p>
 <p><b>Data:</b> %s</p>
 
-<p><b>Resourse policy name:</b> %s</p>
-<p><b>Resourse policy application scopes:</b> %s</p>
+<p><b>Response policy name:</b> %s</p>
+<p><b>Response policy application scopes:</b> %s</p>
 <p><b>See more:</b> <a href="url">%s</a></p>
 `
 summary_tpl =`Category: %s
@@ -104,7 +104,7 @@ result := res{
             	found_data == ""),
         with_default(input,"response_policy_name", "response policy name not found"),
         with_default(input,"application_scope", "none"),
-        with_default(input, "url", ""),
+        with_default(input, "url", "")
     ])
 }
 
@@ -119,6 +119,6 @@ result_severity := input.severity_score
 result_summary := summary{
     summary = sprintf(summary_tpl,[
         with_default(input,"category", "category not found"),
-        found_severity,
+        found_severity
     ])
 }
