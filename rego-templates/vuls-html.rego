@@ -2,6 +2,8 @@ package postee.vuls.html
 
 import data.postee.by_flag
 import data.postee.with_default
+import future.keywords.if
+
 
 #import common.by_flag
 ################################################ Templates ################################################

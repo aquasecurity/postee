@@ -4,6 +4,8 @@ import data.postee.by_flag
 import data.postee.with_default
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.array_concat
+import future.keywords.if
+
 
 report_type := "Function" if{
     input.entity_type == 1

@@ -4,6 +4,8 @@ import data.postee.by_flag
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.duplicate
 import data.postee.with_default
+import future.keywords.if
+
 
 ############################################# Common functions ############################################
 
