@@ -5,7 +5,7 @@ import data.postee.with_default
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.array_concat
 
-title = sprintf("%s vulnerability scan report", [input.image])
+title = sprintf("%s rapport d'analyse des vulnérabilités", [input.image])
 
 
 tpl:=`
@@ -31,10 +31,10 @@ check_failed(item) = true {
 }
 
 assurance_controls(inp) = l {
-    headers := [ "\n*Assurance controls*\n||*#\t*                        ||*Control*                       ||*Policy Name*                       ||*Status*                       ||\n" ]
+    headers := [ "\n*Contrôles d’assurance*\n||#||*Contrôle*                       ||*Nom de la politique*                       ||*Statut*                       ||\n" ]
     checks_performed:= flat_array([check |
                 item := input.image_assurance_results.checks_performed[i]
-                check := [ sprintf("|%d|%s|%s|%s|\n", [i+1, item.control, item.policy_name, by_flag("FAIL", "PASS", check_failed(item))]) ]
+                check := [ sprintf("|%d|%s|%s|%s|\n", [i+1, item.control, item.policy_name, by_flag("ÉCHOUER", "PASSE", check_failed(item))]) ]
     ])
     ll := array.concat(headers, checks_performed)
     l := concat("", ll)
