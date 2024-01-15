@@ -12,6 +12,7 @@ type ScanImageInfo struct {
 	ApplicationScopeOwners []string        `json:"application_scope_owners,omitempty"`
 	Malwares               []MalwareData   `json:"malware,omitempty"`
 	SensitiveData          []SensitiveData `json:"sensitive_data,omitempty"`
+	ResponsePolicyName     string          `json:"response_policy_name,omitempty"`
 }
 
 type SensitiveData struct {
