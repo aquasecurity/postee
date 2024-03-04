@@ -27,8 +27,9 @@ import (
 )
 
 const (
-	IssueTypeDefault = "Task"
-	PriorityDefault  = "High"
+	IssueTypeDefault       = "Task"
+	FrenchIssueTypeDefault = "Tâche"
+	PriorityDefault        = "High"
 
 	ServiceNowTableDefault = "incident"
 	AnonymizeReplacement   = "<hidden>"
