@@ -4,6 +4,10 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"net"
 	"strconv"
 	"strings"
@@ -35,6 +39,8 @@ type EmailOutput struct {
 	ClientHostName string
 	UseMX          bool
 	sendFunc       func(addr string, a customsmtp.Auth, from string, to []string, msg []byte) error
+	UseAwsSes      bool
+	AwsSesConfig   map[string]string
 }
 
 func (email *EmailOutput) GetType() string {
@@ -142,6 +148,10 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 		return data.OutputResponse{}, errThereIsNoRecipient
 	}
 
+	if email.UseAwsSes {
+		return email.sendViaAwsSesService(email.AwsSesConfig, subject, body, recipients)
+	}
+
 	msg := fmt.Sprintf(
 		"To: %s\r\n"+
 			"From: %s\r\n"+
@@ -193,4 +203,89 @@ func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []
 			break
 		}
 	}
+}
+
+func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
+	subject, body string, recipients []string) (data.OutputResponse, error) {
+	log.Logger.Debugf("Sending to email via %q using SES", email.Name)
+
+	// Create a new AWS session
+	sess, err := session.NewSession(&aws.Config{
+
+		Region: aws.String("us-east-1"),
+	})
+	if err != nil {
+		log.Logger.Errorf("Failed sending email - failed to create session with AWS for given credentials %s", err)
+		return data.OutputResponse{}, err
+	}
+
+	// Create a new SES service client
+	svc := ses.New(sess)
+
+	// Prepare email recipients and from field
+	fromEmailAddress, toAddresses, err := prepareFromAndToEmailAddress(awsConfig, recipients)
+
+	if err != nil {
+		return data.OutputResponse{}, err
+	}
+
+	// Construct the email
+	emailInput := &ses.SendEmailInput{
+		Destination: &ses.Destination{
+			ToAddresses: toAddresses,
+		},
+		Message: &ses.Message{
+			Body: &ses.Body{
+				Text: &ses.Content{
+					Data: aws.String(body),
+				},
+			},
+			Subject: &ses.Content{
+				Data: aws.String(subject),
+			},
+		},
+		Source:    aws.String(fromEmailAddress), // Change this to your sender email
+		SourceArn: aws.String(awsConfig["arn"]),
+	}
+
+	// Send the email
+	output, err := svc.SendEmail(emailInput)
+	if err != nil {
+		// Print the error if there is one
+		if awserr, ok := err.(awserr.Error); ok {
+			log.Logger.Errorf("AWS Error:", awserr.Code(), awserr.Message())
+		} else {
+			log.Logger.Errorf("Error:", err.Error())
+		}
+	} else {
+		log.Logger.Debugf("The message was sent successfully via aws-ses aws-messageId:%s", *output.MessageId)
+	}
+
+	return data.OutputResponse{Key: *output.MessageId}, err
+}
+
+func prepareFromAndToEmailAddress(awsConfig map[string]string, recipients []string) (string, []*string, error) {
+	// Convert to array of string pointers
+	toAddresses := make([]*string, len(recipients))
+	for i, str := range recipients {
+		toAddresses[i] = aws.String(str)
+	}
+
+	isAwsGovCloudStr := awsConfig["isGovCloud"]
+	isAwsGovCloud := false
+	var err error
+	if isAwsGovCloudStr != "" {
+		isAwsGovCloud, err = strconv.ParseBool(isAwsGovCloudStr)
+		if err != nil {
+			log.Logger.Errorf("Error reading variable isGovCloud %s", err)
+			return "", nil, err
+		}
+	}
+
+	fromEmailAddress := "noreply@aquasec.com"
+	if isAwsGovCloud {
+		fromEmailAddress = "noreply@aquasec.app"
+	}
+
+	return fromEmailAddress, toAddresses, err
 }
