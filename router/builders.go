@@ -98,7 +98,7 @@ func buildJiraOutput(sourceSettings *data.OutputSettings) *outputs.JiraAPI {
 		Summary:         sourceSettings.Summary,
 	}
 	if jiraApi.Issuetype == "" {
-		if sourceSettings.Template == "vuls-jira-fr" {
+		if strings.ToLower(sourceSettings.Language) == "fr" {
 			jiraApi.Issuetype = FrenchIssueTypeDefault
 		} else {
 			jiraApi.Issuetype = IssueTypeDefault
