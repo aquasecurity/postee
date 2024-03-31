@@ -98,7 +98,11 @@ func buildJiraOutput(sourceSettings *data.OutputSettings) *outputs.JiraAPI {
 		Summary:         sourceSettings.Summary,
 	}
 	if jiraApi.Issuetype == "" {
-		jiraApi.Issuetype = IssueTypeDefault
+		if strings.ToLower(sourceSettings.Language) == "fr" {
+			jiraApi.Issuetype = FrenchIssueTypeDefault
+		} else {
+			jiraApi.Issuetype = IssueTypeDefault
+		}
 	}
 	if jiraApi.Priority == "" {
 		jiraApi.Priority = PriorityDefault
