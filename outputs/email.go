@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
 	"net"
@@ -211,8 +212,8 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 
 	// Create a new AWS session
 	sess, err := session.NewSession(&aws.Config{
-
-		Region: aws.String("us-east-1"),
+		Credentials: credentials.NewStaticCredentials(awsConfig["id"], awsConfig["secretAccessKey"], awsConfig["awsSessionToken"]),
+		Region:      aws.String("us-east-1"),
 	})
 	if err != nil {
 		log.Logger.Errorf("Failed sending email - failed to create session with AWS for given credentials %s", err)
