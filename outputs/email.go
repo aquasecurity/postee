@@ -288,7 +288,7 @@ func prepareFromAndToEmailAddress(awsConfig map[string]string, recipients []stri
 		}
 	}
 
-	fromEmailAddress := "noreply@aquasec.com"
+	fromEmailAddress := "noreply@dev.cloudsploit.com"
 	if isAwsGovCloud {
 		fromEmailAddress = "noreply@aquasec.app"
 	}
