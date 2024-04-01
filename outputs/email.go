@@ -245,8 +245,13 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 				Data: aws.String(subject),
 			},
 		},
-		Source:    aws.String(fromEmailAddress), // Change this to your sender email
-		SourceArn: aws.String(awsConfig["arn"]),
+		Source: aws.String(fromEmailAddress),
+		// SourceArn: aws.String(awsConfig["arn"]),
+	}
+
+	sourceArnConfig := awsConfig["arn"]
+	if sourceArnConfig != "" {
+		emailInput.SourceArn = aws.String(sourceArnConfig)
 	}
 
 	// Send the email
