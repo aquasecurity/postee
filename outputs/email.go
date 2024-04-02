@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"net"
 	"strconv"
 	"strings"
@@ -211,33 +212,21 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 	log.Logger.Debugf("Sending to email via %q using SES", email.Name)
 
 	// Create a new AWS session
-	sess, err := session.NewSession(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(awsConfig["id"], awsConfig["secretAccessKey"], awsConfig["awsSessionToken"]),
-		Region:      aws.String("us-east-1"),
-	})
+	sess, err := getAwsSession(awsConfig)
 	if err != nil {
-		log.Logger.Errorf("Failed sending email - failed to create session with AWS for given credentials %s", err)
 		return data.OutputResponse{}, err
 	}
 
 	// Create a new SES service client
 	svc := ses.New(sess)
 
-	// Prepare email recipients and from field
-	fromEmailAddress, toAddresses, err := prepareFromAndToEmailAddress(awsConfig, recipients)
-
-	if err != nil {
-		return data.OutputResponse{}, err
-	}
-
-	// Construct the email
 	emailInput := &ses.SendEmailInput{
 		Destination: &ses.Destination{
-			ToAddresses: toAddresses,
+			ToAddresses: prepareToEmailAddressList(recipients),
 		},
 		Message: &ses.Message{
 			Body: &ses.Body{
-				Text: &ses.Content{
+				Html: &ses.Content{
 					Data: aws.String(body),
 				},
 			},
@@ -245,8 +234,7 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 				Data: aws.String(subject),
 			},
 		},
-		Source: aws.String(fromEmailAddress),
-		// SourceArn: aws.String(awsConfig["arn"]),
+		Source: aws.String(awsConfig["fromEmailAddress"]),
 	}
 
 	sourceArnConfig := awsConfig["arn"]
@@ -258,10 +246,9 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 	output, err := svc.SendEmail(emailInput)
 	if err != nil {
 		// Print the error if there is one
-		if awserr, ok := err.(awserr.Error); ok {
+		var awserr awserr.Error
+		if errors.As(err, &awserr) {
 			log.Logger.Errorf("AWS Error:", awserr.Code(), awserr.Message())
-		} else {
-			log.Logger.Errorf("Error:", err.Error())
 		}
 	} else {
 		log.Logger.Debugf("The message was sent successfully via aws-ses aws-messageId:%s", *output.MessageId)
@@ -270,28 +257,56 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 	return data.OutputResponse{Key: *output.MessageId}, err
 }
 
-func prepareFromAndToEmailAddress(awsConfig map[string]string, recipients []string) (string, []*string, error) {
+func prepareToEmailAddressList(recipients []string) []*string {
 	// Convert to array of string pointers
 	toAddresses := make([]*string, len(recipients))
 	for i, str := range recipients {
 		toAddresses[i] = aws.String(str)
 	}
 
-	isAwsGovCloudStr := awsConfig["isGovCloud"]
-	isAwsGovCloud := false
-	var err error
-	if isAwsGovCloudStr != "" {
-		isAwsGovCloud, err = strconv.ParseBool(isAwsGovCloudStr)
+	return toAddresses
+}
+
+func getAwsSession(awsConfig map[string]string) (*session.Session, error) {
+	// Create a new AWS session
+	awsRegion := awsConfig["awsRegion"]
+	sess, err := session.NewSession(&aws.Config{
+		Credentials: credentials.NewStaticCredentials(awsConfig["id"], awsConfig["secretAccessKey"], awsConfig["awsSessionToken"]),
+		Region:      aws.String(awsRegion),
+	})
+
+	if err != nil {
+		log.Logger.Errorf("Failed sending email - failed to create session with AWS for given credentials %s", err)
+		return nil, err
+	}
+	roleToAssume := awsConfig["assumeRole"]
+	if roleToAssume != "" {
+		stsSvc := sts.New(sess)
+
+		result, err := stsSvc.AssumeRole(&sts.AssumeRoleInput{
+			RoleArn:         aws.String(roleToAssume),
+			RoleSessionName: aws.String("SendEmailSession"), // TODO : add some identification if needed for customer_id?.
+			DurationSeconds: aws.Int64(30),
+		})
+
 		if err != nil {
-			log.Logger.Errorf("Error reading variable isGovCloud %s", err)
-			return "", nil, err
+			fmt.Println("Failed sending email - Failed assuming role:", err)
+			return nil, err
 		}
+
+		tempCreds := result.Credentials
+		tempSession, err := session.NewSession(&aws.Config{
+			Credentials: credentials.NewStaticCredentials(*tempCreds.AccessKeyId, *tempCreds.SecretAccessKey, *tempCreds.SessionToken),
+			Region:      aws.String(awsRegion),
+		})
+
+		if err != nil {
+			fmt.Println("Failed sending email - Failed creating session for assumed role:", err)
+			return nil, err
+		}
+
+		return tempSession, nil
 	}
 
-	fromEmailAddress := "noreply@dev.cloudsploit.com"
-	if isAwsGovCloud {
-		fromEmailAddress = "noreply@aquasec.app"
-	}
-
-	return fromEmailAddress, toAddresses, err
+	return sess, nil
 }
