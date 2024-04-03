@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
@@ -245,11 +244,7 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 	// Send the email
 	output, err := svc.SendEmail(emailInput)
 	if err != nil {
-		// Print the error if there is one
-		var awserr awserr.Error
-		if errors.As(err, &awserr) {
-			log.Logger.Errorf("AWS Error:", awserr.Code(), awserr.Message())
-		}
+		log.Logger.Errorf("Error sending email - %s", err.Error())
 	} else {
 		log.Logger.Debugf("The message was sent successfully via aws-ses aws-messageId:%s", *output.MessageId)
 	}
