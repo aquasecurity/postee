@@ -213,6 +213,7 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 	// Create a new AWS session
 	sess, err := getAwsSession(awsConfig)
 	if err != nil {
+		log.Logger.Errorf("Error sending email - %s", err)
 		return data.OutputResponse{}, err
 	}
 
@@ -245,11 +246,12 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 	output, err := svc.SendEmail(emailInput)
 	if err != nil {
 		log.Logger.Errorf("Error sending email - %s", err)
+		return data.OutputResponse{}, err
 	} else {
 		log.Logger.Debugf("The message was sent successfully via aws-ses aws-messageId:%s", *output.MessageId)
+		return data.OutputResponse{Key: *output.MessageId}, err
 	}
 
-	return data.OutputResponse{Key: *output.MessageId}, err
 }
 
 func prepareToEmailAddressList(recipients []string) []*string {
