@@ -244,7 +244,7 @@ func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
 	// Send the email
 	output, err := svc.SendEmail(emailInput)
 	if err != nil {
-		log.Logger.Errorf("Error sending email - %s", err.Error())
+		log.Logger.Errorf("Error sending email - %s", err)
 	} else {
 		log.Logger.Debugf("The message was sent successfully via aws-ses aws-messageId:%s", *output.MessageId)
 	}
