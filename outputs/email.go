@@ -283,7 +283,7 @@ func getAwsSession(awsConfig map[string]string) (*session.Session, error) {
 		result, err := stsSvc.AssumeRole(&sts.AssumeRoleInput{
 			RoleArn:         aws.String(roleToAssume),
 			RoleSessionName: aws.String("SendEmailSession"), // TODO : add some identification if needed for customer_id?.
-			DurationSeconds: aws.Int64(30),
+			DurationSeconds: aws.Int64(900),
 		})
 
 		if err != nil {
