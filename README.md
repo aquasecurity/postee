@@ -1,3 +1,5 @@
+# Notice: Postee is no longer under active development or maintenance.
+
 <p align="center">
   <img src="./docs/img/postee.png">
 </p>
