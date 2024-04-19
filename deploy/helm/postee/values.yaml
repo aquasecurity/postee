@@ -210,6 +210,7 @@ imageInit:
   tag: "1.34"
 
 imagePullSecrets: []
+topologySpreadConstraints: []
 nameOverride: ""
 fullnameOverride: ""
 
@@ -280,6 +281,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+
 
 ## Enable persistence using Persistent Volume Claims
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
