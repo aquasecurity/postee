@@ -10,7 +10,7 @@ db-verify-interval: 1   #  How often to check the DB size. By default, Postee ch
 routes:
 - name: trivyScans
   actions: [ exec-curl-dd ]
-  template: plejd-dd-trivy-report
+  template: dd-trivy-report
   input: contains(input.kind, "ClusterRbacAssessmentReport")
 
 # Actions are target services that should consume the messages
@@ -30,5 +30,5 @@ templates:
 - name: raw-json                        # route message "As Is" to external webhook
   rego-package: postee.rawmessage.json
 
-- name: plejd-dd-trivy-report           # render from report into DD structure
-  rego-package: plejd.trivyoperator.defectdojo
+- name: dd-trivy-report           # render from report into DD structure
+  rego-package: postee.trivyoperator.defectdojo

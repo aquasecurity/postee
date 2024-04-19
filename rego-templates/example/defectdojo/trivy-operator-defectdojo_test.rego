@@ -1,6 +1,6 @@
-package plejd.trivyoperator.defectdojo.test
+package postee.trivyoperator.defectdojo.test
 
-import data.plejd.trivyoperator.defectdojo.result
+import data.postee.trivyoperator.defectdojo.result
 
 
 test_a_allowed {
