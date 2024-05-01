@@ -13,7 +13,7 @@ result_tpl = `
 
 <p><b>Response policy name:</b> %s</p>
 <p><b>Response policy application scopes:</b> %s</p>
-<p><b>See more:</b> <a href="url">%s</a></p>
+<p><b>See more:</b> <a href="%s">%s</a></p>
 `
 summary_tpl =`Category: %s
 Severity: %s`
@@ -104,6 +104,7 @@ result := res{
             	found_data == ""),
         with_default(input,"response_policy_name", "response policy name not found"),
         with_default(input,"application_scope", "none"),
+        with_default(input, "url", ""),
         with_default(input, "url", "")
     ])
 }
