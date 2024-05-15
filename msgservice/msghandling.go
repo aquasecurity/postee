@@ -3,6 +3,7 @@ package msgservice
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -95,9 +96,13 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 	}
 
 	owners := scan.scopeOwners(in)
-	richIn := scan.enrichMsg(in, route, *AquaServer)
+	url := *AquaServer
+	if inputUrl, ok := in["url"].(string); ok && strings.TrimSpace(url) == "" {
+		url = inputUrl
+	}
+	richIn := scan.enrichMsg(in, route, url)
 
-	content, err := inpteval.Eval(richIn, *AquaServer)
+	content, err := inpteval.Eval(richIn, url)
 	if err != nil {
 		log.Logger.Errorf("Error while evaluating input: %v", err)
 		return data.OutputResponse{}, err
@@ -259,7 +264,7 @@ func (scan *MsgService) OnDemandSend(in map[string]interface{}, output outputs.O
 	outputResponse, err = output.Send(content)
 	if err != nil {
 		log.Logger.Errorf("Error while sending event: %v", err)
-		return data.OutputResponse{} , err
+		return data.OutputResponse{}, err
 	}
 
 	return outputResponse, nil
