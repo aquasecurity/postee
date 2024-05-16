@@ -390,7 +390,7 @@ func TestEditTemplate(t *testing.T) {
 
 	err := UpdateTemplate(templ)
 	if err != nil {
-		t.Errorf("unexpected errpr: %v", err)
+		t.Errorf("unexpected error: %v", err)
 	}
 
 	assert.Equal(t, 1, syncMapLen(&Instance().templates), "one template expected")
