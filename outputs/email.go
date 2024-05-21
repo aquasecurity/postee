@@ -287,7 +287,7 @@ func getAwsSession(awsConfig map[string]string) (*session.Session, error) {
 		})
 
 		if err != nil {
-			fmt.Println("Failed sending email - Failed assuming role:", err)
+			log.Logger.Errorf("Failed sending email - Failed assuming role: %s", err)
 			return nil, err
 		}
 
@@ -298,7 +298,7 @@ func getAwsSession(awsConfig map[string]string) (*session.Session, error) {
 		})
 
 		if err != nil {
-			fmt.Println("Failed sending email - Failed creating session for assumed role:", err)
+			log.Logger.Errorf("Failed sending email - Failed creating session for assumed role: %s", err)
 			return nil, err
 		}
 
