@@ -267,15 +267,21 @@ func prepareToEmailAddressList(recipients []string) []*string {
 func getAwsSession(awsConfig map[string]string) (*session.Session, error) {
 	// Create a new AWS session
 	awsRegion := awsConfig["awsRegion"]
-	sess, err := session.NewSession(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(awsConfig["id"], awsConfig["secretAccessKey"], awsConfig["awsSessionToken"]),
-		Region:      aws.String(awsRegion),
-	})
 
+	config := &aws.Config{
+		Region: aws.String(awsRegion),
+	}
+	if awsConfig["id"] != "" {
+		log.Logger.Debugf("Using credentials from awsConfig")
+		config.Credentials = credentials.NewStaticCredentials(awsConfig["id"], awsConfig["secretAccessKey"], awsConfig["awsSessionToken"])
+	}
+
+	sess, err := session.NewSession(config)
 	if err != nil {
 		log.Logger.Errorf("Failed sending email - failed to create session with AWS for given credentials %s", err)
 		return nil, err
 	}
+
 	roleToAssume := awsConfig["assumeRole"]
 	if roleToAssume != "" {
 		stsSvc := sts.New(sess)
