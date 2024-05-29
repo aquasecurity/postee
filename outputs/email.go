@@ -4,6 +4,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/aws/aws-sdk-go/service/sts"
 	"net"
 	"strconv"
 	"strings"
@@ -35,6 +40,8 @@ type EmailOutput struct {
 	ClientHostName string
 	UseMX          bool
 	sendFunc       func(addr string, a customsmtp.Auth, from string, to []string, msg []byte) error
+	UseAwsSes      bool
+	AwsSesConfig   map[string]string
 }
 
 func (email *EmailOutput) GetType() string {
@@ -142,6 +149,10 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 		return data.OutputResponse{}, errThereIsNoRecipient
 	}
 
+	if email.UseAwsSes {
+		return email.sendViaAwsSesService(email.AwsSesConfig, subject, body, recipients)
+	}
+
 	msg := fmt.Sprintf(
 		"To: %s\r\n"+
 			"From: %s\r\n"+
@@ -193,4 +204,112 @@ func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []
 			break
 		}
 	}
+}
+
+func (email *EmailOutput) sendViaAwsSesService(awsConfig map[string]string,
+	subject, body string, recipients []string) (data.OutputResponse, error) {
+	log.Logger.Debugf("Sending to email via %q using SES", email.Name)
+
+	// Create a new AWS session
+	sess, err := getAwsSession(awsConfig)
+	if err != nil {
+		log.Logger.Errorf("Error sending email - %s", err)
+		return data.OutputResponse{}, err
+	}
+
+	// Create a new SES service client
+	svc := ses.New(sess)
+
+	emailInput := &ses.SendEmailInput{
+		Destination: &ses.Destination{
+			ToAddresses: prepareToEmailAddressList(recipients),
+		},
+		Message: &ses.Message{
+			Body: &ses.Body{
+				Html: &ses.Content{
+					Data: aws.String(body),
+				},
+			},
+			Subject: &ses.Content{
+				Data: aws.String(subject),
+			},
+		},
+		Source: aws.String(awsConfig["fromEmailAddress"]),
+	}
+
+	sourceArnConfig := awsConfig["arn"]
+	if sourceArnConfig != "" {
+		emailInput.SourceArn = aws.String(sourceArnConfig)
+	}
+
+	// Send the email
+	output, err := svc.SendEmail(emailInput)
+	if err != nil {
+		log.Logger.Errorf("Error sending email - %s", err)
+		return data.OutputResponse{}, err
+	} else {
+		log.Logger.Debugf("The message was sent successfully via aws-ses aws-messageId:%s", *output.MessageId)
+		return data.OutputResponse{Key: *output.MessageId}, err
+	}
+
+}
+
+func prepareToEmailAddressList(recipients []string) []*string {
+	// Convert to array of string pointers
+	toAddresses := make([]*string, len(recipients))
+	for i, str := range recipients {
+		toAddresses[i] = aws.String(str)
+	}
+
+	return toAddresses
+}
+
+func getAwsSession(awsConfig map[string]string) (*session.Session, error) {
+	// Create a new AWS session
+	awsRegion := awsConfig["awsRegion"]
+
+	config := &aws.Config{
+		Region: aws.String(awsRegion),
+	}
+	if awsConfig["id"] != "" {
+		log.Logger.Debugf("Using credentials from awsConfig")
+		config.Credentials = credentials.NewStaticCredentials(awsConfig["id"], awsConfig["secretAccessKey"], awsConfig["awsSessionToken"])
+	}
+
+	sess, err := session.NewSession(config)
+	if err != nil {
+		log.Logger.Errorf("Failed sending email - failed to create session with AWS for given credentials %s", err)
+		return nil, err
+	}
+
+	roleToAssume := awsConfig["assumeRole"]
+	if roleToAssume != "" {
+		stsSvc := sts.New(sess)
+
+		result, err := stsSvc.AssumeRole(&sts.AssumeRoleInput{
+			RoleArn:         aws.String(roleToAssume),
+			RoleSessionName: aws.String("SendEmailSession"), // TODO : add some identification if needed for customer_id?.
+			DurationSeconds: aws.Int64(900),
+		})
+
+		if err != nil {
+			log.Logger.Errorf("Failed sending email - Failed assuming role: %s", err)
+			return nil, err
+		}
+
+		tempCreds := result.Credentials
+		tempSession, err := session.NewSession(&aws.Config{
+			Credentials: credentials.NewStaticCredentials(*tempCreds.AccessKeyId, *tempCreds.SecretAccessKey, *tempCreds.SessionToken),
+			Region:      aws.String(awsRegion),
+		})
+
+		if err != nil {
+			log.Logger.Errorf("Failed sending email - Failed creating session for assumed role: %s", err)
+			return nil, err
+		}
+
+		return tempSession, nil
+	}
+
+	return sess, nil
 }

@@ -36,6 +36,8 @@ type OutputSettings struct {
 	Headers         map[string][]string `json:"headers,omitempty"`
 	Template        string              `json:"template,omitempty"`
 	Language        string              `json:"language,omitempty"`
+	UseAwsSes       bool                `json:"use-aws-ses,omitempty"`
+	AwsSesConfig    map[string]string   `json:"aws-ses-config,omitempty"`
 }
 
 type OutputResponse struct {

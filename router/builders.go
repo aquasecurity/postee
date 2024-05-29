@@ -73,6 +73,8 @@ func buildEmailOutput(sourceSettings *data.OutputSettings) *outputs.EmailOutput 
 		Recipients:     sourceSettings.Recipients,
 		ClientHostName: sourceSettings.ClientHostName,
 		UseMX:          sourceSettings.UseMX,
+		UseAwsSes:      sourceSettings.UseAwsSes,
+		AwsSesConfig:   sourceSettings.AwsSesConfig,
 	}
 }
 
