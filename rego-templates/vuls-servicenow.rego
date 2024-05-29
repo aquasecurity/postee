@@ -29,7 +29,7 @@ html_tpl:=`
 %s
 <p><b>Response policy name:</b> %s</p>
 <p><b>Response policy application scopes:</b> %s</p>
-<p><b>See more:</b> <a href="url">%s</a></p>
+<p><b>See more:</b> <a href="%s">%s</a></p>
 `
 
 summary_tpl =`Name: %s
@@ -236,6 +236,7 @@ result = msg {
     render_vlnrb("Negligible", vln_list("negligible")),
     with_default(input,"response_policy_name", ""),
     with_default(input,"application_scope", "none"),
+    with_default(input, "url", ""),
     with_default(input, "url", "")
     ])
 }

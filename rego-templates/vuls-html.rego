@@ -33,7 +33,7 @@ tpl:=`
 
 <p>Response policy name: %s</p>
 <p>Response policy application scopes: %s</p>
-<p>See more: <a href="url">%s</a></p>
+<p>See more: <a href="%s">%s</a></p>
 `
 
 vlnrb_tpl = `
@@ -206,6 +206,7 @@ result = msg {
     render_vlnrb("Negligible", vln_list("negligible")),
     input.response_policy_name,
     concat(", ", with_default(input, "application_scope", [])),
+    with_default(input, "url", ""),
     with_default(input, "url", "")
     ])
 }
