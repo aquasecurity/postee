@@ -25,6 +25,9 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.posteUi.priorityClassName }}
+      priorityClassName: {{ .Values.posteUi.priorityClassName }}
+      {{- end }}
       serviceAccountName: {{ include "postee.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

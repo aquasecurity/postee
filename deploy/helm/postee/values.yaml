@@ -191,6 +191,8 @@ posteUi:
   # By default `tag` is taken from `.Chart.AppVersion`
   # To use different version - uncomment this line and enter the desired version
   # tag: ""
+  ## set priorityClassName for the postee-ui deployment
+  # priorityClassName: system-cluster-critical
 
 configuration:
   # If set to true, ensure the externally generated secret to be named
@@ -212,6 +214,9 @@ imageInit:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+## set priorityClassName for the postee-ui deployment
+# priorityClassName: system-cluster-critical
 
 serviceAccount:
   # Specifies whether a service account should be created
