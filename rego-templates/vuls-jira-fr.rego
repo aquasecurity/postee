@@ -21,6 +21,7 @@ tpl:=`
 
 *Nom de la stratégie de réponse*: %s
 *Champs d’application de la stratégie de réponse*: %s
+*Voir plus*: %s
 `
 
 check_failed(item) = false {
@@ -67,6 +68,7 @@ result = msg {
     format_int(with_default(input.vulnerability_summary,"negligible",0), 10)]),
     assurance_controls("input"),
     with_default(input, "response_policy_name", "absent"),
-    concat(", ", with_default(input, "application_scope", []))
+    concat(", ", with_default(input, "application_scope", [])),
+    with_default(input, "url", "")
     ])
 }
