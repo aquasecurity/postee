@@ -68,18 +68,6 @@ tpl := `
           <th>Status</th>
         </tr>
         %s
-        <tr class="assurance-controls-content">
-          <td>1</td>
-          <td>Malware</td>
-          <td>Malware-Default-Policy</td>
-          <td>PASS</td>
-        </tr>
-        <tr class="assurance-controls-content">
-          <td>2</td>
-          <td>Sensitive_data</td>
-          <td>Sensitive-Data-Default-Policy</td>
-          <td>FAIL</td>
-        </tr>
       </table>
     </div>
   </div>
