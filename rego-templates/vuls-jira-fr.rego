@@ -5,7 +5,7 @@ import data.postee.with_default
 import data.postee.flat_array #converts [[{...},{...}], [{...},{...}]] to [{...},{...},{...},{...}]
 import data.postee.array_concat
 
-title = sprintf("%s vulnerability scan report", [input.image])
+title = sprintf("rapport de scan de vulnérabilité %s", [input.image])
 
 
 tpl:=`
