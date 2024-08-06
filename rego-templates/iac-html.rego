@@ -11,6 +11,7 @@ import data.postee.number_of_vulns
 tpl:=`
 <p><b>Triggered by:</b> %s</p>
 <p><b>Repository Name:</b> %s</p>
+<p><b>URL: </b><a href= %s>%s</a></p>
 <p> </p>
 <!-- Stats -->
 <h3> Vulnerability summary: </h3>
@@ -18,8 +19,6 @@ tpl:=`
 <h3> Misconfiguration summary: </h3>
 %s
 <h3> Pipeline Misconfiguration summary: </h3>
-%s
-<!-- CVE list -->
 %s
 <p><b>Response policy name:</b> %s</p>
 <p><b>Response policy application scopes:</b> %s</p>
@@ -44,9 +43,6 @@ row_tpl:=`
 </TR>`
 
 colored_text_tpl:="<span style='color:%s'>%s</span>"
-
-vln_list_table_tpl := `<h3> List of Critical/High CVEs: </h3>
-%s`
 
 ############################################## Html rendering #############################################
 render_table_headers(headers) = row {
@@ -101,30 +97,7 @@ severities_stats(vuln_type) = stats{
       ]
 }
 
-vlnrb_headers := ["ID", "Severity", "New Finding"]
 
-vln_list = vlnrb {
-	some i
-	vlnrb := [r |
-    				result := input.results[i]
-    				is_critical_or_high_vuln(result.severity) # add only critical and high vulns
-    				avd_id := result.avd_id
-    				startswith(avd_id , "CVE") # add only `CVE-xxx` vulns
-                    severity := severity_as_string(result.severity)
-                    is_new := is_new_vuln(with_default(result, "is_new", false))
-
-                    r := [avd_id, severity, is_new]
-              ]
-}
-
-render_vuln_list_table = s {
-    count(vln_list) > 0
-    s := sprintf(vln_list_table_tpl, [render_table(vlnrb_headers, vln_list, "33%")])
-}
-
-render_vuln_list_table = "" {
-    count(vln_list) == 0
-}
 ############################################## result values #############################################
 title = sprintf("%s repository scan report", [input.repository_name])
 
@@ -133,10 +106,10 @@ result = msg {
     msg := sprintf(tpl, [
     triggered_by_as_string(with_default(input, "triggered_by", "")),
     input.repository_name,
+    input.url, input.url,
     render_table([], severities_stats("vulnerability"), "50%"),
     render_table([], severities_stats("misconfiguration"), "50%"),
     render_table([], severities_stats("pipeline_misconfiguration"), "50%"),
-    render_vuln_list_table,
     with_default(input, "response_policy_name", "none"),
     with_default(input, "application_scope", "none")
     ])
