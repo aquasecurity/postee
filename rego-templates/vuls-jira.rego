@@ -13,8 +13,15 @@ report_type := "Function" if{
     input.entity_type == 2
 } else = "Image"
 
-title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
+reportEntityName := input.host_info.logical_name {
+    report_type == "VM"
+}
 
+reportEntityName := input.image {
+    report_type != "VM"
+}
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, reportEntityName])
 tpl:=`
 *%s name:* %s
 *Registry:* %s
@@ -51,7 +58,7 @@ assurance_controls(inp) = l {
 result = msg {
     msg := sprintf(tpl, [
     report_type,
-    input.image,
+    reportEntityName,
     input.registry,
 	by_flag(
      sprintf("%s is _*non-compliant*_", [report_type]),

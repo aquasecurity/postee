@@ -195,8 +195,15 @@ report_type := "Function" if{
     input.entity_type == 2
 } else = "Image"
 
-title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
+reportEntityName := input.host_info.logical_name {
+    report_type == "VM"
+}
 
+reportEntityName := input.image {
+    report_type != "VM"
+}
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, reportEntityName])
 # some vulnerability_summary fields may not exist
 default vulnerability_summary_critical := 0
 vulnerability_summary_critical := input.vulnerability_summary.critical
@@ -215,7 +222,7 @@ aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
 
     msg := sprintf(html_tpl, [
-    input.image,
+    reportEntityName,
     input.registry,
 	by_flag(
      "Yes",

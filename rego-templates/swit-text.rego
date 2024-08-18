@@ -180,23 +180,31 @@ report_type := "function" if{
     input.entity_type == 2
 } else = "image"
 
-title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
+reportEntityName := input.host_info.logical_name {
+    report_type == "VM"
+}
+
+reportEntityName := input.image {
+    report_type != "VM"
+}
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, reportEntityName])
 
 ## url formats:
 ## function: <server_url>/#/functions/<registry>/<image>
 ## vm: <server_url>/#/infrastructure/<image>/node
 ## image: <server_url>/#/image/<registry>/<image>
-href := sprintf("%s%s/%s/%s", [server_url, "functions", urlquery.encode(input.registry), urlquery.encode(input.image)])  if{
+href := sprintf("%s%s/%s/%s", [server_url, "functions", urlquery.encode(input.registry), urlquery.encode(reportEntityName)])  if{
     report_type == "function"
-} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", urlquery.encode(input.image), "node"]){
+} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", urlquery.encode(reportEntityName), "node"]){
     report_type == "vm"
-} else = sprintf("%s%s/%s/%s", [server_url, "image", urlquery.encode(input.registry), urlquery.encode(input.image)])
+} else = sprintf("%s%s/%s/%s", [server_url, "image", urlquery.encode(input.registry), urlquery.encode(reportEntityName)])
 
-text :=  sprintf("%s%s/%s/%s", [server_url, "functions", input.registry, input.image]) if{
+text :=  sprintf("%s%s/%s/%s", [server_url, "functions", input.registry, reportEntityName]) if{
     report_type == "function"
-} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", input.image, "node"]) {
+} else = sprintf("%s%s/%s/%s", [server_url, "infrastructure", reportEntityName, "node"]) {
     report_type == "vm"
-} else = sprintf("%s%s/%s/%s", [server_url, report_type, input.registry, input.image])
+} else = sprintf("%s%s/%s/%s", [server_url, report_type, input.registry, reportEntityName])
 
 url := by_flag("", href, server_url == "")
 
