@@ -133,7 +133,7 @@ reportEntityName := input.image {
     report_type != "VM"
 }
 
-title = sprintf(`Aqua security YOSI | %s | %s | Scan report`, [report_type, reportEntityName])
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, reportEntityName])
 
 aggregation_pkg := "postee.vuls.slack.aggregation"
 
