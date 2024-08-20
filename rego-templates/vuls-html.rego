@@ -172,14 +172,18 @@ report_type := "Function" if{
     input.entity_type == 2
 } else = "Image"
 
-title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
+reportEntityName := input.host_info.logical_name if {
+    report_type == "VM"
+} else = input.image
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, reportEntityName])
 
 aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
 
     msg := sprintf(tpl, [
     report_type,
-    input.image,
+    reportEntityName,
     input.registry,
 	by_flag(
      sprintf("%s is non-compliant", [report_type]),

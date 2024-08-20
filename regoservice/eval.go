@@ -138,7 +138,7 @@ func getFirstElement(context map[string]interface{}, key string) interface{} {
 func asStringOrJson(data map[string]interface{}, prop string) (string, error) {
 	expr, ok := data[prop]
 	if !ok {
-		return "", fmt.Errorf(fmt.Sprintf("property '%s' is not found", prop))
+		return "", fmt.Errorf("property '%s' is not found", prop)
 	}
 	switch v := expr.(type) {
 	case string:

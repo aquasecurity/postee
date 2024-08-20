@@ -125,7 +125,11 @@ report_type := "Function" if{
     input.entity_type == 2
 } else = "Image"
 
-title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, input.image])
+reportEntityName := input.host_info.logical_name if {
+    report_type == "VM"
+} else = input.image
+
+title = sprintf(`Aqua security | %s | %s | Scan report`, [report_type, reportEntityName])
 
 aggregation_pkg := "postee.vuls.slack.aggregation"
 
@@ -150,7 +154,7 @@ result = res {
     ])
 
 
-	headers1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("%s name: %s", [report_type ,input.image])}},
+	headers1 := [{"type":"section","text":{"type":"mrkdwn","text":sprintf("%s name: %s", [report_type ,reportEntityName])}},
     			{"type":"section","text":{"type":"mrkdwn","text":sprintf("Registry: %s", [input.registry])}},
     			{"type":"section","text":{"type":"mrkdwn","text": by_flag(
                                                                         sprintf("%s is non-compliant", [report_type]),
