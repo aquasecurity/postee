@@ -194,8 +194,9 @@ func (c *Client) Auth(a Auth) error {
 	resp64 := make([]byte, encoding.EncodedLen(len(resp)))
 	encoding.Encode(resp64, resp)
 	respEncoded := string(resp64)
-	authString := strings.TrimSpace(fmt.Sprintf("AUTH %s %s", mech, respEncoded))
-	code, msg64, err := c.cmd(0, authString)
+	authString := fmt.Sprintf("AUTH %s %s", mech, respEncoded)
+	authCommand := strings.TrimSpace(authString)
+	code, msg64, err := c.cmd(0, authCommand)
 	for err == nil {
 		var msg []byte
 		switch code {
