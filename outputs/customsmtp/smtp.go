@@ -221,6 +221,7 @@ func (c *Client) Auth(a Auth) error {
 		resp64 = make([]byte, encoding.EncodedLen(len(resp)))
 		encoding.Encode(resp64, resp)
 		respEncoded = string(resp64)
+		//nolint:govet
 		code, msg64, err = c.cmd(0, respEncoded)
 	}
 	return err
