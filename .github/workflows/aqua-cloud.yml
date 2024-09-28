@@ -15,7 +15,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           set-safe-directory: '/github/workspace'
-      - run: git config --global --add safe.directory /github/workspace
+
+      - name: Ownership workaround
+        run: git config -system --add safe.directory /github/workspace
 
       - name: Run Trivy vulnerability scanner against Aqua Cloud
         uses: aquasecurity/trivy-action@0.24.0
