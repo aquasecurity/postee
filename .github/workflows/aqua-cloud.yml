@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner against Aqua Cloud
-        uses: simar7/trivy-action@fe9b9e7e3c0d9e764d9c018d5603f57fba6aba3d
+        uses: simar7/trivy-action@fe9b9e7e3c0d9e764d9c018d5603f57fba6aba3d # refer: https://github.com/actions/runner/issues/2033
         with:
           scan-type: 'fs'
           hide-progress: true
