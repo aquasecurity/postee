@@ -12,7 +12,9 @@ jobs:
     runs-on: "ubuntu-20.04"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          set-safe-directory: '/github/workspace'
 
       - name: Run Trivy vulnerability scanner against Aqua Cloud
         uses: aquasecurity/trivy-action@0.11.0
