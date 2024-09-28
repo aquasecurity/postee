@@ -18,12 +18,12 @@ jobs:
       - run: git config --global --add safe.directory /github/workspace
 
       - name: Run Trivy vulnerability scanner against Aqua Cloud
-        uses: aquasecurity/trivy-action@0.11.0
+        uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: 'fs'
           hide-progress: true
           format: 'table'
-          security-checks: 'vuln,config'
+          scanners: 'vuln,config'
         env:
           AQUA_KEY: ${{ secrets.AQUA_KEY }}
           AQUA_SECRET: ${{ secrets.AQUA_SECRET }}
