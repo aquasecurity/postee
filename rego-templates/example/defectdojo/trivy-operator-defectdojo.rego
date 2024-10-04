@@ -1,7 +1,7 @@
 # METADATA
 # title: trivy-operator-defectdojo
 # scope: package
-package plejd.trivyoperator.defectdojo
+package postee.trivyoperator.defectdojo
 
 title:="-" #not used with webhook
 
