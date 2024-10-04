@@ -9,5 +9,4 @@ src/go.etcd.io/
 coverage.txt
 dist/
 .vscode/
-
-
+**/.DS_Store
