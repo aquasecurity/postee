@@ -12,6 +12,10 @@ routes:
   actions: [ stdout ]
   template: raw-json
 
+- name: webhook-swit
+  actions: [ webhook ]
+  template: swit-text
+
 #- name: route1                                 #  Route name. Must be unique
 #  input: contains(input.image, "alpine")       #  REGO rule to match input message against route
 #  input-files:                                  #  Array filePaths to files with REGO rules
@@ -48,6 +52,10 @@ templates:
   url:                                  #  URL to custom REGO file
 - name: raw-json                        # route message "As Is" to external webhook
   rego-package: postee.rawmessage.json
+- name: swit-json
+  rego-package: postee.swit.json
+- name: swit-text
+  rego-package: postee.swit.text
 - name: vuls-cyclonedx                  # export vulnerabilities to CycloneDX XML
   rego-package: postee.vuls.cyclondx
 - name: trivy-operator-jira
