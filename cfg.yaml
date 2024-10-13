@@ -110,6 +110,7 @@ actions:
   type: slack
   enable: false
   url: https://hooks.slack.com/services/TAAAA/BBB/<key>
+  tls-verify: false # Enable skip TLS Verification. Default: false.
 
 - name: ms-team
   type: teams

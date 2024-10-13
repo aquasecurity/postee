@@ -31,6 +31,7 @@ data:
         enable: false
         url: >-
           https://hooks.slack.com/services/xxxxxxx/xxxxxxx/xxxxxxx
+        tls-verify: false # Enable skip TLS Verification. Default: false.
       - type: teams
         name: my-teams
         enable: false
