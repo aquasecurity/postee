@@ -224,12 +224,12 @@ result = msg {
         input.name,
         input.url,
         input.url,
-        sprintf("%v", [with_default(parsed_data, "result", 0)]),
-        parsed_data.malware,
+        sprintf("%v", [with_default(parsed_data, "result", "Unknown Result")]),
+        with_default(parsed_data, "malware", "N/A"),
         parsed_data.hostip,
-        parsed_data.malware_type,
+        with_default(parsed_data, "malware_type", "N/A"),
         parsed_data.action,
-        parsed_data.malware_scan_type,
+        with_default(parsed_data, "malware_scan_type", "N/A"),
         parsed_data.level,
         parsed_data.resource,
         input.cluster,
@@ -237,6 +237,6 @@ result = msg {
         parsed_data.technique,
         parsed_data.rule_type,
         input.response_policy_name,
-        concat(", ", with_default(input, "application_scope", []))
+        concat(", ", input.application_scope)
     ])
 }
