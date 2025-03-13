@@ -102,15 +102,6 @@ style := sprintf(`<style>
                       white-space: normal;
                   }
 
-                  .copyright {
-                      color: #405a75;
-                      font-family: "Inter-SemiBold", sans-serif;
-                      font-size: 15px;
-                      line-height: 26px;
-                      font-weight: 600;
-                      margin-top: 30px;
-                      text-align: center;
-                  }
                   table {
                       width: 100%;
                       border-collapse: collapse;
