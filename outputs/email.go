@@ -12,6 +12,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
@@ -153,12 +154,14 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 		return email.sendViaAwsSesService(email.AwsSesConfig, subject, body, recipients)
 	}
 
+	date := time.Now().Format(time.RFC1123Z)
 	msg := fmt.Sprintf(
 		"To: %s\r\n"+
 			"From: %s\r\n"+
 			"Subject: %s\r\n"+
+			"Date: %s\r\n"+
 			"Content-Type: text/html; charset=UTF-8\r\n\r\n%s\r\n",
-		strings.Join(recipients, ","), email.Sender, subject, body)
+		strings.Join(recipients, ","), email.Sender, subject, date, body)
 
 	if email.UseMX {
 		email.sendViaMxServers(port, msg, recipients)
