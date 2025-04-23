@@ -672,7 +672,12 @@ func (ctx *Router) publish(msg map[string]interface{}, r *routes.InputRoute) []d
 
 	for _, name := range r.Outputs {
 		go func(svc service, outputName string, in map[string]interface{}, route *routes.InputRoute) {
-			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					log.Logger.Errorf("Panic in output %s: %v", outputName, r)
+				}
+				wg.Done()
+			}()
 
 			ticket, err := ctx.publishOutput(svc, outputName, in, route)
 			if err != nil {

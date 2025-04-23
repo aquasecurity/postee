@@ -42,8 +42,12 @@ func getHandledRecipients(recipients []string, content *map[string]string, outpu
 				log.Logger.Errorf("get application scope owners error for %q: %v", outputName, err)
 				continue
 			}
-			result = append(result, owners...)
-		} else {
+			for _, owner := range owners {
+				if owner != "" {
+					result = append(result, owner)
+				}
+			}
+		} else if r != "" {
 			result = append(result, r)
 		}
 	}
