@@ -6,7 +6,25 @@ import future.keywords.if
 
 capitalize(str) := sprintf("%s%s", [upper(substring(str, 0, 1)), lower(substring(str, 1, -1))])
 
-# Outlook for windows use word for HTML rendering, so all styles have to be inline
+# Helper for safe array join
+safe_join(arr) := concat(", ", arr) {
+    arr != null
+    count(arr) > 0
+}
+safe_join(arr) := "" {
+    arr == null
+    true
+}
+
+# Figure out location (container if present, else host)
+location := input.container if {
+    input.container != ""
+} else := input.host
+
+# Top-level title
+title := sprintf("%s Incident on %s", [capitalize(input.main_category), location])
+
+# Inline info table for Outlook compatibility
 info_table(label1, value1, label2, value2) := sprintf(`
   <table width="100%%" border="0" cellpadding="4" cellspacing="0" style="width: 100%%; border-collapse: collapse; table-layout: fixed;">
     <tr>
@@ -16,8 +34,9 @@ info_table(label1, value1, label2, value2) := sprintf(`
   </table>
 `, [label1, value1, label2, value2])
 
+# Severity color logic
 severity_color := "#FF0036" if {
-	input.severity_score == 3
+    input.severity_score == 3
 } else := "#BB0505"
 
 parsed_data := json.unmarshal(input.data)
@@ -59,7 +78,7 @@ policy_info := sprintf(`
     <h3 style="color: #183278; margin: 0;">Policy Information</h3>
     %s
   </div>
-`, [info_table("Response Policy Name", input.response_policy_name, "Application Scope", concat(", ", with_default(input, "application_scope", [])))])
+`, [info_table("Response Policy Name", input.response_policy_name, "Application Scope", safe_join(with_default(input, "application_scope", [])))])
 
 incident_overview := sprintf(`
   <div style="padding-left: 44px; padding-bottom: 20px; color: #6B7887;">
@@ -81,9 +100,9 @@ malware_detection_section := sprintf(`
     %s
     <p style="color: #6B7887; padding: 10px 4px; font-size: 15px;"><strong>Resource Digest:</strong> %s</p>
     <h3 style="color: #183278; margin: 0;">Attack Details</h3>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Tactics:</strong> %s</p>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Techniques:</strong> %s</p>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Rule Type:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Tactics:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Techniques:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Rule Type:</strong> %s</p>
   </div>
 `, [
     concat("", [
@@ -113,8 +132,8 @@ behavioral_detection_section := sprintf(`
   <div style="padding-left: 44px; padding-bottom: 20px; color: #6B7887;">
     <h3 style="color: #183278; margin: 0;">Behavioral Detection</h3>
     %s
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>MITRE Tactic:</strong> %s</p>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Description:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>MITRE Tactic:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Description:</strong> %s</p>
   </div>
 `, [
     concat("", [
@@ -125,6 +144,7 @@ behavioral_detection_section := sprintf(`
     with_default(parsed_data, "signature_description", "")
 ])
 
+# Dynamic Section (based on main_category)
 dynamic_section := malware_detection_section if {
     input.main_category == "malware"
 }
@@ -146,9 +166,11 @@ sections := [
 
 html_content := concat("", sections)
 
-location := input.container if {
-    input.container != ""
-} else := input.host
-title := sprintf("%s Incident on %s", [capitalize(input.main_category), location])
+# Top-level result
+result := sprintf(html_tpl, [title, html_content])
 
-result := sprintf(html_tpl, [html_content])
+# Optional output object
+output := {
+    "title": title,
+    "result": result
+}
