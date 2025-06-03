@@ -9,7 +9,7 @@ env:
 jobs:
   unit-tests:
     name: Run unit tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Setup Go
         uses: actions/setup-go@424fc82d43fa5a37540bae62709ddcc23d9520d4
@@ -49,7 +49,7 @@ jobs:
     name: Release
     needs:
       - unit-tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Setup Go
         uses: actions/setup-go@424fc82d43fa5a37540bae62709ddcc23d9520d4

@@ -6,7 +6,30 @@ import future.keywords.if
 
 capitalize(str) := sprintf("%s%s", [upper(substring(str, 0, 1)), lower(substring(str, 1, -1))])
 
-# Outlook for windows use word for HTML rendering, so all styles have to be inline
+# Helper for safe array join
+safe_join(arr) := concat(", ", arr) {
+    arr != null
+    count(arr) > 0
+}
+safe_join(arr) := "" {
+    arr == null
+    true
+}
+
+# Safe access to critical fields
+main_category := with_default(input, "main_category", "unknown")
+location := input.container if {
+    input.container != ""
+} else := with_default(input, "host", "unknown")
+data := with_default(input, "data", "{}")
+parsed_data := json.unmarshal(data) if {
+    json.is_valid(data)
+} else := {}
+
+# Top-level title
+title := sprintf("%s Incident on %s", [capitalize(main_category), location])
+
+# Inline info table for Outlook compatibility
 info_table(label1, value1, label2, value2) := sprintf(`
   <table width="100%%" border="0" cellpadding="4" cellspacing="0" style="width: 100%%; border-collapse: collapse; table-layout: fixed;">
     <tr>
@@ -16,11 +39,12 @@ info_table(label1, value1, label2, value2) := sprintf(`
   </table>
 `, [label1, value1, label2, value2])
 
+# Severity color logic
 severity_color := "#FF0036" if {
-	input.severity_score == 3
-} else := "#BB0505"
-
-parsed_data := json.unmarshal(input.data)
+    input.severity_score == 3
+} else := "#BB0505" if {
+    input.severity_score != null
+} else := "#000000"
 
 html_tpl := `
 <!DOCTYPE html>
@@ -41,12 +65,12 @@ severity_indicator := sprintf(`
 
 severity_box := sprintf(`
   <div style="padding-left: 44px; padding-bottom: 10px;">
-    <div style="margin-left: 44px; display: inline-block; background-color: %s; color: #fff; font-weight: bold; border-bottom-left-radius: 7px; border-bottom-right-radius: 7px; width: 130px; height: 65px; text-align: center; margin-bottom: 20px;  padding-top: 10px;">
+    <div style="margin-left: 44px; display: inline-block; background-color: %s; color: #fff; font-weight: bold; border-bottom-left-radius: 7px; border-bottom-right-radius: 7px; width: 130px; height: 65px; text-align: center; margin-bottom: 20px; padding-top: 10px;">
       <span style="font-size: 28px;">%v</span><br>
       <span style="font-size: 16px;">%s</span>
     </div>
   </div>
-`, [severity_color, input.severity_score, capitalize(input.severity)])
+`, [severity_color, with_default(input, "severity_score", 0), capitalize(with_default(input, "severity", "unknown"))])
 
 logo := `
   <div align="center" style="padding-top: 20px; padding-bottom: 20px;">
@@ -59,7 +83,7 @@ policy_info := sprintf(`
     <h3 style="color: #183278; margin: 0;">Policy Information</h3>
     %s
   </div>
-`, [info_table("Response Policy Name", input.response_policy_name, "Application Scope", concat(", ", with_default(input, "application_scope", [])))])
+`, [info_table("Response Policy Name", with_default(input, "response_policy_name", ""), "Application Scope", safe_join(with_default(input, "application_scope", [])))])
 
 incident_overview := sprintf(`
   <div style="padding-left: 44px; padding-bottom: 20px; color: #6B7887;">
@@ -67,12 +91,12 @@ incident_overview := sprintf(`
     %s
   </div>
 `, [concat("", [
-    info_table("Type", capitalize(input.main_category), "Name Space", with_default(input, "namespace", "")),
+    info_table("Type", capitalize(main_category), "Name Space", with_default(input, "namespace", "")),
     info_table("Category", with_default(input, "category", ""), "Deployment", with_default(input, "deployment", "")),
     info_table("Incident Name", with_default(input, "name", ""), "Host Name", with_default(input, "host", "")),
     info_table("Enforcer Group", with_default(input, "host_group", ""), "Host ID", with_default(input, "hostid", "")),
-    info_table("Image Name", with_default(input, "image", ""), "URL", sprintf("<a href=\"%s\" style=\"color: #007BFF; text-decoration: underline;\">%s</a>", [input.url, input.url])),
-    info_table("Cluster Name", with_default(input, "cluster", ""), "Timestamp", time.format([input.timestamp * 1000000, "", "Jan 2, 2006 03:04:05.0"]))
+    info_table("Image Name", with_default(input, "image", ""), "URL", sprintf("<a href=\"%s\" style=\"color: #007BFF; text-decoration: underline;\">%s</a>", [with_default(input, "url", ""), with_default(input, "url", "")])),
+    info_table("Cluster Name", with_default(input, "cluster", ""), "Timestamp", time.format([with_default(input, "timestamp", 0) * 1000000, "", "Jan 2, 2006 03:04:05.0"]))
 ])])
 
 malware_detection_section := sprintf(`
@@ -81,9 +105,9 @@ malware_detection_section := sprintf(`
     %s
     <p style="color: #6B7887; padding: 10px 4px; font-size: 15px;"><strong>Resource Digest:</strong> %s</p>
     <h3 style="color: #183278; margin: 0;">Attack Details</h3>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Tactics:</strong> %s</p>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Techniques:</strong> %s</p>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Rule Type:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Tactics:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Techniques:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Rule Type:</strong> %s</p>
   </div>
 `, [
     concat("", [
@@ -113,8 +137,8 @@ behavioral_detection_section := sprintf(`
   <div style="padding-left: 44px; padding-bottom: 20px; color: #6B7887;">
     <h3 style="color: #183278; margin: 0;">Behavioral Detection</h3>
     %s
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>MITRE Tactic:</strong> %s</p>
-    <p style="color: #6B7887;  padding-top: 10px; font-size: 15px;"><strong>Description:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>MITRE Tactic:</strong> %s</p>
+    <p style="color: #6B7887; padding-top: 10px; font-size: 15px;"><strong>Description:</strong> %s</p>
   </div>
 `, [
     concat("", [
@@ -125,14 +149,18 @@ behavioral_detection_section := sprintf(`
     with_default(parsed_data, "signature_description", "")
 ])
 
+# Dynamic Section (based on main_category)
 dynamic_section := malware_detection_section if {
-    input.main_category == "malware"
+    main_category == "malware"
 }
 dynamic_section := runtime_control_section if {
-    input.main_category == "runtime"
+    main_category == "runtime"
 }
 dynamic_section := behavioral_detection_section if {
-    input.main_category == "behavioral"
+    main_category == "behavioral"
+}
+dynamic_section := "<div>No specific detection details available</div>" if {
+    not main_category in ["malware", "runtime", "behavioral"]
 }
 
 sections := [
@@ -146,9 +174,5 @@ sections := [
 
 html_content := concat("", sections)
 
-location := input.container if {
-    input.container != ""
-} else := input.host
-title := sprintf("%s Incident on %s", [capitalize(input.main_category), location])
-
+# Top-level result
 result := sprintf(html_tpl, [html_content])
