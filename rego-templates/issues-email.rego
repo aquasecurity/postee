@@ -277,9 +277,10 @@ security_findings(json) = output if {
   }
 }
 
-title = "Issue report"
+title := "Issue report"
 
-result = sprintf(tpl, [
+result := res {
+     res := sprintf(tpl, [
         style,
         capitalize(input.issue_details.severity),
         input.issue_details.name,
@@ -292,3 +293,4 @@ result = sprintf(tpl, [
         input.response_policy_name,
         concat(", ", with_default(input, "application_scope", [])),
     ])
+}
