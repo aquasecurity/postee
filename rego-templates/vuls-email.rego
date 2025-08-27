@@ -88,9 +88,6 @@ tpl := `
   <div class="see-more-container">
     <a href="%s" class="see-more">See more</a>
   </div>
-  <div class="copyright">
-    Copyright (C) 2022 Aqua Security Software Ltd.
-  </div>
 </body>
 </html>
 `
@@ -243,14 +240,6 @@ style:=`
       width:100%;
       display: flex;
       justify-content: center;
-    }
-    .copyright {
-      color: #405a75;
-      font-family: "Inter-SemiBold", sans-serif;
-      font-size: 15px;
-      line-height: 26px;
-      font-weight: 600;
-      margin-top: 30px;
     }
     .properties-container {
       display: flex;
