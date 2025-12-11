@@ -856,6 +856,8 @@ func buildAndInitOtpt(settings *data.OutputSettings, aquaServerUrl string) (outp
 		plg = buildSlackOutput(settings, aquaServerUrl)
 	case "teams":
 		plg = buildTeamsOutput(settings, aquaServerUrl)
+	case "teamsworkflows":
+		plg = buildTeamsWorkflowsOutput(settings, aquaServerUrl)
 	case "servicenow":
 		plg = buildServiceNow(settings)
 	case "webhook":
