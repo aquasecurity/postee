@@ -99,7 +99,12 @@ outputs:
 - name: ms-team
   type: teams
   enable: false
-  url: https://outlook.office.com/webhook/....   #  Webhook's url
+  url: https://outlook.office.com/webhook/....   #  (DEPRECATED) Legacy Webhook's url - will be retired by March 2026
+
+- name: ms-team-workflows
+  type: teamsworkflows
+  enable: false
+  url: https://prod-XX.westus.logic.azure.com:443/workflows/....   #  Teams Workflows webhook URL (recommended - replaces deprecated Office 365 Connectors)
 
 - name: webhook
   type: webhook
