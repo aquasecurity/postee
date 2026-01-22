@@ -40,6 +40,14 @@ func buildTeamsOutput(sourceSettings *data.OutputSettings, aquaServer string) *o
 	}
 }
 
+func buildTeamsWorkflowsOutput(sourceSettings *data.OutputSettings, aquaServer string) *outputs.TeamsWorkflowsOutput {
+	return &outputs.TeamsWorkflowsOutput{
+		Name:       sourceSettings.Name,
+		AquaServer: aquaServer,
+		Webhook:    sourceSettings.Url,
+	}
+}
+
 func buildServiceNow(sourceSettings *data.OutputSettings) *outputs.ServiceNowOutput {
 	serviceNow := &outputs.ServiceNowOutput{
 		Name:     sourceSettings.Name,
