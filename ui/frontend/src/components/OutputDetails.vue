@@ -362,19 +362,7 @@
 
           <!-- jira custom properties end -->
           <!-- serviceNow custom properties start -->
-          <div class="row">
-            <div class="col">
-              <PropertyField
-                id="instance"
-                label="Instance"
-                :value="formValues.instance"
-                description="Mandatory. Name of ServiceNow  or Instance"
-                :errorMsg="errors['instance']"
-                :show="isServiceNow"
-                :inputHandler="updateField"
-                :validator="v(required)"
-              />
-            </div>
+          <div class="row" v-if="isServiceNow">
             <div class="col">
               <PropertyField
                 id="board"
@@ -434,6 +422,7 @@ const urlDescriptionByType = {
   teams: "Webhook's url",
   jira: 'Mandatory. E.g "https://johndoe.atlassian.net"',
   slack: "",
+  serviceNow: "ServiceNow instance URL (e.g. https://ven05031.service-now.com/ or https://fsadev.servicenowservices.com)",
 };
 const typesWithCredentials = ["serviceNow", "email"]; //TODO add description strings
 

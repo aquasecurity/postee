@@ -7,13 +7,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/aquasecurity/postee/v2/utils"
 )
 
-func InsertRecordToTable(user, password, instance, table string, content []byte) (*ServiceNowResponse, error) {
-	url := fmt.Sprintf("https://%s.%s%s%s%s",
-		instance, BaseServer, baseApiUrl, tableApi, table)
+// InsertRecordToTable posts a record to the given ServiceNow table.
+// instanceURL is the ServiceNow instance root URL (e.g. "https://ven05031.service-now.com/" or "https://fsadev.servicenowservices.com"),
+// as provided by the customer; it is not constructed from instance name + baseServer.
+func InsertRecordToTable(user, password, instanceURL, table string, content []byte) (*ServiceNowResponse, error) {
+	base := strings.TrimSuffix(instanceURL, "/")
+	url := base + "/" + baseApiPath + table
 	r := bytes.NewReader(content)
 	client := http.DefaultClient
 	reg, err := http.NewRequest("POST", url, r)
