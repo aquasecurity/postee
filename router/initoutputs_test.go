@@ -176,7 +176,7 @@ func TestBuildAndInitOtpt(t *testing.T) {
 			"*outputs.WebhookOutput",
 		},
 		{
-			"Simple ServiceNow output",
+			"Simple ServiceNow output (url)",
 			data.OutputSettings{
 				Name:      "my-servicenow",
 				Type:      "serviceNow",
@@ -190,6 +190,25 @@ func TestBuildAndInitOtpt(t *testing.T) {
 				"Password": "secret",
 				"Url":      "https://dev108148.service-now.com/",
 				"Table":    "incindent",
+			},
+			false,
+			"*outputs.ServiceNowOutput",
+		},
+		{
+			"ServiceNow output (legacy, instance only)",
+			data.OutputSettings{
+				Name:         "my-servicenow-legacy",
+				Type:         "serviceNow",
+				User:         "admin",
+				Password:     "secret",
+				InstanceName: "dev108148",
+				BoardName:    "incident",
+			},
+			map[string]interface{}{
+				"User":     "admin",
+				"Password": "secret",
+				"Instance": "dev108148",
+				"Table":    "incident",
 			},
 			false,
 			"*outputs.ServiceNowOutput",

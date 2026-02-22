@@ -1,6 +1,8 @@
 package servicenow_api
 
 const (
+	// BaseServer is used for legacy config when url is not provided (e.g. instance name + BaseServer).
+	BaseServer  = "service-now.com/"
 	baseApiPath = "api/now/table/"
 )
 

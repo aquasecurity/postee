@@ -107,7 +107,7 @@
             :description="getUrlDescription"
             :show="showUrl"
             :inputHandler="updateField"
-            :validator="v([url, required])"
+            :validator="getUrlValidator"
           />
 
           <!-- email custom properties start -->
@@ -362,7 +362,18 @@
 
           <!-- jira custom properties end -->
           <!-- serviceNow custom properties start -->
-          <div class="row" v-if="isServiceNow">
+          <div class="row">
+            <div class="col">
+              <PropertyField
+                id="instance"
+                label="Instance (legacy)"
+                :value="formValues.instance"
+                description="Legacy: instance name (e.g. dev12345) if URL is not set. Used for https://&lt;instance&gt;.service-now.com"
+                :errorMsg="errors['instance']"
+                :show="isServiceNow"
+                :inputHandler="updateField"
+              />
+            </div>
             <div class="col">
               <PropertyField
                 id="board"
@@ -422,7 +433,7 @@ const urlDescriptionByType = {
   teams: "Webhook's url",
   jira: 'Mandatory. E.g "https://johndoe.atlassian.net"',
   slack: "",
-  serviceNow: "ServiceNow instance URL (e.g. https://ven05031.service-now.com/ or https://fsadev.servicenowservices.com)",
+  serviceNow: "If set, used as instance URL (recommended). Otherwise Instance name is used (legacy). E.g. https://ven05031.service-now.com/ or https://fsadev.servicenowservices.com",
 };
 const typesWithCredentials = ["serviceNow", "email"]; //TODO add description strings
 
@@ -465,6 +476,13 @@ export default {
     },
     getUrlDescription() {
       return urlDescriptionByType[this.outputType];
+    },
+    getUrlValidator() {
+      // ServiceNow: url is optional (legacy uses instance only)
+      if (this.outputType === "serviceNow") {
+        return this.v([this.url]);
+      }
+      return this.v([this.url, this.required]);
     },
     isServiceNow() {
       return this.outputType === "serviceNow";

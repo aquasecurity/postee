@@ -24,7 +24,8 @@ type ServiceNowOutput struct {
 	Name           string
 	User           string
 	Password       string
-	Url            string // ServiceNow instance URL (e.g. https://ven05031.service-now.com/ or https://fsadev.servicenowservices.com)
+	Url            string // ServiceNow instance URL (new behaviour). If set, used as-is; otherwise Instance + BaseServer is used (legacy).
+	Instance       string // Legacy: instance name (e.g. dev12345) for https://<instance>.service-now.com/
 	Table          string
 	layoutProvider layout.LayoutProvider
 }
@@ -39,12 +40,13 @@ func (sn *ServiceNowOutput) GetName() string {
 
 func (sn *ServiceNowOutput) CloneSettings() *data.OutputSettings {
 	return &data.OutputSettings{
-		Name:      sn.Name,
-		User:      sn.User,
-		Url:       sn.Url,
-		BoardName: sn.Table,
-		Enable:    true,
-		Type:      serviceNowType,
+		Name:         sn.Name,
+		User:         sn.User,
+		Url:          sn.Url,
+		InstanceName: sn.Instance,
+		BoardName:    sn.Table,
+		Enable:       true,
+		Type:         serviceNowType,
 	}
 }
 
@@ -52,7 +54,11 @@ func (sn *ServiceNowOutput) Init() error {
 	sn.layoutProvider = new(formatting.HtmlProvider)
 
 	log.Logger.Infof("Successfully initialized ServiceNow output %q", sn.Name)
-	log.Logger.Debugf("Your ServiceNow Table is %q at %q", sn.Table, sn.Url)
+	if sn.Url != "" {
+		log.Logger.Debugf("Your ServiceNow Table is %q at %q (instance URL)", sn.Table, sn.Url)
+	} else {
+		log.Logger.Debugf("Your ServiceNow Table is %q on %s.%s (legacy)", sn.Table, sn.Instance, servicenow.BaseServer)
+	}
 	return nil
 }
 
@@ -90,13 +96,19 @@ func (sn *ServiceNowOutput) Send(content map[string]string) (data.OutputResponse
 		return data.OutputResponse{}, errors.New("Error when trying to parse ServiceNow integration data")
 	}
 
-	resp, err := servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Url, sn.Table, body)
+	resp, err := servicenow.InsertRecordToTable(sn.User, sn.Password, sn.Url, sn.Instance, sn.Table, body)
 	if err != nil {
 		log.Logger.Error("ServiceNow Error: ", err)
 		return data.OutputResponse{}, errors.New("Failed inserting record to the ServiceNow table")
 	}
 
-	baseURL := strings.TrimSuffix(sn.Url, "/")
+	var baseURL string
+	if sn.Url != "" {
+		baseURL = strings.TrimSuffix(sn.Url, "/")
+	} else {
+		baseURL = fmt.Sprintf("https://%s.%s", sn.Instance, servicenow.BaseServer)
+		baseURL = strings.TrimSuffix(baseURL, "/")
+	}
 	ticketLink := fmt.Sprintf("%s/nav_to.do?uri=%s.do?sys_id=%s", baseURL, sn.Table, resp.SysID)
 	log.Logger.Infof("Successfully sent a message via ServiceNow %q, ID %q, Link %q", sn.Name, resp.SysID, ticketLink)
 	return data.OutputResponse{Key: resp.SysID, Url: ticketLink, Name: sn.Name}, nil

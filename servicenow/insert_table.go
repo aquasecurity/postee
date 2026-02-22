@@ -13,14 +13,23 @@ import (
 )
 
 // InsertRecordToTable posts a record to the given ServiceNow table.
-// instanceURL is the ServiceNow instance root URL (e.g. "https://ven05031.service-now.com/" or "https://fsadev.servicenowservices.com"),
-// as provided by the customer; it is not constructed from instance name + baseServer.
-func InsertRecordToTable(user, password, instanceURL, table string, content []byte) (*ServiceNowResponse, error) {
-	base := strings.TrimSuffix(instanceURL, "/")
-	url := base + "/" + baseApiPath + table
+// If instanceURL is non-empty, it is used as the instance root URL (new behaviour; e.g. https://ven05031.service-now.com/ or https://fsadev.servicenowservices.com).
+// If instanceURL is empty, the URL is built from instance + BaseServer (legacy behaviour: https://<instance>.service-now.com/).
+// At least one of instanceURL or instance must be non-empty.
+func InsertRecordToTable(user, password, instanceURL, instance, table string, content []byte) (*ServiceNowResponse, error) {
+	if instanceURL == "" && instance == "" {
+		return nil, fmt.Errorf("InsertRecordToTable: either url (instance URL) or instance (legacy) must be set")
+	}
+	var tableURL string
+	if instanceURL != "" {
+		base := strings.TrimSuffix(instanceURL, "/")
+		tableURL = base + "/" + baseApiPath + table
+	} else {
+		tableURL = fmt.Sprintf("https://%s.%s%s%s", instance, BaseServer, baseApiPath, table)
+	}
 	r := bytes.NewReader(content)
 	client := http.DefaultClient
-	reg, err := http.NewRequest("POST", url, r)
+	reg, err := http.NewRequest("POST", tableURL, r)
 	if err != nil {
 		return nil, err
 	}
