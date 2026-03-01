@@ -22,6 +22,12 @@ func InsertRecordToTable(user, password, instanceURL, instance, table string, co
 	}
 	var tableURL string
 	if instanceURL != "" {
+		if !IsValidURL(instanceURL) {
+			return nil, fmt.Errorf("InsertRecordToTable: invalid ServiceNow instance URL format (must be http(s) with host)")
+		}
+		if !IsUrlNotLocalhost(instanceURL) {
+			return nil, fmt.Errorf("InsertRecordToTable: ServiceNow instance URL must not be localhost")
+		}
 		base := strings.TrimSuffix(instanceURL, "/")
 		tableURL = base + "/" + baseApiPath + table
 	} else {
