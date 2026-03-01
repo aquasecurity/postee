@@ -1,9 +1,9 @@
 package servicenow_api
 
 const (
-	BaseServer = "service-now.com/"
-	baseApiUrl = "api/now/"
-	tableApi   = "table/"
+	// BaseServer is used for legacy config when url is not provided (e.g. instance name + BaseServer).
+	BaseServer  = "service-now.com/"
+	baseApiPath = "api/now/table/"
 )
 
 type ServiceNowData struct {

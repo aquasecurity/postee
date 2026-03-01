@@ -25,7 +25,7 @@ data:
         enable: false
         user: xxxxxxxxx
         password: xxxxxxxxxx
-        instance: xxxxxxxx
+        url: https://your-instance.service-now.com/
       - type: slack
         name: my-slack
         enable: false

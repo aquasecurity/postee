@@ -53,8 +53,9 @@ func buildServiceNow(sourceSettings *data.OutputSettings) *outputs.ServiceNowOut
 		Name:     sourceSettings.Name,
 		User:     sourceSettings.User,
 		Password: sourceSettings.Password,
-		Table:    sourceSettings.BoardName,
+		Url:      sourceSettings.Url,
 		Instance: sourceSettings.InstanceName,
+		Table:    sourceSettings.BoardName,
 	}
 	if len(serviceNow.Table) == 0 {
 		serviceNow.Table = ServiceNowTableDefault

@@ -123,6 +123,6 @@ outputs:
   enable: false
   user:      # Mandatory. E.g :johndoe@gmail.com"
   password:  # Mandatory. Specify user API key
-  instance:  # Mandatory. Name of ServiceN  ow Instance
+  url:       # Mandatory. ServiceNow instance URL (e.g. https://ven05031.service-now.com/ or https://fsadev.servicenowservices.com)
   board:     #  Specify the ServiceNow board name to open tickets on. Default is "incident"
   
