@@ -95,7 +95,7 @@ func TestWebhookOutput_Send_ErrorCases(t *testing.T) {
 	t.Run("Server returns error status", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Unauthorized"))
+			_, _ = w.Write([]byte("Unauthorized"))
 		}))
 		defer server.Close()
 
