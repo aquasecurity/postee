@@ -27,8 +27,9 @@ func buildSplunkOutput(sourceSettings *data.OutputSettings) *outputs.SplunkOutpu
 
 func buildWebhookOutput(sourceSettings *data.OutputSettings) *outputs.WebhookOutput {
 	return &outputs.WebhookOutput{
-		Name: sourceSettings.Name,
-		Url:  sourceSettings.Url,
+		Name:    sourceSettings.Name,
+		Url:     sourceSettings.Url,
+		Headers: sourceSettings.Headers,
 	}
 }
 

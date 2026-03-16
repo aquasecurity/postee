@@ -17,8 +17,9 @@ const (
 )
 
 type WebhookOutput struct {
-	Name string
-	Url  string
+	Name    string
+	Url     string
+	Headers map[string][]string
 }
 
 func (webhook *WebhookOutput) GetType() string {
@@ -47,7 +48,22 @@ func (webhook *WebhookOutput) Init() error {
 func (webhook *WebhookOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending webhook to %q", webhook.Url)
 	dataStr := content["description"] //it's not supposed to work with legacy renderer
-	resp, err := http.Post(webhook.Url, "application/json", strings.NewReader(dataStr))
+
+	req, err := http.NewRequest("POST", webhook.Url, strings.NewReader(dataStr))
+	if err != nil {
+		log.Logger.Errorf("Sending webhook Error: %v", err)
+		return data.OutputResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	for key, values := range webhook.Headers {
+		for _, v := range values {
+			req.Header.Add(key, v)
+		}
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Logger.Errorf("Sending webhook Error: %v", err)
 		return data.OutputResponse{}, err
