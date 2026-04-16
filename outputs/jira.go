@@ -45,6 +45,7 @@ type JiraAPI struct {
 	BoardName       string
 	boardId         int
 	boardType       string
+	isCloud         bool
 }
 
 func (ctx *JiraAPI) GetType() string {
@@ -77,15 +78,9 @@ func (ctx *JiraAPI) CloneSettings() *data.OutputSettings {
 	}
 }
 
-func (ctx *JiraAPI) fetchBoardId(boardName string) {
+func (ctx *JiraAPI) fetchBoardId(client *jira.Client, boardName string) {
 	// Basic authentication with passwords is deprecated for this API
 	if ctx.Token == "" {
-		return
-	}
-
-	client, err := ctx.createClient()
-	if err != nil {
-		log.Logger.Error(fmt.Errorf("unable to create Jira client: %w, please check your credentials", err))
 		return
 	}
 
@@ -141,13 +136,21 @@ func (ctx *JiraAPI) Init() error {
 	if ctx.BoardName == "" {
 		ctx.BoardName = fmt.Sprintf("%s board", ctx.ProjectKey)
 	}
-	ctx.fetchBoardId(ctx.BoardName)
 
 	if len(ctx.Password) == 0 {
 		ctx.Password = os.Getenv("JIRA_PASSWORD")
 	}
 
-	log.Logger.Infof("Successfully initialized Jira output %q", ctx.Name)
+	client, err := ctx.createClient()
+	if err != nil {
+		log.Logger.Warnf("Could not create Jira client during init: %v", err)
+		return err
+	}
+
+	ctx.isCloud = ctx.getIsCloud(client)
+	ctx.fetchBoardId(client, ctx.BoardName)
+	log.Logger.Infof("Successfully initialized Jira output %q (cloud=%v)", ctx.Name, ctx.isCloud)
+
 	return nil
 }
 
@@ -157,7 +160,7 @@ func (ctx *JiraAPI) GetLayoutProvider() layout.LayoutProvider {
 
 func (ctx *JiraAPI) buildTransportClient() (*http.Client, error) {
 	if ctx.Token != "" {
-		if !isServerJira(ctx.Url) {
+		if ctx.isCloud {
 			return nil, errors.New("jira Cloud can't work with PAT")
 		}
 		if ctx.Password != "" {
@@ -261,7 +264,7 @@ func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error)
 		Name string `json:"name"`
 	}
 
-	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, isServerJira(ctx.Url))
+	issue, err := InitIssue(client, metaProject, metaIssueType, fieldsConfig, !ctx.isCloud)
 
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("failed to init issue: %w", err))
@@ -472,14 +475,29 @@ func findUserOnJiraServer(c *jira.Client, email string) ([]jira.User, *jira.Resp
 	return users, resp, nil
 }
 
-func isServerJira(rawUrl string) bool {
-	jiraUrl, err := url.Parse(rawUrl)
-
-	if err == nil {
-		return !strings.HasSuffix(jiraUrl.Host, "atlassian.net")
+// getIsCloud probes /rest/api/2/serverInfo to determine the Jira deployment
+// type. Falls back to the URL-based heuristic when the probe fails.
+func (ctx *JiraAPI) getIsCloud(client *jira.Client) bool {
+	req, err := client.NewRequest("GET", "rest/api/2/serverInfo", nil)
+	if err != nil {
+		log.Logger.Warnf("Failed to build serverInfo request, falling back to URL check: %v", err)
+		return isCloudUrl(ctx.Url)
 	}
+	info := new(jira.JiraServerInfo)
+	resp, err := client.Do(req, info)
+	if err != nil || resp == nil || resp.StatusCode != http.StatusOK {
+		log.Logger.Warnf("serverInfo probe failed, falling back to URL check: %v", err)
+		return isCloudUrl(ctx.Url)
+	}
+	return strings.EqualFold(info.DeploymentType, "Cloud")
+}
 
-	return false
+func isCloudUrl(rawUrl string) bool {
+	jiraUrl, err := url.Parse(rawUrl)
+	if err != nil {
+		return false
+	}
+	return strings.HasSuffix(jiraUrl.Host, "atlassian.net")
 }
 
 func cpyUnknowns(source map[string]string) map[string]string {
