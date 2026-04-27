@@ -1,6 +1,7 @@
 package outputs
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -213,7 +214,7 @@ func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error)
 		ctx.fetchSprintId(*client)
 	}
 
-	metaProject, err := createMetaProject(client, ctx.ProjectKey)
+	metaProject, err := createMetaProject(client, ctx.ProjectKey, ctx.isCloud)
 	if err != nil {
 		return data.OutputResponse{}, fmt.Errorf("failed to create meta project: %w", err)
 	}
@@ -313,13 +314,27 @@ func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Iss
 	return i, nil
 }
 
-func createMetaProject(c *jira.Client, project string) (*jira.MetaProject, error) {
-	meta, _, err := c.Issue.GetCreateMeta(project)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get create meta : %w", err)
+func createMetaProject(c *jira.Client, project string, isCloud bool) (*jira.MetaProject, error) {
+	var meta *jira.CreateMetaInfo
+	var err error
+
+	log.Logger.Debugf("Fetching create meta for project %q (cloud=%v)", project, isCloud)
+
+	if isCloud {
+		meta, _, err = c.Issue.GetCreateMetaWithOptionsWithContextForJira9(
+			context.Background(),
+			&jira.GetQueryOptions{ProjectKeys: project, Expand: "projects.issuetypes.fields"},
+		)
+	} else {
+		meta, _, err = c.Issue.GetCreateMeta(project)
 	}
 
-	// get right project
+	if err != nil {
+		return nil, fmt.Errorf("failed to get create meta: %w", err)
+	}
+
+	log.Logger.Debugf("Create meta response: %+v", meta)
+
 	metaProject := meta.GetProjectWithKey(project)
 	if metaProject == nil {
 		return nil, fmt.Errorf("could not find project with key %s", project)
