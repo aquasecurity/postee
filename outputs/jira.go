@@ -4,13 +4,13 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io"
 	"strconv"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
 	"github.com/aquasecurity/postee/v2/layout"
 	"github.com/aquasecurity/postee/v2/log"
-	"github.com/trivago/tgo/tcontainer"
 
 	"net/http"
 	"net/url"
@@ -336,92 +336,35 @@ func createMetaProject(c *jira.Client, project string, isCloud bool) (*jira.Meta
 	return metaProject, nil
 }
 
+// createMetaProjectCloud calls the createmeta endpoint directly, bypassing the
+// SDK's internal isJiraAPI9 routing which incorrectly routes some Cloud
+// instances to the Server-only /rest/api/2/project/{key} endpoint.
 func createMetaProjectCloud(c *jira.Client, project string) (*jira.MetaProject, error) {
-	type issueTypeEntry struct {
-		Id   string `json:"id"`
-		Name string `json:"name"`
-	}
-	type issueTypesPage struct {
-		IssueTypes []issueTypeEntry `json:"issueTypes"`
-		Values     []issueTypeEntry `json:"values"`
-	}
-
-	issueTypesEndpoint := fmt.Sprintf("rest/api/2/issue/createmeta/%s/issuetypes", project)
-	req, err := c.NewRequest("GET", issueTypesEndpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request for %s: %w", issueTypesEndpoint, err)
-	}
-
-	var page issueTypesPage
-	if _, err := c.Do(req, &page); err != nil {
-		return nil, fmt.Errorf("failed to get issue types from %s: %w", issueTypesEndpoint, err)
-	}
-
-	issueTypes := page.IssueTypes
-	if len(issueTypes) == 0 {
-		issueTypes = page.Values
-	}
-	if len(issueTypes) == 0 {
-		return nil, fmt.Errorf("no issue types returned for project %s (check project key and permissions)", project)
-	}
-
-	log.Logger.Debugf("Found %d issue type(s) for project %q", len(issueTypes), project)
-
-	metaProject := &jira.MetaProject{Key: project}
-	for _, it := range issueTypes {
-		log.Logger.Debugf("Fetching fields for issue type %q (id=%s)", it.Name, it.Id)
-		fields, err := fetchIssueTypeFields(c, project, it.Id)
-		if err != nil {
-			return nil, err
-		}
-		metaProject.IssueTypes = append(metaProject.IssueTypes, &jira.MetaIssueType{
-			Id:     it.Id,
-			Name:   it.Name,
-			Fields: fields,
-		})
-	}
-
-	log.Logger.Debugf("Cloud create meta returned %d issue type(s) for project %q", len(metaProject.IssueTypes), project)
-	return metaProject, nil
-}
-
-func fetchIssueTypeFields(c *jira.Client, project, issueTypeId string) (tcontainer.MarshalMap, error) {
-	endpoint := fmt.Sprintf("rest/api/2/issue/createmeta/%s/issuetypes/%s", project, issueTypeId)
+	endpoint := fmt.Sprintf("rest/api/2/issue/createmeta?projectKeys=%s&expand=projects.issuetypes.fields", project)
 	req, err := c.NewRequest("GET", endpoint, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request for %s: %w", endpoint, err)
 	}
 
-	type fieldsPage struct {
-		Fields []tcontainer.MarshalMap `json:"fields"`
-		Values []tcontainer.MarshalMap `json:"values"`
-	}
-
-	var page fieldsPage
-	if _, err := c.Do(req, &page); err != nil {
-		return nil, fmt.Errorf("failed to get fields from %s: %w", endpoint, err)
-	}
-
-	entries := page.Fields
-	if len(entries) == 0 {
-		entries = page.Values
-	}
-
-	var skipped int
-	fields := tcontainer.MarshalMap{}
-	for _, v := range entries {
-		fieldId, err := v.String("fieldId")
-		if err != nil {
-			skipped++
-			continue
+	meta := new(jira.CreateMetaInfo)
+	resp, err := c.Do(req, meta)
+	if err != nil {
+		if resp != nil && resp.Body != nil {
+			body, _ := io.ReadAll(resp.Body)
+			log.Logger.Debugf("Response body from %s (status %d): %s", endpoint, resp.StatusCode, string(body))
 		}
-		fields[fieldId] = v
+		return nil, fmt.Errorf("failed to get create meta from %s: %w", endpoint, err)
 	}
-	if skipped > 0 {
-		log.Logger.Warnf("Skipped %d field(s) without fieldId for issue type %s in project %s", skipped, issueTypeId, project)
+
+	log.Logger.Debugf("Createmeta response for project %q: %d project(s) returned", project, len(meta.Projects))
+
+	metaProject := meta.GetProjectWithKey(project)
+	if metaProject == nil {
+		return nil, fmt.Errorf("could not find project with key %s", project)
 	}
-	log.Logger.Debugf("Loaded %d field(s) for issue type %s in project %s", len(fields), issueTypeId, project)
-	return fields, nil
+
+	log.Logger.Debugf("Cloud createmeta returned project %q with %d issue type(s)", project, len(metaProject.IssueTypes))
+	return metaProject, nil
 }
 
 func createMetaIssueType(metaProject *jira.MetaProject, issueType string) (*jira.MetaIssueType, error) {
@@ -511,15 +454,9 @@ func InitIssue(c *jira.Client, metaProject *jira.MetaProject, metaIssuetype *jir
 			// Treat any as string
 			issueFields.Unknowns[jiraKey] = value
 		case "project":
-			if metaProject.Id != "" {
-				issueFields.Unknowns[jiraKey] = jira.Project{
-					Name: metaProject.Name,
-					ID:   metaProject.Id,
-				}
-			} else {
-				issueFields.Unknowns[jiraKey] = jira.Project{
-					Key: metaProject.Key,
-				}
+			issueFields.Unknowns[jiraKey] = jira.Project{
+				Name: metaProject.Name,
+				ID:   metaProject.Id,
 			}
 		case "priority":
 			issueFields.Unknowns[jiraKey] = jira.Priority{Name: value}
