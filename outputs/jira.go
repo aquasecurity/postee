@@ -302,8 +302,11 @@ func (ctx *JiraAPI) Send(content map[string]string) (data.OutputResponse, error)
 }
 
 func (ctx *JiraAPI) openIssue(client *jira.Client, issue *jira.Issue) (*jira.Issue, error) {
-	i, _, err := client.Issue.Create(issue)
+	i, res, err := client.Issue.Create(issue)
 	if err != nil {
+		if res != nil {
+			return nil, jira.NewJiraError(res, err)
+		}
 		return nil, err
 	}
 
