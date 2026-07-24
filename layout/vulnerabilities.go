@@ -54,7 +54,7 @@ func RenderVulnerabilities(resources []data.InfoResources, provider LayoutProvid
 }
 
 func VulnerabilitiesTable(provider LayoutProvider, rows [2][]string) string {
-	if len(rows) != 2 && len(rows[1]) != 5 {
+	if len(rows) != 2 || len(rows[1]) != 5 {
 		return ""
 	}
 	var table [][]string
