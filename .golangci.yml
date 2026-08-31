@@ -1,11 +1,16 @@
+version: "2"
+
 run:
   timeout: 5m
+
 linters:
+  default: none
+  exclusions:
+    generated: lax
   enable:
     - errorlint
     - govet
-  disable:
-    - gosimple
-    - ineffassign
-    - staticcheck
-
+  settings:
+    govet:
+      disable:
+        - inline

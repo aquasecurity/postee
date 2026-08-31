@@ -275,26 +275,18 @@ func loadFuncs(templatesDir []string,
 }
 
 func buildBundledRegoForPackage(rego_package string) (*rego.PreparedEvalQuery, error) {
-	ctx := context.Background()
-	query := fmt.Sprintf("data.%s", rego_package)
+	cacheKey := bundleStateKey() + "\x00" + rego_package
+	if cached, ok := bundledQueryCache.Load(cacheKey); ok {
+		return cached.(*rego.PreparedEvalQuery), nil
+	}
 
-	opts := []func(r *rego.Rego){
-		rego.Query(query),
-		jsonFmtFunc()}
-
-	commonFuncs := loadFuncs(commonRegoTemplates, buildModuleFuncs, rego_templates.EmbeddedCommon())
-	opts = append(opts, commonFuncs...)
-
-	tmplFuncs := loadFuncs(regoTemplates, buildModuleFuncs, rego_templates.EmbeddedTemplates())
-	opts = append(opts, tmplFuncs...)
-
-	r, err := rego.New(opts...).PrepareForEval(ctx)
-
+	pq, err := prepareBundledQuery(rego_package)
 	if err != nil {
 		return nil, err
 	}
 
-	return &r, nil
+	actual, _ := bundledQueryCache.LoadOrStore(cacheKey, pq)
+	return actual.(*rego.PreparedEvalQuery), nil
 }
 func buildAggregatedRego(query *rego.PreparedEvalQuery) (*rego.PreparedEvalQuery, error) {
 	ctx := context.Background()
