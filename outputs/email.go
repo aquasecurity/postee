@@ -142,7 +142,7 @@ func (email *EmailOutput) GetLayoutProvider() layout.LayoutProvider {
 
 func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, error) {
 	log.Logger.Infof("Sending to email via %q", email.Name)
-	subject := content["title"]
+	subject := headerSafe(content["title"])
 	body := content["description"]
 	port := strconv.Itoa(email.Port)
 	recipients := getHandledRecipients(email.Recipients, &content, email.Name)
@@ -181,6 +181,17 @@ func (email *EmailOutput) Send(content map[string]string) (data.OutputResponse, 
 	}
 	log.Logger.Infof("Email was sent successfully from '%s' through '%s'", email.User, addr)
 	return data.OutputResponse{}, nil
+}
+
+// headerSafe replaces line breaks and other control characters (except tab) with a space,
+// so a value cannot end the header line and add headers such as Bcc.
+func headerSafe(s string) string {
+	return strings.Map(func(r rune) rune {
+		if (r < 0x20 && r != '\t') || r == 0x7f {
+			return ' '
+		}
+		return r
+	}, s)
 }
 
 func (email EmailOutput) sendViaMxServers(port string, msg string, recipients []string) {

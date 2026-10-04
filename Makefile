@@ -21,7 +21,7 @@ fmt :
 	$(GO_FMT) -s -w ./
 
 test :
-	go test -timeout 30s -race -coverprofile=coverage.txt -covermode=atomic ./rego-templates ./router ./msgservice ./dbservice ./formatting ./data ./regoservice ./routes
+	go test -timeout 30s -race -coverprofile=coverage.txt -covermode=atomic ./rego-templates ./router ./msgservice ./dbservice ./formatting ./data ./regoservice ./routes ./outputs
 
 lint :
 	golangci-lint run

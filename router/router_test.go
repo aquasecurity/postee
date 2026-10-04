@@ -7,11 +7,47 @@ import (
 
 func TestSelectRepositoryTemplateByResourceTypeKey(t *testing.T) {
 	tests := []struct {
-		name       string
-		msg        map[string]interface{}
-		outputType string
-		want       string
+		name         string
+		msg          map[string]interface{}
+		outputType   string
+		templateName string
+		want         string
 	}{
+		{
+			name:         "Custom Fields Message template for email selects iac-custom-fields",
+			msg:          map[string]interface{}{"resourceTypeKey": "code-repository"},
+			outputType:   "email",
+			templateName: "vuls-custom-fields-email",
+			want:         "iac-custom-fields",
+		},
+		{
+			name:         "Custom Fields Message template for teams selects iac-custom-fields",
+			msg:          map[string]interface{}{"resourceTypeKey": "code-repository"},
+			outputType:   "teams",
+			templateName: "vuls-custom-fields-teams",
+			want:         "iac-custom-fields",
+		},
+		{
+			name:         "html template for email keeps iac-html",
+			msg:          map[string]interface{}{"resourceTypeKey": "code-repository"},
+			outputType:   "email",
+			templateName: "vuls-html",
+			want:         "iac-html",
+		},
+		{
+			name:         "Custom Fields Message template for jira keeps iac-jira",
+			msg:          map[string]interface{}{"resourceTypeKey": "code-repository"},
+			outputType:   "jira",
+			templateName: "vuls-custom-fields-email",
+			want:         "iac-jira",
+		},
+		{
+			name:         "Custom Fields Message template without code-repository key is not swapped",
+			msg:          map[string]interface{}{},
+			outputType:   "email",
+			templateName: "vuls-custom-fields-email",
+			want:         "",
+		},
 		{
 			name:       "select iac-jira template",
 			msg:        map[string]interface{}{"resourceTypeKey": "code-repository"},
@@ -64,7 +100,7 @@ func TestSelectRepositoryTemplateByResourceTypeKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotTemplate := selectRepositoryTemplateByResourceTypeKey(tt.msg, tt.outputType)
+			gotTemplate := selectRepositoryTemplateByResourceTypeKey(tt.msg, tt.outputType, tt.templateName)
 			assert.Equal(t, tt.want, gotTemplate)
 		})
 	}

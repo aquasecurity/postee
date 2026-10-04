@@ -1,6 +1,7 @@
 package postee.incident.html
 
 import data.postee.with_default
+import data.postee.html_escape
 import future.keywords.in
 import future.keywords.if
 
@@ -70,7 +71,7 @@ severity_box := sprintf(`
       <span style="font-size: 16px;">%s</span>
     </div>
   </div>
-`, [severity_color, with_default(input, "severity_score", 0), capitalize(with_default(input, "severity", "unknown"))])
+`, [severity_color, html_escape(with_default(input, "severity_score", 0)), html_escape(capitalize(with_default(input, "severity", "unknown")))])
 
 logo := `
   <div align="center" style="padding-top: 20px; padding-bottom: 20px;">
@@ -83,7 +84,7 @@ policy_info := sprintf(`
     <h3 style="color: #183278; margin: 0;">Policy Information</h3>
     %s
   </div>
-`, [info_table("Response Policy Name", with_default(input, "response_policy_name", ""), "Application Scope", safe_join(with_default(input, "application_scope", [])))])
+`, [info_table("Response Policy Name", html_escape(with_default(input, "response_policy_name", "")), "Application Scope", html_escape(safe_join(with_default(input, "application_scope", []))))])
 
 incident_overview := sprintf(`
   <div style="padding-left: 44px; padding-bottom: 20px; color: #6B7887;">
@@ -91,12 +92,12 @@ incident_overview := sprintf(`
     %s
   </div>
 `, [concat("", [
-    info_table("Type", capitalize(main_category), "Name Space", with_default(input, "namespace", "")),
-    info_table("Category", with_default(input, "category", ""), "Deployment", with_default(input, "deployment", "")),
-    info_table("Incident Name", with_default(input, "name", ""), "Host Name", with_default(input, "host", "")),
-    info_table("Enforcer Group", with_default(input, "host_group", ""), "Host ID", with_default(input, "hostid", "")),
-    info_table("Image Name", with_default(input, "image", ""), "URL", sprintf("<a href=\"%s\" style=\"color: #007BFF; text-decoration: underline;\">%s</a>", [with_default(input, "url", ""), with_default(input, "url", "")])),
-    info_table("Cluster Name", with_default(input, "cluster", ""), "Timestamp", time.format([with_default(input, "timestamp", 0) * 1000000, "", "Jan 2, 2006 03:04:05.0"]))
+    info_table("Type", html_escape(capitalize(main_category)), "Name Space", html_escape(with_default(input, "namespace", ""))),
+    info_table("Category", html_escape(with_default(input, "category", "")), "Deployment", html_escape(with_default(input, "deployment", ""))),
+    info_table("Incident Name", html_escape(with_default(input, "name", "")), "Host Name", html_escape(with_default(input, "host", ""))),
+    info_table("Enforcer Group", html_escape(with_default(input, "host_group", "")), "Host ID", html_escape(with_default(input, "hostid", ""))),
+    info_table("Image Name", html_escape(with_default(input, "image", "")), "URL", sprintf("<a href=\"%s\" style=\"color: #007BFF; text-decoration: underline;\">%s</a>", [html_escape(with_default(input, "url", "")), html_escape(with_default(input, "url", ""))])),
+    info_table("Cluster Name", html_escape(with_default(input, "cluster", "")), "Timestamp", time.format([with_default(input, "timestamp", 0) * 1000000, "", "Jan 2, 2006 03:04:05.0"]))
 ])])
 
 malware_detection_section := sprintf(`
@@ -111,14 +112,14 @@ malware_detection_section := sprintf(`
   </div>
 `, [
     concat("", [
-        info_table("Malware Name", with_default(parsed_data, "malware", ""), "Host IP", with_default(parsed_data, "hostip", "")),
-        info_table("Malware Type", with_default(parsed_data, "malware_type", ""), "Action", with_default(parsed_data, "action", "")),
-        info_table("Resource", with_default(parsed_data, "resource", ""), "Cluster", with_default(input, "cluster", ""))
+        info_table("Malware Name", html_escape(with_default(parsed_data, "malware", "")), "Host IP", html_escape(with_default(parsed_data, "hostip", ""))),
+        info_table("Malware Type", html_escape(with_default(parsed_data, "malware_type", "")), "Action", html_escape(with_default(parsed_data, "action", ""))),
+        info_table("Resource", html_escape(with_default(parsed_data, "resource", "")), "Cluster", html_escape(with_default(input, "cluster", "")))
     ]),
-    with_default(parsed_data, "resource_digest", ""),
-    with_default(parsed_data, "tactic", ""),
-    with_default(parsed_data, "technique", ""),
-    with_default(parsed_data, "rule_type", "")
+    html_escape(with_default(parsed_data, "resource_digest", "")),
+    html_escape(with_default(parsed_data, "tactic", "")),
+    html_escape(with_default(parsed_data, "technique", "")),
+    html_escape(with_default(parsed_data, "rule_type", ""))
 ])
 
 runtime_control_section := sprintf(`
@@ -127,10 +128,10 @@ runtime_control_section := sprintf(`
     %s
   </div>
 `, [concat("", [
-    info_table("Control Name", with_default(parsed_data, "control", ""), "Container Name", with_default(input, "container", "")),
-    info_table("Runtime Policy", with_default(parsed_data, "rule", ""), "MITRE Tactic", with_default(parsed_data, "tactic", "")),
-    info_table("Action", with_default(parsed_data, "level", ""), "MITRE Technique", with_default(parsed_data, "technique", "")),
-    info_table("User", with_default(parsed_data, "user", ""), "Process Name", with_default(parsed_data, "resource", ""))
+    info_table("Control Name", html_escape(with_default(parsed_data, "control", "")), "Container Name", html_escape(with_default(input, "container", ""))),
+    info_table("Runtime Policy", html_escape(with_default(parsed_data, "rule", "")), "MITRE Tactic", html_escape(with_default(parsed_data, "tactic", ""))),
+    info_table("Action", html_escape(with_default(parsed_data, "level", "")), "MITRE Technique", html_escape(with_default(parsed_data, "technique", ""))),
+    info_table("User", html_escape(with_default(parsed_data, "user", "")), "Process Name", html_escape(with_default(parsed_data, "resource", "")))
 ])])
 
 behavioral_detection_section := sprintf(`
@@ -142,11 +143,11 @@ behavioral_detection_section := sprintf(`
   </div>
 `, [
     concat("", [
-        info_table("User", with_default(parsed_data, "user", ""), "MITRE Technique", with_default(parsed_data, "technique", "")),
-        info_table("Container Name", with_default(input, "container", ""), "Process Name", with_default(parsed_data, "process", ""))
+        info_table("User", html_escape(with_default(parsed_data, "user", "")), "MITRE Technique", html_escape(with_default(parsed_data, "technique", ""))),
+        info_table("Container Name", html_escape(with_default(input, "container", "")), "Process Name", html_escape(with_default(parsed_data, "process", "")))
     ]),
-    with_default(parsed_data, "tactic", ""),
-    with_default(parsed_data, "signature_description", "")
+    html_escape(with_default(parsed_data, "tactic", "")),
+    html_escape(with_default(parsed_data, "signature_description", ""))
 ])
 
 # Dynamic Section (based on main_category)

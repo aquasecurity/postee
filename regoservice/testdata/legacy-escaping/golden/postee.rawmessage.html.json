@@ -1,0 +1,12 @@
+{
+ "assignedGroup": "",
+ "assignedTo": "",
+ "category": "",
+ "date": "",
+ "description": "\u003cpre\u003e\u003ccode\u003e{\n \"application_scope\": [\n  \"Global\"\n ],\n \"code_repository_unique_properties\": {\n  \"account_id\": \"\",\n  \"repository_id\": \"\",\n  \"scm_commit\": \"\",\n  \"triggered_by\": \"\"\n },\n \"customTriggerType\": \"custom-scan_result\",\n \"digest\": \"sha256:e2e0000000000000000000000000000000000000000000000000000000000006\",\n \"image\": \"e2e/plain-text:1.0\",\n \"image_assurance_results\": {\n  \"checks_performed\": [\n   {\n    \"control\": \"max_severity\",\n    \"failed\": true,\n    \"policy_name\": \"Default\"\n   }\n  ],\n  \"disallowed\": true\n },\n \"issue_unique_properties\": {\n  \"issue_details\": {\n   \"issues_uid\": \"\"\n  }\n },\n \"message_unique_key\": \"sha256:e2e0000000000000000000000000000000000000000000000000000000000006e2e/plain-text:1.0E2E Registry\",\n \"metadata\": {\n  \"created\": \"2026-09-30T10:00:00Z\",\n  \"id\": \"sha256:e2e0000000000000000000000000000000000000000000000000000000000006\",\n  \"repo_digests\": [\n   \"e2e/plain-text@sha256:e2e0000000000000000000000000000000000000000000000000000000000006\"\n  ]\n },\n \"postee\": {\n  \"AquaServer\": \"https://cloud.aquasec.com/#/images/E2E%20Registry/e2e%2Fplain-text:1.0/vulns?digest=sha256:e2e0000000000000000000000000000000000000000000000000000000000006\"\n },\n \"registry\": \"E2E Registry\",\n \"resourceTypeKey\": \"image\",\n \"resources\": [\n  {\n   \"resource\": {\n    \"name\": \"openssl\",\n    \"version\": \"1.1.1\"\n   },\n   \"vulnerabilities\": [\n    {\n     \"aqua_severity\": \"critical\",\n     \"fix_version\": \"1.1.2\",\n     \"name\": \"CVE-2024-0001\"\n    }\n   ]\n  }\n ],\n \"response_policy_name\": \"E2E plain text\",\n \"scan_result_unique_properties\": {\n  \"digest\": \"sha256:e2e0000000000000000000000000000000000000000000000000000000000006\",\n  \"image\": \"e2e/plain-text:1.0\",\n  \"registry\": \"E2E Registry\"\n },\n \"scan_started\": {\n  \"seconds\": 1790762400\n },\n \"url\": \"https://cloud.aquasec.com/#/images/E2E%20Registry/e2e%2Fplain-text:1.0/vulns?digest=sha256:e2e0000000000000000000000000000000000000000000000000000000000006\",\n \"vulnerability_summary\": {\n  \"critical\": 1,\n  \"total\": 1\n }\n}\u003c/code\u003e\u003c/pre\u003e",
+ "severity": "",
+ "subcategory": "",
+ "summary": "",
+ "title": "Raw Message Received",
+ "url": ""
+}

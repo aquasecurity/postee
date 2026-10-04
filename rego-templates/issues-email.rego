@@ -1,6 +1,7 @@
 package postee.issues.email
 
 import data.postee.with_default
+import data.postee.html_escape
 
 import future.keywords.if
 import future.keywords.in
@@ -238,7 +239,7 @@ vuln_rows := [row |
     severity_label := capitalize(vuln.aqua_severity)
     fix := fix_available(vuln)
 
-    row := sprintf(table_row_tpl, [vuln_name, resource, severity_icon, severity_label, fix])
+    row := sprintf(table_row_tpl, [html_escape(vuln_name), html_escape(resource), severity_icon, html_escape(severity_label), fix])
 ]
 
 table := sprintf(table_tpl, [sprintf("%v", [count(vuln_rows)]), concat("", vuln_rows)]) if {
@@ -281,14 +282,14 @@ title = "Issue report"
 
 result = sprintf(tpl, [
         style,
-        capitalize(input.issue_details.severity),
-        input.issue_details.name,
+        html_escape(capitalize(input.issue_details.severity)),
+        html_escape(input.issue_details.name),
 		time.format([input.issue_details.created_at * 1000000000, "", "3:04:05 PM"]),
-        input.issue_details.description,
+        html_escape(input.issue_details.description),
         concat(", ", security_findings(input.issue_details.rule_filter)),
         table,
-        input.issue_details.resource_type,
-        concat(", ", input.issue_details.affected_resources),
-        input.response_policy_name,
-        concat(", ", with_default(input, "application_scope", [])),
+        html_escape(input.issue_details.resource_type),
+        html_escape(concat(", ", input.issue_details.affected_resources)),
+        html_escape(input.response_policy_name),
+        html_escape(concat(", ", with_default(input, "application_scope", []))),
     ])

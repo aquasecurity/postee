@@ -1,5 +1,8 @@
 package postee.tracee.html
 
+import data.postee.html_escape
+import data.postee.html_escape_printed
+
 #Example of handling tracee event
 
 title:=sprintf("Tracee Detection - %s", [input.SigMetadata.Name])
@@ -13,9 +16,9 @@ tpl :=`
 
 result:= res {
  res:= sprintf(tpl, [
- input.SigMetadata.Description,
- input.Context.processName,
- input.SigMetadata.Properties,
- input.SigMetadata.Properties.Severity
+ html_escape(input.SigMetadata.Description),
+ html_escape(input.Context.processName),
+ html_escape_printed(input.SigMetadata.Properties),
+ html_escape(input.SigMetadata.Properties.Severity)
  ])
  }

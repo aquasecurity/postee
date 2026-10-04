@@ -2,6 +2,7 @@ package postee.vuls.html
 
 import data.postee.by_flag
 import data.postee.with_default
+import data.postee.html_escape
 import future.keywords.if
 
 
@@ -127,7 +128,7 @@ severities_stats := [
 # 2 dimension array for assurance controls
 assurance_controls := [ control |
                     item := input.image_assurance_results.checks_performed[i]
-                    control := [format_int(i+1, 10), item.control,item.policy_name,
+                    control := [format_int(i+1, 10), html_escape(item.control), html_escape(item.policy_name),
                                             by_flag(
                                                 "FAIL",
                                                 "PASS",
@@ -161,7 +162,7 @@ vln_list(severity) = vlnrb {
                     resource_version = with_default(resource, "version", "none")
 
                     item.vulnerabilities[j].aqua_severity == severity # only items with severity matched
-                    r := [vlnname, resource_name, resource_version, fxvrsn]
+                    r := [html_escape(vlnname), html_escape(resource_name), html_escape(resource_version), html_escape(fxvrsn)]
               ]
 }
 ###########################################################################################################
@@ -183,8 +184,8 @@ result = msg {
 
     msg := sprintf(tpl, [
     report_type,
-    reportEntityName,
-    input.registry,
+    html_escape(reportEntityName),
+    html_escape(input.registry),
 	by_flag(
      sprintf("%s is non-compliant", [report_type]),
      sprintf("%s is compliant", [report_type]),
@@ -208,9 +209,9 @@ result = msg {
     render_vlnrb("Medium", vln_list("medium")),
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
-    input.response_policy_name,
-    concat(", ", with_default(input, "application_scope", [])),
-    with_default(input, "url", ""),
-    with_default(input, "url", "")
+    html_escape(input.response_policy_name),
+    html_escape(concat(", ", with_default(input, "application_scope", []))),
+    html_escape(with_default(input, "url", "")),
+    html_escape(with_default(input, "url", ""))
     ])
 }

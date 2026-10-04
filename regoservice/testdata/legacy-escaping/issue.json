@@ -1,0 +1,282 @@
+{
+ "application_scope": [
+  "Global"
+ ],
+ "customTriggerType": "custom-issue",
+ "issue_details": {
+  "affected_resources": [
+   "test-name"
+  ],
+  "application_scope": "",
+  "archived": false,
+  "closed_at": {
+   "Int64": 0,
+   "Valid": false
+  },
+  "closed_reason": null,
+  "created_at": 1750767626,
+  "description": "A privileged container with critical vulnerabilities is accessible via network-based attacks. The elevated privileges of this container combined with severe vulnerabilities create a critical security risk. Exploitation could lead to full system compromise, enabling attackers to manipulate host resources or spread laterally across the network.",
+  "environment": [
+   {
+    "key": "Image Name",
+    "value": "registry.test.com/test-image:test-tag"
+   },
+   {
+    "key": "Registry",
+    "value": "Host Images"
+   }
+  ],
+  "group_by": "1",
+  "group_by_type": "",
+  "grouped_by": "Image",
+  "issues_uid": 2,
+  "items": null,
+  "name": "Privileged container with critical severity vulnerabilities with a network attack vector",
+  "num_affected_resources": 1,
+  "owner": "",
+  "resource_type": "Container",
+  "rule_filter": {
+   "configuration_risk": true,
+   "network_attack": "true",
+   "severities": [
+    "critical"
+   ]
+  },
+  "rule_id": "Privileged container with critical severity vulnerabilities with a network attack vector",
+  "security_findings": {
+   "audit_Count": {
+    "critical": 0,
+    "high": 0,
+    "invisible": true,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   },
+   "compliant": "",
+   "malware_counts": {
+    "critical": 0,
+    "high": 0,
+    "invisible": true,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   },
+   "misconfig_counts": {
+    "critical": 0,
+    "high": 0,
+    "invisible": true,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   },
+   "pipelines_counts": {
+    "critical": 0,
+    "high": 0,
+    "invisible": true,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   },
+   "privileged": true,
+   "sast_counts": {
+    "critical": 0,
+    "high": 0,
+    "invisible": true,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   },
+   "sensitive_counts": {
+    "critical": 0,
+    "high": 0,
+    "invisible": true,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   },
+   "sensitive_data_counts": {
+    "critical": 0,
+    "high": 0,
+    "invisible": true,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   },
+   "vulnerability_counts": {
+    "critical": 1,
+    "high": 0,
+    "invisible": false,
+    "low": 0,
+    "medium": 0,
+    "negligible": 0,
+    "total": 0
+   }
+  },
+  "severity": "high",
+  "severity_num": 4,
+  "status": "Open"
+ },
+ "postee": {
+  "AquaServer": ""
+ },
+ "resourceTypeKey": "",
+ "response_policy_name": "Issue2Policy",
+ "vulnerabilities_list": {
+  "count": 5,
+  "is_estimated_count": false,
+  "is_partial_data": false,
+  "more_data_all_pages": 0,
+  "page": 1,
+  "pagesize": 5,
+  "query": {
+   "id": 1,
+   "network_attack": "true",
+   "order_by": [
+    "-aqua_severity"
+   ],
+   "page": 1,
+   "page_size": 5,
+   "severities": [
+    "critical"
+   ]
+  },
+  "result": [
+   {
+    "ack_expiration_configured_at": "0001-01-01T00:00:00Z",
+    "acknowledged_date": "1970-01-01T00:00:00Z",
+    "aqua_evaluated_score": 5,
+    "aqua_id": "1_224_2",
+    "aqua_severity": "critical",
+    "cluster": "default",
+    "first_found_date": "2025-06-24",
+    "fix_version": "23.0.15, 25.0.6, 26.1.5, 27.1.1",
+    "has_running_workloads": true,
+    "heuristic_ref_id": "0",
+    "image_digest": "sha256:3a6575329e3c6cc342fbeb086856717d8986ee760b732c32790d16da9cb67d6c",
+    "image_name": "registry.test.com/test-image:test-tag",
+    "image_repository_name": "registry.test.com/test-image",
+    "image_uid": 1,
+    "last_found_date": "2025-06-24",
+    "layer_id": -1,
+    "modification_date": "2024-11-21",
+    "mutable": true,
+    "name": "CVE-2024-41110",
+    "name_space": "default",
+    "num_running_workloads": 1,
+    "os": "alpine",
+    "os_version": "3.16.3",
+    "permission": "Write",
+    "publish_date": "2024-07-24",
+    "registry": "Host Images",
+    "repository_id": 1,
+    "resource": {
+     "cpe": "pkg:/go:*:github.com/docker/docker:v25.0.3+incompatible",
+     "format": "go",
+     "name": "github.com/docker/docker",
+     "path": "opt/test2",
+     "type": "package",
+     "version": "v25.0.3+incompatible"
+    },
+    "scan_id": 1,
+    "scan_resource_id": 224,
+    "v_patch_status": "no_patch",
+    "vendor_fix": true,
+    "vulnerability_id": 2,
+    "vulnerability_resource_id": 19
+   },
+   {
+    "ack_expiration_configured_at": "0001-01-01T00:00:00Z",
+    "acknowledged_date": "1970-01-01T00:00:00Z",
+    "aqua_evaluated_score": 5,
+    "aqua_id": "1_161_8",
+    "aqua_severity": "critical",
+    "cluster": "default",
+    "first_found_date": "2025-06-24",
+    "fix_version": "1.7.4",
+    "has_running_workloads": true,
+    "heuristic_ref_id": "0",
+    "image_digest": "sha256:3a6575329e3c6cc342fbeb086856717d8986ee760b732c32790d16da9cb67d6c",
+    "image_name": "registry.test.com/test-image:test-tag",
+    "image_repository_name": "registry.test.com/test-image",
+    "image_uid": 1,
+    "last_found_date": "2025-06-24",
+    "layer_id": -1,
+    "modification_date": "2024-11-21",
+    "mutable": true,
+    "name": "CVE-2024-3817",
+    "name_space": "default",
+    "num_running_workloads": 1,
+    "os": "alpine",
+    "os_version": "3.16.3",
+    "permission": "Write",
+    "publish_date": "2024-04-17",
+    "registry": "Host Images",
+    "repository_id": 1,
+    "resource": {
+     "cpe": "pkg:/go:*:github.com/hashicorp/go-getter:v1.7.1",
+     "format": "go",
+     "name": "github.com/hashicorp/go-getter",
+     "path": "opt/test2",
+     "type": "package",
+     "version": "v1.7.1"
+    },
+    "scan_id": 1,
+    "scan_resource_id": 161,
+    "v_patch_status": "no_patch",
+    "vendor_fix": true,
+    "vulnerability_id": 8,
+    "vulnerability_resource_id": 48
+   },
+   {
+    "ack_expiration_configured_at": "0001-01-01T00:00:00Z",
+    "acknowledged_date": "1970-01-01T00:00:00Z",
+    "aqua_evaluated_score": 5,
+    "aqua_id": "1_371_11",
+    "aqua_severity": "critical",
+    "cluster": "default",
+    "first_found_date": "2025-06-24",
+    "fix_version": "0.31.0",
+    "has_running_workloads": true,
+    "heuristic_ref_id": "0",
+    "image_digest": "sha256:3a6575329e3c6cc342fbeb086856717d8986ee760b732c32790d16da9cb67d6c",
+    "image_name": "registry.test.com/test-image:test-tag",
+    "image_repository_name": "registry.test.com/test-image",
+    "image_uid": 1,
+    "last_found_date": "2025-06-24",
+    "layer_id": -1,
+    "modification_date": "2025-02-18",
+    "mutable": true,
+    "name": "CVE-2024-45337",
+    "name_space": "default",
+    "num_running_workloads": 1,
+    "os": "alpine",
+    "os_version": "3.16.3",
+    "permission": "Write",
+    "publish_date": "2024-12-12",
+    "registry": "Host Images",
+    "repository_id": 1,
+    "resource": {
+     "cpe": "pkg:/go:*:golang.org/x/crypto:v0.18.0",
+     "format": "go",
+     "name": "golang.org/x/crypto",
+     "path": "opt/test2",
+     "type": "package",
+     "version": "v0.18.0"
+    },
+    "scan_id": 1,
+    "scan_resource_id": 371,
+    "v_patch_status": "no_patch",
+    "vendor_fix": true,
+    "vulnerability_id": 11,
+    "vulnerability_resource_id": 49
+   }
+  ]
+ }
+}

@@ -3,6 +3,7 @@ package outputs
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 
 	"github.com/aquasecurity/postee/v2/data"
 	"github.com/aquasecurity/postee/v2/formatting"
@@ -72,7 +73,14 @@ func (teams *TeamsOutput) Send(input map[string]string) (data.OutputResponse, er
 		return data.OutputResponse{}, err
 	}
 
-	err = msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(input["title"])+escaped)
+	// the title goes into an HTML heading inside the webhook JSON, so escape it for both
+	escapedTitle, err := escapeJSON(html.EscapeString(input["title"]))
+	if err != nil {
+		log.Logger.Errorf("Error while escaping title: %v", err)
+		return data.OutputResponse{}, err
+	}
+
+	err = msteams.CreateMessageByWebhook(teams.Webhook, teams.teamsLayout.TitleH2(escapedTitle)+escaped)
 
 	if err != nil {
 		log.Logger.Error(fmt.Errorf("TeamsOutput Send Error: %w", err))

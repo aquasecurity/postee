@@ -20,6 +20,8 @@ import (
 const (
 	AppScopeAttribute       = "application_scope"
 	ResponsePolicyAttribute = "response_policy_name"
+	// TemplateOptionsAttribute is the input key that holds the output's Custom Fields Message template options
+	TemplateOptionsAttribute = "template_options"
 )
 
 type MsgService struct {
@@ -53,7 +55,7 @@ func (scan *MsgService) MsgHandling(in map[string]interface{}, output outputs.Ou
 
 	}
 
-	richIn := scan.enrichMsg(in, route, *AquaServer)
+	richIn := scan.enrichMsg(in, route, output.GetName(), *AquaServer)
 
 	content, err := inpteval.Eval(richIn, *AquaServer)
 	if err != nil {
@@ -100,7 +102,7 @@ func (scan *MsgService) HandleSendToOutput(in map[string]interface{}, output out
 	if inputUrl, ok := in["url"].(string); ok && strings.TrimSpace(url) == "" {
 		url = inputUrl
 	}
-	richIn := scan.enrichMsg(in, route, url)
+	richIn := scan.enrichMsg(in, route, output.GetName(), url)
 
 	content, err := inpteval.Eval(richIn, url)
 	if err != nil {
@@ -181,7 +183,7 @@ func (scan *MsgService) scopeOwners(in map[string]interface{}) string {
 	return owners
 }
 
-func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, aquaServer string) map[string]interface{} {
+func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.InputRoute, outputName, aquaServer string) map[string]interface{} {
 	scan.mu.Lock()
 	defer scan.mu.Unlock()
 
@@ -198,6 +200,11 @@ func (scan *MsgService) enrichMsg(in map[string]interface{}, route *routes.Input
 
 	//enrich those fields even if they are empty, so the rego evaluation will not fail
 	richIn[ResponsePolicyAttribute] = route.Name
+
+	// only this output's options, and only when set, so other outputs (e.g. raw json) are unchanged
+	if opts, ok := route.OverrideTemplateOptions[outputName]; ok && !opts.IsEmpty() {
+		richIn[TemplateOptionsAttribute] = opts
+	}
 
 	scan.enrichInsightVulnsPackageName(richIn)
 

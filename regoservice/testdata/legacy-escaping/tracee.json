@@ -1,0 +1,15 @@
+{
+ "Context": {
+  "hostName": "node1",
+  "processName": "strace"
+ },
+ "SigMetadata": {
+  "Description": "A process used anti debugging techniques",
+  "Name": "Anti Debugging",
+  "Properties": {
+   "Category": "defense-evasion",
+   "Severity": 2,
+   "Technique": "Debugger Evasion"
+  }
+ }
+}

@@ -1,6 +1,9 @@
 package postee.insight.html
 
 import data.postee.with_default
+import data.postee.html_escape
+import data.postee.html_escape_printed
+import data.postee.unquoted_href
 
 title = sprintf("%s | Insight on %s", [input.insight.id, input.resource.name])
 
@@ -38,7 +41,7 @@ tpl:=`
 
 
 insightDetails = details {
-    details := sprintf("<code>%s</code>",[input.resource.steps])
+    details := sprintf("<code>%s</code>",[html_escape_printed(input.resource.steps)])
 }
 
 translateSeverity(score) = b {
@@ -70,7 +73,7 @@ vln_list = vlnrb {
                     severity := item.severity
                     packageName := item.package_name
                     
-                    r := sprintf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> </tr>",[vlnname,severity,packageName])
+                    r := sprintf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> </tr>",[html_escape(vlnname),html_escape(severity),html_escape(packageName)])
               ]
 }
 
@@ -83,7 +86,7 @@ malware_list = ml {
                     hash := item.file_hash
                     path := item.file_path
                     
-                    r := sprintf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> </tr>",[name,hash,path])
+                    r := sprintf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> </tr>",[html_escape(name),html_escape(hash),html_escape(path)])
               ]
 }
 
@@ -96,7 +99,7 @@ sensitive_list = snt {
                     path := item.file_path
                     image := item.image
                     
-                    r := sprintf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> </tr>",[type,path,image])
+                    r := sprintf("<tr> <td>%s</td> <td>%s</td> <td>%s</td> </tr>",[html_escape(type),html_escape(path),html_escape(image)])
               ]
 }
 
@@ -143,22 +146,22 @@ remediation_with_default(default_value) = default_value{
 }
 
 remediation_with_default(category) = details {
-    details := sprintf("<code>%s</code>",[input.evidence.vulnerabilities_remediation])
+    details := sprintf("<code>%s</code>",[html_escape(input.evidence.vulnerabilities_remediation)])
     input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation==""; input.evidence.malware_remediation==""
 }
 
 remediation_with_default(category) = details {
-    details := sprintf("<code>%s</code>",[input.evidence.vulnerabilities_remediation])
+    details := sprintf("<code>%s</code>",[html_escape(input.evidence.vulnerabilities_remediation)])
     input.evidence.vulnerabilities_remediation!=null; input.evidence.sensitive_data_remediation!=""; input.evidence.malware_remediation==""
 }
 
 remediation_with_default(default_value) = details{
-  details := input.evidence.sensitive_data_remediation
+  details := html_escape(input.evidence.sensitive_data_remediation)
   details !="";input.evidence.vulnerabilities_remediation==null; input.evidence.malware_remediation==""
 }
 
 remediation_with_default(default_value) = details{
-  details := input.evidence.malware_remediation
+  details := html_escape(input.evidence.malware_remediation)
   details != ""; input.evidence.vulnerabilities_remediation==null; input.evidence.sensitive_data_remediation==""
 }
 
@@ -168,20 +171,20 @@ result = msg {
     url := sprintf("https://cloud.aquasec.com/ah/#/insights/%s/resource/%s",[input.insight.id,input.resource.id])
 
     msg := sprintf(tpl, [
-    input.insight.id,
-    input.insight.description,
-    input.insight.impact,
+    html_escape(input.insight.id),
+    html_escape(input.insight.description),
+    html_escape(input.insight.impact),
     translateSeverity(input.insight.priority),
-    substring(input.resource.found_date,0,19),
-    substring(input.resource.last_scanned,0,19),
-    url, url,
-    input.resource.id,
-    input.resource.name,
-    input.resource.arn,
+    html_escape(substring(input.resource.found_date,0,19)),
+    html_escape(substring(input.resource.last_scanned,0,19)),
+    unquoted_href(url), html_escape(url),
+    html_escape(input.resource.id),
+    html_escape(input.resource.name),
+    html_escape(input.resource.arn),
     insightDetails,
     evidenceTable,
     remediation_with_default("No Recommendation"),
-    input.response_policy_name,
-    concat(", ", with_default(input, "application_scope", []))
+    html_escape(input.response_policy_name),
+    html_escape(concat(", ", with_default(input, "application_scope", [])))
     ])
 }

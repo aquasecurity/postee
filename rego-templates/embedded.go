@@ -14,6 +14,7 @@ import (
 
 const (
 	commonDir          = "common"
+	customFieldsDir    = "custom-fields"
 	localDir           = "."
 	regoPkgDeclaration = "package"
 )
@@ -28,6 +29,11 @@ var (
 	embeddedCommonFiles embed.FS
 	commonTemplates     = make(map[string]string)
 	commonMu            sync.Mutex
+
+	//go:embed custom-fields/*.rego
+	embeddedCustomFieldsFiles embed.FS
+	customFieldsModules       = make(map[string]string)
+	customFieldsMu            sync.Mutex
 )
 
 func EmbeddedTemplates() map[string]string {
@@ -50,6 +56,19 @@ func EmbeddedCommon() map[string]string {
 	populateTemplates(embeddedCommonFiles, commonTemplates, commonDir)
 
 	return commonTemplates
+}
+
+// EmbeddedCustomFields returns the rules of the Custom Fields Message templates. Only the built-in templates load
+// them, so external templates do not see or evaluate them.
+func EmbeddedCustomFields() map[string]string {
+	customFieldsMu.Lock()
+	defer customFieldsMu.Unlock()
+	if len(customFieldsModules) != 0 {
+		return customFieldsModules
+	}
+	populateTemplates(embeddedCustomFieldsFiles, customFieldsModules, customFieldsDir)
+
+	return customFieldsModules
 }
 
 func populateTemplates(files embed.FS, storage map[string]string, dirPath string) {

@@ -4,6 +4,8 @@ import future.keywords
 import future.keywords.if
 import data.postee.by_flag
 import data.postee.with_default
+import data.postee.html_escape
+import data.postee.html_escape_printed
 
 ################################################ Templates ################################################
 #main template to render message
@@ -141,7 +143,7 @@ severities_stats := [
 # 2 dimension array for assurance controls
 assurance_controls := [ control |
                     item := input.image_assurance_results.checks_performed[i]
-                    control := [format_int(i+1, 10), item.control,item.policy_name,
+                    control := [format_int(i+1, 10), html_escape(item.control),html_escape(item.policy_name),
                                             by_flag(
                                                 "FAIL",
                                                 "PASS",
@@ -185,7 +187,7 @@ vln_list(severity) = vlnrb {
                     resource_version = with_default(resource, "version", "none")
 
                     item.vulnerabilities[j].aqua_severity == severity # only items with severity matched
-                    r := [vlnname, resource_name, resource_version, fxvrsn]
+                    r := [html_escape(vlnname), html_escape(resource_name), html_escape(resource_version), html_escape(fxvrsn)]
               ]
 }
 ###########################################################################################################
@@ -218,8 +220,8 @@ aggregation_pkg := "postee.vuls.html.aggregation"
 result = msg {
 
     msg := sprintf(html_tpl, [
-    reportEntityName,
-    input.registry,
+    html_escape(reportEntityName),
+    html_escape(input.registry),
 	by_flag(
      "Yes",
      "No",
@@ -237,10 +239,10 @@ result = msg {
     render_vlnrb("Medium", vln_list("medium")),
     render_vlnrb("Low", vln_list("low")),
     render_vlnrb("Negligible", vln_list("negligible")),
-    with_default(input,"response_policy_name", ""),
-    with_default(input,"application_scope", "none"),
-    with_default(input, "url", ""),
-    with_default(input, "url", "")
+    html_escape(with_default(input,"response_policy_name", "")),
+    html_escape_printed(with_default(input,"application_scope", "none")),
+    html_escape(with_default(input, "url", "")),
+    html_escape(with_default(input, "url", ""))
     ])
 }
 

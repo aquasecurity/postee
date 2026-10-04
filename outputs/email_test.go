@@ -3,6 +3,7 @@ package outputs
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"testing"
 
 	"github.com/aquasecurity/postee/v2/outputs/customsmtp"
@@ -159,8 +160,34 @@ func TestEmailOutput_Send(t *testing.T) {
 			default:
 				assert.NoError(t, err, tc.name)
 				assert.Equal(t, tc.expectedSentEmails, emailsSent, tc.name)
-				assert.Equal(t, tc.expectedMessage, string(r.msg), tc.name)
+				assert.Equal(t, tc.expectedMessage, withoutDateHeader(string(r.msg)), tc.name)
 			}
 		})
 	}
+}
+
+// withoutDateHeader removes the Date header, whose value changes on every run.
+func withoutDateHeader(msg string) string {
+	return regexp.MustCompile(`Date: [^\r\n]*\r\n`).ReplaceAllString(msg, "")
+}
+
+func TestEmailOutput_SendSubjectCannotAddHeaders(t *testing.T) {
+	var emailsSent int
+	f, r := mockSend(nil, &emailsSent)
+	eo := EmailOutput{
+		Name:       "my-email",
+		Host:       "127.0.0.1",
+		Port:       587,
+		Sender:     "sender@mailer.com",
+		Recipients: []string{"anything@fubar.com"},
+		sendFunc:   f,
+	}
+
+	_, err := eo.Send(map[string]string{"description": "body", "title": "Scan report | evil\r\nBcc: attacker@example.test"})
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, emailsSent)
+	msg := string(r.msg)
+	assert.Contains(t, msg, "\r\nSubject: Scan report | evil  Bcc: attacker@example.test\r\n")
+	assert.NotContains(t, msg, "\r\nBcc:")
 }

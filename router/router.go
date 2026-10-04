@@ -37,6 +37,8 @@ const (
 	resourceTypeKey   = "resourceTypeKey"
 	codeRepositoryKey = "code-repository"
 	rawMessageJson    = "raw-message-json"
+	iacHtml           = "iac-html"
+	iacCustomFields   = "iac-custom-fields"
 
 	V2Version = "v2"
 )
@@ -45,8 +47,20 @@ var repositoryTemplatesForOutputs = map[string]string{
 	"jira":       "iac-jira",
 	"servicenow": "iac-servicenow",
 	"slack":      "iac-slack",
-	"email":      "iac-html",
-	"teams":      "iac-html",
+	"email":      iacHtml,
+	"teams":      iacHtml,
+}
+
+// customFieldsTemplates are the "Custom Fields Message" templates. A code-repository scan sent with one of them
+// uses iac-custom-fields.
+var customFieldsTemplates = map[string]bool{
+	"vuls-custom-fields-teams":     true,
+	"incident-custom-fields-teams": true,
+	"issues-custom-fields-teams":   true,
+	"vuls-custom-fields-email":     true,
+	"incident-custom-fields-email": true,
+	"issues-custom-fields-email":   true,
+	iacCustomFields:                true,
 }
 
 type Router struct {
@@ -630,7 +644,7 @@ func (ctx *Router) publishToOutput(msg map[string]interface{}, r *routes.InputRo
 		}
 
 		// if CustomTriggerType field in msg  is not empty - overwrite template
-		if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType()); template != "" {
+		if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType(), templateName); template != "" {
 			templateName = template
 		}
 
@@ -721,7 +735,7 @@ func (ctx *Router) publishOutput(msgSvc service, outputName string, msg map[stri
 	}
 
 	// if CustomTriggerType field in msg  is not empty - overwrite template
-	if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType()); template != "" {
+	if template := selectRepositoryTemplateByResourceTypeKey(msg, pl.(outputs.Output).GetType(), templateName); template != "" {
 		templateName = template
 	}
 
@@ -960,7 +974,9 @@ func (ctx *Router) embedTemplates(requiredTemplate string) error {
 }
 
 // selectRepositoryTemplateByResourceTypeKey chooses iac template by ResourceTypeKey and output. It currently works only for servicenow, jira templates.
-func selectRepositoryTemplateByResourceTypeKey(msg map[string]interface{}, outputType string) string {
+// templateName is the template chosen for the output: a Custom Fields Message template keeps its simple layout
+// (iac-custom-fields instead of iac-html).
+func selectRepositoryTemplateByResourceTypeKey(msg map[string]interface{}, outputType, templateName string) string {
 	// if msg doesn't have `resourceTypeKey` or `resourceTypeKey` != `code-repository` => don't need to change template
 	if key, ok := msg[resourceTypeKey]; !ok || key != codeRepositoryKey {
 		return ""
@@ -969,6 +985,9 @@ func selectRepositoryTemplateByResourceTypeKey(msg map[string]interface{}, outpu
 	// choose template by output
 	outputType = strings.ToLower(outputType)
 	if template, ok := repositoryTemplatesForOutputs[strings.ToLower(outputType)]; ok {
+		if template == iacHtml && customFieldsTemplates[templateName] {
+			return iacCustomFields
+		}
 		return template
 	}
 	return rawMessageJson // raw message json template uses for unsupported outputs

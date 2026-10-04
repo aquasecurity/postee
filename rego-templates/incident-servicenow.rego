@@ -3,6 +3,8 @@ package postee.incident.servicenow
 import future.keywords
 import data.postee.by_flag
 import data.postee.with_default
+import data.postee.html_escape
+import data.postee.html_escape_printed
 
 ################################################ Templates ################################################
 result_tpl = `
@@ -50,7 +52,7 @@ data_list(d) := list {
                     s := split(without_close_bkt, ":")
                     value_with_colon := trim_left(without_close_bkt, sprintf("%s", [s[0]]))
                     s[0] != "tracee_finding"
-                    r := [s[0], trim_left(value_with_colon, ":")]
+                    r := [html_escape(s[0]), html_escape(trim_left(value_with_colon, ":"))]
     ]
 }
 
@@ -95,17 +97,17 @@ found_severity :=  "unknown" if{
 ############################################## result values #############################################
 result := res{
     res = sprintf(result_tpl,[
-        with_default(input,"name", "name not found"),
-        with_default(input,"category", "category not found"),
+        html_escape(with_default(input,"name", "name not found")),
+        html_escape(with_default(input,"category", "category not found")),
         found_severity,
         by_flag(
                	"data not found",
                 render_table([], data_list(found_data)),
             	found_data == ""),
-        with_default(input,"response_policy_name", "response policy name not found"),
-        with_default(input,"application_scope", "none"),
-        with_default(input, "url", ""),
-        with_default(input, "url", "")
+        html_escape(with_default(input,"response_policy_name", "response policy name not found")),
+        html_escape_printed(with_default(input,"application_scope", "none")),
+        html_escape(with_default(input, "url", "")),
+        html_escape(with_default(input, "url", ""))
     ])
 }
 

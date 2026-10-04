@@ -39,6 +39,7 @@ func bundledSourceFingerprint() string {
 	h := sha256.New()
 	appendSourceFingerprint(h, regoTemplates, rego_templates.EmbeddedTemplates())
 	appendSourceFingerprint(h, commonRegoTemplates, rego_templates.EmbeddedCommon())
+	appendSourceFingerprint(h, nil, embeddedCustomFields())
 	return hex.EncodeToString(h.Sum(nil))
 }
 
@@ -127,7 +128,21 @@ func loadBundledModules() (map[string]*ast.Module, error) {
 	if err := loadBundledModulesFromSource(commonRegoTemplates, rego_templates.EmbeddedCommon(), modules); err != nil {
 		return nil, err
 	}
+	if err := loadBundledModulesFromSource(nil, embeddedCustomFields(), modules); err != nil {
+		return nil, err
+	}
 	return modules, nil
+}
+
+// embeddedCustomFields returns the rules of the Custom Fields Message templates when the built-in templates are the
+// embedded ones. When the templates come from disk, the load of the templates folder already has its custom-fields
+// folder, so embedded rules are not mixed with templates and common rules of another version.
+// External templates never load these rules.
+func embeddedCustomFields() map[string]string {
+	if len(existingPaths(regoTemplates)) != 0 {
+		return nil
+	}
+	return rego_templates.EmbeddedCustomFields()
 }
 
 func loadBundledModulesFromSource(paths []string, embedded map[string]string, modules map[string]*ast.Module) error {

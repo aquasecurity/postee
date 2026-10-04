@@ -1,0 +1,82 @@
+{
+ "account_id": "0000",
+ "application_scope": [
+  "scope1",
+  "scope2"
+ ],
+ "customTriggerType": "custom-insight",
+ "event_category": "insights",
+ "evidence": {
+  "malware": null,
+  "malware_remediation": "",
+  "privileged_iam_roles": null,
+  "privileged_iam_roles_remediation": null,
+  "privileged_workloads": null,
+  "privileged_workloads_remediation": null,
+  "sensitive_data": [
+   {
+    "file_name": "",
+    "file_path": "/test.test",
+    "file_type": "(TEST) RSA PRIVATE KEY",
+    "function": "",
+    "image": "test/test:latest"
+   }
+  ],
+  "sensitive_data_remediation": "",
+  "vulnerabilities": null,
+  "vulnerabilities_remediation": null
+ },
+ "global_id": "baasd6eb-5017-42f3-b419-5db95464e443",
+ "id": "111111",
+ "insight": {
+  "category": "",
+  "description": "This is a test message!",
+  "id": "aqua-test",
+  "impact": "Test message!",
+  "instance": 0,
+  "priority": 2,
+  "rank": 380,
+  "suppress_resources": 0,
+  "suppress_resources_with_expiration": 0,
+  "total_impacted_resources": 0
+ },
+ "postee": {
+  "AquaServer": "https://cloud.aquasec.com/#/images/"
+ },
+ "resource": {
+  "arn": "",
+  "cluster_arn": "",
+  "comment": "",
+  "found_date": "2022-08-25T09:02:28.991Z",
+  "full_path": "",
+  "global_id": "3614f379-0ac0-4074-8bb7-8bc7b1fd5b26",
+  "id": "6131180",
+  "internet_exposure_status": "unknown",
+  "is_connected": false,
+  "is_suppressed": false,
+  "last_scanned": "2022-08-25T08:59:42.314673Z",
+  "name": "test/test:latest",
+  "num_pods": 0,
+  "short_path": "",
+  "steps": {
+   "Image": "test:latest",
+   "Registry": "Docker Hub",
+   "RegistryDomain": "docker.io"
+  },
+  "suppress": {
+   "configuration": {
+    "description": "",
+    "duration_days": 0,
+    "user": "",
+    "with_expiration": false
+   },
+   "date": "0001-01-01T00:00:00Z",
+   "expiration_date": "0001-01-01T00:00:00Z"
+  }
+ },
+ "resourceTypeKey": "",
+ "response_policy_id": "11",
+ "response_policy_name": "Test",
+ "type": "Image",
+ "url": "https://cloud.aquasec.com"
+}

@@ -4,6 +4,8 @@ import future.keywords
 import future.keywords.if
 import data.postee.by_flag
 import data.postee.with_default
+import data.postee.html_escape
+import data.postee.html_escape_printed
 
 ################################################ Templates ################################################
 #main template to render message
@@ -142,7 +144,7 @@ vln_list = vlnrb {
                     package_name = with_default(input.evidence.vulnerabilities[i], "package_name", "none")
                     package_version = with_default(input.evidence.vulnerabilities[i], "current_version", "none")
 
-                    r := [vlnname, severity, package_name, package_version, fxvrsn]
+                    r := [html_escape(vlnname), html_escape(severity), html_escape(package_name), html_escape(package_version), html_escape(fxvrsn)]
               ]
 }
 
@@ -165,7 +167,7 @@ sensitive_data_list = vlnrb {
                     file_path := input.evidence.sensitive_data[i].file_path
                     image := input.evidence.sensitive_data[i].image
 
-                    r := [file_type, file_path, image]
+                    r := [html_escape(file_type), html_escape(file_path), html_escape(image)]
               ]
 }
 
@@ -216,22 +218,22 @@ remediation_with_default(default_value) = val{
 result = msg {
 
     msg := sprintf(html_tpl, [
-    input.insight.id,
-    input.insight.description,
-    input.insight.impact,
+    html_escape(input.insight.id),
+    html_escape(input.insight.description),
+    html_escape(input.insight.impact),
     priority_as_text,
-    input.resource.found_date,
-    input.resource.last_scanned,
-    sprintf(`<a href='%s'>%s</a>`,[href, text]), #link
-    input.resource.id,
-    input.resource.name,
-    input.resource.arn,
-    input.resource.steps,
+    html_escape(input.resource.found_date),
+    html_escape(input.resource.last_scanned),
+    sprintf(`<a href='%s'>%s</a>`,[html_escape(href), html_escape(text)]), #link
+    html_escape(input.resource.id),
+    html_escape(input.resource.name),
+    html_escape(input.resource.arn),
+    html_escape_printed(input.resource.steps),
     render_vlnrb(vln_list),
     render_sensitive_data(sensitive_data_list),
-    remediation_with_default("No Recommendation"),
-    input.response_policy_name,
-    with_default(input,"application_scope", "none"),
+    html_escape(remediation_with_default("No Recommendation")),
+    html_escape(input.response_policy_name),
+    html_escape_printed(with_default(input,"application_scope", "none")),
     ])
 }
 

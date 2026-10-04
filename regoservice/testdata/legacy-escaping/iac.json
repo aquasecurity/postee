@@ -1,0 +1,17 @@
+{
+ "application_scope": [
+  "s1"
+ ],
+ "misconfiguration_high_count": 1,
+ "postee": {
+  "AquaServer": "https://cloud.aquasec.com/#/images/"
+ },
+ "repository_name": "repo1",
+ "resourceTypeKey": "code-repository",
+ "response_policy_name": "rp1",
+ "sensitive_data_count": 0,
+ "triggered_by": "TRIGGERED_BY_PUSH",
+ "url": "https://aqua.example/repo1",
+ "vulnerability_critical_count": 2,
+ "vulnerability_high_count": 1
+}

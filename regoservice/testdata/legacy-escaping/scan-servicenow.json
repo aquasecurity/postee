@@ -1,0 +1,77 @@
+{
+ "application_scope": [
+  "Global"
+ ],
+ "application_scope_owners": [],
+ "code_repository_unique_properties": {
+  "account_id": "",
+  "repository_id": "",
+  "scm_commit": "",
+  "triggered_by": ""
+ },
+ "customTriggerType": "custom-scan_result",
+ "digest": "sha256:e2e0000000000000000000000000000000000000000000000000000000000006",
+ "image": "e2e/plain-text:1.0",
+ "image_assurance_results": {
+  "checks_performed": [
+   {
+    "control": "max_severity",
+    "failed": true,
+    "policy_name": "Default"
+   }
+  ],
+  "disallowed": true
+ },
+ "issue_unique_properties": {
+  "issue_details": {
+   "issues_uid": ""
+  }
+ },
+ "message_unique_key": "sha256:e2e0000000000000000000000000000000000000000000000000000000000006e2e/plain-text:1.0E2E Registry",
+ "metadata": {
+  "created": "2026-09-30T10:00:00Z",
+  "id": "sha256:e2e0000000000000000000000000000000000000000000000000000000000006",
+  "repo_digests": [
+   "e2e/plain-text@sha256:e2e0000000000000000000000000000000000000000000000000000000000006"
+  ]
+ },
+ "postee": {
+  "AquaServer": "https://cloud.aquasec.com/#/images/E2E%20Registry/e2e%2Fplain-text:1.0/vulns?digest=sha256:e2e0000000000000000000000000000000000000000000000000000000000006"
+ },
+ "registry": "E2E Registry",
+ "resourceTypeKey": "image",
+ "resources": [
+  {
+   "resource": {
+    "name": "openssl",
+    "version": "1.1.1"
+   },
+   "vulnerabilities": [
+    {
+     "aqua_severity": "critical",
+     "fix_version": "1.1.2",
+     "name": "CVE-2024-0001"
+    }
+   ]
+  }
+ ],
+ "response_policy_name": "E2E plain text",
+ "scan_options": {
+  "scan_malware": true,
+  "scan_sensitive_data": true
+ },
+ "scan_result_unique_properties": {
+  "digest": "sha256:e2e0000000000000000000000000000000000000000000000000000000000006",
+  "image": "e2e/plain-text:1.0",
+  "registry": "E2E Registry"
+ },
+ "scan_started": {
+  "nanos": 0,
+  "seconds": 1790000000
+ },
+ "url": "https://cloud.aquasec.com/#/images/E2E%20Registry/e2e%2Fplain-text:1.0/vulns?digest=sha256:e2e0000000000000000000000000000000000000000000000000000000000006",
+ "vulnerability_summary": {
+  "critical": 1,
+  "total": 1
+ }
+}

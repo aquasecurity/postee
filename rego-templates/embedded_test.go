@@ -61,6 +61,28 @@ func TestGetAsDataTemplates(t *testing.T) {
 			},
 		},
 		{
+			name:  "custom fields",
+			input: EmbeddedCustomFields(),
+			expected: []data.Template{
+				{
+					Name:        "fields",
+					RegoPackage: "postee",
+				},
+				{
+					Name:        "incident",
+					RegoPackage: "postee",
+				},
+				{
+					Name:        "issues",
+					RegoPackage: "postee",
+				},
+				{
+					Name:        "vuls",
+					RegoPackage: "postee",
+				},
+			},
+		},
+		{
 			name:     "empty",
 			input:    map[string]string{},
 			expected: []data.Template{},
@@ -132,6 +154,20 @@ func TestEmbeddedCommon(t *testing.T) {
 
 	expected := countRegoFiles(files)
 	actual := len(EmbeddedCommon())
+	if actual != expected {
+		t.Fatalf("for path: '%s' expected templates: %v, actual: %v", path, expected, actual)
+	}
+}
+
+func TestEmbeddedCustomFields(t *testing.T) {
+	path := customFieldsDir
+	files, err := os.ReadDir(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := countRegoFiles(files)
+	actual := len(EmbeddedCustomFields())
 	if actual != expected {
 		t.Fatalf("for path: '%s' expected templates: %v, actual: %v", path, expected, actual)
 	}

@@ -1,0 +1,32 @@
+{
+ "application_scope": [
+  "scope1",
+  "scope2"
+ ],
+ "category": "Test",
+ "cluster": "Cluster-Test",
+ "container": "test-container",
+ "create_time": 0,
+ "data": "{\"host\":\"ubuntu\",\"rule\":\"Test-Default-Policy\",\"level\":\"block\",\"action\":\"test malware delete\",\"hostid\":\"host\",\"hostip\":\"10.100.102.19\",\"reason\":\"Malware detection\",\"result\":2,\"tactic\":\"Defense Evasion, Execution, Privilege Escalation, Initial Access\",\"control\":\"Malware scanning Control\",\"malware\":\"Eicar-Test-Signature\",\"subtype\":\"malware protection\",\"category\":\"malware\",\"resource\":\"/home/usr/tmp/malware/eicar.test\",\"severity\":4,\"rule_type\":\"host.runtime.policy (Test)\",\"technique\":\"Execution Guardrails, Exploit Public Facing Application, Client Execution, Privilege Escalation, Remote Services\",\"k8s_cluster\":\"Cluster-Test\",\"malware_type\":\"Virus\",\"resource_digest\":\"0000\",\"malware_scan_type\":\"file\"}",
+ "deployment": "test-deployment",
+ "event_category": "incident",
+ "host": "ubuntu",
+ "host_group": "Test-Enforcer-Group",
+ "host_id": "test",
+ "host_name": "ubuntu",
+ "hostid": "host",
+ "image": "test/image:latest",
+ "main_category": "malware",
+ "name": "test",
+ "namespace": "default",
+ "postee": {
+  "AquaServer": "https://cloud.aquasec.com/#/images/"
+ },
+ "response_policy_name": "test",
+ "result": 2,
+ "severity": "high",
+ "severity_score": 3,
+ "timestamp": 1790000000000,
+ "type": "Malware",
+ "url": "https://cloud.aquasec.com"
+}

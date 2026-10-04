@@ -59,6 +59,7 @@ func (hc HTTPClient) Send(m map[string]string) (data.OutputResponse, error) {
 		log.Logger.Error(fmt.Errorf("error during HTTP Client execution: %w", err))
 		return data.OutputResponse{}, err
 	}
+	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {

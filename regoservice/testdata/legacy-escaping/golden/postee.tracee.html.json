@@ -1,0 +1,12 @@
+{
+ "assignedGroup": "",
+ "assignedTo": "",
+ "category": "",
+ "date": "",
+ "description": "\n\u003cp\u003e Rule Description: A process used anti debugging techniques \u003c/p\u003e\n\u003cp\u003e Detection: strace \u003c/p\u003e\n\u003cp\u003e MITRE Details: {\"Category\": \"defense-evasion\", \"Severity\": 2, \"Technique\": \"Debugger Evasion\"} \u003c/p\u003e\n\u003cp\u003e Severity: 2 \u003c/p\u003e\n",
+ "severity": "",
+ "subcategory": "",
+ "summary": "",
+ "title": "Tracee Detection - Anti Debugging",
+ "url": ""
+}

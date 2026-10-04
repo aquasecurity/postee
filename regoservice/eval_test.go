@@ -250,6 +250,40 @@ func evaluateExternalRego(t *testing.T, caseDesc string, regoRule *string, input
 	}
 }
 
+// An external template loads the embedded common rules, which define only functions. A value there, or a value of the
+// built-in templates' rules, would be next to the template in the evaluated data and could be taken for it. Go visits
+// map entries in random order, so the template is evaluated many times, also for inputs that look like a result.
+func TestExternalTemplateUnderPosteePackage(t *testing.T) {
+	commonRegoTemplatesSaved := commonRegoTemplates
+	commonRegoTemplates = nil // no directory: the embedded common rules are loaded
+	defer func() {
+		commonRegoTemplates = commonRegoTemplatesSaved
+	}()
+
+	demo, err := BuildExternalRegoEvaluator("rego1.rego", `package postee.rego1
+title := "Audit event received"
+result := sprintf("Audit event received from %s", [input.user])
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputs := []map[string]interface{}{
+		{"user": "demo"},
+		{"user": "demo", "data": `{"result": "blocked"}`, "issue_details": map[string]interface{}{"rule_filter": map[string]interface{}{"result": true}}},
+	}
+	for _, in := range inputs {
+		for i := 0; i < 50; i++ {
+			r, err := demo.Eval(in, "")
+			if err != nil {
+				t.Fatalf("eval %d of %v: %v", i, in, err)
+			}
+			if r["description"] != "Audit event received from demo" {
+				t.Fatalf("eval %d of %v: unexpected description %q", i, in, r["description"])
+			}
+		}
+	}
+}
+
 func parseJson(in *string) map[string]interface{} {
 	r := make(map[string]interface{})
 	if err := json.Unmarshal([]byte(*in), &r); err != nil {

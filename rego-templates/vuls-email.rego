@@ -2,6 +2,7 @@ package postee.vuls.email
 
 import data.postee.by_flag
 import data.postee.with_default
+import data.postee.html_escape
 import future.keywords.if
 
 
@@ -313,7 +314,7 @@ check_failed(item) = true {
 # 2 dimension array for assurance controls
 assurance_controls := [ control |
                     item := input.image_assurance_results.checks_performed[i]
-                    control := [format_int(i+1, 10), item.control,item.policy_name,
+                    control := [format_int(i+1, 10), html_escape(item.control), html_escape(item.policy_name),
                                             by_flag(
                                                 "FAIL",
                                                 "PASS",
@@ -348,13 +349,13 @@ result = msg {
         style,
         logo,
         report_type,
-        reportEntityName,
+        html_escape(reportEntityName),
         by_flag( # Malware found
             "Yes",
             "No",
             with_default(input.vulnerability_summary, "malware", 0) > 0 #reflects current logic
         ),
-        input.registry,
+        html_escape(input.registry),
         by_flag( # Sensitive data found
             "Yes",
             "No",
@@ -365,14 +366,14 @@ result = msg {
             sprintf("%s is compliant", [report_type]),
             with_default(input.image_assurance_results, "disallowed", false)
         ),
-        with_default(input.vulnerability_summary, "critical", 0),
-        with_default(input.vulnerability_summary, "high", 0),
-        with_default(input.vulnerability_summary, "medium", 0),
-        with_default(input.vulnerability_summary, "low", 0),
-        with_default(input.vulnerability_summary, "negligible", 0),
+        html_escape(with_default(input.vulnerability_summary, "critical", 0)),
+        html_escape(with_default(input.vulnerability_summary, "high", 0)),
+        html_escape(with_default(input.vulnerability_summary, "medium", 0)),
+        html_escape(with_default(input.vulnerability_summary, "low", 0)),
+        html_escape(with_default(input.vulnerability_summary, "negligible", 0)),
         render_table_content(assurance_controls),
-        input.response_policy_name,
-        concat(", ", with_default(input, "application_scope", [])),
-        with_default(input, "url", ""),
+        html_escape(input.response_policy_name),
+        html_escape(concat(", ", with_default(input, "application_scope", []))),
+        html_escape(with_default(input, "url", "")),
     ])
 }

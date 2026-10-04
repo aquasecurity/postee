@@ -2,6 +2,9 @@ package postee.iac.servicenow
 
 import data.postee.by_flag
 import data.postee.with_default
+import data.postee.html_escape
+import data.postee.html_escape_printed
+import data.postee.unquoted_href
 import data.postee.severity_as_string
 import data.postee.triggered_by_as_string
 import data.postee.is_critical_or_high_vuln
@@ -85,8 +88,9 @@ to_cell(txt, column_width) = c {
     c:= sprintf(cell_tpl, [column_width, txt])
 }
 
+# txt is the count that number_of_vulns prints with %d. A string count would print as text, so escape it.
 to_colored_text(color, txt) = spn {
-    spn :=sprintf(colored_text_tpl, [color, txt])
+    spn :=sprintf(colored_text_tpl, [color, html_escape(txt)])
 }
 
 ####################################### Template specific functions #######################################
@@ -128,12 +132,12 @@ result = msg {
 
     msg := sprintf(html_tpl, [
     triggered_by_as_string(with_default(input, "triggered_by", "")),
-    input.repository_name,
-    input.url, input.url,
+    html_escape(input.repository_name),
+    unquoted_href(input.url), html_escape(input.url),
     render_table([], severities_stats("vulnerability"), "50%"),
     render_table([], severities_stats("misconfiguration"), "50%"),
     render_table([], severities_stats("pipeline_misconfiguration"), "50%"),
-    with_default(input, "response_policy_name", "none"),
-    with_default(input, "application_scope", "none")
+    html_escape(with_default(input, "response_policy_name", "none")),
+    html_escape_printed(with_default(input, "application_scope", "none"))
     ])
 }
