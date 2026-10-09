@@ -16,7 +16,12 @@ const (
 
 var (
 	sizeRegex = regexp.MustCompile(`^(\d+) ?([kKmMgG]?[bB]?)$`)
-	suffixes  = map[string]int{"b": B, "kb": KB, "mb": MB, "gb": GB}
+	suffixes  = map[string]int{
+		"b": B,
+		"k": KB, "kb": KB,
+		"m": MB, "mb": MB,
+		"g": GB, "gb": GB,
+	}
 
 	parseError = "unable parse MaxDBSize, unlimited size used"
 )
@@ -35,7 +40,11 @@ func parseSize(sizeStr string) int {
 			return 0
 		}
 		if matches[2] != "" {
-			suffix := suffixes[strings.ToLower(matches[2])]
+			suffix, ok := suffixes[strings.ToLower(matches[2])]
+			if !ok {
+				log.Println(parseError)
+				return 0
+			}
 			return size * suffix
 		} else {
 			return size
