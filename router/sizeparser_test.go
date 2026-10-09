@@ -49,6 +49,21 @@ func TestParseSize(t *testing.T) {
 			wantSize:   6,
 		},
 		{
+			name:       "happy path(bare suffix 'k' is used)",
+			sizeString: "2k",
+			wantSize:   2 * KB,
+		},
+		{
+			name:       "happy path(bare suffix 'm' is used)",
+			sizeString: "3m",
+			wantSize:   3 * MB,
+		},
+		{
+			name:       "happy path(bare suffix 'G' is used)",
+			sizeString: "4G",
+			wantSize:   4 * GB,
+		},
+		{
 			name:       "sad path(suffix 'tb' is used)",
 			sizeString: "7TB",
 			wantSize:   0,
