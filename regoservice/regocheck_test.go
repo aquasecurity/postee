@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -106,4 +107,70 @@ func TestGetFilesWithPathToRegoFilters(t *testing.T) {
 	}
 
 	PathToRegoFilters = oldPathToRegoFilters
+}
+
+func TestDoesMatchRegoCriteriaInlineRuleCache(t *testing.T) {
+	match := map[string]interface{}{"image": "alpine"}
+	other := map[string]interface{}{"image": "ubuntu"}
+	ruleA := `input.image == "alpine"`
+	ruleB := `input.image == "ubuntu"`
+
+	for i := 0; i < 3; i++ {
+		if ok, err := DoesMatchRegoCriteria(match, nil, ruleA); err != nil || !ok {
+			t.Fatalf("rule A on alpine: ok=%v err=%v", ok, err)
+		}
+		if ok, err := DoesMatchRegoCriteria(other, nil, ruleA); err != nil || ok {
+			t.Fatalf("rule A on ubuntu: ok=%v err=%v", ok, err)
+		}
+		if ok, err := DoesMatchRegoCriteria(other, nil, ruleB); err != nil || !ok {
+			t.Fatalf("rule B on ubuntu: ok=%v err=%v", ok, err)
+		}
+	}
+
+	if _, err := DoesMatchRegoCriteria(match, nil, `input.image ==`); err == nil {
+		t.Fatal("invalid rule: expected an error")
+	}
+	if _, err := DoesMatchRegoCriteria(match, nil, `input.image ==`); err == nil {
+		t.Fatal("invalid rule, second call: expected an error")
+	}
+}
+
+func TestDoesMatchRegoCriteriaInlineRuleCompilesOnce(t *testing.T) {
+	in := map[string]interface{}{"image": "alpine"}
+	rule := `input.image == "alpine" # compiles-once`
+	before := inlineRuleCompiles.Load()
+	for i := 0; i < 5; i++ {
+		if ok, err := DoesMatchRegoCriteria(in, nil, rule); err != nil || !ok {
+			t.Fatalf("ok=%v err=%v", ok, err)
+		}
+	}
+	if got := inlineRuleCompiles.Load() - before; got != 1 {
+		t.Fatalf("rule compiled %d times over 5 calls, want 1", got)
+	}
+}
+
+func TestDoesMatchRegoCriteriaInlineRuleConcurrent(t *testing.T) {
+	in := map[string]interface{}{"image": "alpine"}
+	rule := `input.image == "alpine" # concurrent`
+	before := inlineRuleCompiles.Load()
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := 0; i < 16; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			for j := 0; j < 20; j++ {
+				if ok, err := DoesMatchRegoCriteria(in, nil, rule); err != nil || !ok {
+					t.Errorf("ok=%v err=%v", ok, err)
+					return
+				}
+			}
+		}()
+	}
+	close(start)
+	wg.Wait()
+	if got := inlineRuleCompiles.Load() - before; got != 1 {
+		t.Fatalf("rule compiled %d times by concurrent first calls, want 1", got)
+	}
 }

@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	"github.com/open-policy-agent/opa/rego"
 )
@@ -24,6 +26,14 @@ const (
 )
 
 var PathToRegoFilters = ""
+
+// inlineRuleQueries holds the prepared query per inline rule text, so a route
+// filter is compiled once instead of on every message.
+var (
+	inlineRuleMu       sync.Mutex
+	inlineRuleQueries  = map[string]rego.PreparedEvalQuery{}
+	inlineRuleCompiles atomic.Int64
+)
 
 func getFilesWithPathToRegoFilters(files []string) []string {
 	if PathToRegoFilters == "" {
@@ -60,6 +70,28 @@ func buildRegoLoader(files []string, rule string) func(r *rego.Rego) {
 func IsUsedRegoFiles(files []string) bool {
 	return len(files) != 0 && files[0] != ""
 }
+func preparedQuery(ctx context.Context, files []string, rule string) (rego.PreparedEvalQuery, error) {
+	// Filter files are re-read on every call so edits on disk take effect.
+	cacheable := !IsUsedRegoFiles(files)
+	if cacheable {
+		inlineRuleMu.Lock()
+		defer inlineRuleMu.Unlock()
+		if q, ok := inlineRuleQueries[rule]; ok {
+			return q, nil
+		}
+	}
+
+	query, err := rego.New(
+		rego.Query("x = data.postee.allow"),
+		buildRegoLoader(files, rule),
+	).PrepareForEval(ctx)
+	if err == nil && cacheable {
+		inlineRuleCompiles.Add(1)
+		inlineRuleQueries[rule] = query
+	}
+	return query, err
+}
+
 func DoesMatchRegoCriteria(input interface{}, files []string, rule string) (bool, error) {
 	if !IsUsedRegoFiles(files) && rule == "" {
 		return true, nil
@@ -67,12 +99,7 @@ func DoesMatchRegoCriteria(input interface{}, files []string, rule string) (bool
 
 	ctx := context.Background()
 
-	r := rego.New(
-		rego.Query("x = data.postee.allow"),
-		buildRegoLoader(files, rule),
-	)
-
-	query, err := r.PrepareForEval(ctx)
+	query, err := preparedQuery(ctx, files, rule)
 	if err != nil {
 		return false, err
 	}
